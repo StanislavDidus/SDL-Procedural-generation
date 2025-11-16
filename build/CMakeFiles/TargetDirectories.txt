@@ -1,0 +1,3 @@
+C:/GitHubProjects/SDL-Procedural-generation/build/CMakeFiles/test.dir
+C:/GitHubProjects/SDL-Procedural-generation/build/CMakeFiles/ALL_BUILD.dir
+C:/GitHubProjects/SDL-Procedural-generation/build/CMakeFiles/ZERO_CHECK.dir
