@@ -1,12 +1,55 @@
+#include <SDL3/SDL.h>
 #include <iostream>
+#include <chrono>
 
-#include "header.hpp"
+#include "Window.hpp"
+#include "Renderer.hpp"
+#include "Game.hpp"
 
 int main()
 {
-	std::cout << "Program was initialized successfully!" << std::endl;
+    if (!SDL_Init(SDL_INIT_VIDEO))
+    {
+        std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << std::endl;
+        return SDL_APP_FAILURE;
+    }
 
-	countFrom1To10();
+    Window window{ "First SDL program", 960, 540, 0 };
+    Renderer renderer{ window };
+    Game game{ renderer };
 
-	return 0;
+    float dt = 0.f;
+    bool running = true;
+    while (running)
+    {
+        const auto start = std::chrono::steady_clock::now();
+
+        //Do everything here
+        SDL_Event event;
+        while (window.pollEvent(event))
+        {
+            switch (event.type)
+            {
+            case SDL_EVENT_QUIT:
+                running = false;
+                break;
+            case SDL_EVENT_KEY_DOWN:
+                if (event.key.key == SDLK_ESCAPE)
+                    running = false;
+                break;
+            }
+        }
+
+        renderer.clear(Color::BLACK);
+
+        game.update(dt);
+
+        renderer.update(dt);
+
+        const auto finish = std::chrono::steady_clock::now();   
+        const std::chrono::duration<double> elapsed_seconds{ finish - start };
+        dt = static_cast<float>(elapsed_seconds.count());
+    }
+
+    return 0;
 }

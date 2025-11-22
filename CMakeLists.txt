@@ -2,9 +2,43 @@ cmake_minimum_required(VERSION 3.15...4.2.0)
 
 project(SDL_PRO_GEN VERSION 1.0
     DESCRIPTION "Small SDL procedural generation game"
-    LANGUAGES CXX)
+    LANGUAGES C CXX)
 
-add_executable(test src/main.cpp inc/header.hpp)
+add_subdirectory(EXTERN extern)
 
-target_include_directories(test PUBLIC inc)
-target_compile_features(test PUBLIC cxx_std_11)
+set(SOURCE_FILES 
+    "src/Game.cpp"
+    "src/main.cpp" 
+    "src/Renderer.cpp"
+    "src/Sprite.cpp"
+    "src/Surface.cpp"
+    "src/Window.cpp"
+    )
+
+set(HEADER_FILES
+    "inc/Game.hpp"
+    "inc/Renderer.hpp"
+    "inc/Sprite.hpp"
+    "inc/Surface.hpp"
+    "inc/Window.hpp"
+    )
+
+set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
+
+
+
+add_executable(SDL_PRO_GEN ${ALL_FILES})
+
+add_custom_command(
+    TARGET SDL_PRO_GEN POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_SOURCE_DIR}/assets"
+            "${CMAKE_BINARY_DIR}/assets"
+)
+
+target_include_directories(SDL_PRO_GEN PUBLIC inc)
+target_link_libraries(SDL_PRO_GEN PRIVATE SDL3::SDL3-static)
+
+target_link_libraries(SDL_PRO_GEN PRIVATE glm::glm)
+
+target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_17)
