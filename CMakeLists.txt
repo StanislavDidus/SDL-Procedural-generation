@@ -5,27 +5,18 @@ project(SDL_PRO_GEN VERSION 1.0
     LANGUAGES C CXX)
 
 add_subdirectory(EXTERN extern)
+add_subdirectory(GRAPHICS graphics)
 
 set(SOURCE_FILES 
     "src/Game.cpp"
     "src/main.cpp" 
-    "src/Renderer.cpp"
-    "src/Sprite.cpp"
-    "src/Surface.cpp"
-    "src/Window.cpp"
     )
 
 set(HEADER_FILES
     "inc/Game.hpp"
-    "inc/Renderer.hpp"
-    "inc/Sprite.hpp"
-    "inc/Surface.hpp"
-    "inc/Window.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
-
-
 
 add_executable(SDL_PRO_GEN ${ALL_FILES})
 
@@ -37,8 +28,7 @@ add_custom_command(
 )
 
 target_include_directories(SDL_PRO_GEN PUBLIC inc)
-target_link_libraries(SDL_PRO_GEN PRIVATE SDL3::SDL3-static)
 
-target_link_libraries(SDL_PRO_GEN PRIVATE glm::glm)
+target_link_libraries(SDL_PRO_GEN PUBLIC SDL3::SDL3-static graphics glm::glm)
 
 target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_17)

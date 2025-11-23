@@ -17,13 +17,13 @@ Sprite::Sprite(Renderer& renderer, const Surface& surface, const glm::vec2& fram
 	if (frame_size == glm::vec2{ 0.f, 0.f })
 	{
 		sprite_rect = { 0.f, 0.f, texture_size.x, texture_size.y };
-		frames = 1;
+		max_frames = 1;
 	}
 	else
 	{
 		columns = texture_size.x / frame_size.x;
 		int raws = texture_size.y / frame_size.y;
-		frames = raws * columns;
+		max_frames = raws * columns;
 
 		setSpriteRect();
 	}
@@ -37,7 +37,7 @@ Sprite::~Sprite()
 void Sprite::setFrame(int frame)
 {
 	current_frame = frame;
-	current_frame = std::fmodf(current_frame, frames);
+	current_frame = std::fmodf(current_frame, max_frames);
 
 	setSpriteRect();
 }

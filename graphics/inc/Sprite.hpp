@@ -29,7 +29,7 @@ private:
 	glm::vec2 frame_size {0.f, 0.f};
 	SDL_FRect sprite_rect{ 0.f, 0.f, 0.f, 0.f };
 	int columns = 0;
-	int frames = 0;
+	int max_frames = 0;
 	int current_frame = 0;
 
 	glm::vec2 texture_size {0.f, 0.f};

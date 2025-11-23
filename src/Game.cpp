@@ -1,5 +1,6 @@
 #include "Game.hpp"
 #include <iostream>
+#include <queue>
 
 Game::Game(Renderer& screen)
 	: screen(screen)
@@ -35,4 +36,14 @@ void Game::update(float dt)
 	screen.drawUI(background, 0.f, 0.f, 400.f, 400.f);
 	player.setFrame(12);
 	screen.drawScaledSprite(player, window_size.x / 2 - player_size.x / 2, window_size.y / 2 - player_size.y / 2, player_size.x, player_size.y);
+
+	std::priority_queue<int, std::vector<int>, std::less<int>> renderables;
+
+	struct Renderable
+	{
+		int layer;
+		std::function<void()> render_function;
+	};
+
+	renderables.push({5, player.render()});
 }
