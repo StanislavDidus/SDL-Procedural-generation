@@ -8,6 +8,7 @@ class Sprite;
 
 struct Color
 {
+	Color() = default;
 	Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) : r(r), g(g), b(b), a(a) {}
 	Color(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b), a(255) {}
 	Color(const Color& color) : r(color.r), g(color.g), b(color.b), a(color.a) {}
@@ -35,6 +36,8 @@ struct Color
 	uint8_t a;
 
 	static const Color BLACK;
+	static const Color GREY;
+	static const Color WHITE;
 	static const Color RED;
 	static const Color GREEN;
 	static const Color BLUE;
@@ -58,6 +61,7 @@ public:
 	void setView(const glm::vec2& view_position);
 
 	//Getters
+	const glm::vec2& getView() const;
 	SDL_Renderer* getRenderer() const;
 	const glm::ivec2& getWindowSize() const;
 

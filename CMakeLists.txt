@@ -6,14 +6,20 @@ project(SDL_PRO_GEN VERSION 1.0
 
 add_subdirectory(EXTERN extern)
 add_subdirectory(GRAPHICS graphics)
+add_subdirectory(NOISE noise)
 
 set(SOURCE_FILES 
     "src/Game.cpp"
     "src/main.cpp" 
+    "src/Biomes.cpp"
+    "src/TileMap.cpp"
     )
 
 set(HEADER_FILES
     "inc/Game.hpp"
+    "inc/Biomes.hpp"
+    "inc/TileMap.hpp"
+    "inc/Tile.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
@@ -29,6 +35,11 @@ add_custom_command(
 
 target_include_directories(SDL_PRO_GEN PUBLIC inc)
 
-target_link_libraries(SDL_PRO_GEN PUBLIC SDL3::SDL3-static graphics glm::glm)
+target_link_libraries(
+    SDL_PRO_GEN PUBLIC
+    SDL3::SDL3-static
+    graphics 
+    glm::glm noise
+)
 
 target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_17)

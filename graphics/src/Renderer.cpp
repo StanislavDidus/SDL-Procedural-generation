@@ -3,6 +3,8 @@
 #include <iostream>
 
 const Color Color::BLACK(0, 0, 0);
+const Color Color::GREY(128,128,128);
+const Color Color::WHITE(255, 255, 255);
 const Color Color::RED{ 255,0,0 };
 const Color Color::GREEN{ 0,255,0 };
 const Color Color::BLUE{ 0,0,255 };
@@ -13,6 +15,8 @@ Renderer::Renderer(Window& window) : window(window)
 	renderer = SDL_CreateRenderer(window.getWindow(), nullptr);
 
 	std::cout << "Renderer was created" << std::endl;
+
+	SDL_SetRenderVSync(renderer, 0);
 }
 
 Renderer::~Renderer()
@@ -25,6 +29,11 @@ Renderer::~Renderer()
 void Renderer::setView(const glm::vec2& view_position)
 {
 	this->view_position = view_position;
+}
+
+const glm::vec2& Renderer::getView() const
+{
+	return view_position;
 }
 
 SDL_Renderer* Renderer::getRenderer() const
