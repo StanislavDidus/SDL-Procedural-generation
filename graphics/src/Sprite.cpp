@@ -22,8 +22,8 @@ Sprite::Sprite(Renderer& renderer, const Surface& surface, const glm::vec2& fram
 	else
 	{
 		columns = texture_size.x / frame_size.x;
-		int raws = texture_size.y / frame_size.y;
-		max_frames = raws * columns;
+		int rows = texture_size.y / frame_size.y;
+		max_frames = rows * columns;
 
 		setSpriteRect();
 	}

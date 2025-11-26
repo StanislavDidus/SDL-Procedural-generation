@@ -20,7 +20,7 @@ Game::Game(Renderer& screen)
 	, background(screen, Surface{ "assets/Sprites/bg1.png" })
 	, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
 	, tileset(screen, Surface{ "assets/Sprites/tileset.png" }, { 16.f, 16.f }, SDL_SCALEMODE_NEAREST)
-	, tilemap(tileset, 960.f, 540.f, 10.f, 17.8f)
+	, tilemap(tileset, 960.f, 540.f, 75.f, 100.f)
 {
 	std::cout << "Game was created" << std::endl;
 
@@ -42,7 +42,8 @@ Game::Game(Renderer& screen)
 	forest.seed = master_seed;
 	forest.strength = 1.f;
 	forest.height_multiplier = 1.f;
-	forest.color = Color::GREEN;
+	//forest.color = Color::GREEN;
+	forest.tile_id = 8;
 	biomes.push_back(forest);
 
 	Biome desert;
@@ -54,7 +55,8 @@ Game::Game(Renderer& screen)
 	desert.seed = desert_seed;
 	desert.strength = 0.9f;
 	desert.height_multiplier = .9f;
-	desert.color = Color::YELLOW;
+	//desert.color = Color::YELLOW;
+	desert.tile_id = 11;
 	biomes.push_back(desert);
 
 	Biome mountain;
@@ -66,7 +68,8 @@ Game::Game(Renderer& screen)
 	mountain.seed = mountain_seed;
 	mountain.strength = 1.f;
 	mountain.height_multiplier = 3.f;
-	mountain.color = Color::GREY;
+	//mountain.color = Color::GREY;
+	mountain.tile_id = 30;
 	biomes.push_back(mountain);
 
 	Biome ocean;
@@ -78,7 +81,8 @@ Game::Game(Renderer& screen)
 	ocean.seed = temperature_seed;
 	ocean.strength = 1.f;
 	ocean.height_multiplier = 0.1f;
-	ocean.color = Color::BLUE;
+	//ocean.color = Color::BLUE;
+	ocean.tile_id = 6;
 	biomes.push_back(ocean);
 
 	//Tileset
@@ -86,7 +90,7 @@ Game::Game(Renderer& screen)
 
 	for (int i = 0; i < 18; i++)
 	{
-		tilemap.setTile(8, 9, i);
+		//tilemap.setTile(8, 9, i);
 	}
 }
 
@@ -112,60 +116,65 @@ void Game::update(float dt)
 	player.setFrame(12);
 	screen.drawScaledSprite(player, window_size.x / 2 - player_size.x / 2, window_size.y / 2 - player_size.y / 2, player_size.x, player_size.y);*/
 
-	//auto& window_size = screen.getWindowSize();
+	tilemap.clear();
 
-	//screen.setView(view_position);
+	auto& window_size = screen.getWindowSize();
 
-	//int screen_y_offset = 200;
+	screen.setView(view_position);
 
-	//float hugeMountainBeginX = 600.f;
-	//float hugeMountainEndX = 800.f;
+	int screen_y_offset = 200;
 
-	//bool was_desert = false;
-	//for (float x = view_position.x; x < window_size.x + view_position.x; x += .1f)
-	//{
-	//	float x_slope = Noise::fractal1D(noise, 2, x * scale, 1.1f, 1.1f, cliff_seed);
-	//	float moisture = Noise::fractal1D(noise, 1, x * scale, 0.8f, 0.9f, moisture_seed);
-	//	float temperature = Noise::fractal1D(noise, 1, x * scale, 0.7f, 0.7f, temperature_seed);
+	float hugeMountainBeginX = 600.f;
+	float hugeMountainEndX = 800.f;
 
-	//	Color color = Color::WHITE;
-	//	float max_weight = -1.f;
-	//	int max_weight_index = -1;
+	bool was_desert = false;
+	for (float x = view_position.x / tilemap.getTileSize().x; x < 100.f + view_position.x / tilemap.getTileSize().x; x += 1.f)
+	{
+		float x_slope = Noise::fractal1D(noise, 2, x * scale, 1.1f, 1.1f, cliff_seed);
+		float moisture = Noise::fractal1D(noise, 1, x * scale, 0.8f, 0.9f, moisture_seed);
+		float temperature = Noise::fractal1D(noise, 1, x * scale, 0.7f, 0.7f, temperature_seed);
+
+		float max_weight = -1.f;
+		int max_weight_index = -1;
 
 
-	//	float combined_height = 0.f;
-	//	float combined_weight = 0.f; 
-	//	for (int i = 0; i < biomes.size(); i++)
-	//	{
-	//		const auto& biome = biomes[i];
+		float combined_height = 0.f;
+		float combined_weight = 0.f; 
+		for (int i = 0; i < biomes.size(); i++)
+		{
+			const auto& biome = biomes[i];
 
-	//		//float height = Noise::fractal1D(noise, 3, x * scale, biome.frequency, biome.amplitude, biome.seed) * biome.height_multiplier;
-	//		float weight = biome.weight(temperature, moisture) * biome.strength;
-	//		float height = Noise::fractal1D(noise, 3, x* scale, biome.frequency, biome.amplitude, biome.seed) * biome.height_multiplier;
+			//float height = Noise::fractal1D(noise, 3, x * scale, biome.frequency, biome.amplitude, biome.seed) * biome.height_multiplier;
+			float weight = biome.weight(temperature, moisture) * biome.strength;
+			float height = Noise::fractal1D(noise, 3, x * scale, biome.frequency, biome.amplitude, biome.seed) * biome.height_multiplier;
 
-	//		combined_height += height * weight;
-	//		combined_weight += weight;
+			combined_height += height * weight;
+			combined_weight += weight;
 
-	//		if (weight > max_weight)
-	//		{
-	//			max_weight = weight;
-	//			max_weight_index = i;
-	//		}
-	//	}
-	//	combined_height /= combined_weight;
-	//	color = biomes[max_weight_index].color;
+			if (weight > max_weight)
+			{
+				max_weight = weight;
+				max_weight_index = i;
+			}
+		}
+		combined_height /= combined_weight;
+		int tile_id = biomes[max_weight_index].tile_id;
 
-	//	//Draw offset
-	//	int x_offset = static_cast<int>(mapRange(x_slope, 0.f, 1.f, -25.f, 25.f));
-	//	int y_offset = static_cast<int>(mapRange(combined_height, 0.f, 1.f, -150.f, 150.f));
+		//Draw offset
+		int x_offset = static_cast<int>(mapRange(x_slope, 0.f, 1.f, -25.f, 25.f));
+		int y_offset = static_cast<int>(mapRange(combined_height, 0.f, 1.f, -25.f, 25.f));
 
-	//	//assert(between(blend_height, 0.f, 1.f));
-	//	
-	//	//Render
-	//	screen.drawPoint(static_cast<int>(x) + x_offset, screen_y_offset - y_offset, color);
-	//}
+		//assert(between(blend_height, 0.f, 1.f));
+		
+		//Render
+		//screen.drawPoint(static_cast<int>(x) + x_offset, screen_y_offset - y_offset, Color::WHITE);
+
+		tilemap.setTile(tile_id, y_offset, x);
+	}
 
 	tilemap.render(screen);
+
+	//std::cout << scale << "\n";
 }
 
 void Game::generateSeed()

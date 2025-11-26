@@ -1,10 +1,10 @@
 #include "TileMap.hpp"
 #include "Sprite.hpp"
 
-TileMap::TileMap(Sprite& tileset, float width, float height, float raws, float columns) : tileset(tileset), tile_width(width / columns), tile_height(height / raws)
+TileMap::TileMap(Sprite& tileset, float width, float height, float rows, float columns) : tileset(tileset), tile_width(width / columns), tile_height(height / rows)
 {
-	float max_tiles = raws * columns;
-	tiles.reserve(max_tiles);
+	float max_tiles = rows * columns;
+	tiles.reserve(static_cast<size_t>(max_tiles));
 }
 
 TileMap::~TileMap()
@@ -18,13 +18,23 @@ void TileMap::render(Renderer& screen)
 		tileset.setFrame(tile.index);
 
 		float x = tile.column * tile_width;
-		float y = tile.raw * tile_height;
+		float y = tile.row * tile_height;
 
 		screen.drawScaledSprite(tileset, x, y, tile_width, tile_height);
 	}
 }
 
-void TileMap::setTile(int index, int raw, int column)
+void TileMap::setTile(int index, int row, int column)
 {
-	tiles.emplace_back(index, raw, column);
+	tiles.emplace_back(index, row, column);
+}
+
+glm::vec2 TileMap::getTileSize() const
+{
+	return { tile_width, tile_height };
+}
+
+void TileMap::clear()
+{
+	tiles.clear();
 }

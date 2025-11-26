@@ -2,9 +2,9 @@
 
 struct Tile
 {
-	Tile(int index, int raw, int column) : index(index), raw(raw), column(column) {}
+	Tile(int index, int row, int column) : index(index), row(row), column(column) {}
 
 	int index;
-	int raw;
+	int row;
 	int column;
 };

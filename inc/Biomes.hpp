@@ -19,7 +19,7 @@ public:
 	std::string name;
 	float temperature;
 	float moisture;
-	Color color;
+	int tile_id;
 
 	float frequency;
 	float amplitude;

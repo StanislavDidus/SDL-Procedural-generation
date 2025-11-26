@@ -19,7 +19,7 @@ public:
 
 	void generateSeed();
 
-	float scale = 0.006f;
+	float scale = 0.02f;
 	float cliffScale = 0.f;
 	float cliffAmplitude = 0.f;
 
@@ -42,4 +42,7 @@ private:
 	uint32_t moisture_seed = 0;
 
 	TileMap tilemap;
+
+	float tilemap_raws = 10.f;
+	float tilemap_columns = 10.f;
 };
