@@ -5,13 +5,18 @@
 
 #include "Sprite.hpp"
 #include "glm/glm.hpp"
+#include "Renderer.hpp"
 
 class SpriteSheet
 {
 public:
-	SpriteSheet(const Surface& surface, std::vector<glm::vec4> sprite_rects);
-	SpriteSheet(const Surface& surface, const glm::vec2& sprite_rect);
+	SpriteSheet(Renderer& renderer, const Surface& surface, std::vector<SDL_FRect> sprite_rects, SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR);
+	SpriteSheet(Renderer& renderer, const Surface& surface, const glm::vec2& sprite_size, SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR);
 	~SpriteSheet();
+
+	const Sprite& operator[](int index) const { return sprites[index]; };
 private:
 	std::vector<Sprite> sprites;
+
+	SDL_Texture* texture = nullptr;
 };

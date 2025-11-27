@@ -17,8 +17,8 @@ static float mapRange(float x, float inMin, float inMax, float outMin, float out
 
 Game::Game(Renderer& screen)
 	: screen(screen)
-	, background(screen, Surface{ "assets/Sprites/bg1.png" })
-	, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
+	//, background(screen, Surface{ "assets/Sprites/bg1.png" }, {320.f, 180.f})
+	//, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
 	, tileset(screen, Surface{ "assets/Sprites/tileset.png" }, { 16.f, 16.f }, SDL_SCALEMODE_NEAREST)
 	, tilemap(tileset, 960.f, 540.f, 75.f, 100.f)
 {
@@ -37,12 +37,12 @@ Game::Game(Renderer& screen)
 	forest.name = "Forest";
 	forest.temperature = 0.4f;
 	forest.moisture = .4f;
-	forest.frequency = 0.8f;
-	forest.amplitude = 0.9f;
+	forest.frequency = 0.9f;
+	forest.amplitude = 0.7f;
 	forest.seed = master_seed;
 	forest.strength = 1.f;
-	forest.height_multiplier = 1.f;
-	//forest.color = Color::GREEN;
+	forest.height_multiplier = 1.3f;
+	forest.octaves = 2;
 	forest.tile_id = 8;
 	biomes.push_back(forest);
 
@@ -55,35 +55,35 @@ Game::Game(Renderer& screen)
 	desert.seed = desert_seed;
 	desert.strength = 0.9f;
 	desert.height_multiplier = .9f;
-	//desert.color = Color::YELLOW;
+	desert.octaves = 1;
 	desert.tile_id = 11;
 	biomes.push_back(desert);
 
 	Biome mountain;
 	mountain.name = "Mountain";
 	mountain.temperature = 0.2f;
-	mountain.moisture = 0.5f;
-	mountain.frequency = 1.2f;
-	mountain.amplitude = 3.1f;
+	mountain.moisture = 0.4f;
+	mountain.frequency = 2.1f;
+	mountain.amplitude = 5.1f;
 	mountain.seed = mountain_seed;
 	mountain.strength = 1.f;
-	mountain.height_multiplier = 3.f;
-	//mountain.color = Color::GREY;
+	mountain.height_multiplier = 4.5f;
+	mountain.octaves = 5;
 	mountain.tile_id = 30;
 	biomes.push_back(mountain);
 
-	Biome ocean;
-	ocean.name = "Ocean";
-	ocean.temperature = 0.5f;
-	ocean.moisture = 1.f;
-	ocean.frequency = .9f;
-	ocean.amplitude = 1.5f;
-	ocean.seed = temperature_seed;
-	ocean.strength = 1.f;
-	ocean.height_multiplier = 0.1f;
-	//ocean.color = Color::BLUE;
-	ocean.tile_id = 6;
-	biomes.push_back(ocean);
+	Biome snow;
+	snow.name = "Snow";
+	snow.temperature = 0.1f;
+	snow.moisture = 0.6f;
+	snow.frequency = .8f;
+	snow.amplitude = 1.f;
+	snow.seed = temperature_seed;
+	snow.strength = .9f;
+	snow.octaves = 2;
+	snow.height_multiplier = 0.1f;
+	snow.tile_id = 6;
+	biomes.push_back(snow);
 
 	//Tileset
 	//tilemap.setTile(8, 0, 0);
@@ -99,40 +99,30 @@ Game::~Game()
 	std::cout << "Game was deleted" << std::endl;
 }
 
+float zoom = 1.f;
+
 void Game::update(float dt)
 {
-	/*angle += dt * 15.f;
-	view_pos_x += dt * 25.f;
+	zoom += dt * .5f;
 
-	screen.setView({view_pos_x, 0.f});
-
-
-	glm::ivec2 player_size = { window_size.x / 2.f, window_size.y / 1.f };
-
-	screen.drawLine(0, 0, window_size.x, window_size.y, Color::RED);
-	screen.drawRectangle(1.f, 1.f, 200.f, 150.f, RenderType::FILL, Color::YELLOW);
-	screen.drawPoint(400, 250, Color::BLUE);
-	screen.drawUI(background, 0.f, 0.f, 400.f, 400.f);
-	player.setFrame(12);
-	screen.drawScaledSprite(player, window_size.x / 2 - player_size.x / 2, window_size.y / 2 - player_size.y / 2, player_size.x, player_size.y);*/
-
-	tilemap.clear();
+	screen.setZoom(zoom);
 
 	auto& window_size = screen.getWindowSize();
-
+	int screen_y_offset = 200;
+	
+	float tile_width = tilemap.getTileSize().x;
+	float begin = std::floor(view_position.x / tile_width);
+	float end = std::ceil(view_position.x / tile_width);
+	
 	screen.setView(view_position);
 
-	int screen_y_offset = 200;
-
-	float hugeMountainBeginX = 600.f;
-	float hugeMountainEndX = 800.f;
-
-	bool was_desert = false;
-	for (float x = view_position.x / tilemap.getTileSize().x; x < 100.f + view_position.x / tilemap.getTileSize().x; x += 1.f)
+	tilemap.clear();
+	
+	for (float x = begin; x < 100.f + end; x += 1.f)
 	{
 		float x_slope = Noise::fractal1D(noise, 2, x * scale, 1.1f, 1.1f, cliff_seed);
-		float moisture = Noise::fractal1D(noise, 1, x * scale, 0.8f, 0.9f, moisture_seed);
-		float temperature = Noise::fractal1D(noise, 1, x * scale, 0.7f, 0.7f, temperature_seed);
+		float moisture = Noise::fractal1D(noise, 1, x * scale, 0.8f, 1.05f, moisture_seed);
+		float temperature = Noise::fractal1D(noise, 1, x * scale, 0.85f, 1.1f, temperature_seed);
 
 		float max_weight = -1.f;
 		int max_weight_index = -1;
@@ -144,9 +134,8 @@ void Game::update(float dt)
 		{
 			const auto& biome = biomes[i];
 
-			//float height = Noise::fractal1D(noise, 3, x * scale, biome.frequency, biome.amplitude, biome.seed) * biome.height_multiplier;
 			float weight = biome.weight(temperature, moisture) * biome.strength;
-			float height = Noise::fractal1D(noise, 3, x * scale, biome.frequency, biome.amplitude, biome.seed) * biome.height_multiplier;
+			float height = biome.height<ValueNoise>(x * scale);
 
 			combined_height += height * weight;
 			combined_weight += weight;
@@ -163,11 +152,6 @@ void Game::update(float dt)
 		//Draw offset
 		int x_offset = static_cast<int>(mapRange(x_slope, 0.f, 1.f, -25.f, 25.f));
 		int y_offset = static_cast<int>(mapRange(combined_height, 0.f, 1.f, -25.f, 25.f));
-
-		//assert(between(blend_height, 0.f, 1.f));
-		
-		//Render
-		//screen.drawPoint(static_cast<int>(x) + x_offset, screen_y_offset - y_offset, Color::WHITE);
 
 		tilemap.setTile(tile_id, y_offset, x);
 	}

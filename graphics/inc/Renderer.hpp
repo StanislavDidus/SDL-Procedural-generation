@@ -59,7 +59,8 @@ public:
 
 	//Setters
 	void setView(const glm::vec2& view_position);
-
+	void setZoom(float zoom);
+	
 	//Getters
 	const glm::vec2& getView() const;
 	SDL_Renderer* getRenderer() const;
@@ -93,6 +94,7 @@ private:
 	Window& window;
 
 	glm::vec2 view_position{0.f, 0.f};
+	float zoom = 1.f;
 
 	inline void setColor(Color color);
 };

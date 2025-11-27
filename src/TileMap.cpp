@@ -1,7 +1,7 @@
 #include "TileMap.hpp"
 #include "Sprite.hpp"
 
-TileMap::TileMap(Sprite& tileset, float width, float height, float rows, float columns) : tileset(tileset), tile_width(width / columns), tile_height(height / rows)
+TileMap::TileMap(SpriteSheet& tileset, float width, float height, float rows, float columns) : tileset(tileset), tile_width(width / columns), tile_height(height / rows)
 {
 	float max_tiles = rows * columns;
 	tiles.reserve(static_cast<size_t>(max_tiles));
@@ -15,12 +15,10 @@ void TileMap::render(Renderer& screen)
 {
 	for (const auto& tile : tiles)
 	{
-		tileset.setFrame(tile.index);
-
 		float x = tile.column * tile_width;
 		float y = tile.row * tile_height;
 
-		screen.drawScaledSprite(tileset, x, y, tile_width, tile_height);
+		screen.drawScaledSprite(tileset[tile.index], x, y, tile_width, tile_height);
 	}
 }
 

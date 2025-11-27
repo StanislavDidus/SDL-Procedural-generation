@@ -5,6 +5,7 @@
 
 #include "Renderer.hpp"
 #include "glm/glm.hpp"
+#include "Noise.hpp"
 
 static float between(float value, float min, float max)
 {
@@ -21,12 +22,19 @@ public:
 	float moisture;
 	int tile_id;
 
+	int octaves;
 	float frequency;
 	float amplitude;
 	float seed;
 
 	float strength;
 	float height_multiplier;
+
+	template<typename NoiseType>
+	float height(float x) const
+	{
+		return Noise::fractal1D<NoiseType>(NoiseType(), octaves, x, frequency, amplitude, seed) * height_multiplier;
+	}
 
 	float weight(float temperature_, float moisture_) const;
 };

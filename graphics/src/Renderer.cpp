@@ -31,6 +31,11 @@ void Renderer::setView(const glm::vec2& view_position)
 	this->view_position = view_position;
 }
 
+void Renderer::setZoom(float zoom)
+{
+	this->zoom = zoom;
+}
+
 const glm::vec2& Renderer::getView() const
 {
 	return view_position;
@@ -116,14 +121,12 @@ void Renderer::drawSprite(const Sprite& sprite, float x, float y)
 {
 	SDL_FRect src, dst;
 
-	src = sprite.getSpriteRect();
-
-	const glm::vec2& texture_size = sprite.getTextureSize();
+	src = sprite.getRect();
 
 	dst.x = x - view_position.x;
 	dst.y = y - view_position.y;
-	dst.w = texture_size.x;
-	dst.h = texture_size.y;
+	dst.w = src.w;
+	dst.h = src.h;
 
 	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
 }
@@ -137,7 +140,7 @@ void Renderer::drawScaledSprite(const Sprite& sprite, float x, float y, float wi
 {
 	SDL_FRect src, dst;
 
-	src = sprite.getSpriteRect();
+	src = sprite.getRect();
 
 	dst.x = x - view_position.x;
 	dst.y = y - view_position.y;
@@ -156,7 +159,7 @@ void Renderer::drawRotatedSprite(const Sprite& sprite, float x, float y, float w
 {
 	SDL_FRect src, dst;
 
-	src = sprite.getSpriteRect();
+	src = sprite.getRect();
 	 
 	dst.x = x - view_position.x;
 	dst.y = y - view_position.y;
@@ -170,7 +173,7 @@ void Renderer::drawUI(const Sprite& sprite, float x, float y, float width, float
 {
 	SDL_FRect src, dst;
 
-	src = sprite.getSpriteRect();
+	src = sprite.getRect();
 
 	dst.x = x;
 	dst.y = y;

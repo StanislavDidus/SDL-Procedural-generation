@@ -3,7 +3,7 @@
 #include <SDL3/SDL.h>
 
 #include "Renderer.hpp"
-#include "Sprite.hpp"
+#include "SpriteSheet.hpp"
 #include "ValueNoise.hpp"
 #include "Biomes.hpp"
 #include "TileMap.hpp"
@@ -19,7 +19,7 @@ public:
 
 	void generateSeed();
 
-	float scale = 0.02f;
+	float scale = 0.01f;
 	float cliffScale = 0.f;
 	float cliffAmplitude = 0.f;
 
@@ -28,9 +28,9 @@ private:
 	std::vector<Biome> biomes;
 
 	Renderer& screen;
-	Sprite background;
-	Sprite player;
-	Sprite tileset;
+	//SpriteSheet background;
+	//SpriteSheet player;
+	SpriteSheet tileset;
 
 	ValueNoise noise;
 

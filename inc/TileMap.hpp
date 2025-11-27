@@ -3,14 +3,14 @@
 #include <iostream>
 #include <vector>
 
-#include "Renderer.hpp"
+#include "SpriteSheet.hpp"
 #include "glm/glm.hpp"
 #include "Tile.hpp"
 
 class TileMap
 {
 public:
-	TileMap(Sprite& tileset, float width, float height, float rows, float columns);
+	TileMap(SpriteSheet& tileset, float width, float height, float rows, float columns);
 	~TileMap();
 
 	void render(Renderer& screen);
@@ -26,6 +26,6 @@ private:
 	float tile_width = 0.f;
 	float tile_height = 0.f;
 
-	Sprite& tileset;
+	SpriteSheet& tileset;
 	std::vector<Tile> tiles;
 };
