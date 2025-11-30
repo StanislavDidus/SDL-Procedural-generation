@@ -5,7 +5,7 @@
 
 #include "SpriteSheet.hpp"
 #include "glm/glm.hpp"
-#include "Tile.hpp"
+#include "Chunk.hpp"
 
 class TileMap
 {
@@ -16,10 +16,15 @@ public:
 	void render(Renderer& screen);
 
 	//Setters
+	void setDirtTiles();
 	void setTile(int index, int row, int column);
+	void setChunks(const std::vector<Chunk>& chunks);
 
 	//Getters
 	glm::vec2 getTileSize() const;
+	Chunk& getChunk(int index) const;
+
+	//const Chunk& getOrCreateChunk(int);
 
 	void clear();
 private:
@@ -27,5 +32,5 @@ private:
 	float tile_height = 0.f;
 
 	SpriteSheet& tileset;
-	std::vector<Tile> tiles;
+	std::vector<Chunk> chunks;
 };

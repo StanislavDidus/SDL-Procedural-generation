@@ -41,6 +41,11 @@ const glm::vec2& Renderer::getView() const
 	return view_position;
 }
 
+float Renderer::getZoom() const
+{
+	return zoom;
+}
+
 SDL_Renderer* Renderer::getRenderer() const
 {
 	return renderer;
@@ -146,6 +151,18 @@ void Renderer::drawScaledSprite(const Sprite& sprite, float x, float y, float wi
 	dst.y = y - view_position.y;
 	dst.w = width;
 	dst.h = height;
+
+	dst.x *= zoom;
+	dst.y *= zoom;
+	dst.w *= zoom;
+	dst.h *= zoom;
+
+	/*glm::vec2 object_center = { dst.x + dst.w / 2.f, dst.y + dst.h / 2.f };
+
+	dst.w *= zoom;
+	dst.h *= zoom;
+	dst.x = object_center.x - dst.w / 2.f;
+	dst.y = object_center.y - dst.h / 2.f;*/
 
 	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
 }

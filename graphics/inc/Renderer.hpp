@@ -12,7 +12,7 @@ struct Color
 	Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) : r(r), g(g), b(b), a(a) {}
 	Color(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b), a(255) {}
 	Color(const Color& color) : r(color.r), g(color.g), b(color.b), a(color.a) {}
-	virtual ~Color() {}
+	~Color() {}
 
 	Color operator+ (const Color& opperand) const
 	{ 
@@ -55,7 +55,7 @@ class Renderer
 {
 public:
 	Renderer(Window& window);
-	virtual ~Renderer();
+	~Renderer();
 
 	//Setters
 	void setView(const glm::vec2& view_position);
@@ -63,6 +63,7 @@ public:
 	
 	//Getters
 	const glm::vec2& getView() const;
+	float getZoom() const;
 	SDL_Renderer* getRenderer() const;
 	const glm::ivec2& getWindowSize() const;
 

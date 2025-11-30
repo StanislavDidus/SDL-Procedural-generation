@@ -25,7 +25,7 @@ public:
 	int octaves;
 	float frequency;
 	float amplitude;
-	float seed;
+	uint32_t seed;
 
 	float strength;
 	float height_multiplier;

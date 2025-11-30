@@ -13,6 +13,8 @@ set(SOURCE_FILES
     "src/main.cpp" 
     "src/Biomes.cpp"
     "src/TileMap.cpp"
+    "src/World.cpp"
+    "src/Chunk.cpp"
     )
 
 set(HEADER_FILES
@@ -20,6 +22,8 @@ set(HEADER_FILES
     "inc/Biomes.hpp"
     "inc/TileMap.hpp"
     "inc/Tile.hpp"
+    "inc/World.hpp"
+    "inc/Chunk.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

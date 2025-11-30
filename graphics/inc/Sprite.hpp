@@ -9,7 +9,7 @@ class Sprite
 {
 public:
 	Sprite(SDL_Texture& texture, const SDL_FRect& rect);
-	virtual ~Sprite();
+	~Sprite();
 
 	//Getters
 	const SDL_FRect& getRect() const;

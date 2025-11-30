@@ -8,7 +8,7 @@ class Surface
 public:
 	Surface() = default;
 	Surface(const std::filesystem::path& path);
-	virtual ~Surface();
+	~Surface();
 
 	bool loadImage(const std::filesystem::path& path);
 
