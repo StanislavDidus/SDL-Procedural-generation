@@ -30,7 +30,6 @@ void World::render()
 void World::generateWorld()
 {
 	initSeeds();
-	biomes.clear();
 	initBiomes();
 	initWorld();
 }
@@ -48,6 +47,8 @@ void World::initSeeds()
 
 void World::initBiomes()
 {
+	biomes.clear();
+	
 	Biome forest
 	{
 		"Forest",    // name
@@ -129,22 +130,14 @@ void World::initWorld()
 	tilemap.clear();
 	chunks.clear();
 
-	//std::vector<Chunk> chunks;
-	//for (int i = 0; i < 2; ++i)
-	//{
-	//	//chunks.push_back(Chunk());
-	//}
-
 	for (int x = begin; x < end; ++x)
 	{
 		float position = static_cast<float>(x);
 
-		//Get chunk index
-		int chunk_index = static_cast<int>(std::floor(position / chunk_width_tiles));
-
 		float x_slope = Noise::fractal1D(noise, 1, position * scale, 2.f, 3.f, seeds[4]);
 		float moisture = Noise::fractal1D(noise, 1, position * scale, 0.8f, 1.05f, seeds[5]);
 		float temperature = Noise::fractal1D(noise, 1, position * scale, 0.85f, 1.1f, seeds[6]);
+		float dirt = Noise::fractal1D(noise, 1, position * scale, 0.45f, 0.8f, seeds[7]);
 
 		float max_weight = -1.f;
 		int max_weight_index = -1;
@@ -171,36 +164,65 @@ void World::initWorld()
 		int tile_id = biomes[max_weight_index].tile_id;
 
 		//Draw offset
-		int x_offset = static_cast<int>(mapRange(x_slope, 0.f, 1.f, -3.f, 3.f));
+		//int x_offset = static_cast<int>(std::floor(mapRange(x_slope, 0.f, 1.f, -3.f, 3.f)));
 		int y_offset = static_cast<int>(mapRange(combined_height, 0.f, 1.f, -25.f, 25.f));
 
-		//tilemap.setTile(tile_id, y_offset, position + x_offset);
+		addTile(tile_id, position, y_offset);
 
-		//Chunk& chunk = chunks[chunk_index];
-		//chunk.x = chunk_index * chunk_width;
-		//chunk.y = 0.f;
-		//float tile_x = std::floor(std::fmodf(std::fmodf(position, chunk_width), tile_width_world));
-		//chunk.addTile(tile_id, y_offset, tile_x);
+		//Fill space 
+		int number_dirt_tiles = static_cast<int>(mapRange(dirt, 0.f, 1.f, 2.f, 5.f));
 
-		int tile_x = static_cast<int>(std::floor(std::fmodf(position + x_offset, chunk_width_tiles)));
+		//Dirt
+		for (int i = 1; i < number_dirt_tiles; i++)
+		{
+			addTile(14, position, y_offset + i);
+		}
+		
+		//Stone
+		int i = number_dirt_tiles;
+		while (y_offset + i < maximum_y)
+		{
+			addTile(21, position, y_offset + i);
+			++i;
+		}
 
-		auto& chunk = getOrCreateChunk(chunk_index);
-		chunk.addTile(tile_id, y_offset, tile_x);
+		//Sky
+		i = -1;
+		while (y_offset + i > minimum_y)
+		{
+			addTile(6, position, y_offset + i);
+			--i;
+		}
 	}
 
 	tilemap.setChunks(chunks);
 }
 
-Chunk& World::getOrCreateChunk(int index)
+void World::addTile(int id, float x, float y)
+{
+	//Get tile local position inside chunk
+	int tile_x = (static_cast<int>(x) % chunk_width_tiles + chunk_width_tiles) % chunk_width_tiles;
+	int tile_y = (static_cast<int>(y) % chunk_height_tiles + chunk_height_tiles) % chunk_height_tiles;
+
+	//Get chunk index
+	int chunk_index_x = static_cast<int>(std::floor(x / chunk_width_tiles));
+	int chunk_index_y = static_cast<int>(std::floor(y / chunk_height_tiles));
+
+	//Add it to the chunk
+	auto& chunk = getOrCreateChunk(chunk_index_x, chunk_index_y);
+	chunk.addTile(id, tile_y, tile_x);
+}
+
+Chunk& World::getOrCreateChunk(int x, int y)
 {
 	for (auto& chunk : chunks)
 	{
-		if (chunk.index == index)
+		if (chunk.index_x == x && chunk.index_y == y)
 		{
 			return chunk;
 		}
 	}
 
-	chunks.emplace_back(index, static_cast<float>(index) * chunk_width_tiles * tile_width_world, 0.f);
+	chunks.emplace_back(x, y, static_cast<float>(x) * chunk_width_tiles, static_cast<float>(y) * chunk_height_tiles);
 	return chunks[chunks.size() - 1];
 }

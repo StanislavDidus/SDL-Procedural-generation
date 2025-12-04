@@ -76,7 +76,14 @@ void Renderer::drawPoint(int x, int y, Color color)
 void Renderer::drawPoint(float x, float y, Color color)
 {
 	setColor(color);
-	SDL_RenderPoint(renderer, x - view_position.x, y - view_position.y);
+
+	float x_ = x - view_position.x;
+	float y_ = y - view_position.y;
+
+	x_ *= zoom;
+	y_ *= zoom;
+
+	SDL_RenderPoint(renderer, x_, y_);
 }
 
 void Renderer::drawLine(int x1, int y1, int x2, int y2, Color color)
@@ -87,7 +94,18 @@ void Renderer::drawLine(int x1, int y1, int x2, int y2, Color color)
 void Renderer::drawLine(float x1, float y1, float x2, float y2, Color color)
 {
 	setColor(color);
-	SDL_RenderLine(renderer, x1 - view_position.x, y1 - view_position.y, x2 - view_position.x, y2 - view_position.y);
+
+	float x1_ = x1 - view_position.x;
+	float y1_ = y1 - view_position.y;
+	float x2_ = x2 - view_position.x;
+	float y2_ = y2 - view_position.y;
+
+	x1_ *= zoom;
+	y1_ *= zoom;
+	x2_ *= zoom;
+	y2_ *= zoom;
+
+	SDL_RenderLine(renderer, x1_, y1_, x2_, y2_ );
 }
 
 void Renderer::drawRectangle(int x, int y, int w, int h, RenderType render_type, Color color)
@@ -103,6 +121,11 @@ void Renderer::drawRectangle(float x, float y, float w, float h, RenderType rend
 	rect.y = y - view_position.y;
 	rect.w = w;
 	rect.h = h;
+
+	rect.x *= zoom;
+	rect.y *= zoom;
+	rect.w *= zoom;
+	rect.h *= zoom;
 
 	setColor(color);
 
@@ -133,6 +156,11 @@ void Renderer::drawSprite(const Sprite& sprite, float x, float y)
 	dst.w = src.w;
 	dst.h = src.h;
 
+	dst.x *= zoom;
+	dst.y *= zoom;
+	dst.w *= zoom;
+	dst.h *= zoom;
+
 	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
 }
 
@@ -157,13 +185,6 @@ void Renderer::drawScaledSprite(const Sprite& sprite, float x, float y, float wi
 	dst.w *= zoom;
 	dst.h *= zoom;
 
-	/*glm::vec2 object_center = { dst.x + dst.w / 2.f, dst.y + dst.h / 2.f };
-
-	dst.w *= zoom;
-	dst.h *= zoom;
-	dst.x = object_center.x - dst.w / 2.f;
-	dst.y = object_center.y - dst.h / 2.f;*/
-
 	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
 }
 
@@ -183,6 +204,11 @@ void Renderer::drawRotatedSprite(const Sprite& sprite, float x, float y, float w
 	dst.w = width;
 	dst.h = height;
 
+	dst.x *= zoom;
+	dst.y *= zoom;
+	dst.w *= zoom;
+	dst.h *= zoom;
+
 	SDL_RenderTextureRotated(renderer, sprite.getTexture(), &src, &dst, angle, nullptr, flip_mode);
 }
 
@@ -197,6 +223,11 @@ void Renderer::drawUI(const Sprite& sprite, float x, float y, float width, float
 	dst.w = width;
 	dst.h = height;
 
+	dst.x *= zoom;
+	dst.y *= zoom;
+	dst.w *= zoom;
+	dst.h *= zoom;
+
 	if (angle == 0.f || std::fmodf(angle, 360.f) == 0.f)
 	{
 		SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
@@ -205,6 +236,14 @@ void Renderer::drawUI(const Sprite& sprite, float x, float y, float width, float
 	{
 		SDL_RenderTextureRotated(renderer, sprite.getTexture(), &src, &dst, angle, nullptr, flip_mode);
 	}
+}
+
+void Renderer::drawTile(const Sprite& sprite, float x, float y, float width, float height)
+{
+	width += 1.f;
+	height += 1.f;
+
+	drawScaledSprite(sprite, x, y, width, height);
 }
 
 void Renderer::setColor(Color color)

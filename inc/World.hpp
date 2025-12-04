@@ -21,11 +21,13 @@ private:
 	void initBiomes();
 	void initWorld();
 
+	void addTile(int id, float x, float y); //Take global tile grid position and add tile to corresponding chunk
+
 	Renderer& screen;
 
 	TileMap& tilemap;
 	std::vector<Biome> biomes;
-	std::array<uint32_t, 7> seeds;
+	std::array<uint32_t, 8> seeds;
 
 	ValueNoise noise;
 
@@ -33,10 +35,13 @@ private:
 
 	std::vector<Chunk> chunks;
 
-	Chunk& getOrCreateChunk(int index);
+	Chunk& getOrCreateChunk(int x, int y);
 
 	float tile_width_world = 0.f;
 
 	int chunk_width_tiles = 25;
-	int chunk_height_tiles = 100;
+	int chunk_height_tiles = 25;
+
+	int minimum_y = -15;
+	int maximum_y = 50;
 };

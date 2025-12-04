@@ -18,16 +18,16 @@ void TileMap::render(Renderer& screen)
 	{
 		for (const auto& tile : chunk.tiles)
 		{
-			float x = tile.column * tile_width + chunk.x;
-			float y = tile.row * tile_height + chunk.y;
+			float x = (tile.column + chunk.x) * tile_width;
+			float y = (tile.row + chunk.y) * tile_height;
 
-			screen.drawScaledSprite(tileset[tile.index], x, y, tile_width, tile_height);
+			screen.drawTile(tileset[tile.index], x, y, tile_width, tile_height);
 		}
-
 		chunk_counter++;
 	}
 
-	std::cout << "Number of chunks rendered: " << chunk_counter << std::endl;
+	//std::cout << "Number of chunks rendered: " << chunk_counter << std::endl;
+	//std::cout << "Total number of chunks: " << chunks.size() << "\n";
 }
 
 void TileMap::setDirtTiles()
@@ -51,11 +51,6 @@ void TileMap::setChunks(const std::vector<Chunk>& chunks)
 glm::vec2 TileMap::getTileSize() const
 {
 	return { tile_width, tile_height };
-}
-
-Chunk& TileMap::getChunk(int index) const
-{
-	return Chunk();
 }
 
 void TileMap::clear()

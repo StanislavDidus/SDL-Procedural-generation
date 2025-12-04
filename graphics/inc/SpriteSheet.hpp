@@ -16,6 +16,8 @@ public:
 
 	const Sprite& operator[](int index) const { return sprites[index]; };
 private:
+	void getTexture(Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode);
+
 	std::vector<Sprite> sprites;
 
 	SDL_Texture* texture = nullptr;

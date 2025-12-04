@@ -30,6 +30,41 @@ Game::~Game()
 
 void Game::update(float dt)
 {
+	updateInput(dt);
+
+	screen.setZoom(zoom);
+	screen.setView(view_position);
+
+	tilemap.render(screen);
+}
+
+void Game::buttonUp(SDL_Keycode key)
+{
+	if(key < 256) keys.reset(key);
+}
+
+void Game::buttonPressed(SDL_Keycode key)
+{
+	if (key < 256) keys.set(key);
+}
+
+bool Game::isKeyDown(SDL_Keycode key)
+{
+	return pressed[key];
+}
+
+bool Game::isKey(SDL_Keycode key)
+{
+	return held[key];
+}
+
+bool Game::isKeyUp(SDL_Keycode key)
+{
+	return released[key];
+}
+
+void Game::updateInput(float dt)
+{
 	if (isKey(SDLK_D))
 	{
 		view_position.x += 500.f * dt;
@@ -67,41 +102,7 @@ void Game::update(float dt)
 		world.generateWorld();
 	}
 
-	screen.setZoom(zoom);
-	screen.setView(view_position);
-	
-
-	//tilemap.setDirtTiles();
-	tilemap.render(screen);
-
-	//Update input
-
 	pressed = keys & ~held;
 	released = held & ~keys;
 	held = keys;
-}
-
-void Game::buttonUp(SDL_Keycode key)
-{
-	if(key < 256) keys.reset(key);
-}
-
-void Game::buttonPressed(SDL_Keycode key)
-{
-	if (key < 256) keys.set(key);
-}
-
-bool Game::isKeyDown(SDL_Keycode key)
-{
-	return pressed[key];
-}
-
-bool Game::isKey(SDL_Keycode key)
-{
-	return held[key];
-}
-
-bool Game::isKeyUp(SDL_Keycode key)
-{
-	return released[key];
 }

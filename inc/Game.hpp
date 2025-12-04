@@ -30,6 +30,8 @@ public:
 
 	glm::vec2 view_position = {0.f, 0.f};
 private:
+	void updateInput(float dt);
+
 	float zoom = 1.f;
 
 	Renderer& screen;

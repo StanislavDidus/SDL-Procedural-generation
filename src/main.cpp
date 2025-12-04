@@ -39,28 +39,6 @@ int main()
                 case SDLK_ESCAPE:
                     running = false;
                     break;
-                //case SDLK_Q:
-                //    game.scale += 0.001f;
-                //    break;
-                //case SDLK_E:
-                //    game.scale -= 0.001f;
-                //    break;
-                //case SDLK_SPACE:
-                //    game.generateSeed();
-                //    break;
-                ////Camera control
-                //case SDLK_W:
-                //    game.view_position.y -= 20.f;
-                //    break;
-                //case SDLK_S:
-                //    game.view_position.y += 20.f;
-                //    break;
-                //case SDLK_A:
-                //    game.view_position.x -= 20.f;
-                //    break;
-                //case SDLK_D:
-                //    game.view_position.x += 20.f;
-                //    break;
                 default:
                     game.buttonPressed(event.key.key);
                     break;

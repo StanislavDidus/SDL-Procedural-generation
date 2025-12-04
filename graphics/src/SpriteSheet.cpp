@@ -2,14 +2,7 @@
 
 SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, std::vector<SDL_FRect> sprite_rects, SDL_ScaleMode scale_mode)
 {
-	texture = SDL_CreateTextureFromSurface(renderer.getRenderer(), surface.getSurface());
-
-	SDL_SetTextureScaleMode(texture, scale_mode);
-
-	if (!texture)
-	{
-		std::cerr << "ERROR: Could not load a texture: " << SDL_GetError() << std::endl;
-	}
+	getTexture(renderer, surface, scale_mode);
 	
 	for (const auto& rect : sprite_rects)
 	{
@@ -19,14 +12,7 @@ SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, std::vector
 
 SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, const glm::vec2& sprite_size, SDL_ScaleMode scale_mode)
 {
-	texture = SDL_CreateTextureFromSurface(renderer.getRenderer(), surface.getSurface());
-
-	SDL_SetTextureScaleMode(texture, scale_mode);
-
-	if (!texture)
-	{
-		std::cerr << "ERROR: Could not load a texture: " << SDL_GetError() << std::endl;
-	}
+	getTexture(renderer, surface, scale_mode);
 	
 	int texture_width = surface.getSurface()->w;
 	int texture_height = surface.getSurface()->h;
@@ -46,4 +32,16 @@ SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, const glm::
 SpriteSheet::~SpriteSheet()
 {
 	SDL_DestroyTexture(texture);
+}
+
+void SpriteSheet::getTexture(Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode)
+{
+	texture = SDL_CreateTextureFromSurface(renderer.getRenderer(), surface.getSurface());
+
+	SDL_SetTextureScaleMode(texture, scale_mode);
+
+	if (!texture)
+	{
+		std::cerr << "ERROR: Could not load a texture: " << SDL_GetError() << std::endl;
+	}
 }

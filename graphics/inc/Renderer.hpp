@@ -90,6 +90,8 @@ public:
 	void drawRotatedSprite(const Sprite& sprite, float x, float y, float width, float height, float angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE);
 
 	void drawUI(const Sprite& sprite, float x, float y, float width, float height, float angle = 0.f, SDL_FlipMode flip_mode = SDL_FLIP_NONE);
+
+	void drawTile(const Sprite& sprite, float x, float y, float width, float height);
 private:
 	SDL_Renderer* renderer = nullptr;
 	Window& window;

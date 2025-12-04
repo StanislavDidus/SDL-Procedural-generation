@@ -7,12 +7,13 @@
 struct Chunk
 {
 	Chunk();
-	Chunk(int index, float x, float y);
+	Chunk(int index_x, int index_y, float x, float y);
 	~Chunk() = default;
 
 	void addTile(int index, int row, int column);
 
-	int index;
+	int index_x;
+	int index_y;
 	float x;
 	float y;
 

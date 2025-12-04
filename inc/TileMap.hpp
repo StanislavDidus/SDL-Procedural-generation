@@ -22,8 +22,6 @@ public:
 
 	//Getters
 	glm::vec2 getTileSize() const;
-	Chunk& getChunk(int index) const;
-
 	//const Chunk& getOrCreateChunk(int);
 
 	void clear();
