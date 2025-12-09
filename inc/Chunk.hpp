@@ -7,15 +7,15 @@
 struct Chunk
 {
 	Chunk();
-	Chunk(int index_x, int index_y, float x, float y);
+	Chunk(int index_x, int index_y, int x, int y);
 	~Chunk() = default;
 
 	void addTile(int index, int row, int column);
 
 	int index_x;
 	int index_y;
-	float x;
-	float y;
+	int x;
+	int y;
 
 	std::vector<Tile> tiles;
 };

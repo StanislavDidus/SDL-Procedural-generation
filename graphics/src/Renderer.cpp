@@ -17,6 +17,8 @@ Renderer::Renderer(Window& window) : window(window)
 	std::cout << "Renderer was created" << std::endl;
 
 	SDL_SetRenderVSync(renderer, 0);
+
+	SDL_GetRenderTextureAddressMode(renderer, &u_mode, &v_mode);
 }
 
 Renderer::~Renderer()
@@ -183,7 +185,7 @@ void Renderer::drawScaledSprite(const Sprite& sprite, float x, float y, float wi
 	dst.x *= zoom;
 	dst.y *= zoom;
 	dst.w *= zoom;
-	dst.h *= zoom;
+	dst.h *= zoom; 
 
 	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
 }
@@ -240,10 +242,35 @@ void Renderer::drawUI(const Sprite& sprite, float x, float y, float width, float
 
 void Renderer::drawTile(const Sprite& sprite, float x, float y, float width, float height)
 {
-	width += 1.f;
-	height += 1.f;
+	SDL_FRect src, dst;
 
-	drawScaledSprite(sprite, x, y, width, height);
+	src = sprite.getRect();
+
+	dst.x = x - view_position.x;
+	dst.y = y - view_position.y;
+	dst.w = width;
+	dst.h = height;
+
+	glm::vec2 midscreen{ window.getSize().x / 2.f, window.getSize().y / 2.f };
+
+	dst.x -= midscreen.x;
+	dst.y -= midscreen.y;
+
+	dst.x *= zoom;
+	dst.y *= zoom;
+	dst.w *= zoom;
+	dst.h *= zoom;
+
+	dst.x += midscreen.x;
+	dst.y += midscreen.y;
+
+	dst.w += 1.f;
+	dst.h += 1.f;
+
+	dst.x = std::floor(dst.x);
+	dst.y = std::floor(dst.y);
+
+	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
 }
 
 void Renderer::setColor(Color color)

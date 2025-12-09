@@ -6,11 +6,12 @@
 #include "SpriteSheet.hpp"
 #include "glm/glm.hpp"
 #include "Chunk.hpp"
+#include "World.hpp"
 
 class TileMap
 {
 public:
-	TileMap(SpriteSheet& tileset, float width, float height, float rows, float columns);
+	TileMap(World& world, SpriteSheet& tileset, float width, float height, float rows, float columns);
 	~TileMap();
 
 	void render(Renderer& screen);
@@ -31,4 +32,5 @@ private:
 
 	SpriteSheet& tileset;
 	std::vector<Chunk> chunks;
+	World& world;
 };

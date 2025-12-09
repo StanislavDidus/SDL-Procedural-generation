@@ -26,8 +26,6 @@ public:
 	static bool isKey(SDL_Keycode key);
 	static bool isKeyUp(SDL_Keycode key);
 	
-
-
 	glm::vec2 view_position = {0.f, 0.f};
 private:
 	void updateInput(float dt);

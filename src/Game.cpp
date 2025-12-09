@@ -13,8 +13,8 @@ Game::Game(Renderer& screen)
 	//, background(screen, Surface{ "assets/Sprites/bg1.png" }, {320.f, 180.f})
 	//, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
 	, tileset(screen, Surface{ "assets/Sprites/tileset.png" }, { 16.f, 16.f }, SDL_SCALEMODE_NEAREST)
-	, tilemap(tileset, 960.f, 540.f, 75.f, 100.f)
-	, world(screen, tilemap)
+	, world(screen)
+	, tilemap(world, tileset, 960.f, 540.f, 75.f, 100.f)
 {
 	std::cout << "Game was created" << std::endl;
 
@@ -84,10 +84,12 @@ void Game::updateInput(float dt)
 	if (isKey(SDLK_Q))
 	{
 		zoom -= 2.f * dt;
+		zoom = std::clamp(zoom, 1.5f, 3.f);
 	}
 	if (isKey(SDLK_E))
 	{
 		zoom += 2.f * dt;
+		zoom = std::clamp(zoom, 1.5f, 3.f);
 	}
 	if (isKey(SDLK_Z))
 	{
