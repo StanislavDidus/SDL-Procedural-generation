@@ -251,7 +251,7 @@ void Renderer::drawTile(const Sprite& sprite, float x, float y, float width, flo
 	dst.w = width;
 	dst.h = height;
 
-	glm::vec2 midscreen{ window.getSize().x / 2.f, window.getSize().y / 2.f };
+	glm::vec2 midscreen{ window.getSize().x / 2.f, window.getSize().y / 2.f};
 
 	dst.x -= midscreen.x;
 	dst.y -= midscreen.y;

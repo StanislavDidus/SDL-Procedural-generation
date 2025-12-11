@@ -2,12 +2,12 @@
 
 #include "Noise.hpp"
 
-class ValueNoise
+class PerlynNoise
 {
 public:
-	ValueNoise() = default;
-	~ValueNoise() = default;
-	
+	PerlynNoise() = default;
+	~PerlynNoise() = default;
+
 	static float noise1D(float x, uint32_t seed);
 	static float noise2D(float x, float y, uint32_t seed);
 };

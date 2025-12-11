@@ -33,7 +33,7 @@ public:
 	template<typename NoiseType>
 	float height(float x) const
 	{
-		return Noise::fractal1D<NoiseType>(NoiseType(), octaves, x, frequency, amplitude, seed) * height_multiplier;
+		return Noise::fractal1D<NoiseType>(octaves, x, frequency, amplitude, seed) * height_multiplier;
 	}
 
 	float weight(float temperature_, float moisture_) const;

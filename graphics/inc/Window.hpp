@@ -14,7 +14,14 @@ public:
 	//Getters
 	const glm::ivec2& getSize() const;
 	SDL_Window* getWindow() const;
+
+	explicit operator bool() const
+	{
+		return running;
+	}
 private:
+	bool running = true;
+
 	SDL_Window* window = nullptr;
 
 	glm::ivec2 window_size {0.f, 0.f};

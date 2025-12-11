@@ -7,6 +7,17 @@ std::bitset<256> Game::pressed{};
 std::bitset<256> Game::released{};
 std::bitset<256> Game::held{};
 
+const float BaseWidthScreen = 960.f;
+const float BaseHeightScreen = 540.f;
+
+const float TileWidth = 75.f;
+const float TileHeight = 75.f;
+
+static float mapRange(float x, float inMin, float inMax, float outMin, float outMax)
+{
+	return outMin + ((x - inMin) / (inMax - inMin)) * (outMax - outMin);
+}
+
 
 Game::Game(Renderer& screen)
 	: screen(screen)
@@ -14,13 +25,60 @@ Game::Game(Renderer& screen)
 	//, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
 	, tileset(screen, Surface{ "assets/Sprites/tileset.png" }, { 16.f, 16.f }, SDL_SCALEMODE_NEAREST)
 	, world(screen)
-	, tilemap(world, tileset, 960.f, 540.f, 75.f, 100.f)
+	//, tilemap(world, tileset, 960.f, 540.f, 75.f, 100.f)
+	, tilemap(world, tileset, 75.f, 75.f)
 {
 	std::cout << "Game was created" << std::endl;
 
 	screen.setView({ 0.f, 0.f });
 
-	world.generateWorld();
+	//float min = 100.f;
+	//float max = -100.f;
+	//float mean = 0.f;
+
+	//float f = 0.02f;
+	//float a = 1.f;
+
+	//for (int i = 0; i < 100'000; i++)
+	//{
+	//	float noise_value = Noise::fractal1D<ValueNoise>(8, i, f, a, 1);
+	//	float centre = noise_value - 0.5f;
+	//	float contrasted = tanh(4.f * centre);
+	//	noise_value = (contrasted + 1.f) / 2.f;
+
+	//	if (noise_value < min) min = noise_value;
+	//	if (noise_value > max) max = noise_value;
+	//	mean += noise_value;
+	//}
+	//mean /= 100'000.f;
+
+	//std::cout << "ValueNoise: " << std::endl;
+	//std::cout << "Min: " << min << std::endl
+	//	<< "Max: " << max << std::endl
+	//	<< "Mean: " << mean << std::endl;
+
+	//min = 100.f;
+	//max = -100.f;
+	//mean = 0.f;
+
+	//for (int i = 0; i < 100'000; i++)
+	//{
+	//	float noise_value = Noise::fractal2D<PerlynNoise>(8, i, 0.f, f, a, 1);
+	//	/*float centre = noise_value - 0.5f;
+	//	float contrasted = tanh(8.f * centre);
+	//	noise_value = (contrasted + 1.f) / 2.f;*/
+	//	//noise_value = std::pow(noise_value, .5f);
+
+	//	if (noise_value < min) min = noise_value;
+	//	if (noise_value > max) max = noise_value;
+	//	mean += noise_value;
+	//}
+	//mean /= 100'000.f;
+
+	//std::cout << "PerlynNoise: " << std::endl;
+	//std::cout << "Min: " << min << std::endl
+	//	<< "Max: " << max << std::endl
+	//	<< "Mean: " << mean << std::endl;
 }
 
 Game::~Game()
@@ -34,8 +92,74 @@ void Game::update(float dt)
 
 	screen.setZoom(zoom);
 	screen.setView(view_position);
+	
 
 	tilemap.render(screen);
+
+	//zoom = 1.f;
+
+
+	//const auto& window_size = screen.getWindowSize();
+
+	//float f = 0.02f;
+	//float a = 1.f;
+
+	//float min = 100.f;
+	//float max = -100.f;
+
+	//for (int x = 0; x < 480; x++)
+	//{
+	//	for (int y = 0; y < 480; y++)
+	//	{
+	//		float noise_value = Noise::fractal2D<PerlynNoise>(8, x, y, f, a, 1);
+	//		/*float centre = noise_value - 0.5f;
+	//		float contrasted = tanh(8.f * centre);
+	//		noise_value = (contrasted + 1.f) / 2.f;*/
+	//		//noise_value = std::pow(noise_value, 0.5f);
+
+	//		if (noise_value < min) min = noise_value;
+	//		if (noise_value > max) max = noise_value;
+	//	}
+	//}
+
+	//for (int x = 0; x < 480; x++)
+	//{
+	//	for (int y = 0; y < 480; y++)
+	//	{
+	//		float noise_value = Noise::fractal2D<PerlynNoise>(8, x, y, f, a, 1);
+	//		/*float centre = noise_value - 0.5f;
+	//		float contrasted = tanh(8.f * centre);
+	//		noise_value = (contrasted + 1.f) / 2.f;*/
+	//		//noise_value = std::pow(noise_value, 0.5f);
+
+	//		noise_value = (noise_value - min) / (max - min);
+	//		
+	//		uint8_t value = static_cast<uint8_t>(mapRange(noise_value, 0.f, 1.f, 0.f, 255.f));
+
+	//		//assert(value >= 0 && value <= 255);
+
+	//		//value = std::clamp(static_cast<int>(value), 0, 255);
+	//		Color color{ value, value, value, 255 };
+	//		screen.drawPoint(x, y, color);
+	//	}
+	//}
+
+	/*for (int x = 480; x < 960; x++)
+	{
+		for (int y = 0; y < 480; y++)
+		{
+			float noise_value = Noise::fractal2D<ValueNoise>(8, x, y, f, a, 1);
+
+			uint8_t value = static_cast<uint8_t>(mapRange(noise_value, 0.f, 1.f, 0.f, 255.f));
+			Color color{ value, value, value, 255 };
+			screen.drawPoint(x, y, color);
+		}
+	}*/
+}
+
+void Game::resizeSprites()
+{
+	tilemap.setTileSize(screen.getWindowSize().x / BaseWidthScreen * TileWidth, screen.getWindowSize().y / BaseHeightScreen * TileHeight);
 }
 
 void Game::buttonUp(SDL_Keycode key)
@@ -67,37 +191,39 @@ void Game::updateInput(float dt)
 {
 	if (isKey(SDLK_D))
 	{
-		view_position.x += 500.f * dt;
+		view_position.x += 1500.f * dt;
 	}
 	if (isKey(SDLK_A))
 	{
-		view_position.x -= 500.f * dt;
+		view_position.x -= 1500.f * dt;
 	}
 	if (isKey(SDLK_W))
 	{
-		view_position.y -= 500.f * dt;
+		view_position.y -= 1500.f * dt;
 	}
 	if (isKey(SDLK_S))
 	{
-		view_position.y += 500.f * dt;
+		view_position.y += 1500.f * dt;
 	}
 	if (isKey(SDLK_Q))
 	{
 		zoom -= 2.f * dt;
-		zoom = std::clamp(zoom, 1.5f, 3.f);
+		zoom = std::clamp(zoom, min_zoom, max_zoom);
 	}
 	if (isKey(SDLK_E))
 	{
 		zoom += 2.f * dt;
-		zoom = std::clamp(zoom, 1.5f, 3.f);
+		zoom = std::clamp(zoom, min_zoom, max_zoom);
 	}
 	if (isKey(SDLK_Z))
 	{
-		//scale -= 0.01f * dt;
+		world.scale -= 0.01f * dt;
+		world.clear();
 	}
 	if (isKey(SDLK_X))
 	{
-		//scale += 0.01f * dt;
+		world.scale += 0.01f * dt;
+		world.clear();
 	}
 	if (isKeyDown(SDLK_SPACE))
 	{

@@ -28,8 +28,14 @@ bool Window::pollEvent(SDL_Event& event)
 	{
 		switch (event.type)
 		{
+		case SDL_EVENT_QUIT:
+			running = false;
 		case SDL_EVENT_WINDOW_RESIZED:
 			SDL_GetWindowSize(window, &window_size.x, &window_size.y);
+			break;
+		case SDL_EVENT_KEY_DOWN:
+			if (event.key.key == SDLK_ESCAPE)
+				running = false;
 			break;
 		}
 	}

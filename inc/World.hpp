@@ -1,12 +1,14 @@
 #pragma once
 
+#include "glm/glm.hpp"
+
 #include <memory>
 #include <array>
-
-#include "glm/glm.hpp"
+#include <set>
 
 #include "Biomes.hpp"
 #include "ValueNoise.hpp"
+#include "PerlynNoise.hpp"
 #include "Chunk.hpp"
 
 class World
@@ -19,7 +21,12 @@ public:
 
 	int getTile(int x, int y);
 
+	void resetChunks();
+
+	void clear(); // Clear old chunks from memory
 	void generateWorld();
+
+	float scale = 0.01f;
 private:
 	void initSeeds();
 	void initBiomes();
@@ -36,11 +43,10 @@ private:
 	std::vector<Biome> biomes;
 	std::array<uint32_t, 8> seeds;
 
-	ValueNoise noise;
 
-	float scale = 0.01f;
 
-	std::vector<Chunk> chunks;
+	std::vector<Chunk> new_chunks;
+	std::vector<Chunk> old_chunks;
 
 	const Chunk& getOrCreateChunk(int x, int y);
 

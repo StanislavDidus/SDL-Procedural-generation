@@ -5,6 +5,7 @@
 #include "Renderer.hpp"
 #include "SpriteSheet.hpp"
 #include "ValueNoise.hpp"
+#include "PerlynNoise.hpp"
 #include "Biomes.hpp"
 #include "TileMap.hpp"
 #include "World.hpp"
@@ -19,6 +20,8 @@ public:
 
 	void update(float dt);
 
+	void resizeSprites();
+
 	void buttonUp(SDL_Keycode key);
 	void buttonPressed(SDL_Keycode key);
 
@@ -30,7 +33,9 @@ public:
 private:
 	void updateInput(float dt);
 
-	float zoom = 1.f;
+	float min_zoom = .2f;
+	float max_zoom = 1.f;
+	float zoom = (min_zoom + max_zoom) / 2.f;
 
 	Renderer& screen;
 	//SpriteSheet background;

@@ -2,6 +2,7 @@
 
 #include <random>
 
+
 namespace
 {
 	std::random_device rd;
@@ -15,7 +16,15 @@ static float mapRange(float x, float inMin, float inMax, float outMin, float out
 
 World::World(Renderer& screen) : screen(screen)
 {
-	generateWorld();
+	//Start seed is always 0
+	seeds[0] = 0;
+
+	for (int i = 1; i < seeds.size(); i++)
+	{
+		seeds[i] = seeds[0] + i;
+	}
+
+	initBiomes();
 }
 
 World::~World()
@@ -33,25 +42,33 @@ int World::getTile(int x, int y)
 
 	const auto& chunk = getOrCreateChunk(chunk_index.x, chunk_index.y);
 
-	auto tile_local_position = getTileLocalPosition(x, y);
-
-	for (const auto& tile : chunk.tiles)
+	auto it = std::find(new_chunks.begin(), new_chunks.end(), chunk);
+	if (it == new_chunks.end())
 	{
-		if (tile.row == tile_local_position.y && tile.column == tile_local_position.x)
-		{
-			return tile.index;
-		}
+		new_chunks.push_back(chunk);
 	}
 
-	return 0;
+	auto tile_local_position = getTileLocalPosition(x, y);
+
+	return chunk.tiles[tile_local_position.y + tile_local_position.x * chunk_height_tiles].index;
+}
+
+void World::resetChunks()
+{
+	old_chunks = new_chunks;
+	new_chunks.clear();
+}
+
+void World::clear()
+{
+	old_chunks.clear();
 }
 
 void World::generateWorld()
 {
 	initSeeds();
 	initBiomes();
-	//initWorld();
-	chunks.clear();
+	old_chunks.clear();
 }
 
 void World::initSeeds()
@@ -74,13 +91,13 @@ void World::initBiomes()
 		"Forest",    // name
 		0.4f,        // temperature
 		0.4f,        // moissture
-		8,           // tile id
+		0,           // tile id
 		2,           // octaves
-		0.9f,        // frequency
-		0.7f,        // ampltude
+		2.5f,        // frequency
+		3.f,        // ampltude
 		seeds[0],    // seed
 		1.f,		 // strength
-		1.3f		 // height multiplier
+		1.1f		 // height multiplier
 	};
 
 	biomes.push_back(forest);
@@ -89,14 +106,14 @@ void World::initBiomes()
 	{
 		"Desert",    // name
 		0.8f,        // temperature
-		0.1f,        // moissture
-		11,          // tile id
+		0.15f,        // moissture
+		3,          // tile id
 		1,           // octaves
-		0.001f,      // frequency
-		0.05f,       // ampltude
+		0.5f,      // frequency
+		0.9f,       // ampltude
 		seeds[1],    // seed
-		0.9f,		 // strength
-		0.9f		 // height multiplier
+		1.f,		 // strength
+		0.7f		 // height multiplier
 	};
 
 	biomes.push_back(desert);
@@ -105,14 +122,14 @@ void World::initBiomes()
 	{
 		"Mountain",    // name
 		0.2f,          // temperature
-		0.4f,          // moissture
-		30,            // tile id
+		0.3f,          // moissture
+		6,            // tile id
 		5,             // octaves
-		2.1f,          // frequency
-		5.1f,          // ampltude
+		5.f,          // frequency
+		6.f,          // ampltude
 		seeds[2],      // seed
-		1.f,		   // strength
-		4.5f		   // height multiplier
+		0.8f,		   // strength
+		3.f		   // height multiplier
 	};
 
 	biomes.push_back(mountain);
@@ -122,13 +139,13 @@ void World::initBiomes()
 		"Snow",     // name
 		0.1f,       // temperature
 		0.6f,       // moissture
-		0,          // tile id
+		5,          // tile id
 		2,          // octaves
-		0.8f,       // frequency
-		1.f,        // ampltude
+		2.f,       // frequency
+		3.1f,        // ampltude
 		seeds[3],   // seed
-		0.9f,		// strength
-		0.1f		// height multiplier
+		1.f,		// strength
+		0.9f		// height multiplier
 	};
 
 	biomes.push_back(snow);
@@ -145,10 +162,12 @@ void World::fillChunk(Chunk& chunk)
 	{
 		float position = static_cast<float>(x);
 
-		float x_slope = Noise::fractal1D(noise, 1, position * scale, 2.f, 3.f, seeds[4]);
-		float moisture = Noise::fractal1D(noise, 1, position * scale, 0.8f, 1.05f, seeds[5]);
-		float temperature = Noise::fractal1D(noise, 1, position * scale, 0.85f, 1.1f, seeds[6]);
-		float dirt = Noise::fractal1D(noise, 1, position * scale, 0.45f, 1.f, seeds[7]);
+		//float x_slope = Noise::fractal1D<ValueNoise>(1, position * scale, 2.f, 3.f, seeds[4]);
+		float moisture = Noise::fractal1D<ValueNoise>(1, position * scale, 0.2f, 1.f, seeds[5]);
+		float temperature = Noise::fractal1D<ValueNoise>(1, position * scale, 0.25f, 1.f, seeds[6]);
+		float dirt = Noise::fractal1D<ValueNoise>(1, position * scale, 2.f, 5.f, seeds[7]);
+
+		
 
 		float max_weight = -1.f;
 		int max_weight_index = -1;
@@ -159,7 +178,7 @@ void World::fillChunk(Chunk& chunk)
 		{
 			const auto& biome = biomes[i];
 
-			float weight = biome.weight(temperature, moisture) * biome.strength;
+			float weight = biome.weight(temperature, moisture);
 			float height = biome.height<ValueNoise>(position * scale);
 
 			combined_height += height * weight;
@@ -173,9 +192,13 @@ void World::fillChunk(Chunk& chunk)
 		}
 		combined_height /= combined_weight;
 
+		//combined_height = std::clamp(combined_height, 0.f, 1.f);
+
+		//std::cout << combined_height << std::endl;
+
 		int surface_y = static_cast<int>(mapRange(combined_height, 0.f, 1.f, -25.f, 25.f));
 
-		int dirt_level = static_cast<int>(std::floor(mapRange(dirt, 0.f, 1.f, 2.f, 4.f)));
+		int dirt_level = static_cast<int>(std::floor(mapRange(dirt, 0.f, 1.f, 2.f, 5.f)));
 
 		int tile_x = (x % chunk_width_tiles + chunk_width_tiles) % chunk_width_tiles;
 
@@ -189,15 +212,15 @@ void World::fillChunk(Chunk& chunk)
 			}
 			else if (y < surface_y)
 			{
-				tile_id = 6;
+				tile_id = 4;
 			}
 			else if(y > surface_y + dirt_level)
 			{
-				tile_id = 21;
+				tile_id = 2;
 			}
 			else
 			{
-				tile_id = 14;
+				tile_id = 1;
 			}
 
 			int tile_y = (y % chunk_height_tiles + chunk_height_tiles) % chunk_height_tiles;
@@ -225,7 +248,7 @@ glm::ivec2 World::getTileLocalPosition(int x, int y) const
 
 const Chunk& World::getOrCreateChunk(int x, int y)
 {
-	for (const auto& chunk : chunks)
+	for (const auto& chunk : old_chunks)
 	{
 		if (chunk.index_x == x && chunk.index_y == y)
 		{
@@ -235,6 +258,6 @@ const Chunk& World::getOrCreateChunk(int x, int y)
 
 	Chunk chunk{ x, y, x * chunk_width_tiles, y * chunk_height_tiles };
 	fillChunk(chunk);
-	chunks.emplace_back(std::move(chunk));
-	return chunks[chunks.size() - 1];
+	auto& ref = old_chunks.emplace_back(std::move(chunk));
+	return ref;
 }

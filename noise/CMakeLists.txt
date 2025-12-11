@@ -1,11 +1,13 @@
 set(NOISE_SOURCE_FILES 
     "src/Noise.cpp"
     "src/ValueNoise.cpp"
+    "src/PerlynNoise.cpp"
     )
 
 set(NOISE_HEADER_FILES
     "inc/Noise.hpp"
     "inc/ValueNoise.hpp"
+    "inc/PerlynNoise.hpp"
     )
 
 set(NOISE_ALL_FILES ${NOISE_SOURCE_FILES} ${NOISE_HEADER_FILES})

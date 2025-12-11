@@ -18,4 +18,6 @@ struct Chunk
 	int y;
 
 	std::vector<Tile> tiles;
+
+	bool operator==(const Chunk& other) const { return this->index_x == other.index_x && this->index_y == other.index_y; }
 };

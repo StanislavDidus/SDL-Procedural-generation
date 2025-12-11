@@ -10,6 +10,14 @@ static float pcg_hash(uint32_t input)
 	return static_cast<float>((word >> 22u) ^ word);
 }
 
+static float getWholeHash(uint32_t x, uint32_t y, uint32_t seed)
+{
+	uint32_t h = x;
+	h ^= y * 0x9E3779B9u;
+	h ^= seed * 0x85EBCA6Bu;
+	return pcg_hash(h);
+}
+
 static float getHashValue(uint32_t x, uint32_t seed)
 {
 	//uint32_t input = x * 374761393u;
@@ -39,14 +47,11 @@ static float smoothStep(float value)
 class Noise
 {
 public:
-	Noise();
-	virtual ~Noise();
-
-	virtual float noise1D(float x, uint32_t seed) const = 0;
-	virtual float noise2D(float x, float y, uint32_t seed) const = 0;
+	Noise() = default;
+	~Noise() = default;
 
 	template<typename NoiseType>
-	static float fractal1D(const NoiseType& noise, int octaves, float x, float frequency, float amplitude, uint32_t seed) 
+	static float fractal1D(int octaves, float x, float frequency, float amplitude, uint32_t seed) 
 	{
 		float output = 0.f;
 		float denom = 0.f;
@@ -55,11 +60,33 @@ public:
 
 		for (int i = 0; i < octaves; ++i)
 		{
-			output += noise.noise1D(x * frequency_, seed) * amplitude_;
+			output += NoiseType::noise1D(x * frequency_, seed) * amplitude_;
 			denom += amplitude_;
 
 			frequency_ *= 2.f;
 			amplitude_ *= .5f;
+		}
+
+		return output / denom;
+	}
+
+	template<typename NoiseType>
+	static float fractal2D(int octaves, float x, float y, float frequency, float amplitude, uint32_t seed)
+	{
+		float output = 0.f;
+		float denom = 0.f;
+		float frequency_ = frequency;
+		float amplitude_ = amplitude;
+		float lacunarity = 2.f;
+		float gain = 0.3f;
+
+		for (int i = 0; i < octaves; ++i)
+		{
+			output += NoiseType::noise2D(x * frequency_, y * frequency_, seed) * amplitude_;
+			denom += amplitude_;
+
+			frequency_ *= lacunarity;
+			amplitude_ *= gain;
 		}
 
 		return output / denom;

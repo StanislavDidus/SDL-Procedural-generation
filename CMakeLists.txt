@@ -15,6 +15,8 @@ set(SOURCE_FILES
     "src/TileMap.cpp"
     "src/World.cpp"
     "src/Chunk.cpp"
+    "src/Object.cpp"
+    "src/Player.cpp"
     )
 
 set(HEADER_FILES
@@ -24,6 +26,8 @@ set(HEADER_FILES
     "inc/Tile.hpp"
     "inc/World.hpp"
     "inc/Chunk.hpp"
+    "inc/Object.hpp"
+    "inc/Player.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

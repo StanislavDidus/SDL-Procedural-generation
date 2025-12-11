@@ -14,13 +14,12 @@ int main()
         return SDL_APP_FAILURE;
     }
 
-    Window window{ "First SDL program", 960, 540, 0 };
+    Window window{ "First SDL program", 960, 540, SDL_WINDOW_RESIZABLE};
     Renderer renderer{ window };
     Game game{ renderer };
 
     float dt = 0.f;
-    bool running = true;
-    while (running)
+    while (window)
     {
         const auto start = std::chrono::steady_clock::now();
 
@@ -30,24 +29,14 @@ int main()
         {
             switch (event.type)
             {
-            case SDL_EVENT_QUIT:
-                running = false;
-                break;
             case SDL_EVENT_KEY_DOWN:
-                switch (event.key.key)
-                {
-                case SDLK_ESCAPE:
-                    running = false;
-                    break;
-                default:
-                    game.buttonPressed(event.key.key);
-                    break;
-                }
+                game.buttonPressed(event.key.key);
                 break;
             case SDL_EVENT_KEY_UP:
-                 default:
-                    game.buttonUp(event.key.key);
-                    break;
+                game.buttonUp(event.key.key);
+                break;
+            case SDL_EVENT_WINDOW_RESIZED:
+                game.resizeSprites();
                 break;
             }
         }

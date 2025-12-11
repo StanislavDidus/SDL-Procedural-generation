@@ -1,17 +1,9 @@
 #include "ValueNoise.hpp"
 
-ValueNoise::ValueNoise()
-{
-}
-
-ValueNoise::~ValueNoise()
-{
-}
-
-float ValueNoise::noise1D(float x, uint32_t seed) const
+float ValueNoise::noise1D(float x, uint32_t seed)
 {
 	int floor_x = static_cast<int>(std::floor(x));
-	int ceil_x = static_cast<int>(std::ceil(x));
+	int ceil_x = floor_x + 1;
 
 	float arr[2]{
 		getHashValue(floor_x, seed),
@@ -25,13 +17,13 @@ float ValueNoise::noise1D(float x, uint32_t seed) const
 	return noise_value;
 }
 
-float ValueNoise::noise2D(float x, float y, uint32_t seed) const
+float ValueNoise::noise2D(float x, float y, uint32_t seed)
 {
 	int floor_x = static_cast<int>(std::floor(x));
-	int ceil_x = static_cast<int>(std::ceil(x));
+	int ceil_x = floor_x + 1;
 
 	int floor_y = static_cast<int>(std::floor(y));
-	int ceil_y = static_cast<int>(std::ceil(y));
+	int ceil_y = floor_y + 1;
 
 	float arr[4]{
 		getHashValue(floor_x, floor_y, seed),
