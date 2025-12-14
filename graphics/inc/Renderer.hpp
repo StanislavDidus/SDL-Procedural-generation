@@ -96,9 +96,6 @@ private:
 	SDL_Renderer* renderer = nullptr;
 	Window& window;
 
-	SDL_TextureAddressMode u_mode = SDL_TextureAddressMode::SDL_TEXTURE_ADDRESS_CLAMP;
-	SDL_TextureAddressMode v_mode = u_mode;
-
 	glm::vec2 view_position{0.f, 0.f};
 	float zoom = 1.5f;
 

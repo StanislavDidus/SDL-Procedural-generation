@@ -10,7 +10,7 @@ struct Chunk
 	Chunk(int index_x, int index_y, int x, int y);
 	~Chunk() = default;
 
-	void addTile(int index, int row, int column);
+	void addTile(int index, int row, int column, TileType type);
 
 	int index_x;
 	int index_y;

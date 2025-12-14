@@ -9,12 +9,21 @@ namespace
 	std::minstd_rand rng(rd());
 }
 
+static int mapRange(int x, int inMin, float inMax, int outMin, int outMax)
+{
+	return outMin + ((x - inMin) / (inMax - inMin)) * (outMax - outMin);
+}
+
 static float mapRange(float x, float inMin, float inMax, float outMin, float outMax)
 {
 	return outMin + ((x - inMin) / (inMax - inMin)) * (outMax - outMin);
 }
 
-World::World(Renderer& screen) : screen(screen)
+World::World(Renderer& screen)
+	: screen(screen)
+	, peaks_and_valleys_map_range_height(0.f, 1.f, 25.f, -20.f)
+	, peaks_and_valleys_map_range_change(0.f, 1.f, 0.9f, 0.15f)
+	, caves_threshold_change(0.f, 300.f, cave_threshold_min, cave_threshold_max)
 {
 	//Start seed is always 0
 	seeds[0] = 0;
@@ -25,6 +34,7 @@ World::World(Renderer& screen) : screen(screen)
 	}
 
 	initBiomes();
+	initMaps();
 }
 
 World::~World()
@@ -48,7 +58,7 @@ int World::getTile(int x, int y)
 		new_chunks.push_back(chunk);
 	}
 
-	auto tile_local_position = getTileLocalPosition(x, y);
+	glm::vec2 tile_local_position = { x - chunk.x, y - chunk.y };
 
 	return chunk.tiles[tile_local_position.y + tile_local_position.x * chunk_height_tiles].index;
 }
@@ -85,19 +95,17 @@ void World::initSeeds()
 void World::initBiomes()
 {
 	biomes.clear();
-	
+
 	Biome forest
 	{
 		"Forest",    // name
-		0.4f,        // temperature
-		0.4f,        // moissture
+		0.f,		 // pv min
+		1.f,        // pv max
+		0.4f,        //temperature min
+		0.8f,         // temperature max
+		0.f,         // moisture min
+		1.f,		 // moiseture max
 		0,           // tile id
-		2,           // octaves
-		2.5f,        // frequency
-		3.f,        // ampltude
-		seeds[0],    // seed
-		1.f,		 // strength
-		1.1f		 // height multiplier
 	};
 
 	biomes.push_back(forest);
@@ -105,127 +113,346 @@ void World::initBiomes()
 	Biome desert
 	{
 		"Desert",    // name
-		0.8f,        // temperature
-		0.15f,        // moissture
-		3,          // tile id
-		1,           // octaves
-		0.5f,      // frequency
-		0.9f,       // ampltude
-		seeds[1],    // seed
-		1.f,		 // strength
-		0.7f		 // height multiplier
+		0.f,		 // pv min
+		0.6f,        // pv max
+		0.8f,        //temperature min
+		1.f,         // temperature max
+		0.f,         // moisture min
+		1.f,		 // moiseture max
+		3,           // tile id
 	};
 
 	biomes.push_back(desert);
 
-	Biome mountain
-	{
-		"Mountain",    // name
-		0.2f,          // temperature
-		0.3f,          // moissture
-		6,            // tile id
-		5,             // octaves
-		5.f,          // frequency
-		6.f,          // ampltude
-		seeds[2],      // seed
-		0.8f,		   // strength
-		3.f		   // height multiplier
-	};
+	//Biome mountain
+	//{
+	//	"Mountain",    // name
+	//	0.2f,          // temperature
+	//	0.3f,          // moissture
+	//	6,            // tile id
+	//	5,             // octaves
+	//	5.f,          // frequency
+	//	6.f,          // ampltude
+	//	seeds[2],      // seed
+	//	0.8f,		   // strength
+	//	3.f		   // height multiplier
+	//};
 
-	biomes.push_back(mountain);
+	//biomes.push_back(mountain);
 
 	Biome snow
 	{
-		"Snow",     // name
-		0.1f,       // temperature
-		0.6f,       // moissture
-		5,          // tile id
-		2,          // octaves
-		2.f,       // frequency
-		3.1f,        // ampltude
-		seeds[3],   // seed
-		1.f,		// strength
-		0.9f		// height multiplier
+		"Snow",    // name
+		0.f,		 // pv min
+		1.f,        // pv max
+		0.0f,        //temperature min
+		0.4f,         // temperature max
+		0.f,         // moisture min
+		1.f,		 // moiseture max
+		4,           // tile id
 	};
 
 	biomes.push_back(snow);
 }
 
-void World::initWorld()
+void World::initMaps()
 {
+	peaks_and_valleys_map_range_height.addPoint(0.2f, 17.f);
+	peaks_and_valleys_map_range_height.addPoint(0.5f, 4.f);
+	peaks_and_valleys_map_range_height.addPoint(0.75f, -8.f);
+	peaks_and_valleys_map_range_height.addPoint(0.8f, -19.f);
 
+	peaks_and_valleys_map_range_change.addPoint(0.2f, 0.75f);
+	peaks_and_valleys_map_range_change.addPoint(0.5f, 0.4f);
+	peaks_and_valleys_map_range_change.addPoint(0.75f, 0.12f);
+
+	caves_threshold_change.addPoint(150.f, 0.25f);
 }
 
-void World::fillChunk(Chunk& chunk)
+void World::generateBase(Chunk& chunk)
 {
 	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
 	{
-		float position = static_cast<float>(x);
-
-		//float x_slope = Noise::fractal1D<ValueNoise>(1, position * scale, 2.f, 3.f, seeds[4]);
-		float moisture = Noise::fractal1D<ValueNoise>(1, position * scale, 0.2f, 1.f, seeds[5]);
-		float temperature = Noise::fractal1D<ValueNoise>(1, position * scale, 0.25f, 1.f, seeds[6]);
-		float dirt = Noise::fractal1D<ValueNoise>(1, position * scale, 2.f, 5.f, seeds[7]);
-
-		
-
-		float max_weight = -1.f;
-		int max_weight_index = -1;
-
-		float combined_height = 0.f;
-		float combined_weight = 0.f;
-		for (int i = 0; i < biomes.size(); i++)
-		{
-			const auto& biome = biomes[i];
-
-			float weight = biome.weight(temperature, moisture);
-			float height = biome.height<ValueNoise>(position * scale);
-
-			combined_height += height * weight;
-			combined_weight += weight;
-
-			if (weight > max_weight)
-			{
-				max_weight = weight;
-				max_weight_index = i;
-			}
-		}
-		combined_height /= combined_weight;
-
-		//combined_height = std::clamp(combined_height, 0.f, 1.f);
-
-		//std::cout << combined_height << std::endl;
-
-		int surface_y = static_cast<int>(mapRange(combined_height, 0.f, 1.f, -25.f, 25.f));
-
-		int dirt_level = static_cast<int>(std::floor(mapRange(dirt, 0.f, 1.f, 2.f, 5.f)));
-
+		float position_x = static_cast<float>(x);
 		int tile_x = (x % chunk_width_tiles + chunk_width_tiles) % chunk_width_tiles;
+
+		float peaks_and_valleys = Noise::fractal1D<ValueNoise>(3, position_x * scale, 0.085f, 0.8f, seeds[4]);
+
+		float map_height = peaks_and_valleys_map_range_height.getValue(peaks_and_valleys);
+
+		float map_change = peaks_and_valleys_map_range_change.getValue(peaks_and_valleys);
+		float correlated_change = map_change;
 
 		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
 		{
-			int tile_id = 0;
+			float position_y = static_cast<float>(y);
 
-			if (y == surface_y)
-			{
-				tile_id = biomes[max_weight_index].tile_id;
-			}
-			else if (y < surface_y)
-			{
-				tile_id = 4;
-			}
-			else if(y > surface_y + dirt_level)
+			float density_noise = Noise::fractal2D<ValueNoise>(8, position_x * scale, position_y * scale, 0.75f, 1.25f, seeds[5]);
+
+			float correlated_height = position_y - map_height;
+
+			//Apply y base layer and change over vertical axis
+			float difference = y_base - correlated_height;
+			float change = difference * correlated_change;
+			density_noise += change;
+
+			int tile_id = 0;
+			TileType type = TileType::NONE;
+
+			if (density_noise < density_threshold)
 			{
 				tile_id = 2;
+				type = TileType::SOLID;
 			}
-			else
+			if (density_noise >= density_threshold)
 			{
-				tile_id = 1;
+				//Air tile
+				tile_id = 4;
+				type = TileType::AIR;
 			}
 
 			int tile_y = (y % chunk_height_tiles + chunk_height_tiles) % chunk_height_tiles;
 
-			chunk.addTile(tile_id, tile_y, tile_x);
+			chunk.addTile(tile_id, tile_y, tile_x, type);
+		}
+	}
+}
+
+void World::findSurface(Chunk& chunk)
+{
+	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+	{
+		bool is_air = false;
+		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+		{
+			float position_x = static_cast<float>(x);
+			float position_y = static_cast<float>(y);
+
+			int tile_local_x = x - chunk.x;
+			int tile_local_y = y - chunk.y;
+
+			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+
+			//Check if tiles is on the top of the chunk
+			if (tile_local_y == 0 && tile.type == TileType::SOLID)
+			{
+				//Find position of the tile above
+				float position_y_top = position_y - 1.f;
+				float position_x_top = position_x;
+
+				//Find pv
+				float peaks_and_valleys = Noise::fractal1D<ValueNoise>(3, position_x_top * scale, 0.085f, 0.8f, seeds[4]);
+
+				float map_height = peaks_and_valleys_map_range_height.getValue(peaks_and_valleys);
+
+				float map_change = peaks_and_valleys_map_range_change.getValue(peaks_and_valleys);
+				float correlated_change = map_change;
+
+				//Find density
+				float density_noise = Noise::fractal2D<ValueNoise>(8, position_x_top * scale, position_y_top * scale, 0.75f, 1.25f, seeds[5]);
+
+				float correlated_height = position_y_top - map_height;
+
+				//Apply y base layer and change over vertical axis
+				float difference = y_base - correlated_height;
+				float change = difference * correlated_change;
+				density_noise += change;
+
+				if (density_noise >= density_threshold)
+				{
+					//Tile above is air
+					tile.type == TileType::SURFACE;
+					tile.index = 1;
+				}
+			}
+			else
+			{
+				if (tile.type == TileType::AIR)
+				{
+					is_air = true;
+				}
+				else if (tile.type == TileType::SOLID && is_air)
+				{
+					tile.type = TileType::SURFACE;
+					tile.index = 1;
+					break;
+				}
+				else
+				{
+					is_air = false;
+				}
+			}
+		}
+	}
+}
+
+void World::addDirt(Chunk& chunk)
+{
+	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+	{
+		float position_x = static_cast<float>(x);
+
+		float dirt_noise = Noise::fractal1D<ValueNoise>(3, position_x * scale, 0.2f, 0.5f, seeds[10]);
+
+		bool surface_found = false;
+		float surface_position_y = 0.f;
+
+		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+		{
+			float position_y = static_cast<float>(y);
+
+			int tile_local_x = x - chunk.x;
+			int tile_local_y = y - chunk.y;
+
+			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+
+			if (tile.type == TileType::SURFACE)
+			{
+				surface_found = true;
+				surface_position_y = position_y;
+			}
+			else
+			{
+				if (surface_found)
+				{
+					float difference = surface_position_y - position_y;
+					//Positive tile is above the surface
+					//Negative tiles i beneath the surface
+
+				}
+			}
+		}
+	}
+}
+
+void World::addWater(Chunk& chunk)
+{
+	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+	{
+		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+		{
+			float position_x = static_cast<float>(x);
+			float position_y = static_cast<float>(y);
+
+			int tile_local_x = x - chunk.x;
+			int tile_local_y = y - chunk.y;
+
+			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+
+			if (tile.type == TileType::AIR && position_y > sea_level && !tile.sealed)
+			{
+				tile.type = TileType::WATER;
+				tile.index = 7;
+			}
+		}
+	}
+}
+
+void World::addCaves(Chunk& chunk)
+{
+	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+	{
+		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+		{
+			float position_x = static_cast<float>(x);
+			float position_y = static_cast<float>(y);
+
+			int tile_local_x = x - chunk.x;
+			int tile_local_y = y - chunk.y;
+
+			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+
+			//Cave noise
+			float cave_noise = Noise::fractal2D<ValueNoise>(8, position_x * scale, position_y * scale, 0.1f, 0.75f, seeds[6]);
+
+			float c_difference = (cave_base_height - position_y) * -1.f;
+			float correlated_cave_threshold = std::clamp(caves_threshold_change.getValue(c_difference), 0.001f, cave_threshold_max);
+
+			if (tile.type == TileType::SOLID && cave_noise < correlated_cave_threshold)
+			{
+				tile.type = TileType::AIR;
+				tile.index = 4;
+				tile.sealed = true;
+			}
+		}
+	}
+}
+
+void World::addTunnels(Chunk& chunk)
+{
+	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+	{
+		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+		{
+			float position_x = static_cast<float>(x);
+			float position_y = static_cast<float>(y);
+
+			int tile_local_x = x - chunk.x;
+			int tile_local_y = y - chunk.y;
+
+			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+
+			float tunnel_noise = Noise::fractal2D<ValueNoise>(8, position_x * scale, position_y * scale, 0.1f, 1.2f, seeds[6]);
+		}
+	}
+}
+
+void World::addBiomes(Chunk& chunk)
+{ 
+	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+	{
+		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+		{
+			float position_x = static_cast<float>(x);
+			float position_y = static_cast<float>(y);
+
+			int tile_local_x = x - chunk.x;
+			int tile_local_y = y - chunk.y;
+
+			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+
+			if (tile.type != TileType::SOLID) continue;
+
+			float peaks_and_valleys = Noise::fractal1D<ValueNoise>(3, position_x * scale, 0.085f, 0.8f, seeds[4]);
+			float temperature = Noise::fractal2D<ValueNoise>(3, position_x * scale, position_y * scale, 0.01f, 0.7f, seeds[8]);
+			float moisture = Noise::fractal2D<ValueNoise>(3, position_x * scale, position_y * scale, 0.015f, 0.6f, seeds[9]);
+
+			int tile_id = 0;
+			if (peaks_and_valleys < 0.6f)
+			{
+				//Desert,Forest,Snow
+				if (temperature < 0.4f && moisture > 0.6f)
+				{
+					//Snow
+					tile_id = 5;
+				}
+				else if (temperature >= 0.7f && moisture > 0.6f)
+				{
+					//Desert
+					tile_id = 3;
+				}
+				else
+				{
+					//Forest
+					tile_id = 0;
+				}
+			}
+			else if (peaks_and_valleys < 1.f)
+			{
+				//Forest,Snow
+				if (temperature < 0.5f && moisture > 0.5f)
+				{
+					//Snow
+					tile_id = 5;
+				}
+				else
+				{
+					//Forest
+					tile_id = 0;
+				}
+			}
+
+			tile.index = tile_id;
 		}
 	}
 }
@@ -235,15 +462,7 @@ glm::ivec2 World::getChunkIndex(int x, int y) const
 	int chunk_index_x = static_cast<int>(std::floor(static_cast<float>(x) / static_cast<float>(chunk_width_tiles)));
 	int chunk_index_y = static_cast<int>(std::floor(static_cast<float>(y) / static_cast<float>(chunk_height_tiles)));
 
-	return glm::ivec2{chunk_index_x, chunk_index_y};
-}
-
-glm::ivec2 World::getTileLocalPosition(int x, int y) const
-{
-	int tile_x = (x % chunk_width_tiles + chunk_width_tiles) % chunk_width_tiles;
-	int tile_y = (y % chunk_height_tiles + chunk_height_tiles) % chunk_height_tiles;
-
-	return glm::ivec2{tile_x, tile_y};
+	return glm::ivec2{ chunk_index_x, chunk_index_y };
 }
 
 const Chunk& World::getOrCreateChunk(int x, int y)
@@ -257,7 +476,14 @@ const Chunk& World::getOrCreateChunk(int x, int y)
 	}
 
 	Chunk chunk{ x, y, x * chunk_width_tiles, y * chunk_height_tiles };
-	fillChunk(chunk);
+
+	generateBase(chunk);
+	findSurface(chunk);
+	addCaves(chunk);
+	addTunnels(chunk);
+	addWater(chunk);
+	//addBiomes(chunk);
+
 	auto& ref = old_chunks.emplace_back(std::move(chunk));
 	return ref;
 }

@@ -17,8 +17,6 @@ Renderer::Renderer(Window& window) : window(window)
 	std::cout << "Renderer was created" << std::endl;
 
 	SDL_SetRenderVSync(renderer, 0);
-
-	SDL_GetRenderTextureAddressMode(renderer, &u_mode, &v_mode);
 }
 
 Renderer::~Renderer()

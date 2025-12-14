@@ -6,6 +6,7 @@
 #include "SpriteSheet.hpp"
 #include "ValueNoise.hpp"
 #include "PerlynNoise.hpp"
+#include "MapRange.hpp"
 #include "Biomes.hpp"
 #include "TileMap.hpp"
 #include "World.hpp"

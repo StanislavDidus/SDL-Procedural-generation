@@ -17,6 +17,7 @@ set(SOURCE_FILES
     "src/Chunk.cpp"
     "src/Object.cpp"
     "src/Player.cpp"
+    "src/MapRange.cpp"
     )
 
 set(HEADER_FILES
@@ -28,6 +29,7 @@ set(HEADER_FILES
     "inc/Chunk.hpp"
     "inc/Object.hpp"
     "inc/Player.hpp"
+    "inc/MapRange.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

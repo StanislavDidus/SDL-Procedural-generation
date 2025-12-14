@@ -18,23 +18,15 @@ public:
 	Biome() = default;
 
 	std::string name;
-	float temperature;
-	float moisture;
+
+	float pv_min;
+	float pv_max;
+
+	float temperature_min;
+	float temperature_max;
+
+	float moisture_min;
+	float moisture_max;
+
 	int tile_id;
-
-	int octaves;
-	float frequency;
-	float amplitude;
-	uint32_t seed;
-
-	float strength;
-	float height_multiplier;
-
-	template<typename NoiseType>
-	float height(float x) const
-	{
-		return Noise::fractal1D<NoiseType>(octaves, x, frequency, amplitude, seed) * height_multiplier;
-	}
-
-	float weight(float temperature_, float moisture_) const;
 };
