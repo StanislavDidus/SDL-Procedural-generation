@@ -4,7 +4,7 @@
 
 #include <memory>
 #include <array>
-#include <set>
+#include <map>
 #include <optional>
 
 #include "Biomes.hpp"
@@ -35,10 +35,10 @@ public:
 	float y_base = 0.f;
 
 	float cave_threshold = 0.1f;
-	float cave_threshold_min = 0.15;
+	float cave_threshold_min = 0.2f;
 	float cave_threshold_max = 0.5f;
-	float cave_threshold_step = 0.002f;
-	float cave_base_height = 6.f;
+	float cave_threshold_step = 0.0021f;
+	float cave_base_height = 20.f;
 	
 	float tunnel_threshold_min = 0.5f;
 	float tunnel_threshold_max = 0.575f;
@@ -57,6 +57,8 @@ private:
 	void addTunnels(Chunk& chunk);
 	void addBiomes(Chunk& chunk);
 
+	bool isTileSurface(int x, int y) const;
+
 	glm::ivec2 getChunkIndex(int x, int y) const;
 
 	Renderer& screen;
@@ -64,6 +66,8 @@ private:
 	//TileMap& tilemap;
 	std::vector<Biome> biomes;
 	std::array<uint32_t, 11> seeds;
+
+	std::map<float, std::vector<float>> surface_map;
 
 	MapRange peaks_and_valleys_map_range_height;
 	MapRange peaks_and_valleys_map_range_change;
