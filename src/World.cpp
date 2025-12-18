@@ -46,7 +46,7 @@ void World::render()
 
 }
 
-int World::getTile(int x, int y)
+const Tile& World::getTile(int x, int y)
 {
 	auto chunk_index = getChunkIndex(x, y);
 
@@ -60,7 +60,7 @@ int World::getTile(int x, int y)
 
 	glm::vec2 tile_local_position = { x - chunk.x, y - chunk.y };
 
-	return chunk.tiles[tile_local_position.y + tile_local_position.x * chunk_height_tiles].index;
+	return chunk.tiles[tile_local_position.y + tile_local_position.x * chunk_height_tiles];
 }
 
 void World::resetChunks()
@@ -193,19 +193,19 @@ void World::generateBase(Chunk& chunk)
 			float correlated_height = position_y - map_height;
 
 			//Apply y base layer and change over vertical axis
-			float difference = y_base - correlated_height;
+			float difference = correlated_height - y_base;
 			float change = difference * correlated_change;
 			density_noise += change;
 
 			int tile_id = 0;
 			TileType type = TileType::NONE;
 
-			if (density_noise < density_threshold)
+			if (density_noise >= density_threshold)
 			{
 				tile_id = 2;
 				type = TileType::SOLID;
 			}
-			if (density_noise >= density_threshold)
+			if (density_noise < density_threshold)
 			{
 				//Air tile
 				tile_id = 4;
@@ -221,7 +221,7 @@ void World::generateBase(Chunk& chunk)
 
 void World::findSurface(Chunk& chunk)
 {
-	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+	/*for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
 	{
 		bool is_air = false;
 		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
@@ -238,7 +238,7 @@ void World::findSurface(Chunk& chunk)
 			{
 				tile.type = TileType::SURFACE;
 				tile.index = 1;
-			}
+			}*/
 
 			//Check if tiles is on the top of the chunk
 
@@ -292,8 +292,6 @@ void World::findSurface(Chunk& chunk)
 			//		is_air = false;
 			//	}
 			//}
-		}
-	}
 }
 
 void World::addDirt(Chunk& chunk)
@@ -317,54 +315,31 @@ void World::addDirt(Chunk& chunk)
 
 			for (int i = 0; i < dirt_level; ++i)
 			{
-				if (isTileSurface(x, y - i))
+				int new_local_y = tile_local_y - i;
+				int new_y = y - i;
+
+				if (new_local_y >= 1)
 				{
-					tile.index = 1;
-					break;
+					auto& tile1 = chunk.tiles[new_local_y + tile_local_x * chunk_height_tiles];
+					auto& tile2 = chunk.tiles[new_local_y - 1 + tile_local_x * chunk_height_tiles];
+
+					if (tile1.type == TileType::SOLID && tile2.type == TileType::AIR)
+					{
+						tile.index = 1;
+						break;
+					}
+				}
+				else
+				{
+					if (isTileSurface(x, new_y))
+					{
+						tile.index = 1;
+						break;
+					}
 				}
 			}
 		}
 	}
-
-	/*for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
-	{
-		float position_x = static_cast<float>(x);
-
-		float dirt_noise = Noise::fractal1D<ValueNoise>(3, position_x * scale, 0.2f, 0.5f, seeds[10]);
-		float dirt_level = dirt_noise * 15.f;
-
-		bool surface_found = false;
-		int surface_position_y = 0;
-
-		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
-		{
-			float position_y = static_cast<float>(y);
-
-			int tile_local_x = x - chunk.x;
-			int tile_local_y = y - chunk.y;
-
-			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
-
-			if (tile.type == TileType::SOLID)
-			{
-				float max = std::numeric_limits<float>::lowest();
-				for (const auto& surface_y : surface_map[x])
-				{
-					if (surface_y >= position_y) continue;
-
-					float difference = surface_y - position_y;
-					if (difference > max) max = difference;
-				}
-
-				float dirt_to_spawn = max + 1.f + dirt_level;
-
-				if (dirt_to_spawn > 0.f)
-				{
-					tile.index = 1;
-				}
-			}
-		}
-	}*/
 }
 
 void World::addWater(Chunk& chunk)
@@ -466,22 +441,23 @@ void World::addBiomes(Chunk& chunk)
 			if (tile.type != TileType::SOLID) continue;
 
 			float peaks_and_valleys = Noise::fractal1D<ValueNoise>(3, position_x * scale, 0.085f, 0.8f, seeds[4]);
-			float temperature = Noise::fractal2D<ValueNoise>(3, position_x * scale, position_y * scale, 0.01f, 0.7f, seeds[8]);
-			float moisture = Noise::fractal2D<ValueNoise>(3, position_x * scale, position_y * scale, 0.015f, 0.6f, seeds[9]);
+			float temperature = Noise::fractal2D<ValueNoise>(2, position_x * scale, position_y * scale, 0.02f, 0.6f, seeds[8]);
+			float moisture = Noise::fractal2D<ValueNoise>(2, position_x * scale, position_y * scale, 0.04f, 0.4f, seeds[9]);
 
 			int tile_id = 0;
 
 			if (tile.index != 1) continue;
 
-			if (peaks_and_valleys < 0.6f)
+			/*if (peaks_and_valleys < 0.6f)*/
+			if(peaks_and_valleys < 0.7f)
 			{
 				//Desert,Forest,Snow
-				if (temperature < 0.4f && moisture > 0.6f)
+				if (temperature < 0.3f && moisture > 0.7f)
 				{
 					//Snow
 					tile_id = 5;
 				}
-				else if (temperature >= 0.7f && moisture > 0.6f)
+				else if (temperature >= 0.7f && moisture < 0.4f)
 				{
 					//Desert
 					tile_id = 3;
@@ -494,11 +470,15 @@ void World::addBiomes(Chunk& chunk)
 			}
 			else if (peaks_and_valleys < 1.f)
 			{
-				//Forest,Snow
-				if (temperature < 0.5f && moisture > 0.5f)
+				if (temperature < 0.3f && moisture > 0.7f)
 				{
 					//Snow
 					tile_id = 5;
+				}
+				else if (temperature >= 0.7f && moisture < 0.4f)
+				{
+					//\mountain
+					tile_id =0;
 				}
 				else
 				{
@@ -535,12 +515,12 @@ bool World::isTileSurface(int x, int y) const
 		float correlated_height = position_y - map_height;
 
 		//Apply y base layer and change over vertical axis
-		float difference = y_base - correlated_height;
-		float change = difference * correlated_change;
+		float difference = correlated_height - y_base;
+		float change = difference * correlated_change ;
 		density_noise += change;
 
 		//Tile at (x,y) is air - skip
-		if (density_noise >= density_threshold) return false;
+		if (density_noise < density_threshold) return false;
 	}
 
 	{
@@ -561,11 +541,11 @@ bool World::isTileSurface(int x, int y) const
 		float correlated_height = position_y_top - map_height;
 
 		//Apply y base layer and change over vertical axis
-		float difference = y_base - correlated_height;
+		float difference = correlated_height - y_base;
 		float change = difference * correlated_change;
 		density_noise += change;
 
-		if (density_noise >= density_threshold)
+		if (density_noise < density_threshold)
 		{
 			//Tile is a surface
 			return true;
@@ -601,7 +581,7 @@ const Chunk& World::getOrCreateChunk(int x, int y)
 	addCaves(chunk);
 	//addTunnels(chunk);
 	addWater(chunk);
-	//addBiomes(chunk);
+	addBiomes(chunk);
 
 	auto& ref = old_chunks.emplace_back(std::move(chunk));
 	return ref;

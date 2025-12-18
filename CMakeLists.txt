@@ -50,6 +50,7 @@ target_link_libraries(
     SDL3::SDL3-static
     graphics 
     glm::glm noise
+    imgui
 )
 
 target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_17)

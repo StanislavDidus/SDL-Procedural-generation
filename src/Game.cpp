@@ -1,6 +1,10 @@
 #include "Game.hpp"
 #include <iostream>
 
+#include "imgui.h"
+#include "imgui_impl_sdl3.h"
+#include "imgui_impl_sdlrenderer3.h"
+
 #include <algorithm>
 
 std::bitset<256> Game::pressed{};
@@ -96,6 +100,7 @@ Game::Game(Renderer& screen)
 	std::cout << "1.f - " << mapRange.getValue(1.f) << std::endl;
 	std::cout << "-0.5.f - " << mapRange.getValue(-0.5f) << std::endl;
 	std::cout << "1.5f - " << mapRange.getValue(1.f) << std::endl;*/
+
 }
 
 Game::~Game()
@@ -112,6 +117,18 @@ void Game::update(float dt)
 	
 
 	tilemap.render(screen);
+
+	ImGui_ImplSDLRenderer3_NewFrame();
+	ImGui_ImplSDL3_NewFrame();
+	ImGui::NewFrame();
+
+	// … your UI code
+	ImGui::ShowDemoWindow();
+
+	// render
+	ImGui::Render();
+	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.getRenderer());
+
 
 	//zoom = 1.f;
 

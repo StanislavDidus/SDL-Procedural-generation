@@ -42,9 +42,10 @@ void TileMap::render(Renderer& screen)
 	{
 		for (int y = begin_y; y < end_y; y++)
 		{
-			int tile_id = world.getTile(x,y);
+			const auto& tile = world.getTile(x,y);
+			int index = tile.index;
 
-			screen.drawTile(tileset[tile_id], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
+			screen.drawTile(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
 		}
 	}
 

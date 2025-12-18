@@ -21,7 +21,7 @@ public:
 
 	void render();
 
-	int getTile(int x, int y);
+	const Tile& getTile(int x, int y);
 
 	void resetChunks();
 

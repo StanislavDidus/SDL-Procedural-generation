@@ -2,6 +2,10 @@
 #include <iostream>
 #include <chrono>
 
+#include "imgui.h"
+#include "imgui_impl_sdl3.h"
+#include "imgui_impl_sdlrenderer3.h"
+
 #include "Window.hpp"
 #include "Renderer.hpp"
 #include "Game.hpp"
@@ -18,6 +22,15 @@ int main()
     Renderer renderer{ window };
     Game game{ renderer };
 
+    //Init ImGui
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplSDL3_InitForSDLRenderer(window.getWindow(), renderer.getRenderer() );
+    ImGui_ImplSDLRenderer3_Init(renderer.getRenderer());
+    ImGui::GetIO().FontGlobalScale = 1.5f;
+
     float dt = 0.f;
     while (window)
     {
@@ -27,6 +40,8 @@ int main()
         SDL_Event event;
         while (window.pollEvent(event))
         {
+            ImGui_ImplSDL3_ProcessEvent(&event);
+
             switch (event.type)
             {
             case SDL_EVENT_KEY_DOWN:
