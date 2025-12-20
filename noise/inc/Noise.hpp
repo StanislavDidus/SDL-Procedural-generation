@@ -72,7 +72,7 @@ public:
 			denom += amplitude_;
 
 			frequency_ *= 2.f;
-			amplitude_ *= .5f;
+			amplitude_ *= 0.5f;
 		}
 
 		return output / denom;

@@ -332,28 +332,28 @@ void Game::updateImGui(float dt)
 		{
 			ImGui::Text("PV");
 			ImGui::SliderInt("Octaves##PV", &world.peaks_and_valleys_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##PV", &world.peaks_and_valleys_settings.frequency, 0.001f, 5.f);
-			ImGui::SliderFloat("Amplitude##PV", &world.peaks_and_valleys_settings.amplitude, 0.001f, 5.f);
+			ImGui::SliderFloat("Frequency##PV", &world.peaks_and_valleys_settings.frequency, 0.0001f, 2.f);
+			ImGui::SliderFloat("Amplitude##PV", &world.peaks_and_valleys_settings.amplitude, 0.0001f, 2.f);
 
 			ImGui::Text("Caves");
 			ImGui::SliderInt("Octaves##Caves", &world.cave_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Caves", &world.cave_settings.frequency, 0.001f, 5.f);
-			ImGui::SliderFloat("Amplitude##Caves", &world.cave_settings.amplitude, 0.001f, 5.f);
+			ImGui::SliderFloat("Frequency##Caves", &world.cave_settings.frequency, 0.0001f, 2.f);
+			ImGui::SliderFloat("Amplitude##Caves", &world.cave_settings.amplitude, 0.0001f, 2.f);
 
 			ImGui::Text("Tunnels");
 			ImGui::SliderInt("Octaves##Tunnels", &world.tunnel_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Tunnels", &world.tunnel_settings.frequency, 0.001f, 5.f);
-			ImGui::SliderFloat("Amplitude##Tunnels", &world.tunnel_settings.amplitude, 0.001f, 5.f);
+			ImGui::SliderFloat("Frequency##Tunnels", &world.tunnel_settings.frequency, 0.001f, 2.f);
+			ImGui::SliderFloat("Amplitude##Tunnels", &world.tunnel_settings.amplitude, 0.001f, 2.f);
 
 			ImGui::Text("Temperature");
 			ImGui::SliderInt("Octaves##Temperature", &world.temperature_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Temperature", &world.temperature_settings.frequency, 0.001f, 5.f);
-			ImGui::SliderFloat("Amplitude##Temperature", &world.temperature_settings.amplitude, 0.001f, 5.f);
+			ImGui::SliderFloat("Frequency##Temperature", &world.temperature_settings.frequency, 0.0001f, 2.f);
+			ImGui::SliderFloat("Amplitude##Temperature", &world.temperature_settings.amplitude, 0.0001f, 2.f);
 
 			ImGui::Text("Moisture");
 			ImGui::SliderInt("Octaves##Moisture", &world.moisture_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Moisture", &world.moisture_settings.frequency, 0.001f, 5.f);
-			ImGui::SliderFloat("Amplitude##Moisture", &world.moisture_settings.amplitude, 0.001f, 5.f);
+			ImGui::SliderFloat("Frequency##Moisture", &world.moisture_settings.frequency, 0.0001f, 2.f);
+			ImGui::SliderFloat("Amplitude##Moisture", &world.moisture_settings.amplitude, 0.0001f, 2.f);
 		}
 	}
 
