@@ -28,5 +28,6 @@ public:
 	float moisture_min;
 	float moisture_max;
 
-	int tile_id;
+	int tile_surface_id;
+	int tile_dirt_id;
 };

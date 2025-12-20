@@ -29,7 +29,7 @@ int main()
 
     ImGui_ImplSDL3_InitForSDLRenderer(window.getWindow(), renderer.getRenderer() );
     ImGui_ImplSDLRenderer3_Init(renderer.getRenderer());
-    ImGui::GetIO().FontGlobalScale = 1.5f;
+    //ImGui::GetIO().FontGlobalScale = 1.5f;
 
     float dt = 0.f;
     while (window)
@@ -66,6 +66,11 @@ int main()
         const std::chrono::duration<double> elapsed_seconds{ finish - start };
         dt = static_cast<float>(elapsed_seconds.count());
     }
+    
+    //Destroy imgui
+    ImGui_ImplSDL3_Shutdown();
+    ImGui_ImplSDLRenderer3_Shutdown();
+    ImGui::DestroyContext();
 
     return 0;
 }

@@ -33,10 +33,13 @@ public:
 	glm::vec2 view_position = {0.f, 0.f};
 private:
 	void updateInput(float dt);
+	void updateImGui(float dt);
 
 	float min_zoom = .05f;
 	float max_zoom = 1.f;
 	float zoom = (min_zoom + max_zoom) / 2.f;
+
+	float camera_move_speed = 1500.f;
 
 	Renderer& screen;
 	//SpriteSheet background;

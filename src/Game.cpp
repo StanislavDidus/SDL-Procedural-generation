@@ -5,6 +5,8 @@
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
 
+#include <random>
+
 #include <algorithm>
 
 std::bitset<256> Game::pressed{};
@@ -16,6 +18,12 @@ const float BaseHeightScreen = 540.f;
 
 const float TileWidth = 75.f;
 const float TileHeight = 75.f;
+
+namespace
+{
+	std::random_device rd;
+	std::minstd_rand rng(rd());
+}
 
 static float mapRange(float x, float inMin, float inMax, float outMin, float outMax)
 {
@@ -101,6 +109,7 @@ Game::Game(Renderer& screen)
 	std::cout << "-0.5.f - " << mapRange.getValue(-0.5f) << std::endl;
 	std::cout << "1.5f - " << mapRange.getValue(1.f) << std::endl;*/
 
+
 }
 
 Game::~Game()
@@ -110,25 +119,24 @@ Game::~Game()
 
 void Game::update(float dt)
 {
+	//Update
 	updateInput(dt);
 
 	screen.setZoom(zoom);
 	screen.setView(view_position);
-	
-
-	tilemap.render(screen);
 
 	ImGui_ImplSDLRenderer3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
 
 	// … your UI code
-	ImGui::ShowDemoWindow();
+	updateImGui(dt);
+	
+	//Render
+	tilemap.render(screen);
 
-	// render
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.getRenderer());
-
 
 	//zoom = 1.f;
 
@@ -225,19 +233,19 @@ void Game::updateInput(float dt)
 {
 	if (isKey(SDLK_D))
 	{
-		view_position.x += 1500.f * dt;
+		view_position.x += camera_move_speed * dt;
 	}
 	if (isKey(SDLK_A))
 	{
-		view_position.x -= 1500.f * dt;
+		view_position.x -= camera_move_speed * dt;
 	}
 	if (isKey(SDLK_W))
 	{
-		view_position.y -= 1500.f * dt;
+		view_position.y -= camera_move_speed * dt;
 	}
 	if (isKey(SDLK_S))
 	{
-		view_position.y += 1500.f * dt;
+		view_position.y += camera_move_speed * dt;
 	}
 	if (isKey(SDLK_Q))
 	{
@@ -263,10 +271,91 @@ void Game::updateInput(float dt)
 	}
 	if (isKeyDown(SDLK_SPACE))
 	{
-		world.generateWorld();
+		world.generateWorld(std::nullopt);
 	}
 
 	pressed = keys & ~held;
 	released = held & ~keys;
 	held = keys;
+}
+
+void Game::updateImGui(float dt)
+{
+	ImGui::Begin("Window");
+
+	if (ImGui::CollapsingHeader("Procedural generation"))
+	{
+		static int buffer = 0;
+		ImGui::InputInt("Seed", &buffer);
+
+		if (ImGui::Button("Random seed"))
+		{
+			std::uniform_int_distribution dist(0, 10000000);
+			buffer = dist(rng);
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Generate world"))
+		{
+			world.generateWorld(buffer);
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Generate world with random seed"))
+		{
+			std::uniform_int_distribution dist(0, 10000000);
+			buffer = dist(rng);
+			world.generateWorld(buffer);
+		}
+
+		ImGui::SliderFloat("camera_move_speed", &camera_move_speed, 1000.f, 10000.f);
+
+		ImGui::SliderFloat("scale", &world.scale, 0.f, 1.f);
+		ImGui::SliderFloat("zoom", &zoom, 0.05f, 5.f);
+		ImGui::SliderFloat("density_change", &world.density_change, 0.1f, 1.f);
+		ImGui::SliderFloat("y_base", &world.y_base, -100.f, 100.f);
+		ImGui::SliderFloat("sea_level", &world.sea_level, -100.f, 100.f);
+
+		ImGui::SliderFloat("cave_threshold_min", &world.cave_threshold_min, 0.1f, 1.0f);
+		ImGui::SliderFloat("cave_threshold_max", &world.cave_threshold_max, 0.1f, 1.0f);
+		ImGui::SliderFloat("cave_threshold_step", &world.cave_threshold_step, 0.0001f, 0.01f);
+		ImGui::SliderFloat("cave_base_y", &world.cave_base_height, -100.f, 100.f);
+
+		static int current = 0;
+		const char* items[] = { "Default", "PV", "Temperature", "Moisture" };
+
+		ImGui::Combo("Render Mode", &tilemap.render_mode, items, IM_ARRAYSIZE(items));
+
+		if (ImGui::CollapsingHeader("Terrain & Nature"))
+		{
+			ImGui::Text("PV");
+			ImGui::SliderInt("Octaves##PV", &world.peaks_and_valleys_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##PV", &world.peaks_and_valleys_settings.frequency, 0.001f, 5.f);
+			ImGui::SliderFloat("Amplitude##PV", &world.peaks_and_valleys_settings.amplitude, 0.001f, 5.f);
+
+			ImGui::Text("Caves");
+			ImGui::SliderInt("Octaves##Caves", &world.cave_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##Caves", &world.cave_settings.frequency, 0.001f, 5.f);
+			ImGui::SliderFloat("Amplitude##Caves", &world.cave_settings.amplitude, 0.001f, 5.f);
+
+			ImGui::Text("Tunnels");
+			ImGui::SliderInt("Octaves##Tunnels", &world.tunnel_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##Tunnels", &world.tunnel_settings.frequency, 0.001f, 5.f);
+			ImGui::SliderFloat("Amplitude##Tunnels", &world.tunnel_settings.amplitude, 0.001f, 5.f);
+
+			ImGui::Text("Temperature");
+			ImGui::SliderInt("Octaves##Temperature", &world.temperature_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##Temperature", &world.temperature_settings.frequency, 0.001f, 5.f);
+			ImGui::SliderFloat("Amplitude##Temperature", &world.temperature_settings.amplitude, 0.001f, 5.f);
+
+			ImGui::Text("Moisture");
+			ImGui::SliderInt("Octaves##Moisture", &world.moisture_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##Moisture", &world.moisture_settings.frequency, 0.001f, 5.f);
+			ImGui::SliderFloat("Amplitude##Moisture", &world.moisture_settings.amplitude, 0.001f, 5.f);
+		}
+	}
+
+	ImGui::End();
 }

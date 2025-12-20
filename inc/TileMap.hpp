@@ -18,6 +18,8 @@ public:
 
 	void render(Renderer& screen);
 	void clear();
+
+	int render_mode = 0;
 private:
 	float tile_width_world = 0.f;
 	float tile_height_world = 0.f;

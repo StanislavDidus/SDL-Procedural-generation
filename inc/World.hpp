@@ -26,7 +26,7 @@ public:
 	void resetChunks();
 
 	void clear(); // Clear old chunks from memory
-	void generateWorld();
+	void generateWorld(std::optional<int> seed);
 
 	float scale = 0.5f;
 
@@ -44,20 +44,31 @@ public:
 	float tunnel_threshold_max = 0.575f;
 
 	float sea_level = 11.f;
+
+	std::array<int, 11> seeds;
+
+	NoiseSettings peaks_and_valleys_settings; 
+	NoiseSettings density_settings;
+	NoiseSettings cave_settings;
+	NoiseSettings tunnel_settings;
+	NoiseSettings temperature_settings;
+	NoiseSettings moisture_settings;
+
 private:
-	void initSeeds();
+	void initSeeds(std::optional<int> seed);
+	void initNoiseSettings();
 	void initBiomes();
 	void initMaps();
 
 	void generateBase(Chunk& chunk);
-	void findSurface(Chunk& chunk);
+	void addSurface(Chunk& chunk);
 	void addDirt(Chunk& chunk);
 	void addWater(Chunk& chunk);
 	void addCaves(Chunk& chunk);
 	void addTunnels(Chunk& chunk);
 	void addBiomes(Chunk& chunk);
 
-	bool isTileSurface(int x, int y) const;
+	bool isTileSolid(int x, int y) const; // Generate tile at x, y position and return true if solid
 
 	glm::ivec2 getChunkIndex(int x, int y) const;
 
@@ -65,7 +76,7 @@ private:
 
 	//TileMap& tilemap;
 	std::vector<Biome> biomes;
-	std::array<uint32_t, 11> seeds;
+	
 
 	std::map<float, std::vector<float>> surface_map;
 

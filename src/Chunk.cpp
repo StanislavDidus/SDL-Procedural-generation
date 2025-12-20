@@ -8,9 +8,9 @@ Chunk::Chunk(int index_x, int index_y, int x, int y) : index_x(index_x), index_y
 {
 }
 
-void Chunk::addTile(int index, int row, int column, TileType type)
+void Chunk::addTile(const Tile& tile)
 {
-	tiles.emplace_back(index, row, column, type);
+	tiles.push_back(tile);
 }
 
 

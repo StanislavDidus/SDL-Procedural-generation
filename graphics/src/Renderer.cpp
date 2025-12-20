@@ -122,10 +122,7 @@ void Renderer::drawRectangle(float x, float y, float w, float h, RenderType rend
 	rect.w = w;
 	rect.h = h;
 
-	rect.x *= zoom;
-	rect.y *= zoom;
-	rect.w *= zoom;
-	rect.h *= zoom;
+	zoomRect(rect);
 
 	setColor(color);
 
@@ -156,10 +153,7 @@ void Renderer::drawSprite(const Sprite& sprite, float x, float y)
 	dst.w = src.w;
 	dst.h = src.h;
 
-	dst.x *= zoom;
-	dst.y *= zoom;
-	dst.w *= zoom;
-	dst.h *= zoom;
+	zoomRect(dst);
 
 	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
 }
@@ -180,10 +174,7 @@ void Renderer::drawScaledSprite(const Sprite& sprite, float x, float y, float wi
 	dst.w = width;
 	dst.h = height;
 
-	dst.x *= zoom;
-	dst.y *= zoom;
-	dst.w *= zoom;
-	dst.h *= zoom; 
+	zoomRect(dst);
 
 	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
 }
@@ -204,10 +195,7 @@ void Renderer::drawRotatedSprite(const Sprite& sprite, float x, float y, float w
 	dst.w = width;
 	dst.h = height;
 
-	dst.x *= zoom;
-	dst.y *= zoom;
-	dst.w *= zoom;
-	dst.h *= zoom;
+	zoomRect(dst);
 
 	SDL_RenderTextureRotated(renderer, sprite.getTexture(), &src, &dst, angle, nullptr, flip_mode);
 }
@@ -223,10 +211,7 @@ void Renderer::drawUI(const Sprite& sprite, float x, float y, float width, float
 	dst.w = width;
 	dst.h = height;
 
-	dst.x *= zoom;
-	dst.y *= zoom;
-	dst.w *= zoom;
-	dst.h *= zoom;
+	zoomRect(dst);
 
 	if (angle == 0.f || std::fmodf(angle, 360.f) == 0.f)
 	{
@@ -249,26 +234,31 @@ void Renderer::drawTile(const Sprite& sprite, float x, float y, float width, flo
 	dst.w = width;
 	dst.h = height;
 
-	glm::vec2 midscreen{ window.getSize().x / 2.f, window.getSize().y / 2.f};
-
-	dst.x -= midscreen.x;
-	dst.y -= midscreen.y;
-
-	dst.x *= zoom;
-	dst.y *= zoom;
-	dst.w *= zoom;
-	dst.h *= zoom;
-
-	dst.x += midscreen.x;
-	dst.y += midscreen.y;
-
-	dst.w += 1.f;
-	dst.h += 1.f;
-
-	dst.x = std::floor(dst.x);
-	dst.y = std::floor(dst.y);
+	zoomRect(dst);
 
 	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
+}
+
+void Renderer::zoomRect(SDL_FRect& rect) const
+{
+	glm::vec2 midscreen{ window.getSize().x / 2.f, window.getSize().y / 2.f };
+
+	rect.x -= midscreen.x;
+	rect.y -= midscreen.y;
+	
+	rect.x *= zoom;
+	rect.y *= zoom;
+	rect.w *= zoom;
+	rect.h *= zoom;
+	
+	rect.x += midscreen.x;
+	rect.y += midscreen.y;
+
+	rect.w += 1.f;
+	rect.h += 1.f;
+	
+	rect.x = std::floor(rect.x);
+	rect.y = std::floor(rect.y);
 }
 
 void Renderer::setColor(Color color)

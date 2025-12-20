@@ -44,6 +44,14 @@ static float smoothStep(float value)
 	return value * value * (3.f - 2.f * value);
 }
 
+struct NoiseSettings
+{
+	int octaves;
+	float frequency;
+	float amplitude;
+	uint32_t seed;
+};
+
 class Noise
 {
 public:
@@ -71,6 +79,12 @@ public:
 	}
 
 	template<typename NoiseType>
+	static float fractal1D(const NoiseSettings& settings, float x)
+	{
+		return fractal1D<NoiseType>(settings.octaves, x, settings.frequency, settings.amplitude, settings.seed);
+	}
+
+	template<typename NoiseType>
 	static float fractal2D(int octaves, float x, float y, float frequency, float amplitude, uint32_t seed)
 	{
 		float output = 0.f;
@@ -78,7 +92,7 @@ public:
 		float frequency_ = frequency;
 		float amplitude_ = amplitude;
 		float lacunarity = 2.f;
-		float gain = 0.3f;
+		float gain = 0.5f; // persistence
 
 		for (int i = 0; i < octaves; ++i)
 		{
@@ -90,5 +104,11 @@ public:
 		}
 
 		return output / denom;
+	}
+
+	template<typename NoiseType>
+	static float fractal2D(const NoiseSettings& settings, float x, float y)
+	{
+		return fractal2D<NoiseType>(settings.octaves, x, y, settings.frequency, settings.amplitude, settings.seed);
 	}
 };

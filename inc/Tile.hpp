@@ -3,21 +3,31 @@
 enum class TileType
 {
 	NONE,
-	SOLID,
-	AIR,
 	WATER,
 	SURFACE,
 	DIRT,
+	STONE,
+};
+
+
+struct TileDebugInfo
+{
+	float pv = 0.f;
+	float temperature = 0.f;
+	float moisture = 0.f;
 };
 
 struct Tile
 {
-	Tile(int index, int row, int column, TileType type) : index(index), row(row), column(column), type(type) {}
+	Tile(int index, int x, int y, TileType type = TileType::NONE) : index(index), x(y), y(y), type(type) {}
 
 	int index;
-	int row;
-	int column;
+	int x;
+	int y;
 	TileType type;
+
+	bool solid = false;
 	bool sealed = false;
-	
+
+	TileDebugInfo debug_info;
 };

@@ -93,6 +93,8 @@ public:
 
 	void drawTile(const Sprite& sprite, float x, float y, float width, float height);
 private:
+	void zoomRect(SDL_FRect& rect) const;
+
 	SDL_Renderer* renderer = nullptr;
 	Window& window;
 

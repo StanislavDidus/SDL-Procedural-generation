@@ -45,7 +45,44 @@ void TileMap::render(Renderer& screen)
 			const auto& tile = world.getTile(x,y);
 			int index = tile.index;
 
-			screen.drawTile(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
+			if (tile.solid)
+			{
+
+				switch (render_mode)
+				{
+				case 0:
+					screen.drawTile(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
+					break;
+				case 1:
+					//PV
+				{
+					uint8_t c = static_cast<uint8_t>(tile.debug_info.pv * 255.f + 0.5f);
+					Color color{ c,c,c };
+					screen.drawRectangle(x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world, RenderType::FILL, color);
+					break;
+				}
+				case 2:
+					//Temperature
+				{
+					uint8_t c = static_cast<uint8_t>(tile.debug_info.temperature * 255.f + 0.5f);
+					Color color{ c,c,c };
+					screen.drawRectangle(x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world, RenderType::FILL, color);
+					break;
+				}
+				case 3:
+					//Moisture
+				{
+					uint8_t c = static_cast<uint8_t>(tile.debug_info.moisture * 255.f + 0.5f);
+					Color color{ c,c,c };
+					screen.drawRectangle(x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world, RenderType::FILL, color);
+					break;
+				}
+				}
+			}
+			else
+			{
+				screen.drawTile(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
+			}
 		}
 	}
 
