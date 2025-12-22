@@ -2,7 +2,7 @@
 #include "glm/glm.hpp"
 #include <algorithm>
 
-MapRange::MapRange(float inMin, float inMax, float outMin, float outMax) : inMin(inMin), inMax(inMax)
+MapRange::MapRange(float inMin, float inMax, float outMin, float outMax) : outMin(outMin), outMax(outMax)
 {
 	points.emplace_back(inMin, outMin);
 	points.emplace_back(inMax, outMax);
@@ -17,11 +17,11 @@ float MapRange::getValue(float x) const
 
 	if (it == points.begin())
 	{
-		return inMin;
+		return outMin;
 	}
 	else if (it == points.end())
 	{
-		return inMax;
+		return outMax;
 	}
 	else
 	{

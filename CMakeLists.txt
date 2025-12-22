@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15...4.2.0)
+cmake_minimum_required(VERSION 3.15...4.2.1)
 
 project(SDL_PRO_GEN VERSION 1.0
     DESCRIPTION "Small SDL procedural generation game"
@@ -18,6 +18,10 @@ set(SOURCE_FILES
     "src/Object.cpp"
     "src/Player.cpp"
     "src/MapRange.cpp"
+    "src/ECS/Entity.cpp"
+    "src/ECS/EntityManager.cpp"
+    "src/ECS/ComponentManager.cpp"
+    "src/InputManager.cpp"
     )
 
 set(HEADER_FILES
@@ -30,6 +34,11 @@ set(HEADER_FILES
     "inc/Object.hpp"
     "inc/Player.hpp"
     "inc/MapRange.hpp"
+    "inc/ECS/Entity.hpp"
+    "inc/ECS/EntityManager.hpp"
+    "inc/ECS/ComponentManager.hpp"
+    "inc/ECS/Systems.hpp"
+    "inc/InputManager.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
@@ -53,4 +62,4 @@ target_link_libraries(
     imgui
 )
 
-target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_17)
+target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_20)

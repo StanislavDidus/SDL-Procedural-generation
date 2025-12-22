@@ -19,11 +19,12 @@ static float mapRange(float x, float inMin, float inMax, float outMin, float out
 	return outMin + ((x - inMin) / (inMax - inMin)) * (outMax - outMin);
 }
 
+
 World::World(Renderer& screen)
 	: screen(screen)
-	, peaks_and_valleys_map_range_height(0.f, 1.f, 25.f, -20.f)
-	, peaks_and_valleys_map_range_change(0.f, 1.f, 0.9f, 0.15f)
-	, caves_threshold_change(0.f, 300.f, cave_threshold_min, cave_threshold_max)
+	, peaks_and_valleys_map_range_height(0.4f, 1.8f, 0.f, -25.f)
+	, peaks_and_valleys_map_range_change(0.4f, 1.8f, 0.9f, 0.15f)
+	, caves_threshold_change(y_base, y_base + 300.f, cave_threshold_min, cave_threshold_max)
 {
 	//Start seed is always 0
 	seeds[0] = 0;
@@ -112,99 +113,91 @@ void World::initSeeds(std::optional<int> seed)
 
 void World::initNoiseSettings()
 {
-	peaks_and_valleys_settings.octaves = 4;
-	peaks_and_valleys_settings.frequency = 0.085f;
-	peaks_and_valleys_settings.amplitude = 0.8f;
+	peaks_and_valleys_settings.octaves = 5;
+	peaks_and_valleys_settings.frequency = 0.05f;
+	peaks_and_valleys_settings.amplitude = 1.0f;
 	peaks_and_valleys_settings.seed = seeds[4];
 
 	density_settings.octaves = 8;
 	density_settings.frequency = 0.75f;
-	density_settings.amplitude = 1.25f;
+	density_settings.amplitude = 1.0f;
 	density_settings.seed = seeds[5];
 
 	cave_settings.octaves = 8;
 	cave_settings.frequency = 0.1f;
-	cave_settings.amplitude = 0.75f;
+	cave_settings.amplitude = 1.0f;
 	cave_settings.seed = seeds[6];
 
 	tunnel_settings.octaves = 8;
 	tunnel_settings.frequency = 0.1f;
-	tunnel_settings.amplitude = 1.2f;
+	tunnel_settings.amplitude = 1.0f;
 	tunnel_settings.seed = seeds[7];
 
-	temperature_settings.octaves = 2;
-	temperature_settings.frequency = 0.04f;
-	temperature_settings.amplitude = 0.2f;
+	temperature_settings.octaves = 1;
+	temperature_settings.frequency = 0.05f;
+	temperature_settings.amplitude = 1.0f;
 	temperature_settings.seed = seeds[8];
 
 	moisture_settings.octaves = 2;
-	moisture_settings.frequency = 0.07f;
-	moisture_settings.amplitude = 0.4f;
+	moisture_settings.frequency = 0.04f;
+	moisture_settings.amplitude = 1.2f;
 	moisture_settings.seed = seeds[9];
 }
 
 void World::initBiomes()
 {
-	biomes.clear();
+	forest.name = "Forest";
+	forest.pv_min = 0.0f;
+	forest.pv_max = 1.0f;
+	forest.temperature_min = 0.4f;
+	forest.temperature_max = 0.8f;
+	forest.moisture_min = 0.f;
+	forest.moisture_max = 1.0f;
+	forest.tile_surface_id = 0;
+	forest.tile_dirt_id = 1;
 
-	Biome forest
-	{
-		"Forest",    // name
-		0.f,		 // pv min
-		1.f,        // pv max
-		0.4f,        //temperature min
-		0.8f,         // temperature max
-		0.f,         // moisture min
-		1.f,		 // moiseture max
-		0,           // tile surface id
-		1			// tile dirt id
-	};
+	tundra.name = "Tundra";
+	tundra.pv_min = 0.f;
+	tundra.pv_max = 1.f;
+	tundra.temperature_min = 0.0f;
+	tundra.temperature_max = 0.4f;
+	tundra.moisture_min = 0.f;
+	tundra.moisture_max = 1.f;
+	tundra.tile_surface_id = 5;
+	tundra.tile_dirt_id = 1;
 
-	biomes.push_back(forest);
-
-	Biome desert
-	{
-		"Desert",    // name
-		0.f,		 // pv min
-		0.6f,        // pv max
-		0.8f,        //temperature min
-		1.f,         // temperature max
-		0.f,         // moisture min
-		1.f,		 // moiseture max
-		3,           // tile surface id
-		3			// tile dirt id
-	};
-
-	biomes.push_back(desert);
-
-	Biome snow
-	{
-		"Snow",    // name
-		0.f,		 // pv min
-		1.f,        // pv max
-		0.0f,        //temperature min
-		0.4f,         // temperature max
-		0.f,         // moisture min
-		1.f,		 // moiseture max
-		4,           // tile surface id
-		1			// tile dirt id
-	};
-
-	biomes.push_back(snow);
+	desert.name = "Desert";
+	desert.pv_min = 0.0f;
+	desert.pv_max = 0.6f;
+	desert.temperature_min = 0.8f;
+	desert.temperature_max = 1.0f;
+	desert.moisture_min = 0.0f;
+	desert.moisture_max = 1.0f;
+	desert.tile_surface_id = 3;
+	desert.tile_dirt_id = 3;
 }
 
 void World::initMaps()
 {
-	peaks_and_valleys_map_range_height.addPoint(0.2f, 17.f);
+	/*peaks_and_valleys_map_range_height.addPoint(0.2f, 17.f);
 	peaks_and_valleys_map_range_height.addPoint(0.5f, 4.f);
-	peaks_and_valleys_map_range_height.addPoint(0.85f, -8.f);
-	peaks_and_valleys_map_range_height.addPoint(0.9f, -19.f);
+	peaks_and_valleys_map_range_height.addPoint(0.6f, -8.f);
+	peaks_and_valleys_map_range_height.addPoint(0.85f, -19.f);*/
 
-	peaks_and_valleys_map_range_change.addPoint(0.2f, 0.75f);
-	peaks_and_valleys_map_range_change.addPoint(0.6f, 0.4f);
-	peaks_and_valleys_map_range_change.addPoint(0.85f, 0.12f);
+	//peaks_and_valleys_map_range_height.addPoint(1.5f, -5.f);
+	//peaks_and_valleys_map_range_height.addPoint(1.8f, -5.f);
 
-	caves_threshold_change.addPoint(150.f, 0.25f);
+	//peaks_and_valleys_map_range_height.addPoint(0.75f, -10.f);
+	//peaks_and_valleys_map_range_height.addPoint(1.2f, -11.f);
+	//peaks_and_valleys_map_range_height.addPoint(0.9f, -13.f);
+	//peaks_and_valleys_map_range_height.addPoint(1.5f, -15.f);
+	//peaks_and_valleys_map_range_height.addPoint(0.75f, -15.f);
+
+	//peaks_and_valleys_map_range_change.addPoint(0.5f, 0.9f);
+	//peaks_and_valleys_map_range_change.addPoint(0.65f, 0.8f);
+	//peaks_and_valleys_map_range_change.addPoint(0.9f, 0.2f);
+
+	caves_threshold_change.addPoint(y_base + 25.f, 0.25f);
 }
 
 void World::generateBase(Chunk& chunk)
@@ -218,8 +211,7 @@ void World::generateBase(Chunk& chunk)
 
 		float map_height = peaks_and_valleys_map_range_height.getValue(peaks_and_valleys);
 
-		float map_change = peaks_and_valleys_map_range_change.getValue(peaks_and_valleys);
-		float correlated_change = map_change;
+		float new_change = peaks_and_valleys_map_range_change.getValue(peaks_and_valleys);
 
 		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
 		{
@@ -227,11 +219,11 @@ void World::generateBase(Chunk& chunk)
 
 			float density_noise = Noise::fractal2D<ValueNoise>(density_settings, position_x * scale, position_y * scale);
 
-			float correlated_height = position_y - map_height;
+			float new_height = position_y - map_height;
 
 			//Apply y base layer and change over vertical axis
-			float difference = correlated_height - y_base;
-			float change = difference * correlated_change;
+			float difference = new_height - y_base;
+			float change = difference * new_change;
 			density_noise += change;
 
 			int tile_id = 0;
@@ -240,6 +232,7 @@ void World::generateBase(Chunk& chunk)
 
 			if (density_noise >= density_threshold)
 			{
+				//Solid tile
 				tile_id = 2;
 				type = TileType::STONE;
 				solid = true;
@@ -319,7 +312,9 @@ void World::addDirt(Chunk& chunk)
 
 			if (!tile.solid) continue;
 
-			int dirt_level = 10;
+			float dirt_noise = ValueNoise::noise1D(position_x * scale * 0.2f, seeds[2]) * 1.f;
+
+			int dirt_level = static_cast<int>(dirt_noise * 5.f) + 5;
 
 			for (int i = 0; i < dirt_level; ++i)
 			{
@@ -450,7 +445,7 @@ void World::addBiomes(Chunk& chunk)
 
 			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
 
-			if (!tile.solid) continue;
+			if (tile.type != TileType::SURFACE && tile.type != TileType::DIRT) continue;
 
 			float peaks_and_valleys = Noise::fractal1D<ValueNoise>(peaks_and_valleys_settings, position_x * scale);
 			float temperature = Noise::fractal2D<ValueNoise>(temperature_settings, position_x * scale, position_y * scale);
@@ -458,64 +453,36 @@ void World::addBiomes(Chunk& chunk)
 
 			int tile_id = 0;
 
-			if (tile.type != TileType::SURFACE && tile.type != TileType::DIRT) continue;
-
-			for (const auto& biome : biomes)
-			{
-				//if(peaks_and_valleys)
-			}
-
 			
-			if (peaks_and_valleys < 0.8f)
+
+			//Desert,Forest,Snow
+			if (temperature < 0.45f && moisture > 0.55f)
 			{
-				//Desert,Forest,Snow
-				if (temperature < 0.4f && moisture > 0.6f)
-				{
-					//Snow
-					if (tile.type == TileType::SURFACE)
-						tile_id = 5;
-					else
-						tile_id = 8;
-				}
-				else if (temperature >= 0.7f && moisture < 0.4f)
-				{
-					//Desert
-					tile_id = 3;
-				}
+				//Snow
+				if (tile.type == TileType::SURFACE)
+					tile_id = 5;
 				else
-				{
-					//Forest
-					if (tile.type == TileType::SURFACE)
-						tile_id = 0;
-					else
-						tile_id = 1;
-				}
+					tile_id = 8;
+			}
+			else if (temperature >= 0.6f && moisture < 0.5f)
+			{
+				//Desert
+				tile_id = 3;
 			}
 			else
 			{
-				if (temperature < 0.5f && moisture > 0.5f)
-				{
-					//Snow
-					if (tile.type == TileType::SURFACE)
-						tile_id = 5;
-					else
-						tile_id = 8;
-				}
+				//Forest
+				if (tile.type == TileType::SURFACE)
+					tile_id = 0;
 				else
-				{
-					//Forest
-					if (tile.type == TileType::SURFACE)
-						tile_id = 0;
-					else
-						tile_id = 1;
-				}
+					tile_id = 1;
 			}
 
 			tile.index = tile_id;
 
-			tile.debug_info.pv = peaks_and_valleys;
-			tile.debug_info.temperature = temperature;
-			tile.debug_info.moisture = moisture;
+			tile.debug_info.pv = std::min(peaks_and_valleys, 1.f);
+			tile.debug_info.temperature = std::min(temperature, 1.f);
+			tile.debug_info.moisture = std::min(moisture, 1.f);
 		}
 	}
 }

@@ -13,6 +13,8 @@
 #include "glm/glm.hpp"
 #include <bitset>
 
+#include "ECS/Systems.hpp"
+
 class Game
 {
 public:
@@ -57,4 +59,9 @@ private:
 	static std::bitset<256> pressed;
 	static std::bitset<256> held;
 	static std::bitset<256> released;
+
+	EntityManager entity_manager;
+	ComponentManager component_manager;
+	PhysicsSystem physics_system;
+	Entity player;
 };

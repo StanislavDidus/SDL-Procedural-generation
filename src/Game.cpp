@@ -39,36 +39,34 @@ Game::Game(Renderer& screen)
 	, world(screen)
 	//, tilemap(world, tileset, 960.f, 540.f, 75.f, 100.f)
 	, tilemap(world, tileset, 75.f, 75.f)
+	, physics_system(component_manager, entity_manager)
 	//, mapRange(0.f, 1.f, 0.f, 0.f)
 {
 	std::cout << "Game was created" << std::endl;
 
 	screen.setView({ 0.f, 0.f });
 
-	//float min = 100.f;
-	//float max = -100.f;
-	//float mean = 0.f;
+	/*float min = 100.f;
+	float max = -100.f;
+	float mean = 0.f;
 
-	//float f = 0.02f;
-	//float a = 1.f;
+	float f = 0.03f;
+	float a = 1.3f;
 
-	//for (int i = 0; i < 100'000; i++)
-	//{
-	//	float noise_value = Noise::fractal2D<ValueNoise>(8, i, 0.f, f, a, 1);
-	//	float centre = noise_value - 0.5f;
-	//	float contrasted = tanh(4.f * centre);
-	//	noise_value = (contrasted + 1.f) / 2.f;
+	for (int i = 0; i < 100'000; i++)
+	{
+		float noise_value = Noise::fractal1D<ValueNoise>(5, i, f, a, 1);
 
-	//	if (noise_value < min) min = noise_value;
-	//	if (noise_value > max) max = noise_value;
-	//	mean += noise_value;
-	//}
-	//mean /= 100'000.f;
+		if (noise_value < min) min = noise_value;
+		if (noise_value > max) max = noise_value;
+		mean += noise_value;
+	}
+	mean /= 100'000.f;
 
-	//std::cout << "ValueNoise: " << std::endl;
-	//std::cout << "Min: " << min << std::endl
-	//	<< "Max: " << max << std::endl
-	//	<< "Mean: " << mean << std::endl;
+	std::cout << "ValueNoise: " << std::endl;
+	std::cout << "Min: " << min << std::endl
+		<< "Max: " << max << std::endl
+		<< "Mean: " << mean << std::endl;*/
 
 	//min = 100.f;
 	//max = -100.f;
@@ -109,7 +107,25 @@ Game::Game(Renderer& screen)
 	std::cout << "-0.5.f - " << mapRange.getValue(-0.5f) << std::endl;
 	std::cout << "1.5f - " << mapRange.getValue(1.f) << std::endl;*/
 
+	/*EntityManager em;
+	std::cout << em.createEntity().value_or(0) << std::endl;
+	std::cout << em.createEntity().value_or(0) << std::endl;
+	std::cout << em.createEntity().value_or(0) << std::endl;
+	em.destroyEntity(9998);
+	std::cout << em.createEntity().value_or(0) << std::endl;*/
 
+	
+	player = entity_manager.createEntity().value();
+
+	component_manager.transform[player] = Transform{
+	glm::vec2{400.f, 300.f},
+	glm::vec2{200.f, 200.f},
+	0.f
+	};
+
+	component_manager.physics[player] = Physics{
+	glm::vec2{0.f, 200.f}
+	};
 }
 
 Game::~Game()
@@ -125,6 +141,8 @@ void Game::update(float dt)
 	screen.setZoom(zoom);
 	screen.setView(view_position);
 
+	physics_system.update(dt);
+
 	ImGui_ImplSDLRenderer3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
@@ -134,6 +152,10 @@ void Game::update(float dt)
 	
 	//Render
 	tilemap.render(screen);
+
+	auto& pos = component_manager.transform[player].position;
+	auto& size = component_manager.transform[player].size;
+	screen.drawRectangle(pos.x, pos.y, size.x, size.y, RenderType::FILL, Color::RED);
 
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.getRenderer());
@@ -283,6 +305,12 @@ void Game::updateImGui(float dt)
 {
 	ImGui::Begin("Window");
 
+	if (ImGui::CollapsingHeader("Camera"))
+	{
+		ImGui::SliderFloat("camera_move_speed", &camera_move_speed, 1000.f, 10000.f);
+		ImGui::SliderFloat("zoom", &zoom, 0.05f, 5.f);
+	}
+
 	if (ImGui::CollapsingHeader("Procedural generation"))
 	{
 		static int buffer = 0;
@@ -310,17 +338,14 @@ void Game::updateImGui(float dt)
 			world.generateWorld(buffer);
 		}
 
-		ImGui::SliderFloat("camera_move_speed", &camera_move_speed, 1000.f, 10000.f);
-
 		ImGui::SliderFloat("scale", &world.scale, 0.f, 1.f);
-		ImGui::SliderFloat("zoom", &zoom, 0.05f, 5.f);
 		ImGui::SliderFloat("density_change", &world.density_change, 0.1f, 1.f);
 		ImGui::SliderFloat("y_base", &world.y_base, -100.f, 100.f);
 		ImGui::SliderFloat("sea_level", &world.sea_level, -100.f, 100.f);
 
 		ImGui::SliderFloat("cave_threshold_min", &world.cave_threshold_min, 0.1f, 1.0f);
 		ImGui::SliderFloat("cave_threshold_max", &world.cave_threshold_max, 0.1f, 1.0f);
-		ImGui::SliderFloat("cave_threshold_step", &world.cave_threshold_step, 0.0001f, 0.01f);
+		ImGui::SliderFloat("cave_threshold_step", &world.cave_threshold_step, 0.0001f, 0.1f);
 		ImGui::SliderFloat("cave_base_y", &world.cave_base_height, -100.f, 100.f);
 
 		static int current = 0;
@@ -334,6 +359,11 @@ void Game::updateImGui(float dt)
 			ImGui::SliderInt("Octaves##PV", &world.peaks_and_valleys_settings.octaves, 1, 10);
 			ImGui::SliderFloat("Frequency##PV", &world.peaks_and_valleys_settings.frequency, 0.0001f, 2.f);
 			ImGui::SliderFloat("Amplitude##PV", &world.peaks_and_valleys_settings.amplitude, 0.0001f, 2.f);
+
+			ImGui::Text("Density");
+			ImGui::SliderInt("Octaves##Density", &world.density_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##Density", &world.density_settings.frequency, 0.0001f, 2.f);
+			ImGui::SliderFloat("Amplitude##Density", &world.density_settings.amplitude, 0.0001f, 2.f);
 
 			ImGui::Text("Caves");
 			ImGui::SliderInt("Octaves##Caves", &world.cave_settings.octaves, 1, 10);

@@ -35,15 +35,15 @@ public:
 	float y_base = 0.f;
 
 	float cave_threshold = 0.1f;
-	float cave_threshold_min = 0.2f;
+	float cave_threshold_min = 0.15f;
 	float cave_threshold_max = 0.5f;
-	float cave_threshold_step = 0.0021f;
-	float cave_base_height = 20.f;
+	float cave_threshold_step = 0.002f;
+	float cave_base_height = 10.f;
 	
-	float tunnel_threshold_min = 0.5f;
-	float tunnel_threshold_max = 0.575f;
+	float tunnel_threshold_min = 0.6f;
+	float tunnel_threshold_max = 0.8f;
 
-	float sea_level = 11.f;
+	float sea_level = -5.f;
 
 	std::array<int, 11> seeds;
 
@@ -53,6 +53,10 @@ public:
 	NoiseSettings tunnel_settings;
 	NoiseSettings temperature_settings;
 	NoiseSettings moisture_settings;
+
+	Biome forest;
+	Biome tundra;
+	Biome desert;
 
 private:
 	void initSeeds(std::optional<int> seed);
@@ -73,10 +77,6 @@ private:
 	glm::ivec2 getChunkIndex(int x, int y) const;
 
 	Renderer& screen;
-
-	//TileMap& tilemap;
-	std::vector<Biome> biomes;
-	
 
 	std::map<float, std::vector<float>> surface_map;
 

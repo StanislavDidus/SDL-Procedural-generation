@@ -18,4 +18,4 @@ target_include_directories(noise PUBLIC inc)
 
 target_link_libraries(noise PUBLIC glm::glm)
 
-target_compile_features(noise PUBLIC cxx_std_17)
+target_compile_features(noise PUBLIC cxx_std_20)

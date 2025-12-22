@@ -25,6 +25,6 @@ public:
 private:
 	std::vector<Point> points;
 
-	float inMin = 0.f;
-	float inMax = 1.f;
+	float outMin = 0.f;
+	float outMax = 1.f;
 };

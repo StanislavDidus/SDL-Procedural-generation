@@ -58,24 +58,29 @@ public:
 	Noise() = default;
 	~Noise() = default;
 
+	//Fbm - fractal brownian motion
+
 	template<typename NoiseType>
 	static float fractal1D(int octaves, float x, float frequency, float amplitude, uint32_t seed) 
 	{
 		float output = 0.f;
-		float denom = 0.f;
+		//float denom = 0.f;
 		float frequency_ = frequency;
 		float amplitude_ = amplitude;
+		float lacunarity = 2.f;
+		float gain = 0.5f; // persistence
 
 		for (int i = 0; i < octaves; ++i)
 		{
 			output += NoiseType::noise1D(x * frequency_, seed) * amplitude_;
-			denom += amplitude_;
 
-			frequency_ *= 2.f;
-			amplitude_ *= 0.5f;
+			frequency_ *= lacunarity;
+			//denom += amplitude_;
+			amplitude_ *= gain;
 		}
 
-		return output / denom;
+		//return std::clamp(output, 0.f, 1.f);
+		return output;
 	}
 
 	template<typename NoiseType>
@@ -97,12 +102,13 @@ public:
 		for (int i = 0; i < octaves; ++i)
 		{
 			output += NoiseType::noise2D(x * frequency_, y * frequency_, seed) * amplitude_;
-			denom += amplitude_;
 
 			frequency_ *= lacunarity;
+			denom += amplitude_;
 			amplitude_ *= gain;
 		}
 
+		//return std::clamp(output, 0.f, 1.f);
 		return output / denom;
 	}
 

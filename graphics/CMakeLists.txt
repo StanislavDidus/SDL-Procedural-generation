@@ -22,4 +22,4 @@ target_include_directories(graphics PUBLIC inc)
 
 target_link_libraries(graphics PUBLIC SDL3::SDL3-static glm::glm)
 
-target_compile_features(graphics PUBLIC cxx_std_17)
+target_compile_features(graphics PUBLIC cxx_std_20)
