@@ -10,6 +10,8 @@
 #include "Renderer.hpp"
 #include "Game.hpp"
 
+#include "InputManager.hpp"
+
 int main()
 {
     if (!SDL_Init(SDL_INIT_VIDEO))
@@ -21,6 +23,8 @@ int main()
     Window window{ "First SDL program", 960, 540, SDL_WINDOW_RESIZABLE};
     Renderer renderer{ window };
     Game game{ renderer };
+
+    InputManager input_manager;
 
     //Init ImGui
     IMGUI_CHECKVERSION();
@@ -45,10 +49,10 @@ int main()
             switch (event.type)
             {
             case SDL_EVENT_KEY_DOWN:
-                game.buttonPressed(event.key.key);
+                input_manager.buttonPressed(event.key.key);
                 break;
             case SDL_EVENT_KEY_UP:
-                game.buttonUp(event.key.key);
+                input_manager.buttonUp(event.key.key);
                 break;
             case SDL_EVENT_WINDOW_RESIZED:
                 game.resizeSprites();
@@ -61,6 +65,8 @@ int main()
         game.update(dt);
 
         renderer.update(dt);
+
+        input_manager.update();
 
         const auto finish = std::chrono::steady_clock::now();   
         const std::chrono::duration<double> elapsed_seconds{ finish - start };

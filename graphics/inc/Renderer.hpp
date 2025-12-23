@@ -4,6 +4,15 @@
 #include "Window.hpp"
 #include "glm/glm.hpp"
 
+const float BaseWidthScreen = 960.f;
+const float BaseHeightScreen = 540.f;
+
+const float TileWidth = 25.f;
+const float TileHeight = 25.f;
+
+const float PlayerWidth = 25.f;
+const float PlayerHeight = 50.f;
+
 class Sprite;
 
 struct Color
@@ -90,8 +99,6 @@ public:
 	void drawRotatedSprite(const Sprite& sprite, float x, float y, float width, float height, float angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE);
 
 	void drawUI(const Sprite& sprite, float x, float y, float width, float height, float angle = 0.f, SDL_FlipMode flip_mode = SDL_FLIP_NONE);
-
-	void drawTile(const Sprite& sprite, float x, float y, float width, float height);
 private:
 	void zoomRect(SDL_FRect& rect) const;
 

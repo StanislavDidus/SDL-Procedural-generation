@@ -5,19 +5,11 @@
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
 
+#include "InputManager.hpp"
+
 #include <random>
 
 #include <algorithm>
-
-std::bitset<256> Game::pressed{};
-std::bitset<256> Game::released{};
-std::bitset<256> Game::held{};
-
-const float BaseWidthScreen = 960.f;
-const float BaseHeightScreen = 540.f;
-
-const float TileWidth = 75.f;
-const float TileHeight = 75.f;
 
 namespace
 {
@@ -38,8 +30,11 @@ Game::Game(Renderer& screen)
 	, tileset(screen, Surface{ "assets/Sprites/tileset.png" }, { 16.f, 16.f }, SDL_SCALEMODE_NEAREST)
 	, world(screen)
 	//, tilemap(world, tileset, 960.f, 540.f, 75.f, 100.f)
-	, tilemap(world, tileset, 75.f, 75.f)
 	, physics_system(component_manager, entity_manager)
+	, input_system(component_manager, entity_manager)
+	, collision_system(component_manager, entity_manager)
+	, jump_system(component_manager, entity_manager)
+	, tilemap(world, tileset, collision_system, 20.f, 20.f)
 	//, mapRange(0.f, 1.f, 0.f, 0.f)
 {
 	std::cout << "Game was created" << std::endl;
@@ -118,13 +113,27 @@ Game::Game(Renderer& screen)
 	player = entity_manager.createEntity().value();
 
 	component_manager.transform[player] = Transform{
-	glm::vec2{400.f, 300.f},
-	glm::vec2{200.f, 200.f},
-	0.f
+	glm::vec2{400.f, -1000.f},
+	glm::vec2{25.f, 60.f}
 	};
 
 	component_manager.physics[player] = Physics{
-	glm::vec2{0.f, 200.f}
+	glm::vec2{0.f, 0.f},
+	glm::vec2{1500.f, 0.f},
+	glm::vec2{250.f, 200.f,},
+	5.f,
+	false,
+	false,
+	false
+	};
+
+	component_manager.jump[player] = Jump{
+		400.f,
+		false
+	};
+
+	component_manager.player[player] = Player{
+
 	};
 }
 
@@ -141,7 +150,10 @@ void Game::update(float dt)
 	screen.setZoom(zoom);
 	screen.setView(view_position);
 
+	input_system.update(dt);
+	jump_system.update(dt);
 	physics_system.update(dt);
+	collision_system.update(dt);
 
 	ImGui_ImplSDLRenderer3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
@@ -223,82 +235,58 @@ void Game::update(float dt)
 
 void Game::resizeSprites()
 {
-	tilemap.setTileSize(screen.getWindowSize().x / BaseWidthScreen * TileWidth, screen.getWindowSize().y / BaseHeightScreen * TileHeight);
-}
+	/*const auto& window_size = screen.getWindowSize();
+	float related_width = window_size.x / BaseWidthScreen;
+	float related_height = window_size.y / BaseHeightScreen;*/
 
-void Game::buttonUp(SDL_Keycode key)
-{
-	if(key < 256) keys.reset(key);
-}
-
-void Game::buttonPressed(SDL_Keycode key)
-{
-	if (key < 256) keys.set(key);
-}
-
-bool Game::isKeyDown(SDL_Keycode key)
-{
-	return pressed[key];
-}
-
-bool Game::isKey(SDL_Keycode key)
-{
-	return held[key];
-}
-
-bool Game::isKeyUp(SDL_Keycode key)
-{
-	return released[key];
+	//component_manager.transform[player].size = { related_width * PlayerWidth, related_height * PlayerHeight };
+	//tilemap.setTileSize(related_width * TileWidth, related_height * TileHeight);
 }
 
 void Game::updateInput(float dt)
 {
-	if (isKey(SDLK_D))
+	if (InputManager::isKey(SDLK_D))
 	{
 		view_position.x += camera_move_speed * dt;
 	}
-	if (isKey(SDLK_A))
+	if (InputManager::isKey(SDLK_A))
 	{
 		view_position.x -= camera_move_speed * dt;
 	}
-	if (isKey(SDLK_W))
+	if (InputManager::isKey(SDLK_W))
 	{
 		view_position.y -= camera_move_speed * dt;
 	}
-	if (isKey(SDLK_S))
+	if (InputManager::isKey(SDLK_S))
 	{
 		view_position.y += camera_move_speed * dt;
 	}
-	if (isKey(SDLK_Q))
+	if (InputManager::isKey(SDLK_Q))
 	{
 		zoom -= 2.f * dt;
 		zoom = std::clamp(zoom, min_zoom, max_zoom);
 	}
-	if (isKey(SDLK_E))
+	if (InputManager::isKey(SDLK_E))
 	{
 		zoom += 2.f * dt;
 		zoom = std::clamp(zoom, min_zoom, max_zoom);
 	}
-	if (isKey(SDLK_Z))
+	if (InputManager::isKey(SDLK_Z))
 	{
 		//world.scale -= 0.1f * dt;
 		world.cave_threshold -= 0.2f * dt;
 		world.clear();
 	}
-	if (isKey(SDLK_X))
+	if (InputManager::isKey(SDLK_X))
 	{
 		//world.scale += 0.1f * dt;
 		world.cave_threshold += 0.2f * dt;
 		world.clear();
 	}
-	if (isKeyDown(SDLK_SPACE))
+	if (InputManager::isKeyDown(SDLK_SPACE))
 	{
 		world.generateWorld(std::nullopt);
 	}
-
-	pressed = keys & ~held;
-	released = held & ~keys;
-	held = keys;
 }
 
 void Game::updateImGui(float dt)

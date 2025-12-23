@@ -11,9 +11,8 @@ struct Transform
 {
 	glm::vec2 position;
 	glm::vec2 size;
-	float rotation;
-
 };
+
 struct Renderable
 {
 	Sprite sprite;
@@ -22,12 +21,30 @@ struct Renderable
 struct Physics
 {
 	glm::vec2 velocity;
+	glm::vec2 acceleration;
+	glm::vec2 max_velocity;
+	float decelaration;
+	bool is_ground;
+	bool is_left;
+	bool is_right;
+};
+
+struct Jump
+{
+	float jump_force;
+	bool jump_ready;
+};
+
+struct StairMovement
+{
+
 };
 
 struct Player
 {
 
 };
+
 
 class ComponentManager
 {
@@ -36,5 +53,6 @@ public:
 
 	std::unordered_map<Entity, Transform> transform;
 	std::unordered_map<Entity, Physics> physics;
-	std::unordered_map<Entity, Player> player;
+	std::unordered_map<Entity, Jump> jump;
+	std::unordered_map<Entity, Player> player; 
 };

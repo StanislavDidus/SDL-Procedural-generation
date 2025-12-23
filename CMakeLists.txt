@@ -22,6 +22,7 @@ set(SOURCE_FILES
     "src/ECS/EntityManager.cpp"
     "src/ECS/ComponentManager.cpp"
     "src/InputManager.cpp"
+    "src/CollisionManager.cpp"
     )
 
 set(HEADER_FILES
@@ -39,6 +40,7 @@ set(HEADER_FILES
     "inc/ECS/ComponentManager.hpp"
     "inc/ECS/Systems.hpp"
     "inc/InputManager.hpp"
+    "inc/CollisionManager.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

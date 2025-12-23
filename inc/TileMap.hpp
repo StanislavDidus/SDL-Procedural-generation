@@ -7,11 +7,12 @@
 #include "glm/glm.hpp"
 #include "Chunk.hpp"
 #include "World.hpp"
+#include "ECS/Systems.hpp"
 
 class TileMap
 {
 public:
-	TileMap(World& world, SpriteSheet& tileset, float tile_width_world, float tile_height_world);
+	TileMap(World& world, SpriteSheet& tileset, CollisionSystem& collision_system, float tile_width_world, float tile_height_world);
 	~TileMap();
 
 	void setTileSize(float w, float h);
@@ -27,4 +28,5 @@ private:
 	SpriteSheet& tileset;
 	std::vector<Chunk> chunks;
 	World& world;
+	CollisionSystem& collision_system;
 };

@@ -223,22 +223,6 @@ void Renderer::drawUI(const Sprite& sprite, float x, float y, float width, float
 	}
 }
 
-void Renderer::drawTile(const Sprite& sprite, float x, float y, float width, float height)
-{
-	SDL_FRect src, dst;
-
-	src = sprite.getRect();
-
-	dst.x = x - view_position.x;
-	dst.y = y - view_position.y;
-	dst.w = width;
-	dst.h = height;
-
-	zoomRect(dst);
-
-	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
-}
-
 void Renderer::zoomRect(SDL_FRect& rect) const
 {
 	glm::vec2 midscreen{ window.getSize().x / 2.f, window.getSize().y / 2.f };
