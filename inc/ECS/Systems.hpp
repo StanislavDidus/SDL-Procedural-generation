@@ -3,6 +3,7 @@
 #include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
 #include "Renderer.hpp"
+#include "World.hpp"
 
 #include "InputManager.hpp"
 
@@ -70,7 +71,7 @@ public:
 
 	void addCollider(const glm::vec2& position, const glm::vec2& size, ColliderType type)
 	{
-		collisions.emplace_back(type, position, size);
+		//collisions.emplace_back(type, position, size);
 	}
 
 	void update(float dt)
@@ -83,72 +84,107 @@ public:
 				auto& ph = component_manager.physics.at(entity);
 
 				ph.is_ground = false;
-				ph.is_left = false;
-				ph.is_right = false;
 
-				for (const auto& collision : collisions)
-				{
-					if (AABB(ts, collision))
-					{
-						glm::vec2 p_min = { ts.position.x, ts.position.y };
-						glm::vec2 p_max = { ts.position.x + ts.size.x, ts.position.y + ts.size.y };
-
-						glm::vec2 c_min = { collision.position.x, collision.position.y };
-						glm::vec2 c_max = { collision.position.x + collision.size.x, collision.position.y + collision.size.y };
-
-						float x_overlap = glm::min(p_max.x, c_max.x) - glm::max(p_min.x, c_min.x);
-						float y_overlap = glm::min(p_max.y, c_max.y) - glm::max(p_min.y, c_min.y);
-
-						glm::vec2 normal = { 0.f, 0.f };
-
-						if (x_overlap < y_overlap)
-						{
-							if (p_min.x < c_min.x)
-							{
-								//normal.x = -1.f;
-								ph.is_right = true;
-							}
-							else
-							{
-								//normal.x = 1.f;
-								ph.is_left = true;
-							}
-							//ph.velocity.x = 0.f;
-						}
-						else
-						{
-							if (p_min.y < c_min.y)
-							{
-								normal.y = -1.f;
-								ph.is_ground = true;
-							}
-							else
-							{
-								normal.y = 1.f;
-							}
-							ph.velocity.y = 0.f;
-						}
-
-						ts.position += glm::vec2{x_overlap * normal.x, y_overlap * normal.y};
-					}
-				}
-
-				if (ph.is_left)
-				{
-					for (const auto& collision : collisions)
-					{
-
-					}
-				}
+				checkCollisions(ts, ph);
 			}
 		}
 	}
 
+	std::vector<Transform> collisions;
 private:
+	void checkCollisions(Transform& ts, Physics& ph)
+	{
+		for (const auto& collision : collisions)
+		{
+			if (AABB(ts, collision))
+			{
+				glm::vec2 p_min = { ts.position.x, ts.position.y };
+				glm::vec2 p_max = { ts.position.x + ts.size.x, ts.position.y + ts.size.y };
+
+				glm::vec2 c_min = { collision.position.x, collision.position.y };
+				glm::vec2 c_max = { collision.position.x + collision.size.x, collision.position.y + collision.size.y };
+
+				float x_overlap = glm::min(p_max.x, c_max.x) - glm::max(p_min.x, c_min.x);
+				float y_overlap = glm::min(p_max.y, c_max.y) - glm::max(p_min.y, c_min.y);
+
+				glm::vec2 normal = { 0.f, 0.f };
+
+				//Chec x collision first
+				if (x_overlap < y_overlap)
+				{
+					//If collider is on the right side
+					if (p_min.x < c_min.x)
+					{
+						Transform step = { {ts.position.x + ts.size.x, ts.position.y + ts.size.y - ph.step}, {ph.step, ph.step} };
+
+						if (isSpaceAbove(step, ts.size.y) && ph.velocity.x > 0.f)
+						{
+							ts.position.y -= ph.step;
+							ts.position.x += 1.f;
+						}
+						else
+						{
+							normal.x = -1.f;
+							ph.velocity.x = 0.f;
+						}
+					}
+					//If collider is on the left side
+					else
+					{
+						Transform step = { {ts.position.x - ph.step, ts.position.y + ts.size.y - ph.step}, {ph.step, ph.step} };
+
+						if (isSpaceAbove(step, ts.size.y) && ph.velocity.x < 0.f)
+						{
+							ts.position.y -= ph.step;
+							ts.position.x -= 1.f;
+						}
+						else
+						{
+							normal.x = 1.f;
+							ph.velocity.x = 0.f;
+						}
+					}
+				}
+				//Check y collision
+				else
+				{
+					if (p_min.y < c_min.y)
+					{
+						normal.y = -1.f;
+						ph.is_ground = true;
+					}
+					else
+					{
+						normal.y = 1.f;
+					}
+					ph.velocity.y = 0.f;
+				}
+
+				//Resolve
+				ts.position += glm::vec2{ x_overlap * normal.x, y_overlap * normal.y };
+			}
+		}
+	}
+
+	bool isSpaceAbove(const Transform& step, float height)
+	{
+		Transform above = { {step.position.x + 1.f, step.position.y - height + 1.f}, {step.size.x - 2.f, height - 2.f} };
+
+		for (auto& collision : collisions)
+		{
+			if (AABB(above, collision))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
 
-	std::vector<Transform> collisions;
+	
 };
 
 struct InputSystem
@@ -227,4 +263,40 @@ struct JumpSystem
 			}
 		}
 	}
+};
+
+class MiningSystem
+{
+public:
+	MiningSystem(ComponentManager& component_manager, const EntityManager& entity_manager, World& world, float tile_width, float tile_height)
+		: component_manager(component_manager)
+		, entity_manager(entity_manager)
+		, tile_width(tile_width)
+		, tile_height(tile_height)
+		, world(world)
+	{
+
+	}
+
+	void update(float dt, const MouseState& mouse_state, Renderer& screen)
+	{
+		if (mouse_state.left)
+		{
+			const auto& view_position = screen.getView();
+			const auto& position = mouse_state.position;
+			int tile_x = static_cast<int>(std::floor((view_position.x + position.x) / tile_width));
+			int tile_y = static_cast<int>(std::floor((view_position.y + position.y) / tile_height));
+
+			world.destroyTile(tile_x, tile_y);
+		}
+	}
+	
+private:
+	ComponentManager& component_manager;
+	const EntityManager& entity_manager;
+
+	World& world;
+
+	float tile_width = 1.f;
+	float tile_height = 1.f;
 };

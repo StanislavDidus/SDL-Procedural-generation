@@ -22,6 +22,7 @@ public:
 	void render();
 
 	const Tile& getTile(int x, int y);
+	void destroyTile(int x, int y);
 
 	void resetChunks();
 
@@ -87,7 +88,7 @@ private:
 	std::vector<Chunk> new_chunks;
 	std::vector<Chunk> old_chunks;
 
-	const Chunk& getOrCreateChunk(int x, int y);
+	Chunk& getOrCreateChunk(int x, int y);
 
 	int chunk_width_tiles = 25;
 	int chunk_height_tiles = 25;

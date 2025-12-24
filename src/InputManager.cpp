@@ -1,5 +1,6 @@
 #include "InputManager.hpp"
 
+MouseState InputManager::mouse_state{};
 std::bitset<256> InputManager::pressed{};
 std::bitset<256> InputManager::released{};
 std::bitset<256> InputManager::held{};
@@ -19,6 +20,11 @@ bool InputManager::isKeyUp(SDL_Keycode key)
 	return released[key];
 }
 
+const MouseState& InputManager::getMouseState()
+{
+	return mouse_state;
+}
+
 void InputManager::buttonUp(SDL_Keycode key)
 {
 	if (key < 256) keys.reset(key);
@@ -27,6 +33,11 @@ void InputManager::buttonUp(SDL_Keycode key)
 void InputManager::buttonPressed(SDL_Keycode key)
 {
 	if (key < 256) keys.set(key);
+}
+
+void InputManager::setMouseState(const MouseState& mouse_state)
+{
+	this->mouse_state = mouse_state;
 }
 
 void InputManager::update()

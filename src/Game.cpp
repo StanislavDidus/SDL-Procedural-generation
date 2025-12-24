@@ -34,6 +34,7 @@ Game::Game(Renderer& screen)
 	, input_system(component_manager, entity_manager)
 	, collision_system(component_manager, entity_manager)
 	, jump_system(component_manager, entity_manager)
+	, mining_system(component_manager, entity_manager, world, 20.f, 20.f)
 	, tilemap(world, tileset, collision_system, 20.f, 20.f)
 	//, mapRange(0.f, 1.f, 0.f, 0.f)
 {
@@ -113,7 +114,7 @@ Game::Game(Renderer& screen)
 	player = entity_manager.createEntity().value();
 
 	component_manager.transform[player] = Transform{
-	glm::vec2{400.f, -1000.f},
+	glm::vec2{400.f, -500.f},
 	glm::vec2{25.f, 60.f}
 	};
 
@@ -123,8 +124,7 @@ Game::Game(Renderer& screen)
 	glm::vec2{250.f, 200.f,},
 	5.f,
 	false,
-	false,
-	false
+	20.f
 	};
 
 	component_manager.jump[player] = Jump{
@@ -135,6 +135,8 @@ Game::Game(Renderer& screen)
 	component_manager.player[player] = Player{
 
 	};
+
+	
 }
 
 Game::~Game()
@@ -150,10 +152,42 @@ void Game::update(float dt)
 	screen.setZoom(zoom);
 	screen.setView(view_position);
 
+	if (lock_camera)
+	{
+		//Set target on player
+		const auto& player_transform = component_manager.transform[player];
+		const auto& player_position = player_transform.position;
+		const auto& player_size = player_transform.size;
+		glm::vec2 player_center = { player_position.x + player_size.x / 2.f, player_position.y + player_size.y / 2.f };
+		glm::vec2 player_screen_position = player_center - static_cast<glm::vec2>(screen.getWindowSize()) / 2.f;
+		view_position = player_screen_position;
+		tilemap.setTarget(player_center);
+	}
+	else
+	{
+		const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
+
+		glm::vec2 view_center = { view_position.x + window_size.x / 2.f, view_position.y + window_size.y / 2.f };
+
+		tilemap.setTarget(view_center);
+	}
+
+	//Check mouse state
+	const auto& mouse = InputManager::getMouseState();
+	/*if (mouse.left)
+	{
+		std::cout << "Left: " << mouse.position.x << ", " << mouse.position.y << std::endl;
+	}
+	if (mouse.right)
+	{
+		std::cout << "Right: " << mouse.position.x << ", " << mouse.position.y << std::endl;
+	}*/
+
 	input_system.update(dt);
 	jump_system.update(dt);
 	physics_system.update(dt);
 	collision_system.update(dt);
+	mining_system.update(dt, mouse, screen);
 
 	ImGui_ImplSDLRenderer3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
@@ -297,6 +331,8 @@ void Game::updateImGui(float dt)
 	{
 		ImGui::SliderFloat("camera_move_speed", &camera_move_speed, 1000.f, 10000.f);
 		ImGui::SliderFloat("zoom", &zoom, 0.05f, 5.f);
+
+		ImGui::Checkbox("Lock camera on player", &lock_camera);
 	}
 
 	if (ImGui::CollapsingHeader("Procedural generation"))

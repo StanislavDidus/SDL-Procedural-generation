@@ -1,4 +1,5 @@
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_mouse.h>
 #include <iostream>
 #include <chrono>
 
@@ -59,6 +60,16 @@ int main()
                 break;
             }
         }
+
+        //Update mouse input
+        float mouse_x, mouse_y = 0.f;
+        SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+        MouseState mouse_state{
+            {mouse_x, mouse_y},
+            static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_LEFT)),
+            static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_RIGHT))
+        };
+        input_manager.setMouseState(mouse_state);
 
         renderer.clear(Color::BLACK);
 

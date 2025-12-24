@@ -25,8 +25,7 @@ struct Physics
 	glm::vec2 max_velocity;
 	float decelaration;
 	bool is_ground;
-	bool is_left;
-	bool is_right;
+	float step;
 };
 
 struct Jump
@@ -35,7 +34,7 @@ struct Jump
 	bool jump_ready;
 };
 
-struct StairMovement
+struct Mining
 {
 
 };

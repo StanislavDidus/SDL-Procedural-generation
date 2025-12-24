@@ -30,6 +30,7 @@ bool Window::pollEvent(SDL_Event& event)
 		{
 		case SDL_EVENT_QUIT:
 			running = false;
+			break;
 		case SDL_EVENT_WINDOW_RESIZED:
 			SDL_GetWindowSize(window, &window_size.x, &window_size.y);
 			break;

@@ -65,6 +65,25 @@ const Tile& World::getTile(int x, int y)
 	return chunk.tiles[tile_local_position.y + tile_local_position.x * chunk_height_tiles];
 }
 
+void World::destroyTile(int x, int y)
+{
+	auto chunk_index = getChunkIndex(x, y);
+
+	auto& chunk = getOrCreateChunk(chunk_index.x, chunk_index.y);
+
+	glm::vec2 tile_local_position = { x - chunk.x, y - chunk.y };
+
+	auto& tile = chunk.tiles[tile_local_position.y + tile_local_position.x * chunk_height_tiles];
+
+	if (!tile.solid) return;
+
+	//Destroy
+	tile.index = 4;
+	tile.solid = false;
+
+	std::cout << "Tile destroyed" << std::endl;
+}
+
 void World::resetChunks()
 {
 	old_chunks = new_chunks;
@@ -522,9 +541,9 @@ glm::ivec2 World::getChunkIndex(int x, int y) const
 	return glm::ivec2{ chunk_index_x, chunk_index_y };
 }
 
-const Chunk& World::getOrCreateChunk(int x, int y)
+Chunk& World::getOrCreateChunk(int x, int y)
 {
-	for (const auto& chunk : old_chunks)
+	for (auto& chunk : old_chunks)
 	{
 		if (chunk.index_x == x && chunk.index_y == y)
 		{

@@ -15,13 +15,17 @@ public:
 	TileMap(World& world, SpriteSheet& tileset, CollisionSystem& collision_system, float tile_width_world, float tile_height_world);
 	~TileMap();
 
+	//Setters
 	void setTileSize(float w, float h);
+	void setTarget(const glm::vec2& target);
 
 	void render(Renderer& screen);
 	void clear();
 
 	int render_mode = 0;
 private:
+	glm::vec2 target;
+
 	float tile_width_world = 0.f;
 	float tile_height_world = 0.f;
 

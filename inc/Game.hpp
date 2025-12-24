@@ -30,9 +30,11 @@ private:
 	void updateInput(float dt);
 	void updateImGui(float dt);
 
-	float min_zoom = .05f;
-	float max_zoom = 1.f;
-	float zoom = (min_zoom + max_zoom) / 2.f;
+	bool lock_camera = true;
+
+	float min_zoom = 0.5f;
+	float max_zoom = 2.f;
+	float zoom = 1.f;
 
 	float camera_move_speed = 1500.f;
 
@@ -54,6 +56,7 @@ private:
 	InputSystem input_system;
 	CollisionSystem collision_system;
 	JumpSystem jump_system;
+	MiningSystem mining_system;
 
 	Entity player;
 };
