@@ -1,6 +1,15 @@
 #include "TileMap.hpp"
 #include "Sprite.hpp"
 
+#ifdef DEBUG_TILES
+void TileMap::drawDebugInfo(Renderer& screen, float value, float x, float y)
+{
+	uint8_t c = static_cast<uint8_t>(value * 255.f + 0.5f);
+	Color color{ c,c,c };
+	screen.drawRectangle(x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world, RenderType::FILL, color);
+}
+#endif
+
 TileMap::TileMap(World& world, SpriteSheet& tileset, CollisionSystem& collision_system, float tile_width_world, float tile_height_world)
 	: world(world)
 	, tileset(tileset)
@@ -55,52 +64,36 @@ void TileMap::render(Renderer& screen)
 		for (int y = begin_y; y < end_y; y++)
 		{
 			const auto& tile = world.getTile(x,y);
-			int index = tile.index;
+			int index = tile.sprite_index;
+			
+			glm::vec2 position = { x * tile_width_world, y * tile_height_world };
+			glm::vec2 size = { tile_width_world, tile_height_world };
 
-			if (tile.solid)
+			if(tile.solid) collision_system.collisions.emplace_back(position, size);
+
+#ifdef DEBUG_TILES
+			switch (render_mode)
 			{
-				glm::vec2 position = { x * tile_width_world, y * tile_height_world };
-				glm::vec2 size = { tile_width_world, tile_height_world };
-
-				collision_system.collisions.emplace_back(position, size);
-
-
-				switch (render_mode)
-				{
-				case 0:
-					screen.drawScaledSprite(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
-					break;
-				case 1:
-					//PV
-				{
-					uint8_t c = static_cast<uint8_t>(tile.debug_info.pv * 255.f + 0.5f);
-					Color color{ c,c,c };
-					screen.drawRectangle(x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world, RenderType::FILL, color);
-					break;
-				}
-				case 2:
-					//Temperature
-				{
-					uint8_t c = static_cast<uint8_t>(tile.debug_info.temperature * 255.f + 0.5f);
-					Color color{ c,c,c };
-					screen.drawRectangle(x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world, RenderType::FILL, color);
-					break;
-				}
-				case 3:
-					//Moisture
-				{
-					uint8_t c = static_cast<uint8_t>(tile.debug_info.moisture * 255.f + 0.5f);
-					Color color{ c,c,c };
-					screen.drawRectangle(x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world, RenderType::FILL, color);
-					break;
-				}
-				}
-			}
-			else
-			{
+			case 0:
 				screen.drawScaledSprite(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
+				break;
+			case 1:
+				//PV
+				drawDebugInfo(screen, tile.pv, x, y);
+				break;
+			case 2:
+				//Temperature
+				drawDebugInfo(screen, tile.temperature, x, y);
+				break;
+			case 3:
+				//Moisture
+				drawDebugInfo(screen, tile.moisture, x, y);
 			}
+#else
+			screen.drawScaledSprite(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
+#endif
 		}
+		
 	}
 
 	world.resetChunks();

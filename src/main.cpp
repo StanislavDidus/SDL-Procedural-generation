@@ -61,6 +61,8 @@ int main()
             }
         }
 
+        dt = std::min(dt, 0.033f);
+
         //Update mouse input
         float mouse_x, mouse_y = 0.f;
         SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);

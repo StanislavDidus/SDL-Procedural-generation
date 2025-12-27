@@ -35,6 +35,7 @@ Game::Game(Renderer& screen)
 	, collision_system(component_manager, entity_manager)
 	, jump_system(component_manager, entity_manager)
 	, mining_system(component_manager, entity_manager, world, 20.f, 20.f)
+	, place_system(component_manager, entity_manager, world, 20.f, 20.f)
 	, tilemap(world, tileset, collision_system, 20.f, 20.f)
 	//, mapRange(0.f, 1.f, 0.f, 0.f)
 {
@@ -136,7 +137,26 @@ Game::Game(Renderer& screen)
 
 	};
 
-	
+	component_manager.mine_ability[player] = MineAbility
+	{
+		150.f,
+		200.f
+	};
+
+	component_manager.mine_intent[player] = MineIntent
+	{
+		false
+	};
+
+	component_manager.place_ability[player] = PlaceAbility
+	{
+		200.f
+	};
+
+	component_manager.place_intent[player] = PlaceIntent
+	{
+		false
+	};
 }
 
 Game::~Game()
@@ -152,25 +172,7 @@ void Game::update(float dt)
 	screen.setZoom(zoom);
 	screen.setView(view_position);
 
-	if (lock_camera)
-	{
-		//Set target on player
-		const auto& player_transform = component_manager.transform[player];
-		const auto& player_position = player_transform.position;
-		const auto& player_size = player_transform.size;
-		glm::vec2 player_center = { player_position.x + player_size.x / 2.f, player_position.y + player_size.y / 2.f };
-		glm::vec2 player_screen_position = player_center - static_cast<glm::vec2>(screen.getWindowSize()) / 2.f;
-		view_position = player_screen_position;
-		tilemap.setTarget(player_center);
-	}
-	else
-	{
-		const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
-
-		glm::vec2 view_center = { view_position.x + window_size.x / 2.f, view_position.y + window_size.y / 2.f };
-
-		tilemap.setTarget(view_center);
-	}
+	
 
 	//Check mouse state
 	const auto& mouse = InputManager::getMouseState();
@@ -188,6 +190,9 @@ void Game::update(float dt)
 	physics_system.update(dt);
 	collision_system.update(dt);
 	mining_system.update(dt, mouse, screen);
+	place_system.update(dt, mouse, screen);
+
+	updateTilemapTarget();
 
 	ImGui_ImplSDLRenderer3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
@@ -277,23 +282,49 @@ void Game::resizeSprites()
 	//tilemap.setTileSize(related_width * TileWidth, related_height * TileHeight);
 }
 
+void Game::updateTilemapTarget()
+{
+	if (lock_camera)
+	{
+		//Set target on player
+		const auto& player_transform = component_manager.transform[player];
+		const auto& player_position = player_transform.position;
+		const auto& player_size = player_transform.size;
+		glm::vec2 player_center = { player_position.x + player_size.x / 2.f, player_position.y + player_size.y / 2.f };
+		glm::vec2 player_screen_position = player_center - static_cast<glm::vec2>(screen.getWindowSize()) / 2.f;
+		view_position = player_screen_position;
+		tilemap.setTarget(player_center);
+	}
+	else
+	{
+		const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
+
+		glm::vec2 view_center = { view_position.x + window_size.x / 2.f, view_position.y + window_size.y / 2.f };
+
+		tilemap.setTarget(view_center);
+	}
+}
+
 void Game::updateInput(float dt)
 {
-	if (InputManager::isKey(SDLK_D))
+	if (!lock_camera)
 	{
-		view_position.x += camera_move_speed * dt;
-	}
-	if (InputManager::isKey(SDLK_A))
-	{
-		view_position.x -= camera_move_speed * dt;
-	}
-	if (InputManager::isKey(SDLK_W))
-	{
-		view_position.y -= camera_move_speed * dt;
-	}
-	if (InputManager::isKey(SDLK_S))
-	{
-		view_position.y += camera_move_speed * dt;
+		if (InputManager::isKey(SDLK_D))
+		{
+			view_position.x += camera_move_speed * dt;
+		}
+		if (InputManager::isKey(SDLK_A))
+		{
+			view_position.x -= camera_move_speed * dt;
+		}
+		if (InputManager::isKey(SDLK_W))
+		{
+			view_position.y -= camera_move_speed * dt;
+		}
+		if (InputManager::isKey(SDLK_S))
+		{
+			view_position.y += camera_move_speed * dt;
+		}
 	}
 	if (InputManager::isKey(SDLK_Q))
 	{
@@ -326,6 +357,12 @@ void Game::updateInput(float dt)
 void Game::updateImGui(float dt)
 {
 	ImGui::Begin("Window");
+
+	if (ImGui::CollapsingHeader("Player"))
+	{
+		ImGui::SliderFloat("mining speed", &component_manager.mine_ability[player].speed, 0.f, 1000.f);
+		ImGui::SliderFloat("mining radius", &component_manager.mine_ability[player].radius, 0.f, 500.f);
+	}
 
 	if (ImGui::CollapsingHeader("Camera"))
 	{

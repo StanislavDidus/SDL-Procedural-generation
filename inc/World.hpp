@@ -13,6 +13,30 @@
 #include "Chunk.hpp"
 #include "MapRange.hpp"
 
+enum class BlockType
+{
+	GRASS,
+	DIRT,
+	STONE,
+
+	SNOW_GRASS,
+	SNOW_DIRT,
+
+	SAND,
+
+	ROCK,
+
+	SKY,
+	WATER,
+};
+
+enum class BiomeType
+{
+	FOREST,
+	DESERT,
+	TUNDRA,
+};
+	
 class World
 {
 public:
@@ -22,7 +46,8 @@ public:
 	void render();
 
 	const Tile& getTile(int x, int y);
-	void destroyTile(int x, int y);
+	void placeTile(int x, int y, BlockType block);
+	void damageTile(int x, int y, float damage);
 
 	void resetChunks();
 
@@ -60,6 +85,7 @@ public:
 	Biome desert;
 
 private:
+	void initTiles();
 	void initSeeds(std::optional<int> seed);
 	void initNoiseSettings();
 	void initBiomes();
@@ -72,8 +98,12 @@ private:
 	void addCaves(Chunk& chunk);
 	void addTunnels(Chunk& chunk);
 	void addBiomes(Chunk& chunk);
+	void applyChanges(Chunk& chunk);
 
 	bool isTileSolid(int x, int y) const; // Generate tile at x, y position and return true if solid
+
+	std::map<glm::ivec2, std::vector<Tile>> changes;
+	std::map<BlockType, Tile> tile_presets;
 
 	glm::ivec2 getChunkIndex(int x, int y) const;
 

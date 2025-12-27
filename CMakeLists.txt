@@ -41,6 +41,7 @@ set(HEADER_FILES
     "inc/ECS/Systems.hpp"
     "inc/InputManager.hpp"
     "inc/CollisionManager.hpp"
+    "inc/Debug.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

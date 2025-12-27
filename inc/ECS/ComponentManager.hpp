@@ -34,9 +34,25 @@ struct Jump
 	bool jump_ready;
 };
 
-struct Mining
+struct MineIntent
 {
+	bool active;
+};
 
+struct MineAbility
+{
+	float radius;
+	float speed;
+};
+
+struct PlaceIntent
+{
+	bool active;
+};
+
+struct PlaceAbility
+{
+	float radius;
 };
 
 struct Player
@@ -54,4 +70,8 @@ public:
 	std::unordered_map<Entity, Physics> physics;
 	std::unordered_map<Entity, Jump> jump;
 	std::unordered_map<Entity, Player> player; 
+	std::unordered_map<Entity, MineAbility> mine_ability;
+	std::unordered_map<Entity, MineIntent> mine_intent;
+	std::unordered_map<Entity, PlaceAbility> place_ability;
+	std::unordered_map<Entity, PlaceIntent> place_intent;
 };

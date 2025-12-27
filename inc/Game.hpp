@@ -27,6 +27,7 @@ public:
 	
 	glm::vec2 view_position = {0.f, 0.f};
 private:
+	void updateTilemapTarget();
 	void updateInput(float dt);
 	void updateImGui(float dt);
 
@@ -57,6 +58,7 @@ private:
 	CollisionSystem collision_system;
 	JumpSystem jump_system;
 	MiningSystem mining_system;
+	PlaceSystem place_system;
 
 	Entity player;
 };

@@ -8,10 +8,15 @@
 #include "Chunk.hpp"
 #include "World.hpp"
 #include "ECS/Systems.hpp"
+#include "Debug.hpp"
 
 class TileMap
 {
 public:
+#ifdef DEBUG_TILES
+	void drawDebugInfo(Renderer& screen, float value, float x, float y);
+#endif
+
 	TileMap(World& world, SpriteSheet& tileset, CollisionSystem& collision_system, float tile_width_world, float tile_height_world);
 	~TileMap();
 
