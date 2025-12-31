@@ -10,12 +10,12 @@
 static bool AABB(const Transform& a, const Transform& b)
 {
 	return a.position.x <= b.position.x + b.size.x &&
-		a.position.x + a.size.x >= b.position.x && 
+		a.position.x + a.size.x >= b.position.x &&
 		a.position.y <= b.position.y + b.size.y &&
 		a.position.y + a.size.y >= b.position.y;
 }
 
-struct PhysicsSystem 
+struct PhysicsSystem
 {
 	PhysicsSystem(ComponentManager& component_manager, const EntityManager& entity_manager)
 		: component_manager(component_manager)
@@ -27,7 +27,7 @@ struct PhysicsSystem
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
 
-	void update(float dt) 
+	void update(float dt)
 	{
 		for (auto& entity : entity_manager.getEntities())
 		{
@@ -37,9 +37,9 @@ struct PhysicsSystem
 				auto& ph = component_manager.physics.at(entity);
 
 				//Add gravity
-				float gravity = 800.f;
+				float gravity = 1400.f;
 				ph.velocity.y += gravity * dt;
-				
+
 				ts.position += ph.velocity * dt;
 			}
 		}
@@ -184,7 +184,7 @@ private:
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
 
-	
+
 };
 
 struct InputSystem
@@ -199,7 +199,7 @@ struct InputSystem
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
 
-	void update(float dt)                                              
+	void update(float dt)
 	{
 		for (auto& entity : entity_manager.getEntities())
 		{
@@ -236,7 +236,7 @@ struct InputSystem
 					ph.velocity.x += ph.acceleration.x * dt;
 					ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
 				}
-				if(!InputManager::isKey(SDLK_K) && !InputManager::isKey(SDLK_H))
+				if (!InputManager::isKey(SDLK_K) && !InputManager::isKey(SDLK_H))
 				{
 					ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
 				}
@@ -302,31 +302,106 @@ public:
 
 				auto& ts = component_manager.transform.at(entity);
 				auto& mn = component_manager.mine_ability.at(entity);
-					
 
-				const auto& view_position = screen.getView();
-				const auto& zoom = screen.getZoom();
-				const auto& window_size = screen.getWindowSize();
+				const auto& tile_position = getTileGridPosition(ts, mouse_state, screen);
+				int tile_x = tile_position.x;
+				int tile_y = tile_position.y;
+				
+				Color transparent_blue{ 0, 0, 255, 50 };
+				Color transparent_red{ 255, 0, 0, 50 };
 
-				glm::vec2 mid_screen = { window_size.x / 2.f, window_size.y / 2.f };
-				glm::vec2 view_centered = view_position + mid_screen;
-				glm::vec2 mid_position = ts.position + ts.size * 0.5f;
+				glm::vec2 player_mid_posiiton = ts.position + ts.size * 0.5f;
 
-				const auto& mouse_position = view_centered + (mouse_state.position - mid_screen) / zoom;
+				//Mine in 3x3 radius
+				int mine_size = mn.mine_size;
+				float mid_radius_f = std::floor(mine_size / 2.f);
+				float mid_radius_c = std::ceil(mine_size / 2.f);
+				for (int i = -mid_radius_f; i < mid_radius_c; i++)
+				{
+					for (int j = -mid_radius_f; j < mid_radius_c; j++)
+					{
+						glm::vec2 tile_posiiton_global = { (tile_x + i) * tile_width, (tile_y + j) * tile_height };
+						float distance = glm::distance(tile_posiiton_global, player_mid_posiiton);
 
-				float distance = glm::distance(mid_position, mouse_position);
-
-				if (distance > mn.radius) continue;
-
-				int tile_x = static_cast<int>(std::floor((mouse_position.x) / tile_width));
-				int tile_y = static_cast<int>(std::floor((mouse_position.y) / tile_height));
-
-				world.damageTile(tile_x, tile_y, mn.speed * dt);
+						if (distance <= mn.radius)
+							world.damageTile(tile_x + i, tile_y + j, mn.speed * dt);
+					}
+				}
+				
 			}
 		}
 	}
-	
+
+	void renderOutline(float dt, const MouseState& mouse_state, Renderer& screen)
+	{
+		for (const auto& entity : entity_manager.getEntities())
+		{
+			if (component_manager.transform.contains(entity) && component_manager.mine_ability.contains(entity) && component_manager.mine_intent.contains(entity))
+			{
+				auto& mi = component_manager.mine_intent.at(entity);
+
+				auto& ts = component_manager.transform.at(entity);
+				auto& mn = component_manager.mine_ability.at(entity);
+
+				const auto& tile_position = getTileGridPosition(ts, mouse_state, screen);
+				int tile_x = tile_position.x;
+				int tile_y = tile_position.y;
+
+				Color transparent_blue{ 0, 0, 255, 50 };
+				Color transparent_red{ 255, 0, 0, 50 };
+
+				glm::vec2 player_mid_posiiton = ts.position + ts.size * 0.5f;
+
+				//Mine in 3x3 radius
+				int mine_size = mn.mine_size;
+				float mid_radius_f = std::floor(mine_size / 2.f);
+				float mid_radius_c = std::ceil(mine_size / 2.f);
+				for (int i = -mid_radius_f; i < mid_radius_c; i++)
+				{
+					for (int j = -mid_radius_f; j < mid_radius_c; j++)
+					{
+						glm::vec2 tile_posiiton_global = { (tile_x + i) * tile_width, (tile_y + j) * tile_height };
+						float distance = glm::distance(tile_posiiton_global, player_mid_posiiton);
+
+						if (distance > mn.radius)
+						{
+							screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, transparent_red);
+						}
+						else
+						{
+							screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, transparent_blue);
+						}
+					}
+				}
+
+			}
+		}
+	}
+
 private:
+	glm::ivec2 getTileGridPosition(const Transform& ts, const MouseState& mouse_state, const Renderer& screen) const
+	{
+		const auto& view_position = screen.getView();
+		const auto& zoom = screen.getZoom();
+		const auto& window_size = screen.getWindowSize();
+
+		glm::vec2 mid_screen = { window_size.x / 2.f, window_size.y / 2.f };
+		glm::vec2 view_centered = view_position + mid_screen;
+		glm::vec2 mid_position = ts.position + ts.size * 0.5f;
+
+		//Mouse global position
+		const auto& mouse_position = view_centered + (mouse_state.position - mid_screen) / zoom;
+
+		float distance = glm::distance(mid_position, mouse_position);
+
+		//if (distance > mn.radius) return;
+
+		int tile_x = static_cast<int>(std::floor((mouse_position.x) / tile_width));
+		int tile_y = static_cast<int>(std::floor((mouse_position.y) / tile_height));
+
+		return { tile_x, tile_y };
+	}
+
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
 
@@ -355,12 +430,15 @@ public:
 			if (component_manager.transform.contains(entity) && component_manager.place_ability.contains(entity) && component_manager.place_intent.contains(entity))
 			{
 				auto& pi = component_manager.place_intent.at(entity);
-
-				if (!pi.active) continue;
-
-				auto& ts = component_manager.transform.at(entity);
 				auto& pl = component_manager.place_ability.at(entity);
 
+				pl.placing_timer += dt;
+
+				if (!pi.active || pl.placing_timer < pl.placing_time) continue;
+
+				pl.placing_timer = 0.f;
+
+				auto& ts = component_manager.transform.at(entity);
 
 				const auto& view_position = screen.getView();
 				const auto& zoom = screen.getZoom();
@@ -376,10 +454,15 @@ public:
 
 				if (distance > pl.radius) continue;
 
+				//Prevents from placing blocks on the player 
+				float min_distance = glm::distance(mid_position, ts.position);
+				if (distance < min_distance) continue;
+
 				int tile_x = static_cast<int>(std::floor((mouse_position.x) / tile_width));
 				int tile_y = static_cast<int>(std::floor((mouse_position.y) / tile_height));
 
 				world.placeTile(tile_x, tile_y, BlockType::GRASS);
+
 			}
 		}
 	}

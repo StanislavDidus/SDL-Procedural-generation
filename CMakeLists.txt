@@ -13,6 +13,7 @@ set(SOURCE_FILES
     "src/main.cpp" 
     "src/Biomes.cpp"
     "src/TileMap.cpp"
+    "src/Tile.cpp"
     "src/World.cpp"
     "src/Chunk.cpp"
     "src/Object.cpp"
@@ -23,6 +24,10 @@ set(SOURCE_FILES
     "src/ECS/ComponentManager.cpp"
     "src/InputManager.cpp"
     "src/CollisionManager.cpp"
+    "src/Inventory.cpp"
+    "src/Item.cpp"
+    "src/UI/UserInterface.cpp"
+    "src/UI/FillBar.cpp"
     )
 
 set(HEADER_FILES
@@ -42,6 +47,12 @@ set(HEADER_FILES
     "inc/InputManager.hpp"
     "inc/CollisionManager.hpp"
     "inc/Debug.hpp"
+    "inc/Inventory.hpp"
+    "inc/Item.hpp"
+    "inc/UI/UserInterface.hpp"
+    "inc/UI/UIElement.hpp"
+    "inc/UI/FillBar.hpp"
+    "inc/UI/InventoryView.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

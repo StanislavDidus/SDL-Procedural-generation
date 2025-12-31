@@ -89,7 +89,7 @@ void World::placeTile(int x, int y, BlockType block)
 
 	tile.setTile(tile_presets[block]);
 
-	changes[chunk_index].emplace_back(tile.sprite_index, static_cast<int>(tile_local_position.x), static_cast<int>(tile_local_position.y), tile.type, tile.solid, tile.durability);
+	changes[chunk_index].emplace_back(tile.sprite_index, static_cast<int>(tile_local_position.x), static_cast<int>(tile_local_position.y), tile.type, tile.solid, tile.max_durability);
 }
 
 void World::damageTile(int x, int y, float damage)
@@ -103,11 +103,11 @@ void World::damageTile(int x, int y, float damage)
 	auto& tile = chunk.tiles[tile_local_position.y + tile_local_position.x * chunk_height_tiles];
 
 	if (!tile.solid) return;
-
-	tile.durability -= damage;
+	
+	tile.dealDamage(damage);
 
 	//Destroy
-	if (tile.durability <= 0.f)
+	if (tile.is_destroyed)
 	{
 		tile.sprite_index = 4;
 		tile.solid = false;
@@ -115,6 +115,22 @@ void World::damageTile(int x, int y, float damage)
 		tile.setTile(tile_presets[BlockType::SKY]);
 
 		changes[chunk_index].emplace_back(4, static_cast<int>(tile_local_position.x), static_cast<int>(tile_local_position.y), TileType::NONE, false, 0.f);
+	}
+}
+
+void World::updateTiles()
+{
+	for (auto& chunk : old_chunks)
+	{
+		for (auto& tile : chunk.tiles)
+		{
+			if (tile.current_durability < tile.max_durability && !tile.received_damage_last_frame)
+			{
+				tile.current_durability = tile.max_durability;
+			}
+
+			tile.received_damage_last_frame = false;
+		}
 	}
 }
 
@@ -451,6 +467,7 @@ void World::addCaves(Chunk& chunk)
 			if (tile.solid && cave_noise < correlated_cave_threshold)
 			{
 				tile.setTile(tile_presets.at(BlockType::SKY));
+				tile.sealed = true;
 			}
 		}
 	}

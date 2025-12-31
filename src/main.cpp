@@ -34,7 +34,7 @@ int main()
 
     ImGui_ImplSDL3_InitForSDLRenderer(window.getWindow(), renderer.getRenderer() );
     ImGui_ImplSDLRenderer3_Init(renderer.getRenderer());
-    ImGui::GetIO().FontGlobalScale = 3.f;
+    ImGui::GetIO().FontGlobalScale = 1.5f;
 
     float dt = 0.f;
     while (window)

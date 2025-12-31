@@ -11,9 +11,11 @@
 #include "TileMap.hpp"
 #include "World.hpp"
 #include "glm/glm.hpp"
+#include "Item.hpp"
 #include <bitset>
 
 #include "ECS/Systems.hpp"
+#include "UI/UserInterface.hpp"
 
 class Game
 {
@@ -27,6 +29,10 @@ public:
 	
 	glm::vec2 view_position = {0.f, 0.f};
 private:
+	void initItems();
+	void initPlayer();
+	void initUserInterface();
+
 	void updateTilemapTarget();
 	void updateInput(float dt);
 	void updateImGui(float dt);
@@ -43,6 +49,7 @@ private:
 	//SpriteSheet background;
 	//SpriteSheet player;
 	SpriteSheet tileset;
+	SpriteSheet items_spritesheet;
 
 	TileMap tilemap;
 	World world;
@@ -61,4 +68,13 @@ private:
 	PlaceSystem place_system;
 
 	Entity player;
+
+	std::vector<Item> items;
+
+	Item apple;
+	Item banana;
+	Item heal_potion;
+	Item regeneration_potion;
+
+	UserInterface interface;
 };

@@ -1,14 +1,7 @@
 #include "Renderer.hpp"
 #include "Sprite.hpp"
-#include <iostream>
 
-const Color Color::BLACK(0, 0, 0);
-const Color Color::GREY(128,128,128);
-const Color Color::WHITE(255, 255, 255);
-const Color Color::RED{ 255,0,0 };
-const Color Color::GREEN{ 0,255,0 };
-const Color Color::BLUE{ 0,0,255 };
-const Color Color::YELLOW(Color::RED + Color::GREEN);
+#include <iostream>
 
 Renderer::Renderer(Window& window) : window(window)
 {
@@ -17,6 +10,7 @@ Renderer::Renderer(Window& window) : window(window)
 	std::cout << "Renderer was created" << std::endl;
 
 	SDL_SetRenderVSync(renderer, 0);
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 }
 
 Renderer::~Renderer()
@@ -108,21 +102,27 @@ void Renderer::drawLine(float x1, float y1, float x2, float y2, Color color)
 	SDL_RenderLine(renderer, x1_, y1_, x2_, y2_ );
 }
 
-void Renderer::drawRectangle(int x, int y, int w, int h, RenderType render_type, Color color)
+void Renderer::drawRectangle(int x, int y, int w, int h, RenderType render_type, Color color, bool ignore_view_zoom)
 {
-	drawRectangle(static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h), render_type, color);
+	drawRectangle(static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h), render_type, color, ignore_view_zoom);
 }
 
-void Renderer::drawRectangle(float x, float y, float w, float h, RenderType render_type, Color color)
+void Renderer::drawRectangle(float x, float y, float w, float h, RenderType render_type, Color color, bool ignore_view_zoom)
 {
 	SDL_FRect rect;
 	
-	rect.x = x - view_position.x;
-	rect.y = y - view_position.y;
+	rect.x = x;
+	rect.y = y;
 	rect.w = w;
 	rect.h = h;
 
-	zoomRect(rect);
+	if (!ignore_view_zoom)
+	{
+		rect.x -= view_position.x;
+		rect.y -= view_position.y;
+
+		zoomRect(rect);
+	}
 
 	setColor(color);
 
@@ -158,23 +158,29 @@ void Renderer::drawSprite(const Sprite& sprite, float x, float y)
 	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
 }
 
-void Renderer::drawScaledSprite(const Sprite& sprite, int x, int y, int width, int height)
+void Renderer::drawScaledSprite(const Sprite& sprite, int x, int y, int width, int height, bool ignore_view_zoom)
 {
 	drawScaledSprite(sprite, static_cast<float>(x), static_cast<float>(y), static_cast<float>(width), static_cast<float>(height));
 }
 
-void Renderer::drawScaledSprite(const Sprite& sprite, float x, float y, float width, float height)
+void Renderer::drawScaledSprite(const Sprite& sprite, float x, float y, float width, float height, bool ignore_view_zoom)
 {
 	SDL_FRect src, dst;
 
 	src = sprite.getRect();
 
-	dst.x = x - view_position.x;
-	dst.y = y - view_position.y;
+	dst.x = x;
+	dst.y = y;
 	dst.w = width;
 	dst.h = height;
 
-	zoomRect(dst);
+	if (!ignore_view_zoom)
+	{
+		dst.x -= view_position.x;
+		dst.y -= view_position.y;
+
+		zoomRect(dst);
+	}
 
 	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
 }

@@ -1,0 +1,17 @@
+#pragma once
+
+#include "Renderer.hpp"
+#include "glm/glm.hpp"
+
+class UIElement
+{
+public:
+	UIElement(const glm::vec2& position, const glm::vec2& size) : position(position), size(size) {}
+
+	virtual void update() = 0;
+	virtual void render(Renderer& screen) = 0;
+
+protected:
+	glm::vec2 position;
+	glm::vec2 size;
+};

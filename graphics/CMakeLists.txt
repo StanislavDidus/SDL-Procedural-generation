@@ -3,7 +3,8 @@ set(GRAPHICS_SOURCE_FILES
     "src/Sprite.cpp"
     "src/Surface.cpp"
     "src/Window.cpp"
-    "src/SpriteSheet.cpp"
+    "src/SpriteSheet.cpp" 
+    "src/Color.cpp"
     )
 
 set(GRAPHICS_HEADER_FILES
@@ -12,6 +13,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/Surface.hpp"
     "inc/Window.hpp"
     "inc/SpriteSheet.hpp"
+    "inc/Color.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})

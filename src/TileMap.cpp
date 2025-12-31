@@ -36,6 +36,7 @@ void TileMap::setTarget(const glm::vec2& target)
 	this->target = target;
 }
 
+
 void TileMap::render(Renderer& screen)
 {
 	collision_system.collisions.clear();
@@ -88,6 +89,9 @@ void TileMap::render(Renderer& screen)
 			case 3:
 				//Moisture
 				drawDebugInfo(screen, tile.moisture, x, y);
+			case 4:
+				//Durability
+				drawDebugInfo(screen, tile.current_durability / tile.max_durability, x, y);
 			}
 #else
 			screen.drawScaledSprite(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);

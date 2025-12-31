@@ -49,6 +49,8 @@ public:
 	void placeTile(int x, int y, BlockType block);
 	void damageTile(int x, int y, float damage);
 
+	void updateTiles();
+
 	void resetChunks();
 
 	void clear(); // Clear old chunks from memory
