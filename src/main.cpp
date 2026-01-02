@@ -1,4 +1,5 @@
 #include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3/SDL_mouse.h>
 #include <iostream>
 #include <chrono>
@@ -18,6 +19,12 @@ int main()
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
         std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << std::endl;
+        return SDL_APP_FAILURE;
+    }
+
+    if (!TTF_Init())
+    {
+        std::cerr << "ERROR: Could not initialize TTF: " << SDL_GetError() << std::endl;
         return SDL_APP_FAILURE;
     }
 
@@ -66,12 +73,12 @@ int main()
         //Update mouse input
         float mouse_x, mouse_y = 0.f;
         SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-        MouseState mouse_state{
-            {mouse_x, mouse_y},
+   
+        input_manager.setMouseState(
+            { mouse_x, mouse_y },
             static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_LEFT)),
             static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_RIGHT))
-        };
-        input_manager.setMouseState(mouse_state);
+        );
 
         renderer.clear(Color::BLACK);
 

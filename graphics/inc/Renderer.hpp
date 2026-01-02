@@ -1,9 +1,12 @@
 #pragma once
 
 #include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
+
 #include "Window.hpp"
 #include "glm/glm.hpp"
 #include "Color.hpp"
+#include <string>
 
 const float BaseWidthScreen = 960.f;
 const float BaseHeightScreen = 540.f;
@@ -62,7 +65,7 @@ public:
 	void drawRotatedSprite(const Sprite& sprite, int x, int y, int width, int height, int angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE);
 	void drawRotatedSprite(const Sprite& sprite, float x, float y, float width, float height, float angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE);
 
-	void drawUI(const Sprite& sprite, float x, float y, float width, float height, float angle = 0.f, SDL_FlipMode flip_mode = SDL_FLIP_NONE);
+	void printText(SDL_Texture* texture, float x, float y, float w, float h, bool ignore_view_zoom = false);
 private:
 	void zoomRect(SDL_FRect& rect) const;
 

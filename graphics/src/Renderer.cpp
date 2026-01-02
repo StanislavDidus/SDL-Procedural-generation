@@ -203,22 +203,6 @@ void Renderer::drawRotatedSprite(const Sprite& sprite, float x, float y, float w
 
 	zoomRect(dst);
 
-	SDL_RenderTextureRotated(renderer, sprite.getTexture(), &src, &dst, angle, nullptr, flip_mode);
-}
-
-void Renderer::drawUI(const Sprite& sprite, float x, float y, float width, float height, float angle, SDL_FlipMode flip_mode)
-{
-	SDL_FRect src, dst;
-
-	src = sprite.getRect();
-
-	dst.x = x;
-	dst.y = y;
-	dst.w = width;
-	dst.h = height;
-
-	zoomRect(dst);
-
 	if (angle == 0.f || std::fmodf(angle, 360.f) == 0.f)
 	{
 		SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
@@ -227,6 +211,26 @@ void Renderer::drawUI(const Sprite& sprite, float x, float y, float width, float
 	{
 		SDL_RenderTextureRotated(renderer, sprite.getTexture(), &src, &dst, angle, nullptr, flip_mode);
 	}
+}
+
+void Renderer::printText(SDL_Texture* texture, float x, float y, float w, float h, bool ignore_view_zoom)
+{
+	SDL_FRect rect;
+
+	rect.x = x;
+	rect.y = y;
+	rect.w = w;
+	rect.h = h;
+
+	if (!ignore_view_zoom)
+	{
+		rect.x -= view_position.x;
+		rect.y -= view_position.y;
+
+		zoomRect(rect);
+	}
+
+	SDL_RenderTexture(renderer, texture, nullptr, &rect);
 }
 
 void Renderer::zoomRect(SDL_FRect& rect) const

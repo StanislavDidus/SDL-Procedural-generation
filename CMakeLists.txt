@@ -28,6 +28,8 @@ set(SOURCE_FILES
     "src/Item.cpp"
     "src/UI/UserInterface.cpp"
     "src/UI/FillBar.cpp"
+    "src/UI/InventoryView.cpp"
+    "src/ItemManager.cpp"
     )
 
 set(HEADER_FILES
@@ -53,6 +55,7 @@ set(HEADER_FILES
     "inc/UI/UIElement.hpp"
     "inc/UI/FillBar.hpp"
     "inc/UI/InventoryView.hpp"
+    "inc/ItemManager.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
@@ -71,6 +74,7 @@ target_include_directories(SDL_PRO_GEN PUBLIC inc)
 target_link_libraries(
     SDL_PRO_GEN PUBLIC
     SDL3::SDL3-static
+    SDL3_ttf::SDL3_ttf
     graphics 
     glm::glm noise
     imgui

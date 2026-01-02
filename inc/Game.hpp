@@ -12,10 +12,12 @@
 #include "World.hpp"
 #include "glm/glm.hpp"
 #include "Item.hpp"
+#include "Font.hpp"
 #include <bitset>
 
 #include "ECS/Systems.hpp"
 #include "UI/UserInterface.hpp"
+#include "ItemManager.hpp"
 
 class Game
 {
@@ -77,4 +79,9 @@ private:
 	Item regeneration_potion;
 
 	UserInterface interface;
+
+	//Text
+	Font font;
+	Surface text_surface;
+	SpriteSheet text;
 };

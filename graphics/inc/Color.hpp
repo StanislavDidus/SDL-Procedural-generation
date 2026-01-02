@@ -38,4 +38,6 @@ struct Color
 	static const Color GREEN;
 	static const Color BLUE;
 	static const Color YELLOW;
+	static const Color TRANSPARENT_BLUE;
+	static const Color TRANSPARENT_RED;
 };

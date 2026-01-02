@@ -5,6 +5,8 @@ set(GRAPHICS_SOURCE_FILES
     "src/Window.cpp"
     "src/SpriteSheet.cpp" 
     "src/Color.cpp"
+    "src/Font.cpp"
+    "src/Text.cpp"
     )
 
 set(GRAPHICS_HEADER_FILES
@@ -14,6 +16,8 @@ set(GRAPHICS_HEADER_FILES
     "inc/Window.hpp"
     "inc/SpriteSheet.hpp"
     "inc/Color.hpp"
+    "inc/Font.hpp"
+    "inc/Text.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})
@@ -22,6 +26,6 @@ add_library(graphics STATIC ${GRAPHICS_ALL_FILES})
 
 target_include_directories(graphics PUBLIC inc)
 
-target_link_libraries(graphics PUBLIC SDL3::SDL3-static glm::glm)
+target_link_libraries(graphics PUBLIC SDL3::SDL3-static SDL3_ttf::SDL3_ttf-static glm::glm)
 
 target_compile_features(graphics PUBLIC cxx_std_20)

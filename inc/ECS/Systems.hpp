@@ -217,13 +217,13 @@ struct InputSystem
 				if (component_manager.mine_intent.contains(entity))
 				{
 					auto& mi = component_manager.mine_intent.at(entity);
-					mi.active = InputManager::getMouseState().left;
+					mi.active = InputManager::getMouseState().left == MouseButtonState::HELD;
 				}
 
 				if (component_manager.place_intent.contains(entity))
 				{
 					auto& pi = component_manager.place_intent.at(entity);
-					pi.active = InputManager::getMouseState().right;
+					pi.active = InputManager::getMouseState().right == MouseButtonState::HELD;
 				}
 
 				if (InputManager::isKey(SDLK_H))
@@ -347,9 +347,6 @@ public:
 				int tile_x = tile_position.x;
 				int tile_y = tile_position.y;
 
-				Color transparent_blue{ 0, 0, 255, 50 };
-				Color transparent_red{ 255, 0, 0, 50 };
-
 				glm::vec2 player_mid_posiiton = ts.position + ts.size * 0.5f;
 
 				//Mine in 3x3 radius
@@ -365,11 +362,11 @@ public:
 
 						if (distance > mn.radius)
 						{
-							screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, transparent_red);
+							screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_RED);
 						}
 						else
 						{
-							screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, transparent_blue);
+							screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_BLUE);
 						}
 					}
 				}
@@ -471,6 +468,56 @@ private:
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
 	World& world;
+	float tile_width = 1.f;
+	float tile_height = 1.f;
+};
+
+class ItemUsageSystem
+{
+public:
+	ItemUsageSystem(ComponentManager& component_manager, const EntityManager& entity_manager, float tile_width, float tile_height)
+		: component_manager(component_manager)
+		, entity_manager(entity_manager)
+		, tile_width(tile_width)
+		, tile_height(tile_height)
+	{
+	}
+
+	void useItem(const Item& item)
+	{
+		bool is_usable = false;
+		for (const auto& component : item.components)
+		{
+			if (std::dynamic_pointer_cast<ItemComponents::Usable>(component))
+			{
+				is_usable = true;
+				break;
+			}
+		}
+
+		if (!is_usable) return; 
+
+		for (const auto& component : item.components)
+		{
+			if (std::dynamic_pointer_cast<ItemComponents::Heal>(component))
+			{
+				//Heal
+			}
+			else if (std::dynamic_pointer_cast<ItemComponents::AddEffect>(component))
+			{
+				//AddEffect
+			}
+		}
+	}
+
+	void update(float dt)
+	{
+
+	}
+
+private:
+	ComponentManager& component_manager;
+	const EntityManager& entity_manager;
 	float tile_width = 1.f;
 	float tile_height = 1.f;
 };

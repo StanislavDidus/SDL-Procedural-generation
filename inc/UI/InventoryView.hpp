@@ -3,49 +3,53 @@
 #include "UIElement.hpp"
 #include "Inventory.hpp"
 #include "SpriteSheet.hpp"
+#include "InputManager.hpp"
+#include "Font.hpp"
+#include <vector>
+#include "Text.hpp"
 
 class InventoryView : public UIElement
 {
 public:
-	InventoryView(const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position)
-		: UIElement(position, {}), item_sprites(item_sprites), inventory(inventory), rows(rows), columns(columns), slot_size(slot_size)
+	InventoryView(const Font& font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position)
+		: UIElement(position, { slot_size * columns , slot_size * rows }), font(font), item_sprites(item_sprites), inventory(inventory), rows(rows), columns(columns), slot_size(slot_size)
 	{
-
-	}
-
-	void update() override
-	{
-
-	}
-
-	void render(Renderer& screen) override
-	{
-		for (int i = 0; i < rows * columns; i++)
-		{
-			int x = i % columns;
-			int y = i / columns;
-
-			glm::vec2 pos = {position.x + x * slot_size, position.y + y * slot_size};
-
-			screen.drawRectangle(pos.x, pos.y, slot_size, slot_size, RenderType::NONE, Color::YELLOW, IGNORE_VIEW_ZOOM);
-
-			const auto& item = inventory->getItems()[i];
-
-			if (item)
-			{
-				const auto& item_sprite = item_sprites[item.value().properties.sprite_index];
-
-				screen.drawScaledSprite(item_sprite, pos.x, pos.y, slot_size, slot_size, IGNORE_VIEW_ZOOM);
-			}
+		if (inventory) {
+			slot_text.resize(inventory->getItems().size());
 		}
 	}
+
+	void update() override;
+
+	void render(Renderer& screen) override;
 private:
+	void isCoveringInventory();
+	void isUsing();
+	void isDragging();
+	void isSplitting();
+	void isMovingItems();
+
+	void drawStackNumbers(Renderer& screen);
+
+	void updateText(const Renderer& screen, std::optional<Text>& text_, const std::string& new_text);
+
+	void drawItem(Renderer& screen, const Item& item, const glm::vec2& position, int index);
+
 	Inventory* inventory;
 
 	int rows;
 	int columns;
 
+	std::optional<int> covered_slot;
+
+	std::optional<int> dragged_slot;
+	glm::vec2 dragged_position{};
+
+
 	float slot_size;
 
+	//Items
+	Font font;
+	std::vector<std::optional<Text>> slot_text;
 	SpriteSheet item_sprites;
 };

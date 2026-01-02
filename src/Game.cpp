@@ -32,6 +32,9 @@ Game::Game(Renderer& screen)
 	, mining_system(component_manager, entity_manager, world, 20.f, 20.f)
 	, place_system(component_manager, entity_manager, world, 20.f, 20.f)
 	, tilemap(world, tileset, collision_system, 20.f, 20.f)
+	, font("assets/Fonts/Roboto-Black.ttf", 32)
+	, text_surface(font.getFont(), "Player", {0,0,0,0})
+	, text(screen, text_surface)
 	/*, health_bar({ 0.f, screen.getWindowSize().y - 50.f, }, {250.f, 50.f}, component_manager.health[player].current_health, 100.f, Color::RED)*/
 	//, mapRange(0.f, 1.f, 0.f, 0.f)
 {
@@ -45,7 +48,16 @@ Game::Game(Renderer& screen)
 
 	auto& inventory = component_manager.has_inventory[player].inventory;
 	inventory.addItem(apple);
+	inventory.addItem(apple);
+	inventory.addItem(apple);
+	inventory.addItem(apple);
+	for (int i = 0; i < 10; i++)
+	{
+		inventory.addItem(apple);
+	}
 	inventory.addItem(banana);
+	inventory.addItem(heal_potion);
+	inventory.removeItem(1);
 }
 
 Game::~Game()
@@ -127,7 +139,7 @@ void Game::initPlayer()
 	component_manager.health[player] = Health
 	{
 		100.f,
-		100.f
+		50.f
 	};
 }
 
@@ -135,7 +147,7 @@ void Game::initUserInterface()
 {
 	interface.addFillBar({ 0.f, screen.getWindowSize().y - 50.f, }, { 250.f, 50.f }, component_manager.health[player].current_health, 100.f, Color::RED);
 
-	interface.addInventoryView(items_spritesheet, &component_manager.has_inventory[player].inventory, 3, 5, 50.f, {0.f, 0.f});
+	interface.addInventoryView(font, items_spritesheet, &component_manager.has_inventory[player].inventory, 3, 5, 50.f, {0.f, 0.f});
 }
 
 void Game::update(float dt)
@@ -186,6 +198,10 @@ void Game::update(float dt)
 		screen.drawRectangle(pos.x, pos.y, size.x, size.y, RenderType::FILL, Color::BLUE);
 
 	interface.render(screen);
+
+	const auto& player_pos = component_manager.transform[player].position;
+	const auto& player_size = component_manager.transform[player].size;
+	screen.printText(text.getTexture(), player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
 
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.getRenderer());
@@ -270,6 +286,12 @@ void Game::updateInput(float dt)
 	if (InputManager::isKeyDown(SDLK_SPACE))
 	{
 		world.generateWorld(std::nullopt);
+	}
+
+	//Add items
+	if (InputManager::isKeyDown(SDLK_G))
+	{
+		component_manager.has_inventory[player].inventory.addItem(banana);
 	}
 
 	//Change the mining radius

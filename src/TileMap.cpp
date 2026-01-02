@@ -89,9 +89,11 @@ void TileMap::render(Renderer& screen)
 			case 3:
 				//Moisture
 				drawDebugInfo(screen, tile.moisture, x, y);
+				break;
 			case 4:
 				//Durability
 				drawDebugInfo(screen, tile.current_durability / tile.max_durability, x, y);
+				break;
 			}
 #else
 			screen.drawScaledSprite(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);

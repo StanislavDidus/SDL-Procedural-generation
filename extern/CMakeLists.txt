@@ -1,6 +1,13 @@
+
+#SDL
 add_subdirectory(SDL EXCLUDE_FROM_ALL)
+#SDL_ttf
+set(SDLTTF_VENDORED ON)
+add_subdirectory(SDL_ttf EXCLUDE_FROM_ALL)
+#glm
 add_subdirectory(glm EXCLUDE_FROM_ALL)
 
+#ImGui
 add_library(imgui
     imgui/imgui.cpp
     imgui/imgui_draw.cpp

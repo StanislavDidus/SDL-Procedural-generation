@@ -5,11 +5,19 @@
 
 #include <bitset>
 
+enum class MouseButtonState
+{
+	NONE,
+	DOWN,
+	HELD,
+	RELEASED,
+};
+
 struct MouseState
 {
 	glm::vec2 position;
-	bool left;
-	bool right;
+	MouseButtonState left;
+	MouseButtonState right;
 };
 
 class InputManager
@@ -25,7 +33,7 @@ public:
 
 	void buttonUp(SDL_Keycode key);
 	void buttonPressed(SDL_Keycode key);
-	void setMouseState(const MouseState& mouse_state);
+	void setMouseState(const glm::vec2& position, bool left_down, bool right_down);
 
 	void update();
 	

@@ -2,7 +2,7 @@
 
 SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, std::vector<SDL_FRect> sprite_rects, SDL_ScaleMode scale_mode)
 {
-	getTexture(renderer, surface, scale_mode);
+	loadTexture(renderer, surface, scale_mode);
 	
 	for (const auto& rect : sprite_rects)
 	{
@@ -12,7 +12,7 @@ SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, std::vector
 
 SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, const glm::vec2& sprite_size, SDL_ScaleMode scale_mode)
 {
-	getTexture(renderer, surface, scale_mode);
+	loadTexture(renderer, surface, scale_mode);
 	
 	int texture_width = surface.getSurface()->w;
 	int texture_height = surface.getSurface()->h;
@@ -29,12 +29,22 @@ SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, const glm::
 	}
 }
 
+SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface)
+{
+	loadTexture(renderer, surface, SDL_SCALEMODE_LINEAR);
+}
+
 SpriteSheet::~SpriteSheet()
 {
 	SDL_DestroyTexture(texture);
 }
 
-void SpriteSheet::getTexture(Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode)
+SDL_Texture* SpriteSheet::getTexture() const
+{
+	return texture;
+}
+
+void SpriteSheet::loadTexture(Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode)
 {
 	texture = SDL_CreateTextureFromSurface(renderer.getRenderer(), surface.getSurface());
 
