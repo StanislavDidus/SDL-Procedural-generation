@@ -4,7 +4,7 @@
 void InventoryView::update()
 {
 	isCoveringInventory();
-	checkUse();
+	isUsing();
 	isDragging();
 	isSplitting();
 	isMovingItems();
@@ -31,15 +31,12 @@ void InventoryView::isCoveringInventory()
 	if (!is_covered) covered_slot = std::nullopt;
 }
 
-void InventoryView::checkUse()
+void InventoryView::isUsing()
 {
 	const auto& mouse = InputManager::getMouseState();
-	if (covered_slot && !dragged_slot && mouse.right == MouseButtonState::RELEASED)
+	if (covered_slot && !dragged_slot && mouse.right == MouseButtonState::RELEASED && inventory)
 	{
-		if (inventory)
-		{
-			inventory->useItem(*covered_slot);
-		}
+		inventory->useItem(*covered_slot);
 	}
 }
 
@@ -68,12 +65,9 @@ void InventoryView::isSplitting()
 	const auto& mouse = InputManager::getMouseState();
 	const auto& mouse_position = mouse.position;
 
-	if (covered_slot && dragged_slot && mouse.right == MouseButtonState::DOWN)
+	if (covered_slot && dragged_slot && mouse.right == MouseButtonState::DOWN && inventory)
 	{
-		if (inventory)
-		{
-			inventory->splitItemTo(*dragged_slot, *covered_slot);
-		}
+		inventory->splitItemTo(*dragged_slot, *covered_slot);
 	}
 }
 
@@ -82,22 +76,20 @@ void InventoryView::isMovingItems()
 	const auto& mouse = InputManager::getMouseState();
 	const auto& mouse_position = mouse.position;
 
-	if (dragged_slot && covered_slot && mouse.left == MouseButtonState::RELEASED)
+	if (dragged_slot && covered_slot && mouse.left == MouseButtonState::RELEASED && inventory)
 	{
-		if (inventory)
-		{
-			auto& dragged_item = inventory->getItems()[*dragged_slot];
-			auto& covered_item = inventory->getItems()[*covered_slot];
+		auto& dragged_item = inventory->getItems()[*dragged_slot];
+		auto& covered_item = inventory->getItems()[*covered_slot];
 
-			if (dragged_item == covered_item && *dragged_slot != *covered_slot)
-			{
-				inventory->stackItems(*dragged_slot, *covered_slot);
-			}
-			else
-			{
-				inventory->moveItem(*dragged_slot, *covered_slot);
-				dragged_slot = std::nullopt;
-			}
+		if (dragged_item == covered_item && *dragged_slot != *covered_slot)
+		{
+			inventory->stackItems(*dragged_slot, *covered_slot);
+			dragged_slot = std::nullopt;
+		}
+		else
+		{
+			inventory->moveItem(*dragged_slot, *covered_slot);
+			dragged_slot = std::nullopt;
 		}
 	}
 	else if (dragged_slot && mouse.left == MouseButtonState::RELEASED)
@@ -126,10 +118,19 @@ void InventoryView::render(Renderer& screen)
 
 		int index = x + y * columns;
 
+		if (!item) continue;
+		
+		const auto& item_manager = inventory->getItemManager();
+
+		if (!item_manager) continue;
+
+		const auto& item_properties = item_manager->getProperties(item->id);
+		
+
 		//Draw static items in an inventory slot
 		if (item && index != dragged_slot)
 		{
-			const auto& item_sprite = item_sprites[item.value().properties.sprite_index];
+			const auto& item_sprite = item_sprites[item_properties.sprite_index];
 
 			drawItem(screen, *item, { pos.x, pos.y }, index);
 		}
@@ -137,7 +138,7 @@ void InventoryView::render(Renderer& screen)
 		//Draw item while dragging
 		if (item && index == dragged_slot)
 		{
-			const auto& item_sprite = item_sprites[item.value().properties.sprite_index];
+			const auto& item_sprite = item_sprites[item_properties.sprite_index];
 			const auto& mouse_position = InputManager::getMouseState().position;
 
 
@@ -159,6 +160,8 @@ void InventoryView::render(Renderer& screen)
 
 void InventoryView::drawStackNumbers(Renderer& screen)
 {
+	const auto& item_manager = inventory->getItemManager();
+	
 	if (inventory)
 	{
 		int i = 0;
@@ -166,8 +169,9 @@ void InventoryView::drawStackNumbers(Renderer& screen)
 		{
 			if (item)
 			{
-				const auto& item_ = *item;
-				int stack_number = item_.properties.stack_number;
+				//const auto& item_ = *item;
+				const auto& item_properties = item_manager->getProperties(item->id);
+				int stack_number = item->stack_number;
 				std::stringstream ss;
 				ss << stack_number;
 				
@@ -205,11 +209,16 @@ void InventoryView::updateText(const Renderer& screen, std::optional<Text>& text
 
 void InventoryView::drawItem(Renderer& screen, const Item& item, const glm::vec2& position, int index)
 {
-	const auto& item_sprite = item_sprites[item.properties.sprite_index];
+	if (!inventory) return;
+
+	const auto& item_manager = inventory->getItemManager();
+	const auto& item_properties = item_manager->getProperties(item.id);
+
+	const auto& item_sprite = item_sprites[item_properties.sprite_index];
 
 	screen.drawScaledSprite(item_sprite, position.x, position.y, slot_size, slot_size, IGNORE_VIEW_ZOOM);
 
-	int stack_number = item.properties.stack_number;
+	int stack_number = item.stack_number;
 	std::stringstream ss;
 	ss << stack_number;
 

@@ -10,7 +10,7 @@ void TileMap::drawDebugInfo(Renderer& screen, float value, float x, float y)
 }
 #endif
 
-TileMap::TileMap(World& world, SpriteSheet& tileset, CollisionSystem& collision_system, float tile_width_world, float tile_height_world)
+TileMap::TileMap(World& world, SpriteSheet& tileset, std::shared_ptr<CollisionSystem> collision_system, float tile_width_world, float tile_height_world)
 	: world(world)
 	, tileset(tileset)
 	, collision_system(collision_system)
@@ -39,7 +39,10 @@ void TileMap::setTarget(const glm::vec2& target)
 
 void TileMap::render(Renderer& screen)
 {
-	collision_system.collisions.clear();
+	auto cs = collision_system.lock();
+	if (!cs) return;
+
+	cs->collisions.clear();
 
 	const auto& window_size = screen.getWindowSize();
 	const auto& view_position = screen.getView();
@@ -70,7 +73,7 @@ void TileMap::render(Renderer& screen)
 			glm::vec2 position = { x * tile_width_world, y * tile_height_world };
 			glm::vec2 size = { tile_width_world, tile_height_world };
 
-			if(tile.solid) collision_system.collisions.emplace_back(position, size);
+			if(tile.solid) cs->collisions.emplace_back(position, size);
 
 #ifdef DEBUG_TILES
 			switch (render_mode)

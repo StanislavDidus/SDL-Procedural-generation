@@ -1,13 +1,19 @@
 #pragma once
 
-#include "glm/glm.hpp"
+#include <iostream>
+#include <string>
+#include "Item.hpp"
 
-class Object
+struct ObjectProperties
 {
-public:
-	Object() = default;
-	virtual ~Object() = default;
-private:
-	glm::vec2 position;
-	glm::vec2 size;
+	float durability;
+	int sprite_index;
+	std::string name;
+	Item item;
+};
+
+struct Object
+{
+	int id;
+	float current_durability;
 };

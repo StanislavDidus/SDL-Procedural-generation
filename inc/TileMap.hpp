@@ -17,7 +17,7 @@ public:
 	void drawDebugInfo(Renderer& screen, float value, float x, float y);
 #endif
 
-	TileMap(World& world, SpriteSheet& tileset, CollisionSystem& collision_system, float tile_width_world, float tile_height_world);
+	TileMap(World& world, SpriteSheet& tileset, std::shared_ptr<CollisionSystem> collision_system, float tile_width_world, float tile_height_world);
 	~TileMap();
 
 	//Setters
@@ -37,5 +37,5 @@ private:
 	SpriteSheet& tileset;
 	std::vector<Chunk> chunks;
 	World& world;
-	CollisionSystem& collision_system;
+	std::weak_ptr<CollisionSystem> collision_system;
 };

@@ -23,15 +23,8 @@ Game::Game(Renderer& screen)
 	//, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
 	, tileset(screen, Surface{ "assets/Sprites/tileset.png" }, { 16.f, 16.f }, SDL_SCALEMODE_NEAREST)
 	, items_spritesheet(screen, Surface{ "assets/Sprites/items.png" }, {16.f, 16.f}, SDL_SCALEMODE_NEAREST)
-	, world(screen)
+	, objects_spritesheet(screen, Surface{ "assets/Sprites/objects.png" }, {16.f, 48.f}, SDL_SCALEMODE_NEAREST)
 	//, tilemap(world, tileset, 960.f, 540.f, 75.f, 100.f)
-	, physics_system(component_manager, entity_manager)
-	, input_system(component_manager, entity_manager)
-	, collision_system(component_manager, entity_manager)
-	, jump_system(component_manager, entity_manager)
-	, mining_system(component_manager, entity_manager, world, 20.f, 20.f)
-	, place_system(component_manager, entity_manager, world, 20.f, 20.f)
-	, tilemap(world, tileset, collision_system, 20.f, 20.f)
 	, font("assets/Fonts/Roboto-Black.ttf", 32)
 	, text_surface(font.getFont(), "Player", {0,0,0,0})
 	, text(screen, text_surface)
@@ -42,22 +35,24 @@ Game::Game(Renderer& screen)
 
 	screen.setView({ 0.f, 0.f });
 
+	world = std::make_shared<World>(screen, object_manager);
+
+	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
+	item_manager = std::make_shared<ItemManager>();
+
+	initSystems();
 	initItems();
+	initObjects();
 	initPlayer();	
 	initUserInterface();
 
+	tilemap = std::make_unique<TileMap>(*world, tileset, collision_system, 20.f, 20.f);
+
 	auto& inventory = component_manager.has_inventory[player].inventory;
-	inventory.addItem(apple);
-	inventory.addItem(apple);
-	inventory.addItem(apple);
-	inventory.addItem(apple);
-	for (int i = 0; i < 10; i++)
-	{
-		inventory.addItem(apple);
-	}
-	inventory.addItem(banana);
-	inventory.addItem(heal_potion);
-	inventory.removeItem(1);
+	inventory->addItem(0, 15);
+	inventory->addItem(1, 1);
+	inventory->addItem(2, 1);
+	//inventory.removeItem(1);
 }
 
 Game::~Game()
@@ -65,19 +60,71 @@ Game::~Game()
 	std::cout << "Game was deleted" << std::endl;
 }
 
+void Game::initSystems()
+{
+	physics_system = std::make_unique<PhysicsSystem>(component_manager, entity_manager);
+	input_system = std::make_unique<InputSystem>(component_manager, entity_manager);
+	collision_system = std::make_shared<CollisionSystem>(component_manager, entity_manager);
+	jump_system = std::make_unique<JumpSystem>(component_manager, entity_manager);
+	mining_system = std::make_unique<MiningSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
+	place_system = std::make_unique<PlaceSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
+	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
+}
+
 void Game::initItems()
 {
-	apple.properties = ItemProperties{ true, 1, 0, "Apple" };
-	apple.components.push_back(std::make_shared<ItemComponents::Heal>(10));
+	item_manager = std::make_shared<ItemManager>();
+	
+	//Apple
+	{
+		std::vector<std::shared_ptr<ItemComponent>> components;
+		components.push_back(std::make_shared<ItemComponents::Usable>());
+		components.push_back(std::make_shared<ItemComponents::Heal>(10));
+		ItemProperties properties{ true, 0, "Apple", components };
 
-	banana.properties = ItemProperties{ true, 1, 1, "Banana" };
-	banana.components.push_back(std::make_shared<ItemComponents::Heal>(5));
+		item_manager->addItem(properties);
+	}
 
-	heal_potion.properties = ItemProperties{ true, 1, 2, "Heal_Potion" };
-	heal_potion.components.push_back(std::make_shared<ItemComponents::Heal>(50));
+	//Banana
+	{
+		std::vector<std::shared_ptr<ItemComponent>> components;
+		components.push_back(std::make_shared<ItemComponents::Usable>());
+		components.push_back(std::make_shared<ItemComponents::Heal>(5));
+		ItemProperties properties{ true, 1, "Banana", components };
 
-	regeneration_potion.properties = ItemProperties{ true, 1, 3, "Regeneration_Potion" };
-	regeneration_potion.components.push_back(std::make_shared<ItemComponents::AddEffect>(Effect::HEALTH_REGENERATION, 120.f));
+		item_manager->addItem(properties);
+	}
+
+	//Heal Potion
+	{
+		std::vector<std::shared_ptr<ItemComponent>> components;
+		components.push_back(std::make_shared<ItemComponents::Usable>());
+		components.push_back(std::make_shared<ItemComponents::Heal>(50));
+		ItemProperties properties{ true, 2, "Heal_Potion", components };
+
+		item_manager->addItem(properties);
+	}
+
+	//Regeneration Potion
+	{
+		std::vector<std::shared_ptr<ItemComponent>> components;
+		components.push_back(std::make_shared<ItemComponents::AddEffect>(Effect::HEALTH_REGENERATION, 120.f));
+		ItemProperties properties{ true, 3, "Regeneration_Potion", components };
+
+		item_manager->addItem(properties);
+	}
+}
+
+void Game::initObjects()
+{
+	object_manager = std::make_shared<ObjectManager>();
+	world->setObjectManager(object_manager);
+
+	{
+		Item apple{ 0, 1 };
+		ObjectProperties properties{ 200.f, 0, "Tree", apple };
+		object_manager->addObject(properties);
+	}
 }
 
 void Game::initPlayer()
@@ -133,7 +180,7 @@ void Game::initPlayer()
 
 	component_manager.has_inventory[player] = HasInventory
 	{
-		Inventory{15},
+		std::make_shared<Inventory>(item_usage_system, item_manager, 15)
 	};
 
 	component_manager.health[player] = Health
@@ -147,7 +194,7 @@ void Game::initUserInterface()
 {
 	interface.addFillBar({ 0.f, screen.getWindowSize().y - 50.f, }, { 250.f, 50.f }, component_manager.health[player].current_health, 100.f, Color::RED);
 
-	interface.addInventoryView(font, items_spritesheet, &component_manager.has_inventory[player].inventory, 3, 5, 50.f, {0.f, 0.f});
+	interface.addInventoryView(font, items_spritesheet, component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
 }
 
 void Game::update(float dt)
@@ -163,14 +210,14 @@ void Game::update(float dt)
 	//Check mouse state
 	const auto& mouse = InputManager::getMouseState();
 
-	input_system.update(dt);
-	jump_system.update(dt);
-	physics_system.update(dt);
-	collision_system.update(dt);
-	mining_system.update(dt, mouse, screen);
-	place_system.update(dt, mouse, screen);
+	input_system->update(dt);
+	jump_system->update(dt);
+	physics_system->update(dt);
+	collision_system->update(dt);
+	mining_system->update(dt, mouse, screen);
+	place_system->update(dt, mouse, screen);
 
-	world.updateTiles();
+	world->updateTiles();
 
 	interface.update();
 
@@ -186,9 +233,9 @@ void Game::update(float dt)
 	//Render
 	const auto& window_size = screen.getWindowSize();
 
-	tilemap.render(screen);
+	tilemap->render(screen);
 
-	mining_system.renderOutline(dt, mouse, screen);
+	mining_system->renderOutline(dt, mouse, screen);
 
 	auto& pos = component_manager.transform[player].position;
 	auto& size = component_manager.transform[player].size;
@@ -228,7 +275,7 @@ void Game::updateTilemapTarget()
 		glm::vec2 player_center = { player_position.x + player_size.x / 2.f, player_position.y + player_size.y / 2.f };
 		glm::vec2 player_screen_position = player_center - static_cast<glm::vec2>(screen.getWindowSize()) / 2.f;
 		view_position = player_screen_position;
-		tilemap.setTarget(player_center);
+		tilemap->setTarget(player_center);
 	}
 	else
 	{
@@ -236,7 +283,7 @@ void Game::updateTilemapTarget()
 
 		glm::vec2 view_center = { view_position.x + window_size.x / 2.f, view_position.y + window_size.y / 2.f };
 
-		tilemap.setTarget(view_center);
+		tilemap->setTarget(view_center);
 	}
 }
 
@@ -273,25 +320,25 @@ void Game::updateInput(float dt)
 	}
 	if (InputManager::isKey(SDLK_Z))
 	{
-		//world.scale -= 0.1f * dt;
-		world.cave_threshold -= 0.2f * dt;
-		world.clear();
+		//world->scale -= 0.1f * dt;
+		world->cave_threshold -= 0.2f * dt;
+		world->clear();
 	}
 	if (InputManager::isKey(SDLK_X))
 	{
-		//world.scale += 0.1f * dt;
-		world.cave_threshold += 0.2f * dt;
-		world.clear();
+		//world->scale += 0.1f * dt;
+		world->cave_threshold += 0.2f * dt;
+		world->clear();
 	}
 	if (InputManager::isKeyDown(SDLK_SPACE))
 	{
-		world.generateWorld(std::nullopt);
+		world->generateWorld(std::nullopt);
 	}
 
 	//Add items
 	if (InputManager::isKeyDown(SDLK_G))
 	{
-		component_manager.has_inventory[player].inventory.addItem(banana);
+		component_manager.has_inventory[player].inventory->addItem(1,1);
 	}
 
 	//Change the mining radius
@@ -342,7 +389,7 @@ void Game::updateImGui(float dt)
 
 		if (ImGui::Button("Generate world"))
 		{
-			world.generateWorld(buffer);
+			world->generateWorld(buffer);
 		}
 
 		ImGui::SameLine();
@@ -351,55 +398,55 @@ void Game::updateImGui(float dt)
 		{
 			std::uniform_int_distribution dist(0, 10000000);
 			buffer = dist(rng);
-			world.generateWorld(buffer);
+			world->generateWorld(buffer);
 		}
 
-		ImGui::SliderFloat("scale", &world.scale, 0.f, 1.f);
-		ImGui::SliderFloat("density_change", &world.density_change, 0.1f, 1.f);
-		ImGui::SliderFloat("y_base", &world.y_base, -100.f, 100.f);
-		ImGui::SliderFloat("sea_level", &world.sea_level, -100.f, 100.f);
+		ImGui::SliderFloat("scale", &world->scale, 0.f, 1.f);
+		ImGui::SliderFloat("density_change", &world->density_change, 0.1f, 1.f);
+		ImGui::SliderFloat("y_base", &world->y_base, -100.f, 100.f);
+		ImGui::SliderFloat("sea_level", &world->sea_level, -100.f, 100.f);
 
-		ImGui::SliderFloat("cave_threshold_min", &world.cave_threshold_min, 0.1f, 1.0f);
-		ImGui::SliderFloat("cave_threshold_max", &world.cave_threshold_max, 0.1f, 1.0f);
-		ImGui::SliderFloat("cave_threshold_step", &world.cave_threshold_step, 0.0001f, 0.1f);
-		ImGui::SliderFloat("cave_base_y", &world.cave_base_height, -100.f, 100.f);
+		ImGui::SliderFloat("cave_threshold_min", &world->cave_threshold_min, 0.1f, 1.0f);
+		ImGui::SliderFloat("cave_threshold_max", &world->cave_threshold_max, 0.1f, 1.0f);
+		ImGui::SliderFloat("cave_threshold_step", &world->cave_threshold_step, 0.0001f, 0.1f);
+		ImGui::SliderFloat("cave_base_y", &world->cave_base_height, -100.f, 100.f);
 
 		static int current = 0;
 		const char* items[] = { "Default", "PV", "Temperature", "Moisture", "Durability"};
 
-		ImGui::Combo("Render Mode", &tilemap.render_mode, items, IM_ARRAYSIZE(items));
+		ImGui::Combo("Render Mode", &tilemap->render_mode, items, IM_ARRAYSIZE(items));
 
 		if (ImGui::CollapsingHeader("Terrain & Nature"))
 		{
 			ImGui::Text("PV");
-			ImGui::SliderInt("Octaves##PV", &world.peaks_and_valleys_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##PV", &world.peaks_and_valleys_settings.frequency, 0.0001f, 2.f);
-			ImGui::SliderFloat("Amplitude##PV", &world.peaks_and_valleys_settings.amplitude, 0.0001f, 2.f);
+			ImGui::SliderInt("Octaves##PV", &world->peaks_and_valleys_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##PV", &world->peaks_and_valleys_settings.frequency, 0.0001f, 2.f);
+			ImGui::SliderFloat("Amplitude##PV", &world->peaks_and_valleys_settings.amplitude, 0.0001f, 2.f);
 
 			ImGui::Text("Density");
-			ImGui::SliderInt("Octaves##Density", &world.density_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Density", &world.density_settings.frequency, 0.0001f, 2.f);
-			ImGui::SliderFloat("Amplitude##Density", &world.density_settings.amplitude, 0.0001f, 2.f);
+			ImGui::SliderInt("Octaves##Density", &world->density_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##Density", &world->density_settings.frequency, 0.0001f, 2.f);
+			ImGui::SliderFloat("Amplitude##Density", &world->density_settings.amplitude, 0.0001f, 2.f);
 
 			ImGui::Text("Caves");
-			ImGui::SliderInt("Octaves##Caves", &world.cave_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Caves", &world.cave_settings.frequency, 0.0001f, 2.f);
-			ImGui::SliderFloat("Amplitude##Caves", &world.cave_settings.amplitude, 0.0001f, 2.f);
+			ImGui::SliderInt("Octaves##Caves", &world->cave_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##Caves", &world->cave_settings.frequency, 0.0001f, 2.f);
+			ImGui::SliderFloat("Amplitude##Caves", &world->cave_settings.amplitude, 0.0001f, 2.f);
 
 			ImGui::Text("Tunnels");
-			ImGui::SliderInt("Octaves##Tunnels", &world.tunnel_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Tunnels", &world.tunnel_settings.frequency, 0.001f, 2.f);
-			ImGui::SliderFloat("Amplitude##Tunnels", &world.tunnel_settings.amplitude, 0.001f, 2.f);
+			ImGui::SliderInt("Octaves##Tunnels", &world->tunnel_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##Tunnels", &world->tunnel_settings.frequency, 0.001f, 2.f);
+			ImGui::SliderFloat("Amplitude##Tunnels", &world->tunnel_settings.amplitude, 0.001f, 2.f);
 
 			ImGui::Text("Temperature");
-			ImGui::SliderInt("Octaves##Temperature", &world.temperature_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Temperature", &world.temperature_settings.frequency, 0.0001f, 2.f);
-			ImGui::SliderFloat("Amplitude##Temperature", &world.temperature_settings.amplitude, 0.0001f, 2.f);
+			ImGui::SliderInt("Octaves##Temperature", &world->temperature_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##Temperature", &world->temperature_settings.frequency, 0.0001f, 2.f);
+			ImGui::SliderFloat("Amplitude##Temperature", &world->temperature_settings.amplitude, 0.0001f, 2.f);
 
 			ImGui::Text("Moisture");
-			ImGui::SliderInt("Octaves##Moisture", &world.moisture_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Moisture", &world.moisture_settings.frequency, 0.0001f, 2.f);
-			ImGui::SliderFloat("Amplitude##Moisture", &world.moisture_settings.amplitude, 0.0001f, 2.f);
+			ImGui::SliderInt("Octaves##Moisture", &world->moisture_settings.octaves, 1, 10);
+			ImGui::SliderFloat("Frequency##Moisture", &world->moisture_settings.frequency, 0.0001f, 2.f);
+			ImGui::SliderFloat("Amplitude##Moisture", &world->moisture_settings.amplitude, 0.0001f, 2.f);
 		}
 	}
 

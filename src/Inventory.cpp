@@ -1,11 +1,13 @@
 #include "Inventory.hpp"
 #include <iostream>
 
-Inventory::Inventory(int size) : size(size)
+Inventory::Inventory(std::shared_ptr<ItemUsageSystem> item_usage_system, std::shared_ptr<ItemManager> item_manager, int size) 
+	: item_usage_system(item_usage_system), item_manager(item_manager), size(size)
 {
+	//Fill items and free slots
 	items.resize(size);
 
-	for (int i = 0; i < size; i++)
+	for (int i = size - 1; i >= 0; --i)
 	{
 		free_slots.push_back(i);
 	}
@@ -14,58 +16,52 @@ Inventory::Inventory(int size) : size(size)
 void Inventory::useItem(int slot)
 {
 	auto& item = items[slot];
-	if(item)
+
+	if(item && item_usage_system && item_manager)
 	{ 
-		/*bool is_usable = false;
-		for (const auto& component : item->components)
+		bool was_used = item_usage_system->useItem(item_manager->getProperties((item->id)));
+
+		//If useItem returned true than the item was used
+		if (was_used)
 		{
-			if (std::dynamic_pointer_cast<ItemComponents::Usable>(component))
+			item->stack_number--;
+
+			if (item->stack_number <= 0)
 			{
-				is_usable = true;
-				break;
+				item = std::nullopt;
+				free_slots.push_back(slot);
 			}
-		}
-
-		if (!is_usable) return;*/
-
-		//item_usage_system.addItem(item);
-
-		item->properties.stack_number--;
-
-		if (item->properties.stack_number <= 0)
-		{
-			item = std::nullopt;
-			free_slots.push_back(slot);
 		}
 	}
 	
 }
 
-void Inventory::addItem(const Item& item)
+void Inventory::addItem(int id, int number)
 {
-	for (auto& i : items)
+	for (auto& item : items)
 	{
-		if (i)
+		if (item)
 		{
-			Item& item_ = *i;
-			if (item_ == item && item_.properties.can_stack)
+			//Stack two items if they are the same and can stack
+			if (item->id == id && item_manager->getProperties(id).can_stack)
 			{
-				item_.properties.stack_number += item.properties.stack_number;
+				item->stack_number += number;
 				return;
 			}
 		}
 	}
 
+	//Otherwise put the item in an empty slot
 	if (free_slots.size() > 0)
 	{
-		int free_slot = free_slots.back();
-		free_slots.pop_back();
-		items[free_slot] = item;
+		auto free_slot = findFreeSlot();
+		if(free_slot) items[*free_slot] = {id, number};
 	}
 }
 
 void Inventory::removeItem(int slot)
 {
+	//Remove the item and free the slot
 	if (slot > 0 && slot < items.size())
 	{
 		items[slot] = std::nullopt;
@@ -78,20 +74,21 @@ void Inventory::splitItemTo(int item_slot, int split_slot)
 	auto& item = items[item_slot];
 	auto& split = items[split_slot];
 
-	if (item && item->properties.stack_number > 1)
+	if (item && item->stack_number > 1)
 	{
+		//If items are the same move one item 
 		if (split == item)
 		{
-			item->properties.stack_number--;
-
-			split->properties.stack_number++;
+			item->stack_number--;
+			split->stack_number++;
 		}
+		//If slot is empty than copy item
 		else if (!split)
 		{
-			item->properties.stack_number--;
+			item->stack_number--;
 
 			split = item;
-			split->properties.stack_number = 1;
+			split->stack_number = 1;
 
 			std::erase_if(free_slots, [split_slot](int x) { return x == split_slot; });
 		}
@@ -103,10 +100,13 @@ void Inventory::stackItems(int old_item, int new_item)
 	auto& item = items[old_item];
 	auto& item_new = items[new_item];
 
-	item_new->properties.stack_number += item->properties.stack_number;
-	item = std::nullopt;
+	if (item && item_new)
+	{
+		item_new->stack_number += item->stack_number;
+		item = std::nullopt;
 
-	free_slots.push_back(old_item);
+		free_slots.push_back(old_item);
+	}
 }
 
 void Inventory::moveItem(int old_slot, int new_slot)
@@ -134,7 +134,8 @@ void Inventory::printContent()
 		if (item)
 		{
 			Item& item_ = *item;
-			std::cout << "Slot<" << i << "> item: " << item_.properties.name << " " << item_.properties.stack_number << std::endl;
+			const auto& properties = item_manager->getProperties(item_.id);
+			std::cout << "Slot<" << i << "> item: " << properties.name << " " << item_.stack_number << std::endl;
 		}
 		else
 		{
@@ -142,4 +143,28 @@ void Inventory::printContent()
 		}
 		++i;
 	}
+}
+
+std::shared_ptr<ItemManager> Inventory::getItemManager() const
+{
+	return item_manager;
+}
+
+std::shared_ptr<ItemUsageSystem> Inventory::getItemUsageSystem() const
+{
+	return item_usage_system;
+}
+
+std::optional<int> Inventory::findFreeSlot()
+{
+	if (free_slots.size() <= 0) return std::nullopt;
+
+	int min = std::numeric_limits<int>::max();
+	for (int i = 0; i < free_slots.size(); i++)
+	{
+		if (free_slots[i] < min) min = free_slots[i];
+	}
+
+	std::erase_if(free_slots, [min](int value) {return value == min; });
+	return min;
 }

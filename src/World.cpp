@@ -29,8 +29,9 @@ static float mapRange(float x, float inMin, float inMax, float outMin, float out
 }
 
 
-World::World(Renderer& screen)
+World::World(Renderer& screen, std::shared_ptr<ObjectManager> object_manager)
 	: screen(screen)
+	, object_manager(object_manager)
 	, peaks_and_valleys_map_range_height(0.4f, 1.8f, 0.f, -25.f)
 	, peaks_and_valleys_map_range_change(0.4f, 1.8f, 0.9f, 0.15f)
 	, caves_threshold_change(y_base, y_base + 300.f, cave_threshold_min, cave_threshold_max)
@@ -56,6 +57,11 @@ World::~World()
 void World::render()
 {
 
+}
+
+void World::setObjectManager(std::shared_ptr<ObjectManager> object_manager)
+{
+	this->object_manager = object_manager;
 }
 
 const Tile& World::getTile(int x, int y)
@@ -87,9 +93,30 @@ void World::placeTile(int x, int y, BlockType block)
 
 	if (tile.solid) return;
 
-	tile.setTile(tile_presets[block]);
+	bool is_block = false;
+	for (int i = -1; i < 2; ++i)
+	{
+		for (int j = -1; j < 2; ++j)
+		{
+			if (i == 0 && j == 0) continue;
 
-	changes[chunk_index].emplace_back(tile.sprite_index, static_cast<int>(tile_local_position.x), static_cast<int>(tile_local_position.y), tile.type, tile.solid, tile.max_durability);
+			auto chunk_index_ = getChunkIndex(x + i, y + j);
+			auto& chunk_ = getOrCreateChunk(chunk_index_.x, chunk_index_.y);
+			glm::vec2 tile_local_position_ = glm::vec2{ (x + i) - chunk_.x, (y + j) - chunk_.y };
+			auto& tile_ = chunk_.tiles[tile_local_position_.y + tile_local_position_.x * chunk_height_tiles];
+			if (tile_.solid)
+			{
+				is_block = true;
+				break;
+			}
+		}
+	}
+
+	if (is_block)
+	{
+		tile.setTile(tile_presets[block]);
+		changes[chunk_index].emplace_back(tile.sprite_index, static_cast<int>(tile_local_position.x), static_cast<int>(tile_local_position.y), tile.type, tile.solid, tile.max_durability);
+	}
 }
 
 void World::damageTile(int x, int y, float damage)
@@ -552,6 +579,31 @@ void World::addBiomes(Chunk& chunk)
 	}
 }
 
+void World::addObjects(Chunk& chunk)
+{
+	auto s = object_manager.lock();
+	if (!s) return;
+	
+	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+	{
+		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+		{
+			float position_x = static_cast<float>(x);
+			float position_y = static_cast<float>(y);
+
+			int tile_local_x = x - chunk.x;
+			int tile_local_y = y - chunk.y;
+
+			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+
+			if (tile == tile_presets[BlockType::GRASS])
+			{
+				chunk.addObject(Object{0, 200.f});
+			}
+		}
+	}
+}
+
 void World::applyChanges(Chunk& chunk)
 {
 	auto it = changes.find({chunk.index_x, chunk.index_y});
@@ -621,6 +673,7 @@ Chunk& World::getOrCreateChunk(int x, int y)
 	//addTunnels(chunk);
 	addWater(chunk);
 	addBiomes(chunk);
+	addObjects(chunk);
 	applyChanges(chunk);
 
 	auto& ref = old_chunks.emplace_back(std::move(chunk));

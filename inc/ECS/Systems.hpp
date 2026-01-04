@@ -4,6 +4,7 @@
 #include "ECS/EntityManager.hpp"
 #include "Renderer.hpp"
 #include "World.hpp"
+#include "Item.hpp"
 
 #include "InputManager.hpp"
 
@@ -211,7 +212,7 @@ struct InputSystem
 				if (component_manager.jump.contains(entity))
 				{
 					auto& j = component_manager.jump.at(entity);
-					j.jump_ready = InputManager::isKeyDown(SDLK_U);
+					j.jump_ready = InputManager::isKey(SDLK_U);
 				}
 
 				if (component_manager.mine_intent.contains(entity))
@@ -475,18 +476,17 @@ private:
 class ItemUsageSystem
 {
 public:
-	ItemUsageSystem(ComponentManager& component_manager, const EntityManager& entity_manager, float tile_width, float tile_height)
+	ItemUsageSystem(ComponentManager& component_manager, Entity& target_entity)
 		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-		, tile_width(tile_width)
-		, tile_height(tile_height)
+		, target_entity(target_entity)
 	{
 	}
 
-	void useItem(const Item& item)
+	bool useItem(const ItemProperties& item_properties) // returns true if item was used
 	{
 		bool is_usable = false;
-		for (const auto& component : item.components)
+		const auto& components = item_properties.components;
+		for (const auto& component : components)
 		{
 			if (std::dynamic_pointer_cast<ItemComponents::Usable>(component))
 			{
@@ -495,19 +495,24 @@ public:
 			}
 		}
 
-		if (!is_usable) return; 
+		if (!is_usable) return false; 
 
-		for (const auto& component : item.components)
+		for (const auto& component : components)
 		{
-			if (std::dynamic_pointer_cast<ItemComponents::Heal>(component))
+			auto heal_component = std::dynamic_pointer_cast<ItemComponents::Heal>(component);
+			if (heal_component)
 			{
 				//Heal
+				auto& health_component = component_manager.health[target_entity];
+				health_component.current_health = std::min(health_component.max_health, health_component.current_health + heal_component->value);
 			}
 			else if (std::dynamic_pointer_cast<ItemComponents::AddEffect>(component))
 			{
 				//AddEffect
 			}
 		}
+
+		return true;
 	}
 
 	void update(float dt)
@@ -517,7 +522,5 @@ public:
 
 private:
 	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
-	float tile_width = 1.f;
-	float tile_height = 1.f;
+	Entity& target_entity;
 };

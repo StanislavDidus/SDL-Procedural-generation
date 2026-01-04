@@ -12,6 +12,7 @@
 #include "PerlynNoise.hpp"
 #include "Chunk.hpp"
 #include "MapRange.hpp"
+#include "ObjectManager.hpp"
 
 enum class BlockType
 {
@@ -40,10 +41,13 @@ enum class BiomeType
 class World
 {
 public:
-	World(Renderer& screen);
+	World(Renderer& screen, std::shared_ptr<ObjectManager> object_manager);
 	~World();
 
 	void render();
+
+	//Setters
+	void setObjectManager(std::shared_ptr<ObjectManager> object_manager);
 
 	const Tile& getTile(int x, int y);
 	void placeTile(int x, int y, BlockType block);
@@ -100,12 +104,16 @@ private:
 	void addCaves(Chunk& chunk);
 	void addTunnels(Chunk& chunk);
 	void addBiomes(Chunk& chunk);
+	void addObjects(Chunk& chunk);
 	void applyChanges(Chunk& chunk);
 
 	bool isTileSolid(int x, int y) const; // Generate tile at x, y position and return true if solid
 
 	std::map<glm::ivec2, std::vector<Tile>> changes;
 	std::map<BlockType, Tile> tile_presets;
+
+	//Objects
+	std::weak_ptr<ObjectManager> object_manager;
 
 	glm::ivec2 getChunkIndex(int x, int y) const;
 

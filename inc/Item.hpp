@@ -4,25 +4,26 @@
 #include <vector>
 #include <memory>
 
+struct ItemComponent
+{
+	ItemComponent() = default;
+	virtual ~ItemComponent() = default;
+};
+
 struct ItemProperties
 {
 	bool can_stack;
-	int stack_number;
 	int sprite_index;
 	std::string name;
-};
-
-struct ItemComponent 
-{
-	ItemComponent() = default;
+	std::vector<std::shared_ptr<ItemComponent>> components;
 };
 
 struct Item
 {
-	ItemProperties properties;
-	std::vector<std::shared_ptr<ItemComponent>> components;
+	int id;
+	int stack_number;
 
-	bool operator==(const Item& other) const { return this->properties.name == other.properties.name; }
+	bool operator==(const Item& other) const { return this->id == other.id; }
 };
 
 enum class Effect

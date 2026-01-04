@@ -16,7 +16,6 @@ set(SOURCE_FILES
     "src/Tile.cpp"
     "src/World.cpp"
     "src/Chunk.cpp"
-    "src/Object.cpp"
     "src/Player.cpp"
     "src/MapRange.cpp"
     "src/ECS/Entity.cpp"
@@ -30,6 +29,7 @@ set(SOURCE_FILES
     "src/UI/FillBar.cpp"
     "src/UI/InventoryView.cpp"
     "src/ItemManager.cpp"
+    "src/ObjectManager.cpp"
     )
 
 set(HEADER_FILES
@@ -39,7 +39,6 @@ set(HEADER_FILES
     "inc/Tile.hpp"
     "inc/World.hpp"
     "inc/Chunk.hpp"
-    "inc/Object.hpp"
     "inc/Player.hpp"
     "inc/MapRange.hpp"
     "inc/ECS/Entity.hpp"
@@ -56,6 +55,8 @@ set(HEADER_FILES
     "inc/UI/FillBar.hpp"
     "inc/UI/InventoryView.hpp"
     "inc/ItemManager.hpp"
+    "inc/Object.hpp"
+    "inc/ObjectManager.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

@@ -6,7 +6,8 @@
 #include "glm/glm.hpp"
 #include "ECS/Entity.hpp"
 #include "Sprite.hpp"
-#include "Inventory.hpp"
+
+class Inventory;
 
 namespace Components
 {
@@ -75,7 +76,7 @@ namespace Components
 
 	struct HasInventory
 	{
-		Inventory inventory;
+		std::shared_ptr<Inventory> inventory;
 	};
 
 }

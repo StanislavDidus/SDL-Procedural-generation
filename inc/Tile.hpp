@@ -49,6 +49,6 @@ public:
 	float moisture = 0.f;
 #endif
 
-	
+	bool operator==(const Tile& other) const { return this->sprite_index == other.sprite_index && this->type == other.type; }
 	
 };

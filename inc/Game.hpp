@@ -18,6 +18,9 @@
 #include "ECS/Systems.hpp"
 #include "UI/UserInterface.hpp"
 #include "ItemManager.hpp"
+#include "Inventory.hpp"
+#include "ObjectManager.hpp"
+#include <memory>
 
 class Game
 {
@@ -31,7 +34,9 @@ public:
 	
 	glm::vec2 view_position = {0.f, 0.f};
 private:
+	void initSystems();
 	void initItems();
+	void initObjects();
 	void initPlayer();
 	void initUserInterface();
 
@@ -52,9 +57,10 @@ private:
 	//SpriteSheet player;
 	SpriteSheet tileset;
 	SpriteSheet items_spritesheet;
+	SpriteSheet objects_spritesheet;
 
-	TileMap tilemap;
-	World world;
+	std::unique_ptr<TileMap> tilemap;
+	std::shared_ptr<World> world;
 
 	float tilemap_raws = 10.f;
 	float tilemap_columns = 10.f;
@@ -62,16 +68,21 @@ private:
 	EntityManager entity_manager;
 	ComponentManager component_manager;
 
-	PhysicsSystem physics_system;
-	InputSystem input_system;
-	CollisionSystem collision_system;
-	JumpSystem jump_system;
-	MiningSystem mining_system;
-	PlaceSystem place_system;
+	//Systems
+	std::unique_ptr<PhysicsSystem> physics_system;
+	std::unique_ptr<InputSystem> input_system;
+	std::shared_ptr<CollisionSystem> collision_system;
+	std::unique_ptr<JumpSystem> jump_system;
+	std::unique_ptr<MiningSystem> mining_system;
+	std::unique_ptr<PlaceSystem> place_system;
+	std::shared_ptr<ItemUsageSystem> item_usage_system;
 
 	Entity player;
 
 	std::vector<Item> items;
+
+	std::shared_ptr<ObjectManager> object_manager;
+	std::shared_ptr<ItemManager> item_manager;
 
 	Item apple;
 	Item banana;

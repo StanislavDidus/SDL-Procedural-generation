@@ -13,4 +13,9 @@ void Chunk::addTile(const Tile& tile)
 	tiles.push_back(tile);
 }
 
+void Chunk::addObject(const Object& object)
+{
+	objects.push_back(object);
+}
+
 
