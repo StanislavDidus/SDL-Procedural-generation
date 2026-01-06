@@ -29,8 +29,10 @@ static float mapRange(float x, float inMin, float inMax, float outMin, float out
 }
 
 
-World::World(Renderer& screen, std::shared_ptr<ObjectManager> object_manager)
+World::World(Renderer& screen, std::shared_ptr<ObjectManager> object_manager, int width_tiles, int height_tiles)
 	: screen(screen)
+	, width_tiles(width_tiles)
+	, height_tiles(height_tiles)
 	, object_manager(object_manager)
 	, peaks_and_valleys_map_range_height(0.4f, 1.8f, 0.f, -25.f)
 	, peaks_and_valleys_map_range_change(0.4f, 1.8f, 0.9f, 0.15f)
@@ -145,6 +147,22 @@ void World::damageTile(int x, int y, float damage)
 	}
 }
 
+const std::vector<Tile>& World::getTiles() const
+{
+	return tiles;
+}
+
+const std::vector<Chunk>& World::getChunks() const
+{
+	return chunks;
+}
+
+glm::ivec2 World::getSize() const
+{
+	return glm::ivec2{width_tiles, height_tiles};
+}
+
+
 void World::updateTiles()
 {
 	for (auto& chunk : old_chunks)
@@ -188,6 +206,15 @@ void World::generateWorld(std::optional<int> seed)
 	old_chunks.clear();
 	surface_map.clear();
 	changes.clear();
+	tiles.clear();
+
+	tiles.resize(width_tiles * height_tiles);
+	chunks.resize(width_tiles / chunk_width_tiles * height_tiles / chunk_height_tiles);
+
+	generateBase();
+	addDirtGrass();
+	splitWorld();
+	//std::cout << chunks.size() << std::endl;
 }
 
 void World::initTiles()
@@ -310,9 +337,9 @@ void World::initMaps()
 	caves_threshold_change.addPoint(y_base + 25.f, 0.25f);
 }
 
-void World::generateBase(Chunk& chunk)
+void World::generateBase()
 {
-	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+	for (int x = 0; x < width_tiles; x++)
 	{
 		float position_x = static_cast<float>(x);
 		int tile_x = (x % chunk_width_tiles + chunk_width_tiles) % chunk_width_tiles;
@@ -323,7 +350,7 @@ void World::generateBase(Chunk& chunk)
 
 		float new_change = peaks_and_valleys_map_range_change.getValue(peaks_and_valleys);
 
-		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+		for (int y = 0; y < height_tiles; y++)
 		{
 			float position_y = static_cast<float>(y);
 
@@ -336,288 +363,333 @@ void World::generateBase(Chunk& chunk)
 			float change = difference * new_change;
 			density_noise += change;
 
-			Tile new_tile{};
+			//Tile new_tile{};
+				
+			auto& tile = tiles[y + x * height_tiles];
+			tile.local_x = x % chunk_width_tiles;
+			tile.local_y = y % chunk_height_tiles;
 
 			if (density_noise >= density_threshold)
 			{
 				//Solid tile
-				new_tile = tile_presets.at(BlockType::STONE);
+				//new_tile = tile_presets.at(BlockType::STONE);
+				tile.setTile(tile_presets.at(BlockType::STONE));
 			}
 			if (density_noise < density_threshold)
 			{
 				//Air tile
-				new_tile = tile_presets.at(BlockType::SKY);
-			}
-
-			int tile_y = (y % chunk_height_tiles + chunk_height_tiles) % chunk_height_tiles;
-
-			new_tile.local_x = tile_x;
-			new_tile.local_y = tile_y;
-			chunk.addTile(new_tile);
-		}
-	}
-}
-
-void World::addSurface(Chunk& chunk)
-{
-	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
-	{
-		float position_x = static_cast<float>(x);
-
-		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
-		{
-			float position_y = static_cast<float>(y);
-
-			int tile_local_x = x - chunk.x;
-			int tile_local_y = y - chunk.y;
-
-			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
-
-			if (!tile.solid) continue;
-
-			int top_local_y = tile_local_y - 1;
-
-			if (top_local_y >= 0)
-			{
-				auto& tile1 = chunk.tiles[top_local_y + tile_local_x * chunk_height_tiles];
-
-				if (!tile1.solid)
-				{
-					//Surface
-					tile.setTile(tile_presets.at(BlockType::GRASS));
-				}
-			}
-			else
-			{
-				if (!isTileSolid(x, y - 1))
-				{
-					//Surface
-					tile.setTile(tile_presets.at(BlockType::GRASS));
-				}
-			}
-		}
-	}
-}
-
-void World::addDirt(Chunk& chunk)
-{
-	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
-	{
-		float position_x = static_cast<float>(x);
-
-		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
-		{
-			float position_y = static_cast<float>(y);
-
-			int tile_local_x = x - chunk.x;
-			int tile_local_y = y - chunk.y;
-
-			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
-
-			if (!tile.solid) continue;
-
-			float dirt_noise = ValueNoise::noise1D(position_x * scale * 0.2f, seeds[2]) * 1.f;
-
-			int dirt_level = static_cast<int>(dirt_noise * 5.f) + 5;
-
-			for (int i = 0; i < dirt_level; ++i)
-			{
-				int new_local_y = tile_local_y - i;
-				int new_y = y - i;
-
-				if (new_local_y >= 1)
-				{
-					auto& tile1 = chunk.tiles[new_local_y + tile_local_x * chunk_height_tiles];
-					auto& tile2 = chunk.tiles[new_local_y - 1 + tile_local_x * chunk_height_tiles];
-
-					if (tile1.solid && !tile2.solid)
-					{
-						tile.setTile(tile_presets.at(BlockType::DIRT));
-						break;
-					}
-				}
-				else
-				{
-					if (isTileSolid(x, new_y) && !isTileSolid(x, new_y - 1))
-					{
-						tile.setTile(tile_presets.at(BlockType::DIRT));
-						break;
-					}
-				}
-			}
-		}
-	}
-}
-
-void World::addWater(Chunk& chunk)
-{
-	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
-	{
-		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
-		{
-			float position_x = static_cast<float>(x);
-			float position_y = static_cast<float>(y);
-
-			int tile_local_x = x - chunk.x;
-			int tile_local_y = y - chunk.y;
-
-			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
-
-			if (!tile.solid && position_y > sea_level && !tile.sealed)
-			{
-				tile.setTile(tile_presets.at(BlockType::WATER));
-			}
-		}
-	}
-}
-
-void World::addCaves(Chunk& chunk)
-{
-	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
-	{
-		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
-		{
-			float position_x = static_cast<float>(x);
-			float position_y = static_cast<float>(y);
-
-			int tile_local_x = x - chunk.x;
-			int tile_local_y = y - chunk.y;
-
-			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
-
-			//Cave noise
-			float cave_noise = Noise::fractal2D<ValueNoise>(cave_settings, position_x * scale, position_y * scale);
-
-			float c_difference = (cave_base_height - position_y) * -1.f;
-			float correlated_cave_threshold = std::clamp(caves_threshold_change.getValue(c_difference), 0.001f, cave_threshold_max);
-
-			if (tile.solid && cave_noise < correlated_cave_threshold)
-			{
+				//new_tile = tile_presets.at(BlockType::SKY);
 				tile.setTile(tile_presets.at(BlockType::SKY));
-				tile.sealed = true;
 			}
 		}
 	}
 }
 
-void World::addTunnels(Chunk& chunk)
+void World::addDirtGrass()
 {
-	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+	for (int x = 0; x < width_tiles; x++)
 	{
-		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+		bool was_air = false;
+		for (int y = 0; y < height_tiles; y++)
 		{
-			float position_x = static_cast<float>(x);
-			float position_y = static_cast<float>(y);
+			auto& tile = tiles[y + x * height_tiles];
 
-			int tile_local_x = x - chunk.x;
-			int tile_local_y = y - chunk.y;
-
-			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
-
-			float tunnel_noise = Noise::fractal2D<ValueNoise>(tunnel_settings, position_x * scale, position_y * scale);
-
-			if (tile.solid)
+			if (!tile.solid)
 			{
-				if (tunnel_noise > tunnel_threshold_min && tunnel_noise < tunnel_threshold_max)
-				{
-					tile.setTile(tile_presets.at(BlockType::SKY));
-				}
+				was_air = true;
+				continue;
 			}
+
+			if (tile.solid && was_air)
+			{
+				tile.setTile(tile_presets[BlockType::GRASS]);
+			}
+
+			was_air = false;
 		}
 	}
 }
 
-void World::addBiomes(Chunk& chunk)
-{ 
-	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
-	{
-		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
-		{
-			float position_x = static_cast<float>(x);
-			float position_y = static_cast<float>(y);
-
-			int tile_local_x = x - chunk.x;
-			int tile_local_y = y - chunk.y;
-
-			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
-
-			if (tile.type != TileType::SURFACE && tile.type != TileType::DIRT) continue;
-
-			float peaks_and_valleys = Noise::fractal1D<ValueNoise>(peaks_and_valleys_settings, position_x * scale);
-			float temperature = Noise::fractal2D<ValueNoise>(temperature_settings, position_x * scale, position_y * scale);
-			float moisture = Noise::fractal2D<ValueNoise>(moisture_settings, position_x * scale, position_y * scale);
-
-			//Desert,Forest,Snow
-			if (temperature < 0.45f && moisture > 0.55f)
-			{
-				//Snow
-				if (tile.type == TileType::SURFACE)
-					tile.setTile(tundra.surface_tile);
-				else
-					tile.setTile(tundra.dirt_tile);
-			}
-			else if (temperature >= 0.6f && moisture < 0.5f)
-			{
-				//Desert
-				tile.setTile(desert.surface_tile);
-			}
-			else
-			{
-				//Forest
-				if (tile.type == TileType::SURFACE)
-					tile.setTile(forest.surface_tile);
-				else
-					tile.setTile(forest.dirt_tile);
-			}
-
-#ifdef DEBUG_TILES
-			tile.pv = std::min(peaks_and_valleys, 1.f);
-			tile.temperature = std::min(temperature, 1.f);
-			tile.moisture = std::min(moisture, 1.f);
-#endif 
-		}
-	}
-}
-
-void World::addObjects(Chunk& chunk)
+void World::splitWorld()
 {
-	auto s = object_manager.lock();
-	if (!s) return;
-	
-	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+	for (int x = 0; x < width_tiles; x++)
 	{
-		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+		for (int y = 0; y < height_tiles; y++)
 		{
-			float position_x = static_cast<float>(x);
-			float position_y = static_cast<float>(y);
+			int chunk_x = static_cast<int>(std::floor(x / chunk_width_tiles));
+			int chunk_y = static_cast<int>(std::floor(y / chunk_height_tiles));
 
-			int tile_local_x = x - chunk.x;
-			int tile_local_y = y - chunk.y;
+			int chunk_index = chunk_y + chunk_x * (height_tiles / chunk_height_tiles);
 
-			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+			auto& tile = tiles[y + x * height_tiles];
 
-			if (tile == tile_presets[BlockType::GRASS])
-			{
-				chunk.addObject(Object{0, 200.f});
-			}
+			//std::cout << chunk_index << std::endl;
+
+			chunks[chunk_index].addTile(tile);
 		}
 	}
 }
 
-void World::applyChanges(Chunk& chunk)
-{
-	auto it = changes.find({chunk.index_x, chunk.index_y});
-
-	if (it != changes.end())
-	{
-		const auto& vec_changes = it->second;
-
-		for (const auto& change : vec_changes)
-		{
-			chunk.tiles[change.local_y + change.local_x * chunk_height_tiles] = change;
-		}
-	}
-}
+//void World::addSurface(std::vector<Tile>& tiles)
+//{
+//	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+//	{
+//		float position_x = static_cast<float>(x);
+//
+//		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+//		{
+//			float position_y = static_cast<float>(y);
+//
+//			int tile_local_x = x - chunk.x;
+//			int tile_local_y = y - chunk.y;
+//
+//			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+//
+//			if (!tile.solid) continue;
+//
+//			int top_local_y = tile_local_y - 1;
+//
+//			if (top_local_y >= 0)
+//			{
+//				auto& tile1 = chunk.tiles[top_local_y + tile_local_x * chunk_height_tiles];
+//
+//				if (!tile1.solid)
+//				{
+//					//Surface
+//					tile.setTile(tile_presets.at(BlockType::GRASS));
+//				}
+//			}
+//			else
+//			{
+//				if (!isTileSolid(x, y - 1))
+//				{
+//					//Surface
+//					tile.setTile(tile_presets.at(BlockType::GRASS));
+//				}
+//			}
+//		}
+//	}
+//}
+//
+//void World::addDirt(Chunk& chunk)
+//{
+//	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+//	{
+//		float position_x = static_cast<float>(x);
+//
+//		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+//		{
+//			float position_y = static_cast<float>(y);
+//
+//			int tile_local_x = x - chunk.x;
+//			int tile_local_y = y - chunk.y;
+//
+//			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+//
+//			if (!tile.solid) continue;
+//
+//			float dirt_noise = ValueNoise::noise1D(position_x * scale * 0.2f, seeds[2]) * 1.f;
+//
+//			int dirt_level = static_cast<int>(dirt_noise * 5.f) + 5;
+//
+//			for (int i = 0; i < dirt_level; ++i)
+//			{
+//				int new_local_y = tile_local_y - i;
+//				int new_y = y - i;
+//
+//				if (new_local_y >= 1)
+//				{
+//					auto& tile1 = chunk.tiles[new_local_y + tile_local_x * chunk_height_tiles];
+//					auto& tile2 = chunk.tiles[new_local_y - 1 + tile_local_x * chunk_height_tiles];
+//
+//					if (tile1.solid && !tile2.solid)
+//					{
+//						tile.setTile(tile_presets.at(BlockType::DIRT));
+//						break;
+//					}
+//				}
+//				else
+//				{
+//					if (isTileSolid(x, new_y) && !isTileSolid(x, new_y - 1))
+//					{
+//						tile.setTile(tile_presets.at(BlockType::DIRT));
+//						break;
+//					}
+//				}
+//			}
+//		}
+//	}
+//}
+//
+//void World::addWater(Chunk& chunk)
+//{
+//	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+//	{
+//		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+//		{
+//			float position_x = static_cast<float>(x);
+//			float position_y = static_cast<float>(y);
+//
+//			int tile_local_x = x - chunk.x;
+//			int tile_local_y = y - chunk.y;
+//
+//			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+//
+//			if (!tile.solid && position_y > sea_level && !tile.sealed)
+//			{
+//				tile.setTile(tile_presets.at(BlockType::WATER));
+//			}
+//		}
+//	}
+//}
+//
+//void World::addCaves(Chunk& chunk)
+//{
+//	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+//	{
+//		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+//		{
+//			float position_x = static_cast<float>(x);
+//			float position_y = static_cast<float>(y);
+//
+//			int tile_local_x = x - chunk.x;
+//			int tile_local_y = y - chunk.y;
+//
+//			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+//
+//			//Cave noise
+//			float cave_noise = Noise::fractal2D<ValueNoise>(cave_settings, position_x * scale, position_y * scale);
+//
+//			float c_difference = (cave_base_height - position_y) * -1.f;
+//			float correlated_cave_threshold = std::clamp(caves_threshold_change.getValue(c_difference), 0.001f, cave_threshold_max);
+//
+//			if (tile.solid && cave_noise < correlated_cave_threshold)
+//			{
+//				tile.setTile(tile_presets.at(BlockType::SKY));
+//				tile.sealed = true;
+//			}
+//		}
+//	}
+//}
+//
+//void World::addTunnels(Chunk& chunk)
+//{
+//	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+//	{
+//		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+//		{
+//			float position_x = static_cast<float>(x);
+//			float position_y = static_cast<float>(y);
+//
+//			int tile_local_x = x - chunk.x;
+//			int tile_local_y = y - chunk.y;
+//
+//			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+//
+//			float tunnel_noise = Noise::fractal2D<ValueNoise>(tunnel_settings, position_x * scale, position_y * scale);
+//
+//			if (tile.solid)
+//			{
+//				if (tunnel_noise > tunnel_threshold_min && tunnel_noise < tunnel_threshold_max)
+//				{
+//					tile.setTile(tile_presets.at(BlockType::SKY));
+//				}
+//			}
+//		}
+//	}
+//}
+//
+//void World::addBiomes(Chunk& chunk)
+//{ 
+//	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+//	{
+//		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+//		{
+//			float position_x = static_cast<float>(x);
+//			float position_y = static_cast<float>(y);
+//
+//			int tile_local_x = x - chunk.x;
+//			int tile_local_y = y - chunk.y;
+//
+//			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+//
+//			if (tile.type != TileType::SURFACE && tile.type != TileType::DIRT) continue;
+//
+//			float peaks_and_valleys = Noise::fractal1D<ValueNoise>(peaks_and_valleys_settings, position_x * scale);
+//			float temperature = Noise::fractal2D<ValueNoise>(temperature_settings, position_x * scale, position_y * scale);
+//			float moisture = Noise::fractal2D<ValueNoise>(moisture_settings, position_x * scale, position_y * scale);
+//
+//			//Desert,Forest,Snow
+//			if (temperature < 0.45f && moisture > 0.55f)
+//			{
+//				//Snow
+//				if (tile.type == TileType::SURFACE)
+//					tile.setTile(tundra.surface_tile);
+//				else
+//					tile.setTile(tundra.dirt_tile);
+//			}
+//			else if (temperature >= 0.6f && moisture < 0.5f)
+//			{
+//				//Desert
+//				tile.setTile(desert.surface_tile);
+//			}
+//			else
+//			{
+//				//Forest
+//				if (tile.type == TileType::SURFACE)
+//					tile.setTile(forest.surface_tile);
+//				else
+//					tile.setTile(forest.dirt_tile);
+//			}
+//
+//#ifdef DEBUG_TILES
+//			tile.pv = std::min(peaks_and_valleys, 1.f);
+//			tile.temperature = std::min(temperature, 1.f);
+//			tile.moisture = std::min(moisture, 1.f);
+//#endif 
+//		}
+//	}
+//}
+//
+//void World::addObjects(Chunk& chunk)
+//{
+//	auto s = object_manager.lock();
+//	if (!s) return;
+//	
+//	for (int x = chunk.x; x < chunk.x + chunk_width_tiles; x++)
+//	{
+//		for (int y = chunk.y; y < chunk.y + chunk_height_tiles; y++)
+//		{
+//			float position_x = static_cast<float>(x);
+//			float position_y = static_cast<float>(y);
+//
+//			int tile_local_x = x - chunk.x;
+//			int tile_local_y = y - chunk.y;
+//
+//			auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+//
+//			if (tile == tile_presets[BlockType::GRASS])
+//			{
+//				chunk.addObject(Object{0, 200.f});
+//			}
+//		}
+//	}
+//}
+//
+//void World::applyChanges(Chunk& chunk)
+//{
+//	auto it = changes.find({chunk.index_x, chunk.index_y});
+//
+//	if (it != changes.end())
+//	{
+//		const auto& vec_changes = it->second;
+//
+//		for (const auto& change : vec_changes)
+//		{
+//			chunk.tiles[change.local_y + change.local_x * chunk_height_tiles] = change;
+//		}
+//	}
+//}
 
 bool World::isTileSolid(int x, int y) const
 {
@@ -666,15 +738,15 @@ Chunk& World::getOrCreateChunk(int x, int y)
 
 	Chunk chunk{ x, y, x * chunk_width_tiles, y * chunk_height_tiles };
 
-	generateBase(chunk);
-	addDirt(chunk);
-	addSurface(chunk);
-	addCaves(chunk);
-	//addTunnels(chunk);
-	addWater(chunk);
-	addBiomes(chunk);
-	addObjects(chunk);
-	applyChanges(chunk);
+	//generateBase(chunk);
+	//addDirt(chunk);
+	//addSurface(chunk);
+	//addCaves(chunk);
+	////addTunnels(chunk);
+	//addWater(chunk);
+	//addBiomes(chunk);
+	//addObjects(chunk);
+	//applyChanges(chunk);
 
 	auto& ref = old_chunks.emplace_back(std::move(chunk));
 	return ref;

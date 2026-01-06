@@ -41,7 +41,7 @@ enum class BiomeType
 class World
 {
 public:
-	World(Renderer& screen, std::shared_ptr<ObjectManager> object_manager);
+	World(Renderer& screen, std::shared_ptr<ObjectManager> object_manager, int width_tiles, int height_tiles);
 	~World();
 
 	void render();
@@ -49,9 +49,15 @@ public:
 	//Setters
 	void setObjectManager(std::shared_ptr<ObjectManager> object_manager);
 
+	//Getters
+	glm::ivec2 getSize() const;
+
 	const Tile& getTile(int x, int y);
 	void placeTile(int x, int y, BlockType block);
 	void damageTile(int x, int y, float damage);
+
+	const std::vector<Tile>& getTiles() const;
+	const std::vector<Chunk>& getChunks() const;
 
 	void updateTiles();
 
@@ -64,7 +70,7 @@ public:
 
 	float density_change = 0.2f;
 	float density_threshold = 0.5f;
-	float y_base = 0.f;
+	float y_base = 25.f;
 
 	float cave_threshold = 0.1f;
 	float cave_threshold_min = 0.15f;
@@ -97,15 +103,17 @@ private:
 	void initBiomes();
 	void initMaps();
 
-	void generateBase(Chunk& chunk);
-	void addSurface(Chunk& chunk);
-	void addDirt(Chunk& chunk);
-	void addWater(Chunk& chunk);
-	void addCaves(Chunk& chunk);
-	void addTunnels(Chunk& chunk);
-	void addBiomes(Chunk& chunk);
-	void addObjects(Chunk& chunk);
-	void applyChanges(Chunk& chunk);
+	void generateBase();
+	void addDirtGrass();
+	void splitWorld();
+	/*void addSurface(std::vector<Tile>& tiles);
+	void addDirt(std::vector<Tile>& tiles);
+	void addWater(std::vector<Tile>& tiles);
+	void addCaves(std::vector<Tile>& tiles);
+	void addTunnels(std::vector<Tile>& tiles);
+	void addBiomes(std::vector<Tile>& tiles);
+	void addObjects(std::vector<Tile>& tiles);
+	void applyChanges(std::vector<Tile>& tiles);*/
 
 	bool isTileSolid(int x, int y) const; // Generate tile at x, y position and return true if solid
 
@@ -132,4 +140,13 @@ private:
 
 	int chunk_width_tiles = 25;
 	int chunk_height_tiles = 25;
+
+	std::vector<Tile> tiles;
+	std::vector<Chunk> chunks;
+
+	int width_tiles;
+	int height_tiles;
+
+	int world_begin_x = -500;
+	int world_begin_y = -500;
 };

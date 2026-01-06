@@ -63,49 +63,127 @@ void TileMap::render(Renderer& screen)
 	int begin_y = static_cast<int>(std::floor(up_world / tile_height_world));
 	int end_y = static_cast<int>(std::ceil(down_world / tile_height_world));
 
-	for (int x = begin_x; x < end_x; x++)
+	const auto& chunks = world.getChunks();
+
+	//float position_x = 0.f;
+	//float position_y = 0.f;
+
+	SDL_FRect camera_rect;
+	camera_rect.x = left_world;
+	camera_rect.y = up_world;
+	camera_rect.w = right_world - left_world;
+	camera_rect.h = down_world - up_world;
+
+	float chunk_width_tiles = 25.f;
+	float chunk_height_tiles = 25.f;
+
+
+	int active_chunks = 0;
+	for (int i = 0; const auto& chunk : world.getChunks())
 	{
-		for (int y = begin_y; y < end_y; y++)
+		int chunk_x = i / (world.getSize().y / static_cast<int>(chunk_height_tiles));
+		int chunk_y = i % (world.getSize().y / static_cast<int>(chunk_height_tiles));
+
+		SDL_FRect chunk_rect;
+		chunk_rect.x = chunk_x * chunk_width_tiles * tile_width_world;
+		chunk_rect.y = chunk_y * chunk_height_tiles * tile_height_world;
+		chunk_rect.w = chunk_width_tiles * tile_width_world;
+		chunk_rect.h = chunk_height_tiles * tile_height_world;
+
+		if (SDL_HasRectIntersectionFloat(&camera_rect, &chunk_rect))
 		{
-			const auto& tile = world.getTile(x,y);
-			int index = tile.sprite_index;
-			
-			glm::vec2 position = { x * tile_width_world, y * tile_height_world };
-			glm::vec2 size = { tile_width_world, tile_height_world };
+			active_chunks++;
 
-			if(tile.solid) cs->collisions.emplace_back(position, size);
-
-#ifdef DEBUG_TILES
-			switch (render_mode)
+			for (const auto& tile : chunk.tiles)
 			{
-			case 0:
-				screen.drawScaledSprite(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
-				break;
-			case 1:
-				//PV
-				drawDebugInfo(screen, tile.pv, x, y);
-				break;
-			case 2:
-				//Temperature
-				drawDebugInfo(screen, tile.temperature, x, y);
-				break;
-			case 3:
-				//Moisture
-				drawDebugInfo(screen, tile.moisture, x, y);
-				break;
-			case 4:
-				//Durability
-				drawDebugInfo(screen, tile.current_durability / tile.max_durability, x, y);
-				break;
+				float tile_x = chunk_rect.x + tile.local_x * tile_width_world;
+				float tile_y = chunk_rect.y + tile.local_y * tile_height_world;
+				int sprite_index = tile.sprite_index;
+				screen.drawScaledSprite(tileset[sprite_index], tile_x, tile_y, tile_width_world, tile_height_world);
+
+				if (tile.solid) cs->collisions.emplace_back(glm::ivec2{ static_cast<int>(tile_x), static_cast<int>(tile_y) }, glm::ivec2{ tile_width_world, tile_height_world });
 			}
-#else
-			screen.drawScaledSprite(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
-#endif
 		}
-		
+
+		++i;
 	}
 
-	world.resetChunks();
+	//std::cout << active_chunks << std::endl;
+	
+	/*for (int x = begin_x; x < end_x; ++x)
+	{
+		for (int y = begin_y; y < end_y; ++y)
+		{
+
+		}
+	}*/
+
+	
+
+	/*SDL_HasRectIntersection(nullptr, nullptr);
+
+	for (int x = 0; x < world.getSize().x; x++)
+	{
+		for (int y = 0; y < world.getSize().y; y++)
+		{
+			auto& tile = world.getTiles()[y + x * world.getSize().y];
+			int sprite_index = tile.sprite_index;
+			screen.drawScaledSprite(tileset[sprite_index], position_x, position_y, tile_width_world, tile_height_world);
+
+			if (tile.solid) cs->collisions.emplace_back(glm::ivec2{ position_x, position_y }, glm::ivec2{ tile_width_world, tile_height_world });
+
+			position_y += tile_height_world;
+		}
+
+		position_x += tile_width_world;
+		position_y = 0.f;
+	}*/
+	
+
+//	for (int x = begin_x; x < end_x; x++)
+//	{
+//		for (int y = begin_y; y < end_y; y++)
+//		{
+//			const auto& chunk = world.getChunks();
+//			const auto& tile = world.getTile(x,y);
+//			int index = tile.sprite_index;
+//			
+//			glm::vec2 position = { x * tile_width_world, y * tile_height_world };
+//			glm::vec2 size = { tile_width_world, tile_height_world };
+//
+//			if(tile.solid) cs->collisions.emplace_back(position, size);
+//
+//#ifdef DEBUG_TILES
+//			switch (render_mode)
+//			{
+//			case 0:
+//				screen.drawScaledSprite(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
+//				break;
+//			case 1:
+//				//PV
+//				drawDebugInfo(screen, tile.pv, x, y);
+//				break;
+//			case 2:
+//				//Temperature
+//				drawDebugInfo(screen, tile.temperature, x, y);
+//				break;
+//			case 3:
+//				//Moisture
+//				drawDebugInfo(screen, tile.moisture, x, y);
+//				break;
+//			case 4:
+//				//Durability
+//				drawDebugInfo(screen, tile.current_durability / tile.max_durability, x, y);
+//				break;
+//			}
+//#else
+//			screen.drawScaledSprite(tileset[index], x * tile_width_world, y * tile_height_world, tile_width_world, tile_height_world);
+//#endif
+//		}
+//		
+//	}
+//
+//	world.resetChunks();
 }
 
 void TileMap::clear()

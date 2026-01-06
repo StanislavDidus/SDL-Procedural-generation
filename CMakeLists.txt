@@ -77,7 +77,8 @@ target_link_libraries(
     SDL3::SDL3-static
     SDL3_ttf::SDL3_ttf
     graphics 
-    glm::glm noise
+    glm::glm 
+    noise
     imgui
 )
 

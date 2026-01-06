@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "SpriteSheet.hpp"
-#include "glm/glm.hpp"
+#include "glm/vec2.hpp"
 #include "Chunk.hpp"
 #include "World.hpp"
 #include "ECS/Systems.hpp"

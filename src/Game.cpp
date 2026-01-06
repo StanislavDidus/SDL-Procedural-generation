@@ -35,7 +35,8 @@ Game::Game(Renderer& screen)
 
 	screen.setView({ 0.f, 0.f });
 
-	world = std::make_shared<World>(screen, object_manager);
+	world = std::make_shared<World>(screen, object_manager, 500, 200);
+	world->generateWorld(0);
 
 	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
 	item_manager = std::make_shared<ItemManager>();
@@ -214,8 +215,8 @@ void Game::update(float dt)
 	jump_system->update(dt);
 	physics_system->update(dt);
 	collision_system->update(dt);
-	mining_system->update(dt, mouse, screen);
-	place_system->update(dt, mouse, screen);
+	//mining_system->update(dt, mouse, screen);
+	//place_system->update(dt, mouse, screen);
 
 	world->updateTiles();
 
@@ -235,7 +236,7 @@ void Game::update(float dt)
 
 	tilemap->render(screen);
 
-	mining_system->renderOutline(dt, mouse, screen);
+	//mining_system->renderOutline(dt, mouse, screen);
 
 	auto& pos = component_manager.transform[player].position;
 	auto& size = component_manager.transform[player].size;
