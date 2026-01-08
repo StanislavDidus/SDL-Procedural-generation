@@ -1,5 +1,6 @@
 #include "Chunk.hpp"
 
+
 Chunk::Chunk() : index_x(0), index_y(0), x(0), y(0)
 {
 }
@@ -13,9 +14,9 @@ void Chunk::addTile(const Tile& tile)
 	tiles.push_back(tile);
 }
 
-void Chunk::addObject(const Object& object)
+void Chunk::addObject(const glm::ivec2& position, const Object& object)
 {
-	objects.push_back(object);
+	objects[position] = object;
 }
 
 

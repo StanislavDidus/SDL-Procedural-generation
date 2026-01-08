@@ -57,6 +57,8 @@ set(HEADER_FILES
     "inc/ItemManager.hpp"
     "inc/Object.hpp"
     "inc/ObjectManager.hpp"
+    "inc/Vec2Less.hpp"
+    "inc/Grid.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

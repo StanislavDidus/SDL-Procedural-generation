@@ -25,6 +25,7 @@ public:
 		this->solid = tile.solid;
 		this->max_durability = tile.max_durability;
 		this->current_durability = this->max_durability;
+		is_destroyed = false;
 	}
 
 	void dealDamage(float damage);

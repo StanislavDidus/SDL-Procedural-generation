@@ -23,7 +23,7 @@ Game::Game(Renderer& screen)
 	//, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
 	, tileset(screen, Surface{ "assets/Sprites/tileset.png" }, { 16.f, 16.f }, SDL_SCALEMODE_NEAREST)
 	, items_spritesheet(screen, Surface{ "assets/Sprites/items.png" }, {16.f, 16.f}, SDL_SCALEMODE_NEAREST)
-	, objects_spritesheet(screen, Surface{ "assets/Sprites/objects.png" }, {16.f, 48.f}, SDL_SCALEMODE_NEAREST)
+	, object_spritesheet(screen, Surface{ "assets/Sprites/objects.png" }, {16.f, 48.f}, SDL_SCALEMODE_NEAREST)
 	//, tilemap(world, tileset, 960.f, 540.f, 75.f, 100.f)
 	, font("assets/Fonts/Roboto-Black.ttf", 32)
 	, text_surface(font.getFont(), "Player", {0,0,0,0})
@@ -35,7 +35,7 @@ Game::Game(Renderer& screen)
 
 	screen.setView({ 0.f, 0.f });
 
-	world = std::make_shared<World>(screen, object_manager, 500, 200);
+	world = std::make_shared<World>(object_manager, 500, 200);
 	world->generateWorld(0);
 
 	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
@@ -47,7 +47,7 @@ Game::Game(Renderer& screen)
 	initPlayer();	
 	initUserInterface();
 
-	tilemap = std::make_unique<TileMap>(*world, tileset, collision_system, 20.f, 20.f);
+	tilemap = std::make_unique<TileMap>(*world, tileset, object_spritesheet, collision_system, 20.f, 20.f);
 
 	auto& inventory = component_manager.has_inventory[player].inventory;
 	inventory->addItem(0, 15);
@@ -109,6 +109,7 @@ void Game::initItems()
 	//Regeneration Potion
 	{
 		std::vector<std::shared_ptr<ItemComponent>> components;
+		components.push_back(std::make_shared<ItemComponents::Usable>());
 		components.push_back(std::make_shared<ItemComponents::AddEffect>(Effect::HEALTH_REGENERATION, 120.f));
 		ItemProperties properties{ true, 3, "Regeneration_Potion", components };
 
@@ -215,8 +216,8 @@ void Game::update(float dt)
 	jump_system->update(dt);
 	physics_system->update(dt);
 	collision_system->update(dt);
-	//mining_system->update(dt, mouse, screen);
-	//place_system->update(dt, mouse, screen);
+	mining_system->update(dt, mouse, screen);
+	place_system->update(dt, mouse, screen);
 
 	world->updateTiles();
 
@@ -236,7 +237,7 @@ void Game::update(float dt)
 
 	tilemap->render(screen);
 
-	//mining_system->renderOutline(dt, mouse, screen);
+	mining_system->renderOutline(dt, mouse, screen);
 
 	auto& pos = component_manager.transform[player].position;
 	auto& size = component_manager.transform[player].size;
@@ -323,13 +324,13 @@ void Game::updateInput(float dt)
 	{
 		//world->scale -= 0.1f * dt;
 		world->cave_threshold -= 0.2f * dt;
-		world->clear();
+		
 	}
 	if (InputManager::isKey(SDLK_X))
 	{
 		//world->scale += 0.1f * dt;
 		world->cave_threshold += 0.2f * dt;
-		world->clear();
+		
 	}
 	if (InputManager::isKeyDown(SDLK_SPACE))
 	{

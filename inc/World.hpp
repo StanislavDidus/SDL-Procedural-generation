@@ -1,6 +1,6 @@
 #pragma once
 
-#include "glm/glm.hpp"
+#include "glm/vec2.hpp"
 
 #include <memory>
 #include <array>
@@ -13,6 +13,7 @@
 #include "Chunk.hpp"
 #include "MapRange.hpp"
 #include "ObjectManager.hpp"
+#include "Vec2Less.hpp"
 
 enum class BlockType
 {
@@ -41,7 +42,7 @@ enum class BiomeType
 class World
 {
 public:
-	World(Renderer& screen, std::shared_ptr<ObjectManager> object_manager, int width_tiles, int height_tiles);
+	World(std::shared_ptr<ObjectManager> object_manager, int width_tiles, int height_tiles);
 	~World();
 
 	void render();
@@ -51,8 +52,8 @@ public:
 
 	//Getters
 	glm::ivec2 getSize() const;
+	std::optional<ObjectProperties> getProperties(int id) const;
 
-	const Tile& getTile(int x, int y);
 	void placeTile(int x, int y, BlockType block);
 	void damageTile(int x, int y, float damage);
 
@@ -61,9 +62,6 @@ public:
 
 	void updateTiles();
 
-	void resetChunks();
-
-	void clear(); // Clear old chunks from memory
 	void generateWorld(std::optional<int> seed);
 
 	float scale = 0.5f;
@@ -81,7 +79,7 @@ public:
 	float tunnel_threshold_min = 0.6f;
 	float tunnel_threshold_max = 0.8f;
 
-	float sea_level = -5.f;
+	float sea_level = 19.f;
 
 	std::array<int, 11> seeds;
 
@@ -104,43 +102,29 @@ private:
 	void initMaps();
 
 	void generateBase();
-	void addDirtGrass();
+	void addGrass();
+	void addDirt();
+	void addCaves();
+	void addWater();
+	void addBiomes();
+	void addObjects();
+	void applyChanges();
 	void splitWorld();
-	/*void addSurface(std::vector<Tile>& tiles);
-	void addDirt(std::vector<Tile>& tiles);
-	void addWater(std::vector<Tile>& tiles);
-	void addCaves(std::vector<Tile>& tiles);
-	void addTunnels(std::vector<Tile>& tiles);
-	void addBiomes(std::vector<Tile>& tiles);
-	void addObjects(std::vector<Tile>& tiles);
-	void applyChanges(std::vector<Tile>& tiles);*/
 
-	bool isTileSolid(int x, int y) const; // Generate tile at x, y position and return true if solid
-
-	std::map<glm::ivec2, std::vector<Tile>> changes;
 	std::map<BlockType, Tile> tile_presets;
 
 	//Objects
 	std::weak_ptr<ObjectManager> object_manager;
 
-	glm::ivec2 getChunkIndex(int x, int y) const;
-
-	Renderer& screen;
-
-	std::map<float, std::vector<float>> surface_map;
-
 	MapRange peaks_and_valleys_map_range_height;
 	MapRange peaks_and_valleys_map_range_change;
 	MapRange caves_threshold_change;
 
-	std::vector<Chunk> new_chunks;
-	std::vector<Chunk> old_chunks;
-
-	Chunk& getOrCreateChunk(int x, int y);
 
 	int chunk_width_tiles = 25;
 	int chunk_height_tiles = 25;
 
+	std::map<glm::ivec2, Object, Vec2Less> objects;
 	std::vector<Tile> tiles;
 	std::vector<Chunk> chunks;
 

@@ -1,6 +1,7 @@
 #include "TileMap.hpp"
 #include "Sprite.hpp"
 
+
 #ifdef DEBUG_TILES
 void TileMap::drawDebugInfo(Renderer& screen, float value, float x, float y)
 {
@@ -10,9 +11,10 @@ void TileMap::drawDebugInfo(Renderer& screen, float value, float x, float y)
 }
 #endif
 
-TileMap::TileMap(World& world, SpriteSheet& tileset, std::shared_ptr<CollisionSystem> collision_system, float tile_width_world, float tile_height_world)
+TileMap::TileMap(World& world, SpriteSheet& tileset, SpriteSheet& object_spritesheet, std::shared_ptr<CollisionSystem> collision_system, float tile_width_world, float tile_height_world)
 	: world(world)
 	, tileset(tileset)
+	, object_spritesheet(object_spritesheet)
 	, collision_system(collision_system)
 	, tile_width_world(tile_width_world)
 	, tile_height_world(tile_height_world)
@@ -28,7 +30,6 @@ void TileMap::setTileSize(float w, float h)
 {
 	tile_width_world = w;
 	tile_height_world = h;
-	world.clear();
 }
 
 void TileMap::setTarget(const glm::vec2& target)
@@ -63,7 +64,7 @@ void TileMap::render(Renderer& screen)
 	int begin_y = static_cast<int>(std::floor(up_world / tile_height_world));
 	int end_y = static_cast<int>(std::ceil(down_world / tile_height_world));
 
-	const auto& chunks = world.getChunks();
+	//const auto& chunks = world.getChunks();
 
 	//float position_x = 0.f;
 	//float position_y = 0.f;
@@ -77,8 +78,105 @@ void TileMap::render(Renderer& screen)
 	float chunk_width_tiles = 25.f;
 	float chunk_height_tiles = 25.f;
 
+	const auto& world_size = world.getSize();
+	float world_width_chunks = world_size.x / chunk_width_tiles;
+	float world_height_chunks = world_size.y / chunk_height_tiles;
 
-	int active_chunks = 0;
+	const auto& chunks = world.getChunks();
+
+	int drawn_tiles = 0;
+
+	for (int x = begin_x; x < end_x; ++x)
+	{
+		float position_x = static_cast<float>(x);
+		int chunk_x_index = static_cast<int>(std::floor(position_x / chunk_width_tiles));
+
+		if (chunk_x_index < 0 || chunk_x_index >= world_width_chunks) continue;
+		for (int y = begin_y; y < end_y; ++y)
+		{
+			float position_y = static_cast<float>(y);
+			int chunk_y_index = static_cast<int>(std::floor(position_y / chunk_height_tiles));
+
+			if (chunk_y_index < 0 || chunk_y_index >= world_height_chunks) continue;
+
+			int chunk_index = chunk_y_index + chunk_x_index * world_height_chunks;
+			const auto& chunk = chunks[chunk_index];
+
+			auto& tiles = chunk.tiles;
+
+			int tile_x = static_cast<int>(std::fmodf(position_x, chunk_width_tiles));
+			int tile_y = static_cast<int>(std::fmodf(position_y, chunk_height_tiles));
+
+			auto& tile = chunk.tiles[tile_y + tile_x * chunk_height_tiles];
+
+			float tile_x_world = (chunk_x_index * chunk_width_tiles + tile_x) * tile_width_world;
+			float tile_y_world = (chunk_y_index * chunk_height_tiles + tile_y) * tile_height_world;
+			int sprite_index = tile.sprite_index;
+
+			drawn_tiles++;
+
+			if (tile.solid) cs->collisions.emplace_back(glm::ivec2{ static_cast<int>(tile_x_world), static_cast<int>(tile_y_world) }, glm::ivec2{ tile_width_world, tile_height_world });
+
+#ifdef DEBUG_TILES
+			switch (render_mode)
+			{
+			case 0:
+				screen.drawScaledSprite(tileset[sprite_index], tile_x_world, tile_y_world, tile_width_world, tile_height_world);
+				break;
+			case 1:
+				//PV
+				drawDebugInfo(screen, tile.pv, x, y);
+				break;
+			case 2:
+				//Temperature
+				drawDebugInfo(screen, tile.temperature, x, y);
+				break;
+			case 3:
+				//Moisture
+				drawDebugInfo(screen, tile.moisture, x, y);
+				break;
+			case 4:
+				//Durability
+				drawDebugInfo(screen, tile.current_durability / tile.max_durability, x, y);
+				break;
+			}
+#else
+			screen.drawScaledSprite(tileset[sprite_index], tile_x_world, tile_y_world, tile_width_world, tile_height_world);
+#endif
+		}
+	}
+
+	for (int x = begin_x; x < end_x; ++x)
+	{
+		float position_x = static_cast<float>(x);
+		int chunk_x_index = static_cast<int>(std::floor(position_x / chunk_width_tiles));
+
+		if (chunk_x_index < 0 || chunk_x_index >= world_width_chunks) continue;
+		for (int y = begin_y; y < end_y; ++y)
+		{
+			float position_y = static_cast<float>(y);
+			int chunk_y_index = static_cast<int>(std::floor(position_y / chunk_height_tiles));
+
+			if (chunk_y_index < 0 || chunk_y_index >= world_height_chunks) continue;
+
+			int chunk_index = chunk_y_index + chunk_x_index * world_height_chunks;
+			const auto& chunk = chunks[chunk_index];
+
+			glm::ivec2 position = glm::ivec2{ x,y };
+			if (chunk.objects.contains(position))
+			{
+				const auto& object = chunk.objects.at(position);
+				const auto& properties = world.getProperties(object.id);
+				if (properties)
+				{
+					int object_sprite_index = properties->sprite_index;
+					screen.drawScaledSprite(object_spritesheet[object_sprite_index], x * tile_width_world, y * tile_height_world, 20.f, 60.f);
+				}
+			}
+		}
+	}
+
+	/*int active_chunks = 0;
 	for (int i = 0; const auto& chunk : world.getChunks())
 	{
 		int chunk_x = i / (world.getSize().y / static_cast<int>(chunk_height_tiles));
@@ -106,7 +204,7 @@ void TileMap::render(Renderer& screen)
 		}
 
 		++i;
-	}
+	}*/
 
 	//std::cout << active_chunks << std::endl;
 	
@@ -188,5 +286,5 @@ void TileMap::render(Renderer& screen)
 
 void TileMap::clear()
 {
-	chunks.clear();
+	//chunks.clear();
 }

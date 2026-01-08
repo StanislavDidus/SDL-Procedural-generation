@@ -3,15 +3,6 @@
 
 #include <random>
 
-namespace glm
-{
-	bool operator<(const ivec2& a, const ivec2& b)
-	{ 
-		if (a.x != b.x) return a.x < b.x;
-		return a.y < b.y;
-	}
-}
-
 namespace
 {
 	std::random_device rd;
@@ -29,9 +20,8 @@ static float mapRange(float x, float inMin, float inMax, float outMin, float out
 }
 
 
-World::World(Renderer& screen, std::shared_ptr<ObjectManager> object_manager, int width_tiles, int height_tiles)
-	: screen(screen)
-	, width_tiles(width_tiles)
+World::World(std::shared_ptr<ObjectManager> object_manager, int width_tiles, int height_tiles)
+	: width_tiles(width_tiles)
 	, height_tiles(height_tiles)
 	, object_manager(object_manager)
 	, peaks_and_valleys_map_range_height(0.4f, 1.8f, 0.f, -25.f)
@@ -66,85 +56,117 @@ void World::setObjectManager(std::shared_ptr<ObjectManager> object_manager)
 	this->object_manager = object_manager;
 }
 
-const Tile& World::getTile(int x, int y)
-{
-	auto chunk_index = getChunkIndex(x, y);
-
-	const auto& chunk = getOrCreateChunk(chunk_index.x, chunk_index.y);
-
-	auto it = std::find(new_chunks.begin(), new_chunks.end(), chunk);
-	if (it == new_chunks.end())
-	{
-		new_chunks.push_back(chunk);
-	}
-
-	glm::vec2 tile_local_position = { x - chunk.x, y - chunk.y };
-
-	return chunk.tiles[tile_local_position.y + tile_local_position.x * chunk_height_tiles];
-}
-
 void World::placeTile(int x, int y, BlockType block)
 {
-	auto chunk_index = getChunkIndex(x, y);
+	int chunk_x = static_cast<int>(std::floor(x / static_cast<float>(chunk_width_tiles)));
+	int chunk_y = static_cast<int>(std::floor(y / static_cast<float>(chunk_height_tiles)));
+	
+	int height_chunks = height_tiles / chunk_height_tiles;
+	int width_chunks = width_tiles / chunk_width_tiles;
+	
+	if (chunk_x < 0 || chunk_x >= width_chunks ||
+		chunk_y < 0 || chunk_y >= height_chunks) return;
 
-	auto& chunk = getOrCreateChunk(chunk_index.x, chunk_index.y);
+	int chunk_index = chunk_y + chunk_x * height_chunks;
+	auto& chunk = chunks[chunk_index];
 
-	glm::vec2 tile_local_position = { x - chunk.x, y - chunk.y };
+	int tile_local_x = x % chunk_width_tiles;
+	int tile_local_y = y % chunk_height_tiles;
 
-	auto& tile = chunk.tiles[tile_local_position.y + tile_local_position.x * chunk_height_tiles];
+	auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
 
-	if (tile.solid) return;
-
-	bool is_block = false;
-	for (int i = -1; i < 2; ++i)
+	if (!tile.solid)
 	{
-		for (int j = -1; j < 2; ++j)
+		bool is_block = false;
+		for (int i = -1; i < 2; ++i)
 		{
-			if (i == 0 && j == 0) continue;
-
-			auto chunk_index_ = getChunkIndex(x + i, y + j);
-			auto& chunk_ = getOrCreateChunk(chunk_index_.x, chunk_index_.y);
-			glm::vec2 tile_local_position_ = glm::vec2{ (x + i) - chunk_.x, (y + j) - chunk_.y };
-			auto& tile_ = chunk_.tiles[tile_local_position_.y + tile_local_position_.x * chunk_height_tiles];
-			if (tile_.solid)
+			for (int j = -1; j < 2; ++j)
 			{
-				is_block = true;
-				break;
+				if (i == 0 && j == 0) continue;
+
+				float new_x = static_cast<float>(x + i);
+				float new_y = static_cast<float>(y + j);
+				int chunk_x_index = static_cast<int>(std::floor(new_x / static_cast<float>(chunk_width_tiles)));
+				int chunk_y_index = static_cast<int>(std::floor(new_y / static_cast<float>(chunk_height_tiles)));
+
+				if (chunk_x_index < 0 || chunk_x_index >= width_chunks ||
+					chunk_y_index < 0 || chunk_y_index >= height_chunks) continue;
+
+				int chunk_index_ = chunk_y_index + chunk_x_index * height_chunks;
+				auto& chunk_ = chunks[chunk_index_];
+
+				int chunk_x_grid = chunk_x_index * chunk_width_tiles;
+				int chunk_y_grid = chunk_y_index * chunk_height_tiles;
+
+				glm::vec2 tile_local_position_ = glm::vec2{ new_x - chunk_x_grid, new_y - chunk_y_grid };
+				auto& tile_ = chunk_.tiles[tile_local_position_.y + tile_local_position_.x * chunk_height_tiles];
+				if (tile_.solid)
+				{
+					is_block = true;
+					break;
+				}
 			}
 		}
-	}
 
-	if (is_block)
-	{
-		tile.setTile(tile_presets[block]);
-		changes[chunk_index].emplace_back(tile.sprite_index, static_cast<int>(tile_local_position.x), static_cast<int>(tile_local_position.y), tile.type, tile.solid, tile.max_durability);
+		if (is_block)
+		{
+			tile.setTile(tile_presets[block]);
+			//changes[chunk_index].emplace_back(tile.sprite_index, static_cast<int>(tile_local_position.x), static_cast<int>(tile_local_position.y), tile.type, tile.solid, tile.max_durability);
+		}
 	}
 }
 
 void World::damageTile(int x, int y, float damage)
 {
-	auto chunk_index = getChunkIndex(x, y);
+	int chunk_x = static_cast<float>(std::floor(static_cast<float>(x) / static_cast<float>(chunk_width_tiles)));
+	int chunk_y = static_cast<float>(std::floor(static_cast<float>(y) / static_cast<float>(chunk_height_tiles)));
 
-	auto& chunk = getOrCreateChunk(chunk_index.x, chunk_index.y);
+	int height_chunks = height_tiles / chunk_height_tiles;
+	int width_chunks = width_tiles / chunk_width_tiles;
 
-	glm::vec2 tile_local_position = { x - chunk.x, y - chunk.y };
+	if (chunk_x < 0 || chunk_x >= width_chunks ||
+		chunk_y < 0 || chunk_y >= height_chunks) return;
 
-	auto& tile = chunk.tiles[tile_local_position.y + tile_local_position.x * chunk_height_tiles];
+	int chunk_index = chunk_y + chunk_x * height_chunks;
+	auto& chunk = chunks[chunk_index];
 
-	if (!tile.solid) return;
-	
-	tile.dealDamage(damage);
+	int tile_local_x = x % chunk_width_tiles;
+	int tile_local_y = y % chunk_height_tiles;
 
-	//Destroy
-	if (tile.is_destroyed)
+	auto& tile = chunk.tiles[tile_local_y + tile_local_x * chunk_height_tiles];
+
+	if (tile.solid)
 	{
-		tile.sprite_index = 4;
-		tile.solid = false;
+		tile.dealDamage(damage);
 
-		tile.setTile(tile_presets[BlockType::SKY]);
-
-		changes[chunk_index].emplace_back(4, static_cast<int>(tile_local_position.x), static_cast<int>(tile_local_position.y), TileType::NONE, false, 0.f);
+		if (tile.is_destroyed)
+		{
+			tile.setTile(tile_presets[BlockType::SKY]);
+		}
 	}
+
+	//auto chunk_index = getChunkIndex(x, y);
+
+	//auto& chunk = getOrCreateChunk(chunk_index.x, chunk_index.y);
+
+	//glm::vec2 tile_local_position = { x - chunk.x, y - chunk.y };
+
+	//auto& tile = chunk.tiles[tile_local_position.y + tile_local_position.x * chunk_height_tiles];
+
+	//if (!tile.solid) return;
+	//
+	//tile.dealDamage(damage);
+
+	////Destroy
+	//if (tile.is_destroyed)
+	//{
+	//	tile.sprite_index = 4;
+	//	tile.solid = false;
+
+	//	tile.setTile(tile_presets[BlockType::SKY]);
+
+	//	changes[chunk_index].emplace_back(4, static_cast<int>(tile_local_position.x), static_cast<int>(tile_local_position.y), TileType::NONE, false, 0.f);
+	//}
 }
 
 const std::vector<Tile>& World::getTiles() const
@@ -162,10 +184,18 @@ glm::ivec2 World::getSize() const
 	return glm::ivec2{width_tiles, height_tiles};
 }
 
+std::optional<ObjectProperties> World::getProperties(int id) const
+{
+	if (auto s = object_manager.lock())
+	{
+		return s->getProperties(id);
+	}
+	return std::nullopt;
+}
 
 void World::updateTiles()
 {
-	for (auto& chunk : old_chunks)
+	for (auto& chunk : chunks)
 	{
 		for (auto& tile : chunk.tiles)
 		{
@@ -177,17 +207,6 @@ void World::updateTiles()
 			tile.received_damage_last_frame = false;
 		}
 	}
-}
-
-void World::resetChunks()
-{
-	old_chunks = new_chunks;
-	new_chunks.clear();
-}
-
-void World::clear()
-{
-	old_chunks.clear();
 }
 
 void World::generateWorld(std::optional<int> seed)
@@ -203,16 +222,20 @@ void World::generateWorld(std::optional<int> seed)
 	moisture_settings.seed = seeds[9];
 
 	initBiomes();
-	old_chunks.clear();
-	surface_map.clear();
-	changes.clear();
 	tiles.clear();
+	chunks.clear();
+	objects.clear();
 
 	tiles.resize(width_tiles * height_tiles);
 	chunks.resize(width_tiles / chunk_width_tiles * height_tiles / chunk_height_tiles);
 
 	generateBase();
-	addDirtGrass();
+	addGrass();
+	addDirt();
+	addCaves();
+	addWater();
+	addBiomes();
+	addObjects();
 	splitWorld();
 	//std::cout << chunks.size() << std::endl;
 }
@@ -385,7 +408,7 @@ void World::generateBase()
 	}
 }
 
-void World::addDirtGrass()
+void World::addGrass()
 {
 	for (int x = 0; x < width_tiles; x++)
 	{
@@ -410,6 +433,169 @@ void World::addDirtGrass()
 	}
 }
 
+void World::addDirt()
+{
+	for (int x = 0; x < width_tiles; x++)
+	{
+		bool found_surface = false;
+		int surface_y = 0;
+
+		float dirt_noise = ValueNoise::noise1D(static_cast<float>(x) * scale * 0.2f, seeds[2]) * 1.f;
+		int dirt_level = static_cast<int>(dirt_noise * 5.f) + 5;
+
+		for (int y = 0; y < height_tiles; y++)
+		{
+			auto& tile = tiles[y + x * height_tiles];
+
+			if (tile.type == TileType::SURFACE)
+			{
+				found_surface = true;
+				surface_y = y;
+				continue;
+			}
+
+			if (found_surface && tile.solid)
+			{
+				int distance = y - surface_y;
+				if (distance <= dirt_level)
+				{
+					tile.setTile(tile_presets[BlockType::DIRT]);
+				}
+			}
+
+		}
+	}
+}
+
+void World::addCaves()
+{
+	for (int x = 0; x < width_tiles; x++)
+	{
+		for (int y = 0; y < height_tiles; y++)
+		{
+			auto& tile = tiles[y + x * height_tiles];
+
+			float cave_noise = Noise::fractal2D<ValueNoise>(cave_settings, static_cast<float>(x) * scale, static_cast<float>(y) * scale);
+
+			float c_difference = (cave_base_height - static_cast<float>(y)) * -1.f;
+			float correlated_cave_threshold = std::clamp(caves_threshold_change.getValue(c_difference), 0.001f, cave_threshold_max);
+	
+			if (tile.solid && cave_noise < correlated_cave_threshold)
+			{
+				tile.setTile(tile_presets.at(BlockType::SKY));
+				tile.sealed = true;
+			}
+		}
+	}
+}
+
+void World::addWater()
+{
+	for (int x = 0; x < width_tiles; x++)
+	{
+		for (int y = 0; y < height_tiles; y++)
+		{
+			auto& tile = tiles[y + x * height_tiles];
+
+			if (!tile.solid && static_cast<float>(y) > sea_level && !tile.sealed)
+			{
+				tile.setTile(tile_presets.at(BlockType::WATER));
+			}
+		}
+	}
+}
+
+void World::addBiomes()
+{
+	for (int x = 0; x < width_tiles; x++)
+	{
+		for (int y = 0; y < height_tiles; y++)
+		{
+			float position_x = static_cast<float>(x);
+			float position_y = static_cast<float>(y);
+
+			auto& tile = tiles[y + x * height_tiles];
+
+			if (tile.type != TileType::SURFACE && tile.type != TileType::DIRT) continue;
+
+			float peaks_and_valleys = Noise::fractal1D<ValueNoise>(peaks_and_valleys_settings, position_x * scale);
+			float temperature = Noise::fractal2D<ValueNoise>(temperature_settings, position_x * scale, position_y * scale);
+			float moisture = Noise::fractal2D<ValueNoise>(moisture_settings, position_x * scale, position_y * scale);
+
+			//Desert,Forest,Snow
+			if (temperature < 0.45f && moisture > 0.55f)
+			{
+				//Snow
+				if (tile.type == TileType::SURFACE)
+					tile.setTile(tundra.surface_tile);
+				else
+					tile.setTile(tundra.dirt_tile);
+			}
+			else if (temperature >= 0.6f && moisture < 0.5f)
+			{
+				//Desert
+				tile.setTile(desert.surface_tile);
+			}
+			else
+			{
+				//Forest
+				if (tile.type == TileType::SURFACE)
+					tile.setTile(forest.surface_tile);
+				else
+					tile.setTile(forest.dirt_tile);
+			}
+
+#ifdef DEBUG_TILES
+			tile.pv = std::min(peaks_and_valleys, 1.f);
+			tile.temperature = std::min(temperature, 1.f);
+			tile.moisture = std::min(moisture, 1.f);
+#endif 
+		}
+	}
+}
+
+void World::addObjects()
+{
+	for (int x = 0; x < width_tiles; x++)
+	{
+		for (int y = 0; y < height_tiles; y++)
+		{
+			auto& tile = tiles[y + x * height_tiles];
+
+			//Tree
+			if (tile == tile_presets[BlockType::GRASS])
+			{
+				//Check for space above
+				bool is_space = true;
+				for (int i = 1; i < 4; i++)
+				{
+					int new_y = y - i;
+					if (new_y >= 0)
+					{
+						auto& tile_above = tiles[new_y + x * height_tiles];
+						if (tile_above.solid)
+						{
+							is_space = false;
+							break;
+						}
+					}
+				}
+
+				if (is_space)
+				{
+					Object tree{0,200.f};
+					objects[glm::ivec2{ x,y-3 }] = tree;
+				}
+			}
+		}
+	}
+}
+
+void World::applyChanges()
+{
+
+}
+
 void World::splitWorld()
 {
 	for (int x = 0; x < width_tiles; x++)
@@ -421,11 +607,17 @@ void World::splitWorld()
 
 			int chunk_index = chunk_y + chunk_x * (height_tiles / chunk_height_tiles);
 
+			//Tiles
 			auto& tile = tiles[y + x * height_tiles];
+			auto& chunk = chunks[chunk_index];
+			chunk.addTile(tile);
 
-			//std::cout << chunk_index << std::endl;
-
-			chunks[chunk_index].addTile(tile);
+			//Objects
+			auto object_position = glm::ivec2{ x, y };
+			if (objects.contains(object_position))
+			{
+				chunk.addObject(object_position, objects[object_position]);
+			}
 		}
 	}
 }
@@ -690,64 +882,3 @@ void World::splitWorld()
 //		}
 //	}
 //}
-
-bool World::isTileSolid(int x, int y) const
-{
-	//Convert to float
-	float position_x = static_cast<float>(x);
-	float position_y = static_cast<float>(y);
-
-	//Find pv
-	float peaks_and_valleys = Noise::fractal1D<ValueNoise>(peaks_and_valleys_settings, position_x * scale);
-
-	float map_height = peaks_and_valleys_map_range_height.getValue(peaks_and_valleys);
-
-	float map_change = peaks_and_valleys_map_range_change.getValue(peaks_and_valleys);
-	float correlated_change = map_change;
-
-	//Find density
-	float density_noise = Noise::fractal2D<ValueNoise>(density_settings, position_x * scale, position_y * scale);
-
-	float correlated_height = position_y - map_height;
-
-	//Apply y base layer and change over vertical axis
-	float difference = correlated_height - y_base;
-	float change = difference * correlated_change;
-	density_noise += change;
-
-	return density_noise > density_threshold;
-}
-
-glm::ivec2 World::getChunkIndex(int x, int y) const
-{
-	int chunk_index_x = static_cast<int>(std::floor(static_cast<float>(x) / static_cast<float>(chunk_width_tiles)));
-	int chunk_index_y = static_cast<int>(std::floor(static_cast<float>(y) / static_cast<float>(chunk_height_tiles)));
-
-	return glm::ivec2{ chunk_index_x, chunk_index_y };
-}
-
-Chunk& World::getOrCreateChunk(int x, int y)
-{
-	for (auto& chunk : old_chunks)
-	{
-		if (chunk.index_x == x && chunk.index_y == y)
-		{
-			return chunk;
-		}
-	}
-
-	Chunk chunk{ x, y, x * chunk_width_tiles, y * chunk_height_tiles };
-
-	//generateBase(chunk);
-	//addDirt(chunk);
-	//addSurface(chunk);
-	//addCaves(chunk);
-	////addTunnels(chunk);
-	//addWater(chunk);
-	//addBiomes(chunk);
-	//addObjects(chunk);
-	//applyChanges(chunk);
-
-	auto& ref = old_chunks.emplace_back(std::move(chunk));
-	return ref;
-}

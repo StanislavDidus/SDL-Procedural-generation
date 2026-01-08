@@ -57,7 +57,7 @@ private:
 	//SpriteSheet player;
 	SpriteSheet tileset;
 	SpriteSheet items_spritesheet;
-	SpriteSheet objects_spritesheet;
+	SpriteSheet object_spritesheet;
 
 	std::unique_ptr<TileMap> tilemap;
 	std::shared_ptr<World> world;
