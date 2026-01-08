@@ -42,7 +42,7 @@ enum class BiomeType
 class World
 {
 public:
-	World(std::shared_ptr<ObjectManager> object_manager, int width_tiles, int height_tiles);
+	World(const SpriteSheet& tileset, std::shared_ptr<ObjectManager> object_manager, int width_tiles, int height_tiles);
 	~World();
 
 	void render();
@@ -95,6 +95,8 @@ public:
 	Biome desert;
 
 private:
+	void splitTileMap(const TileMap& tilemap, int chunk_width, int chunk_height);
+
 	void initTiles();
 	void initSeeds(std::optional<int> seed);
 	void initNoiseSettings();
@@ -124,8 +126,9 @@ private:
 	int chunk_width_tiles = 25;
 	int chunk_height_tiles = 25;
 
+	SpriteSheet tileset;
 	std::map<glm::ivec2, Object, Vec2Less> objects;
-	std::vector<Tile> tiles;
+	TileMap	world_map;
 	std::vector<Chunk> chunks;
 
 	int width_tiles;

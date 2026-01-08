@@ -20,8 +20,10 @@ static float mapRange(float x, float inMin, float inMax, float outMin, float out
 }
 
 
-World::World(std::shared_ptr<ObjectManager> object_manager, int width_tiles, int height_tiles)
-	: width_tiles(width_tiles)
+World::World(const SpriteSheet& tileset, std::shared_ptr<ObjectManager> object_manager, int width_tiles, int height_tiles)
+	: tileset(tileset)
+	, world_map(tileset, height_tiles, width_tiles)
+	, width_tiles(width_tiles)
 	, height_tiles(height_tiles)
 	, object_manager(object_manager)
 	, peaks_and_valleys_map_range_height(0.4f, 1.8f, 0.f, -25.f)
@@ -240,6 +242,55 @@ void World::generateWorld(std::optional<int> seed)
 	//std::cout << chunks.size() << std::endl;
 }
 
+void World::splitTileMap(const TileMap& tilemap, int chunk_width, int chunk_height)
+{
+	chunks.clear();
+
+	int width = tilemap.getColumns();
+	int height = tilemap.getRows();
+
+	int world_width_chunks = width / chunk_width;
+	int world_height_chunks = height / chunk_height;
+
+	chunks.reserve(world_width_chunks * world_height_chunks);
+
+	for (int i = 0; i < world_width_chunks * world_height_chunks; ++i)
+	{
+		chunks.emplace_back(tilemap.getSpriteSheet(), SDL_FRect{}, chunk_height, chunk_width);
+	}
+
+	for (int x = 0; x < width; ++x)
+	{
+		for (int y = 0; y < height; ++y)
+		{
+			int tile_local_x = x % chunk_width;
+			int tile_local_y = y % chunk_height;
+
+			int chunk_x = x / chunk_width;
+			int chunk_y = y / chunk_height;
+
+			auto& chunk = chunks[chunk_y + chunk_x * world_height_chunks];
+			chunk.tilemap(tile_local_x, tile_local_y) = tilemap(x, y);
+		}
+	}
+
+	float tile_size = 20.f;
+
+	for (int i = 0; auto& chunk : chunks)
+	{
+		int chunk_x = i / world_height_chunks;
+		int chunk_y = i % world_height_chunks;
+
+		auto& rect = chunk.rect;
+		rect.x = chunk_x * chunk_width * tile_size;
+		rect.y = chunk_y * chunk_height * tile_size;
+		rect.w = chunk_width * tile_size;
+		rect.h = chunk_height * tile_size;
+
+		++i;
+	}
+}
+
 void World::initTiles()
 {
 	tile_presets[BlockType::GRASS] = Tile{0, TileType::SURFACE, true, 100.f};
@@ -388,21 +439,22 @@ void World::generateBase()
 
 			//Tile new_tile{};
 				
-			auto& tile = tiles[y + x * height_tiles];
-			tile.local_x = x % chunk_width_tiles;
-			tile.local_y = y % chunk_height_tiles;
+			auto& tile = world_map(x, y);
+			//tile.x = x % chunk_width_tiles;
+			//tile.y = y % chunk_height_tiles;
 
 			if (density_noise >= density_threshold)
 			{
 				//Solid tile
 				//new_tile = tile_presets.at(BlockType::STONE);
-				tile.setTile(tile_presets.at(BlockType::STONE));
+				//tile.setTile(tile_presets.at(BlockType::STONE));
+				tile.id = 0;
 			}
 			if (density_noise < density_threshold)
 			{
 				//Air tile
 				//new_tile = tile_presets.at(BlockType::SKY);
-				tile.setTile(tile_presets.at(BlockType::SKY));
+				//tile.setTile(tile_presets.at(BlockType::SKY));
 			}
 		}
 	}

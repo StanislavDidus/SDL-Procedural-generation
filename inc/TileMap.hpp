@@ -4,39 +4,26 @@
 #include <vector>
 
 #include "SpriteSheet.hpp"
-#include "glm/vec2.hpp"
-#include "Chunk.hpp"
-#include "World.hpp"
-#include "ECS/Systems.hpp"
 #include "Debug.hpp"
+#include "Tile.hpp"
+#include "Grid.hpp"
 
 class TileMap
 {
 public:
-#ifdef DEBUG_TILES
-	void drawDebugInfo(Renderer& screen, float value, float x, float y);
-#endif
-
-	TileMap(World& world, SpriteSheet& tileset, SpriteSheet& object_spritesheet, std::shared_ptr<CollisionSystem> collision_system, float tile_width_world, float tile_height_world);
+	TileMap(const SpriteSheet& tileset, int rows, int columns);
 	~TileMap();
 
-	//Setters
-	void setTileSize(float w, float h);
-	void setTarget(const glm::vec2& target);
+	//Getters
+	int getRows() const;
+	int getColumns() const;
+	const SpriteSheet& getSpriteSheet() const;
 
-	void render(Renderer& screen);
-	void clear();
-
-	int render_mode = 0;
+	Tile& operator()(int x, int y) const
+	{
+		return grid(x, y);
+	}
 private:
-	glm::vec2 target;
-
-	float tile_width_world = 0.f;
-	float tile_height_world = 0.f;
-
-	SpriteSheet& tileset;
-	SpriteSheet& object_spritesheet;
-	//std::vector<Chunk> chunks;
-	World& world;
-	std::weak_ptr<CollisionSystem> collision_system;
+	Grid<Tile> grid;
+	const SpriteSheet& tileset;
 };

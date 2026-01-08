@@ -3,28 +3,15 @@
 #include <vector>
 #include <map>
 
-#include "Object.hpp"
-#include "glm/vec2.hpp"
-#include "Tile.hpp"
+#include <SDL3/SDL_rect.h>
 #include "Vec2Less.hpp"
+#include "TileMap.hpp"
 
 struct Chunk
 {
-	Chunk();
-	Chunk(int index_x, int index_y, int x, int y);
+	Chunk(const SpriteSheet& tileset, const SDL_FRect& rect, int rows, int columns);
 	~Chunk() = default;
-
-	void addTile(const Tile& tile);
-	void addObject(const glm::ivec2& position, const Object& object);
-
-	int index_x;
-	int index_y;
-	int x;
-	int y;
-
-	std::map<glm::ivec2, Object, Vec2Less> objects;
-	std::vector<Tile> tiles;
-
-
-	bool operator==(const Chunk& other) const { return this->index_x == other.index_x && this->index_y == other.index_y; }
+	
+	SDL_FRect rect;
+	TileMap tilemap;
 };

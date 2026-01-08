@@ -23,7 +23,7 @@ public:
 		return columns;
 	}
 
-	T& operator[](int x, int y) const
+	T& operator()(int x, int y) const
 	{
 		return array[x + y * columns];
 	}
