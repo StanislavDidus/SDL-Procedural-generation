@@ -1,6 +1,5 @@
 #include "UI/UserInterface.hpp"
 #include "UI/FillBar.hpp"
-#include "UI/InventoryView.hpp"
 #include <utility>
 
 void UserInterface::addFillBar(const glm::vec2& position, const glm::vec2& size, const float& value, float max_value, Color color)
@@ -11,8 +10,12 @@ void UserInterface::addFillBar(const glm::vec2& position, const glm::vec2& size,
 
 void UserInterface::addInventoryView(const Font& font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position)
 {
-	auto inventory_view = std::make_unique<InventoryView>(font, item_sprites, inventory, rows, columns, slot_size, position);
-	elements.push_back(std::move(inventory_view));
+	inventory_view = std::make_unique<InventoryView>(font, item_sprites, inventory, rows, columns, slot_size, position);
+}
+
+bool UserInterface::isMouseCoveringInventory() const
+{
+	return inventory_view->isMouseCoveringInventory();
 }
 
 void UserInterface::update()
@@ -21,6 +24,8 @@ void UserInterface::update()
 	{
 		element->update();
 	}
+
+	inventory_view->update();
 }
 
 void UserInterface::render(Renderer& screen)
@@ -29,4 +34,6 @@ void UserInterface::render(Renderer& screen)
 	{
 		element->render(screen);
 	}
+
+	inventory_view->render(screen);
 }

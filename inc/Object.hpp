@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include "Item.hpp"
+#include "glm/vec2.hpp"
 
 struct ObjectProperties
 {
@@ -10,6 +11,7 @@ struct ObjectProperties
 	int sprite_index;
 	std::string name;
 	Item item;
+	glm::vec2 size;
 };
 
 struct Object

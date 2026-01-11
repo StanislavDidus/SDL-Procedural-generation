@@ -35,19 +35,27 @@ Game::Game(Renderer& screen)
 
 	screen.setView({ 0.f, 0.f });
 
-	world = std::make_shared<World>(object_manager, 500, 200);
-	world->generateWorld(0);
-
+	
 	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
 	item_manager = std::make_shared<ItemManager>();
 
-	initSystems();
 	initItems();
+	initNoiseSettings();
+	initMapRanges();
+	initTiles();
 	initObjects();
+	initGenerationData();
+	initBiomes();
+
+	world = std::make_shared<World>(generation_data, tileset, object_spritesheet, collision_system, object_manager, 500, 200);
+
+	initSystems();
 	initPlayer();	
 	initUserInterface();
 
-	tilemap = std::make_unique<TileMap>(*world, tileset, object_spritesheet, collision_system, 20.f, 20.f);
+	world->generateWorld(0);
+
+	//tilemap = std::make_unique<TileMap>(*world, tileset, object_spritesheet, collision_system, 20.f, 20.f);
 
 	auto& inventory = component_manager.has_inventory[player].inventory;
 	inventory->addItem(0, 15);
@@ -70,6 +78,21 @@ void Game::initSystems()
 	mining_system = std::make_unique<MiningSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
 	place_system = std::make_unique<PlaceSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
 	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
+
+	world->setCollisionSystem(collision_system);
+}
+
+void Game::initGenerationData()
+{
+	generation_data.y_base = 25.f;
+	generation_data.cave_y_base = 10.f;
+	generation_data.sea_y_base = 19.f;
+	generation_data.scale = 0.5f;
+	generation_data.density_threshold = 0.5f;
+	generation_data.tree_threshold = 0.65f;
+
+	generation_data.tile_manager = tile_manager;
+	generation_data.object_manager = object_manager;
 }
 
 void Game::initItems()
@@ -120,12 +143,225 @@ void Game::initItems()
 void Game::initObjects()
 {
 	object_manager = std::make_shared<ObjectManager>();
-	world->setObjectManager(object_manager);
 
+	//Tree
 	{
 		Item apple{ 0, 1 };
-		ObjectProperties properties{ 200.f, 0, "Tree", apple };
+		glm::vec2 size {20.f, 60.f};
+		ObjectProperties properties{ 200.f, 0, "Tree", apple, size };
 		object_manager->addObject(properties);
+	}
+
+	//Snow Tree
+	{
+		Item apple{ 0, 1 };
+		glm::vec2 size{ 20.f, 60.f };
+		ObjectProperties properties{ 200.f, 1, "Snow_Tree", apple, size };
+		object_manager->addObject(properties);
+	}
+}
+
+void Game::initTiles()
+{
+	tile_manager = std::make_shared<TileManager>();
+
+	//Grass
+	{
+		TileProperties properties{ 0, TileType::SURFACE, true, 100.f };
+		int id = tile_manager->addTile(properties);
+		generation_data.tiles[BlockType::GRASS] = id;
+	}
+
+	//Dirt
+	{
+		TileProperties properties{ 1, TileType::DIRT, true, 100.f };
+		int id = tile_manager->addTile(properties);
+		generation_data.tiles[BlockType::DIRT] = id;
+	}
+
+	//Stone
+	{
+		TileProperties properties{ 2, TileType::STONE, true, 125.f };
+		int id = tile_manager->addTile(properties);
+		generation_data.tiles[BlockType::STONE] = id;
+	}
+
+	//Sand
+	{
+		TileProperties properties{ 3, TileType::SURFACE, true, 50.f };
+		int id = tile_manager->addTile(properties);
+		generation_data.tiles[BlockType::SAND] = id;
+	}
+
+	//Sky
+	{
+		TileProperties properties{ 4, TileType::NONE, false, 0.f };
+		int id = tile_manager->addTile(properties);
+		generation_data.tiles[BlockType::SKY] = id;
+	}
+
+	//Snow Grass
+	{
+		TileProperties properties{ 5, TileType::SURFACE, true, 100.f };
+		int id = tile_manager->addTile(properties);
+		generation_data.tiles[BlockType::SNOW_GRASS] = id;
+	}
+
+	//Snow Dirt
+	{
+		TileProperties properties{ 8, TileType::DIRT, true, 100.f };
+		int id = tile_manager->addTile(properties);
+		generation_data.tiles[BlockType::SNOW_DIRT] = id;
+	}
+
+	//Rock
+	{
+		TileProperties properties{ 6, TileType::STONE, true, 125.f };
+		int id = tile_manager->addTile(properties);
+		generation_data.tiles[BlockType::ROCK] = id;
+	}
+
+	//Water
+	{
+		TileProperties properties{ 7, TileType::NONE, false, 0.f };
+		int id = tile_manager->addTile(properties);
+		generation_data.tiles[BlockType::WATER] = id;
+	}
+}
+
+void Game::initNoiseSettings()
+{
+	//PV
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::PV];
+		settings.octaves = 5;
+		settings.frequency = 0.05f;
+		settings.amplitude = 1.0f;
+	}
+
+	//Density
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::DENSITY];
+		settings.octaves = 8;
+		settings.frequency = 0.75f;
+		settings.amplitude = 1.0f;
+	}
+
+	//Dirt
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::DIRT];
+		settings.octaves = 1;
+		settings.frequency = 0.2f;
+		settings.amplitude = 1.0f;
+	}
+
+	//Cave
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::CAVE];
+		settings.octaves = 8;
+		settings.frequency = 0.1f;
+		settings.amplitude = 1.0f;
+	}
+
+	//Tunnel
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::TUNNEL];
+		settings.octaves = 8;
+		settings.frequency = 0.1f;
+		settings.amplitude = 1.0f;
+	}
+
+	//Temperature
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::TEMPERATURE];
+		settings.octaves = 1;
+		settings.frequency = 0.05f;
+		settings.amplitude = 1.0f;
+	}
+
+	//Moisture
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::MOISTURE];
+		settings.octaves = 2;
+		settings.frequency = 0.04f;
+		settings.amplitude = 1.2f;
+	}
+
+	//Trees
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::TREES];
+		settings.octaves = 2;
+		settings.frequency = 0.7f;
+		settings.amplitude = 1.5f;
+	}
+}
+
+void Game::initMapRanges()
+{
+	//PV_HEIGHT
+	{
+		MapRange map{ 0.4f, 1.8f, 0.f, -25.f };
+		generation_data.maps[MapRangeType::PV_HEIGHT] = map;
+	}
+
+	//PV_CHANGE
+	{
+		MapRange map{ 0.4f, 1.8f, 0.9f, 0.15f };
+		generation_data.maps[MapRangeType::PV_CHANGE] = map;
+	}
+
+	//CAVE_HEIGHT
+	{
+		MapRange map{ generation_data.cave_y_base, generation_data.cave_y_base + 300.f, 0.15f, 0.5f };
+
+		map.addPoint(generation_data.cave_y_base + 25.f, 0.25f);
+
+		generation_data.maps[MapRangeType::CAVE_CHANGE] = map;
+	}
+}
+
+void Game::initBiomes()
+{
+	//Forest
+	{
+		Biome& biome = generation_data.biomes[BiomeType::FOREST];
+		biome.name = "Forest";
+		biome.pv_min = 0.0f;
+		biome.pv_max = 1.0f;
+		biome.temperature_min = 0.4f;
+		biome.temperature_max = 0.8f;
+		biome.moisture_min = 0.f;
+		biome.moisture_max = 1.0f;
+		biome.surface_tile = generation_data.tiles.at(BlockType::GRASS);
+		biome.dirt_tile = generation_data.tiles.at(BlockType::DIRT);
+	}
+
+	//Tundra
+	{
+		Biome& biome = generation_data.biomes[BiomeType::TUNDRA];
+		biome.name = "Tundra";
+		biome.pv_min = 0.f;
+		biome.pv_max = 1.f;
+		biome.temperature_min = 0.0f;
+		biome.temperature_max = 0.4f;
+		biome.moisture_min = 0.f;
+		biome.moisture_max = 1.f;
+		biome.surface_tile = generation_data.tiles.at(BlockType::SNOW_GRASS);
+		biome.dirt_tile = generation_data.tiles.at(BlockType::SNOW_DIRT);
+	}
+
+	//Desert
+	{
+		Biome& biome = generation_data.biomes[BiomeType::DESERT];
+		biome.name = "Desert";
+		biome.pv_min = 0.0f;
+		biome.pv_max = 0.6f;
+		biome.temperature_min = 0.8f;
+		biome.temperature_max = 1.0f;
+		biome.moisture_min = 0.0f;
+		biome.moisture_max = 1.0f;
+		biome.surface_tile = generation_data.tiles.at(BlockType::SAND);
+		biome.dirt_tile = generation_data.tiles.at(BlockType::SAND);
 	}
 }
 
@@ -207,21 +443,24 @@ void Game::update(float dt)
 	screen.setZoom(zoom);
 	screen.setView(view_position);
 
-	
-
 	//Check mouse state
 	const auto& mouse = InputManager::getMouseState();
+
+	interface.update();
 
 	input_system->update(dt);
 	jump_system->update(dt);
 	physics_system->update(dt);
 	collision_system->update(dt);
-	mining_system->update(dt, mouse, screen);
-	place_system->update(dt, mouse, screen);
 
+	if (!interface.isMouseCoveringInventory())
+	{
+		mining_system->update(dt, mouse, screen);
+		place_system->update(dt, mouse, screen);
+	}
+
+	world->update(screen, dt, world_target);
 	world->updateTiles();
-
-	interface.update();
 
 	updateTilemapTarget();
 
@@ -235,7 +474,8 @@ void Game::update(float dt)
 	//Render
 	const auto& window_size = screen.getWindowSize();
 
-	tilemap->render(screen);
+	collision_system->collisions.clear();
+	world->render(screen);
 
 	mining_system->renderOutline(dt, mouse, screen);
 
@@ -274,10 +514,9 @@ void Game::updateTilemapTarget()
 		const auto& player_transform = component_manager.transform[player];
 		const auto& player_position = player_transform.position;
 		const auto& player_size = player_transform.size;
-		glm::vec2 player_center = { player_position.x + player_size.x / 2.f, player_position.y + player_size.y / 2.f };
-		glm::vec2 player_screen_position = player_center - static_cast<glm::vec2>(screen.getWindowSize()) / 2.f;
+		world_target = { player_position.x + player_size.x / 2.f, player_position.y + player_size.y / 2.f };
+		glm::vec2 player_screen_position = world_target - static_cast<glm::vec2>(screen.getWindowSize()) / 2.f;
 		view_position = player_screen_position;
-		tilemap->setTarget(player_center);
 	}
 	else
 	{
@@ -285,7 +524,7 @@ void Game::updateTilemapTarget()
 
 		glm::vec2 view_center = { view_position.x + window_size.x / 2.f, view_position.y + window_size.y / 2.f };
 
-		tilemap->setTarget(view_center);
+		world_target = view_center;
 	}
 }
 
@@ -323,13 +562,13 @@ void Game::updateInput(float dt)
 	if (InputManager::isKey(SDLK_Z))
 	{
 		//world->scale -= 0.1f * dt;
-		world->cave_threshold -= 0.2f * dt;
+		//world->cave_threshold -= 0.2f * dt;
 		
 	}
 	if (InputManager::isKey(SDLK_X))
 	{
 		//world->scale += 0.1f * dt;
-		world->cave_threshold += 0.2f * dt;
+		//world->cave_threshold += 0.2f * dt;
 		
 	}
 	if (InputManager::isKeyDown(SDLK_SPACE))
@@ -403,22 +642,22 @@ void Game::updateImGui(float dt)
 			world->generateWorld(buffer);
 		}
 
-		ImGui::SliderFloat("scale", &world->scale, 0.f, 1.f);
-		ImGui::SliderFloat("density_change", &world->density_change, 0.1f, 1.f);
-		ImGui::SliderFloat("y_base", &world->y_base, -100.f, 100.f);
-		ImGui::SliderFloat("sea_level", &world->sea_level, -100.f, 100.f);
+		//ImGui::SliderFloat("scale", &world->scale, 0.f, 1.f);
+		//ImGui::SliderFloat("density_change", &world->density_change, 0.1f, 1.f);
+		//ImGui::SliderFloat("y_base", &world->y_base, -100.f, 100.f);
+		//ImGui::SliderFloat("sea_level", &world->sea_level, -100.f, 100.f);
 
-		ImGui::SliderFloat("cave_threshold_min", &world->cave_threshold_min, 0.1f, 1.0f);
-		ImGui::SliderFloat("cave_threshold_max", &world->cave_threshold_max, 0.1f, 1.0f);
-		ImGui::SliderFloat("cave_threshold_step", &world->cave_threshold_step, 0.0001f, 0.1f);
-		ImGui::SliderFloat("cave_base_y", &world->cave_base_height, -100.f, 100.f);
+		//ImGui::SliderFloat("cave_threshold_min", &world->cave_threshold_min, 0.1f, 1.0f);
+		//ImGui::SliderFloat("cave_threshold_max", &world->cave_threshold_max, 0.1f, 1.0f);
+		//ImGui::SliderFloat("cave_threshold_step", &world->cave_threshold_step, 0.0001f, 0.1f);
+		//ImGui::SliderFloat("cave_base_y", &world->cave_base_height, -100.f, 100.f);
 
 		static int current = 0;
 		const char* items[] = { "Default", "PV", "Temperature", "Moisture", "Durability"};
 
-		ImGui::Combo("Render Mode", &tilemap->render_mode, items, IM_ARRAYSIZE(items));
+		//ImGui::Combo("Render Mode", &tilemap->render_mode, items, IM_ARRAYSIZE(items));
 
-		if (ImGui::CollapsingHeader("Terrain & Nature"))
+		/*if (ImGui::CollapsingHeader("Terrain & Nature"))
 		{
 			ImGui::Text("PV");
 			ImGui::SliderInt("Octaves##PV", &world->peaks_and_valleys_settings.octaves, 1, 10);
@@ -449,8 +688,13 @@ void Game::updateImGui(float dt)
 			ImGui::SliderInt("Octaves##Moisture", &world->moisture_settings.octaves, 1, 10);
 			ImGui::SliderFloat("Frequency##Moisture", &world->moisture_settings.frequency, 0.0001f, 2.f);
 			ImGui::SliderFloat("Amplitude##Moisture", &world->moisture_settings.amplitude, 0.0001f, 2.f);
-		}
+		}*/
 	}
 
 	ImGui::End();
+}
+
+void Game::renderWorld()
+{
+	
 }

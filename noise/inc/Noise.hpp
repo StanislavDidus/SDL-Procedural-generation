@@ -1,7 +1,8 @@
 #pragma once
 
 #include <iostream>
-#include "glm/glm.hpp"
+#include "glm/vec2.hpp"
+#include "glm/geometric.hpp"
 
 static float pcg_hash(uint32_t input)
 {

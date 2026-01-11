@@ -13,6 +13,12 @@ public:
 		array.resize(rows * columns);
 	}
 
+	void reset()
+	{
+		array.clear();
+		array.resize(rows * columns);
+	}
+
 	int getRows() const
 	{
 		return rows;
@@ -22,8 +28,13 @@ public:
 	{
 		return columns;
 	}
+	
+	const T& operator()(int x, int y) const
+	{
+		return array[x + y * columns];
+	}
 
-	T& operator()(int x, int y) const
+	T& operator()(int x, int y)
 	{
 		return array[x + y * columns];
 	}

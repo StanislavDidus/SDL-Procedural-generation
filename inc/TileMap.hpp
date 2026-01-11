@@ -19,7 +19,12 @@ public:
 	int getColumns() const;
 	const SpriteSheet& getSpriteSheet() const;
 
-	Tile& operator()(int x, int y) const
+	const Tile& operator()(int x, int y) const
+	{
+		return grid(x, y);
+	}
+
+	Tile& operator()(int x, int y)
 	{
 		return grid(x, y);
 	}

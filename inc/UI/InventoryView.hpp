@@ -19,8 +19,9 @@ public:
 		}
 	}
 
-	void update() override;
+	bool isMouseCoveringInventory() const;
 
+	void update() override;
 	void render(Renderer& screen) override;
 private:
 	void isCoveringInventory();

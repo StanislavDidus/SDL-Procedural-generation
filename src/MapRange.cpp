@@ -8,6 +8,16 @@ MapRange::MapRange(float inMin, float inMax, float outMin, float outMax) : outMi
 	points.emplace_back(inMax, outMax);
 }
 
+float MapRange::getOutMin() const
+{
+	return outMin;
+}
+
+float MapRange::getOutMax() const
+{
+	return outMax;
+}
+
 float MapRange::getValue(float x) const
 {
 	auto it = std::lower_bound(points.begin(), points.end(), x, 

@@ -30,7 +30,7 @@ constexpr bool IGNORE_VIEW_ZOOM = true;
 class Renderer
 {
 public:
-	Renderer(Window& window);
+	explicit Renderer(Window& window);
 	~Renderer();
 
 	//Setters

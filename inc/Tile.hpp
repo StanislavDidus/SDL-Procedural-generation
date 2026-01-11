@@ -15,20 +15,22 @@ struct TileProperties
 {
 	int sprites_index;
 	TileType type;
-	float max_durability;
 	bool is_solid;
+	float max_durability;
 };
 
 struct Tile
 {
 	Tile() = default;
 
-	int id;
+	int id = 0;
 
 	float current_durability = 0.f;
 	bool is_destroyed = false;
 	bool sealed = false;
 	bool received_damage_last_frame = false;
+
+	void dealDamage(float damage);
 
 #ifdef DEBUG_TILES
 	float pv = 0.f;

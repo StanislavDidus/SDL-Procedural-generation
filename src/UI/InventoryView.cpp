@@ -98,6 +98,11 @@ void InventoryView::isMovingItems()
 	}
 }
 
+bool InventoryView::isMouseCoveringInventory() const
+{
+	return covered_slot.has_value();
+}
+
 void InventoryView::render(Renderer& screen)
 {
 	for (int i = 0; i < rows * columns; i++)

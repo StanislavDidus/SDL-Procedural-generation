@@ -6,6 +6,7 @@
 #include <SDL3/SDL_rect.h>
 #include "Vec2Less.hpp"
 #include "TileMap.hpp"
+#include "Object.hpp"
 
 struct Chunk
 {
@@ -13,5 +14,6 @@ struct Chunk
 	~Chunk() = default;
 	
 	SDL_FRect rect;
-	TileMap tilemap;
+	Grid<Tile> tilemap;
+	std::vector<Object> objects;
 };

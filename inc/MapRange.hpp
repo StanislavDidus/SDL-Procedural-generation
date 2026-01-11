@@ -17,8 +17,12 @@ struct Point
 class MapRange
 {
 public:
+	MapRange() = default;
 	MapRange(float inMin, float inMax, float outMin, float outMax);
 	~MapRange() = default;
+
+	float getOutMin() const;
+	float getOutMax() const;
 
 	float getValue(float x) const;
 	void addPoint(float x, float y);
@@ -26,5 +30,5 @@ private:
 	std::vector<Point> points;
 
 	float outMin = 0.f;
-	float outMax = 1.f;
+	float outMax = 0.f;
 };

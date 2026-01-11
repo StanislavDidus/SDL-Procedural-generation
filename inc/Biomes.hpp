@@ -3,9 +3,6 @@
 #include <iostream>
 #include <string>
 
-#include "Renderer.hpp"
-#include "glm/glm.hpp"
-#include "Noise.hpp"
 #include "Tile.hpp"
 
 static float between(float value, float min, float max)
@@ -29,6 +26,6 @@ public:
 	float moisture_min;
 	float moisture_max;
 
-	Tile surface_tile;
-	Tile dirt_tile;
+	int surface_tile;
+	int dirt_tile;
 };

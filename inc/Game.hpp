@@ -20,12 +20,13 @@
 #include "ItemManager.hpp"
 #include "Inventory.hpp"
 #include "ObjectManager.hpp"
+#include "GenerationData.hpp"
 #include <memory>
 
 class Game
 {
 public:
-	Game(Renderer& screen);
+	explicit Game(Renderer& screen);
 	virtual ~Game();
 
 	void update(float dt);
@@ -35,7 +36,12 @@ public:
 	glm::vec2 view_position = {0.f, 0.f};
 private:
 	void initSystems();
+	void initGenerationData();
 	void initItems();
+	void initTiles();
+	void initNoiseSettings();
+	void initMapRanges();
+	void initBiomes();
 	void initObjects();
 	void initPlayer();
 	void initUserInterface();
@@ -43,6 +49,8 @@ private:
 	void updateTilemapTarget();
 	void updateInput(float dt);
 	void updateImGui(float dt);
+
+	void renderWorld();
 
 	bool lock_camera = true;
 
@@ -60,6 +68,8 @@ private:
 	SpriteSheet object_spritesheet;
 
 	std::unique_ptr<TileMap> tilemap;
+
+	glm::vec2 world_target;
 	std::shared_ptr<World> world;
 
 	float tilemap_raws = 10.f;
@@ -81,6 +91,7 @@ private:
 
 	std::vector<Item> items;
 
+	std::shared_ptr<TileManager> tile_manager;
 	std::shared_ptr<ObjectManager> object_manager;
 	std::shared_ptr<ItemManager> item_manager;
 
@@ -90,6 +101,8 @@ private:
 	Item regeneration_potion;
 
 	UserInterface interface;
+
+	GenerationData generation_data;
 
 	//Text
 	Font font;

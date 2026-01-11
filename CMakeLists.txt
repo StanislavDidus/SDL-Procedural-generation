@@ -30,6 +30,7 @@ set(SOURCE_FILES
     "src/UI/InventoryView.cpp"
     "src/ItemManager.cpp"
     "src/ObjectManager.cpp"
+    "src/TileManager.cpp"
     )
 
 set(HEADER_FILES
@@ -59,6 +60,8 @@ set(HEADER_FILES
     "inc/ObjectManager.hpp"
     "inc/Vec2Less.hpp"
     "inc/Grid.hpp"
+    "inc/TileManager.hpp"
+    "inc/GenerationData.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
