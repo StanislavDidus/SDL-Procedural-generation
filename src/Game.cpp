@@ -75,7 +75,8 @@ void Game::initSystems()
 	input_system = std::make_unique<InputSystem>(component_manager, entity_manager);
 	collision_system = std::make_shared<CollisionSystem>(component_manager, entity_manager);
 	jump_system = std::make_unique<JumpSystem>(component_manager, entity_manager);
-	mining_system = std::make_unique<MiningSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
+	mining_tiles_system = std::make_unique<MiningTilesSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
+	mining_objects_system = std::make_unique<MiningObjectsSystem>(component_manager, entity_manager, *world, object_manager, 20.f, 20.f);
 	place_system = std::make_unique<PlaceSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
 	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
 
@@ -147,16 +148,21 @@ void Game::initObjects()
 	//Tree
 	{
 		Item apple{ 0, 1 };
-		glm::vec2 size {20.f, 60.f};
-		ObjectProperties properties{ 200.f, 0, "Tree", apple, size };
+		ObjectProperties properties{ 200.f, 0, "Tree", apple, glm::vec2{20.f, 60.f} };
 		object_manager->addObject(properties);
 	}
 
 	//Snow Tree
 	{
 		Item apple{ 0, 1 };
-		glm::vec2 size{ 20.f, 60.f };
-		ObjectProperties properties{ 200.f, 1, "Snow_Tree", apple, size };
+		ObjectProperties properties{ 200.f, 1, "Snow_Tree", apple, glm::vec2{20.f, 60.f} };
+		object_manager->addObject(properties);
+	}
+
+	//Kaktus
+	{
+		Item apple{ 0, 1 };
+		ObjectProperties properties{ 200.f, 2, "Kaktus", apple, glm::vec2{20.f, 60.f} };
 		object_manager->addObject(properties);
 	}
 }
@@ -392,16 +398,24 @@ void Game::initPlayer()
 
 	};
 
-	component_manager.mine_ability[player] = MineAbility
+	component_manager.mine_intent[player] = MineIntent
+	{
+		glm::vec2{},
+		glm::vec2{},
+		false
+	};
+
+	component_manager.mine_tiles_ability[player] = MineTilesAbility
 	{
 		150.f,
 		200.f,
 		5
 	};
 
-	component_manager.mine_intent[player] = MineIntent
+	component_manager.mine_objects_ability[player] = MineObjectsAbility
 	{
-		false
+		150.f,
+		200.f,
 	};
 
 	component_manager.place_ability[player] = PlaceAbility
@@ -413,6 +427,7 @@ void Game::initPlayer()
 
 	component_manager.place_intent[player] = PlaceIntent
 	{
+		glm::vec2{},
 		false
 	};
 
@@ -448,15 +463,16 @@ void Game::update(float dt)
 
 	interface.update();
 
-	input_system->update(dt);
+	input_system->update(screen, dt);
 	jump_system->update(dt);
 	physics_system->update(dt);
 	collision_system->update(dt);
 
 	if (!interface.isMouseCoveringInventory())
 	{
-		mining_system->update(dt, mouse, screen);
-		place_system->update(dt, mouse, screen);
+		mining_tiles_system->update(dt);
+		place_system->update(dt);
+		mining_objects_system->update(dt);
 	}
 
 	world->update(screen, dt, world_target);
@@ -477,15 +493,14 @@ void Game::update(float dt)
 	collision_system->collisions.clear();
 	world->render(screen);
 
-	mining_system->renderOutline(dt, mouse, screen);
+	mining_tiles_system->renderOutline(screen);
 
 	auto& pos = component_manager.transform[player].position;
 	auto& size = component_manager.transform[player].size;
-	if(component_manager.physics[player].is_ground)
-		screen.drawRectangle(pos.x, pos.y, size.x, size.y, RenderType::FILL, Color::RED);
-	else if(!component_manager.physics[player].is_ground)
-		screen.drawRectangle(pos.x, pos.y, size.x, size.y, RenderType::FILL, Color::BLUE);
 
+	screen.drawRectangle(pos.x, pos.y, size.x, size.y, RenderType::FILL, Color::RED);
+
+	mining_objects_system->render(screen);
 	interface.render(screen);
 
 	const auto& player_pos = component_manager.transform[player].position;
@@ -515,8 +530,8 @@ void Game::updateTilemapTarget()
 		const auto& player_position = player_transform.position;
 		const auto& player_size = player_transform.size;
 		world_target = { player_position.x + player_size.x / 2.f, player_position.y + player_size.y / 2.f };
-		glm::vec2 player_screen_position = world_target - static_cast<glm::vec2>(screen.getWindowSize()) / 2.f;
-		view_position = player_screen_position;
+		//glm::vec2 player_screen_position = world_target - static_cast<glm::vec2>(screen.getWindowSize()) / 2.f;
+		view_position = world_target;
 	}
 	else
 	{
@@ -585,14 +600,14 @@ void Game::updateInput(float dt)
 	//Change the mining radius
 	if (InputManager::isKeyDown(SDLK_EQUALS))
 	{
-		component_manager.mine_ability[player].mine_size++;
+		//component_manager.mine_ability[player].mine_size++;
 		
 	}
 	if (InputManager::isKeyDown(SDLK_MINUS))
 	{
-		int& mine_size = component_manager.mine_ability[player].mine_size;
-		mine_size--;
-		mine_size = std::max(1, mine_size);
+		//int& mine_size = component_manager.mine_ability[player].mine_size;
+		//mine_size--;
+		//mine_size = std::max(1, mine_size);
 
 	}
 }
@@ -603,8 +618,28 @@ void Game::updateImGui(float dt)
 
 	if (ImGui::CollapsingHeader("Player"))
 	{
-		ImGui::SliderFloat("mining speed", &component_manager.mine_ability[player].speed, 0.f, 1000.f);
-		ImGui::SliderFloat("mining radius", &component_manager.mine_ability[player].radius, 0.f, 500.f);
+		ImGui::Text("Tiles");
+		if (component_manager.mine_tiles_ability.contains(player))
+		{
+			ImGui::SliderFloat("mining speed", &component_manager.mine_tiles_ability[player].speed, 0.f, 1000.f);
+			ImGui::SliderFloat("mining radius", &component_manager.mine_tiles_ability[player].radius, 0.f, 500.f);
+		}
+		else
+		{
+			ImGui::Text("*Component is missing*");
+		}
+
+		ImGui::Text("Objects");
+		if (component_manager.mine_objects_ability.contains(player))
+		{
+			ImGui::SliderFloat("mining speed", &component_manager.mine_objects_ability[player].speed, 0.f, 1000.f);
+			ImGui::SliderFloat("mining radius", &component_manager.mine_objects_ability[player].radius, 0.f, 500.f);
+		}
+		else
+		{
+			ImGui::Text("*Component is missing*");
+		}
+		
 	}
 
 	if (ImGui::CollapsingHeader("Camera"))

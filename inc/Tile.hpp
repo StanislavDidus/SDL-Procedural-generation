@@ -28,6 +28,7 @@ struct Tile
 	float current_durability = 0.f;
 	bool is_destroyed = false;
 	bool sealed = false;
+	bool attached = false;
 	bool received_damage_last_frame = false;
 
 	void dealDamage(float damage);

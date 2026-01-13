@@ -43,6 +43,9 @@ public:
 
 	void placeTile(int x, int y, BlockType block);
 	void damageTile(int x, int y, float damage);
+	bool isObjectOnPosition(const glm::vec2& mouse_global_position) const;
+	std::optional<Object> getObjectOnPosition(const glm::vec2& mouse_global_position) const;
+	void damageObject(const glm::vec2& mouse_global_position, float damage);
 
 	void updateTiles();
 
@@ -85,7 +88,8 @@ private:
 	SpriteSheet tileset;
 	SpriteSheet object_spritesheet;
 
-	std::map<glm::ivec2, Object, Vec2Less> objects;
+	//std::map<glm::ivec2, Object, Vec2Less> objects;
+	std::vector<Object> objects;
 	std::vector<Object> active_objects;
 
 	Grid<Tile> world_map;

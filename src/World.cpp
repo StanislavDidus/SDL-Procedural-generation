@@ -20,6 +20,14 @@ static float mapRange(float x, float inMin, float inMax, float outMin, float out
 	return outMin + ((x - inMin) / (inMax - inMin)) * (outMax - outMin);
 }
 
+//Returns true if a rect is completely inside b
+static bool isRectInsideFloat(const SDL_FRect& a, const SDL_FRect& b)
+{
+	return a.x >= b.x &&
+		   a.x + a.w <= b.x + b.w &&
+		   a.y >= b.y &&
+	   	   a.y + a.h <= b.y + b.h;
+}
 
 World::World
 (
@@ -123,22 +131,11 @@ void World::render(Renderer& screen) const
 	{
 		if (SDL_HasRectIntersectionFloat(&camera_rect, &chunk.rect))
 		{
-			for (int x = 0; x < chunk.tilemap.getColumns(); ++x)
+			for (const auto& object : chunk.objects)
 			{
-				for (int y = 0; y < chunk.tilemap.getRows(); ++y)
-				{
-					glm::ivec2 global_position = { chunk.rect.x / 20.f + x, chunk.rect.y / 20.f + y };
-					if (objects.contains(global_position))
-					{
-						const Object& object = objects.at(global_position);
-						int sprite_index = generation_data.object_manager->getProperties(object.id).sprite_index;
-
-						glm::vec2 object_position = static_cast<glm::vec2>(global_position) * 20.f;
-						const auto& object_size = generation_data.object_manager->getProperties(object.id).size;
-
-						screen.drawScaledSprite(object_spritesheet[sprite_index], object_position.x, object_position.y, object_size.x, object_size.y);
-					}
-				}
+				const auto& object_size = generation_data.object_manager->getProperties(object.id).size;
+				int sprite_index = generation_data.object_manager->getProperties(object.id).sprite_index;
+				screen.drawScaledSprite(object_spritesheet[sprite_index], object.position.x, object.position.y, object_size.x, object_size.y);
 			}
 		}
 	}
@@ -226,7 +223,7 @@ void World::damageTile(int x, int y, float damage)
 	auto& tile = chunk.tilemap(tile_local_x, tile_local_y);
 	bool is_solid = generation_data.tile_manager->getProperties(tile.id).is_solid;
 
-	if (is_solid)
+	if (is_solid && !tile.attached)
 	{
 		tile.dealDamage(damage);
 
@@ -235,6 +232,117 @@ void World::damageTile(int x, int y, float damage)
 			tile.id = generation_data.tiles[BlockType::SKY];
 			tile.is_destroyed = false;
 		}
+	}
+}
+
+bool World::isObjectOnPosition(const glm::vec2& mouse_global_position) const
+{
+	int chunk_x_index = static_cast<int>(std::floor(mouse_global_position.x / (chunk_width_tiles * 20.f)));
+	int chunk_y_index = static_cast<int>(std::floor(mouse_global_position.y / (chunk_height_tiles * 20.f)));
+
+	int height_chunks = height_tiles / chunk_height_tiles;
+	int width_chunks = width_tiles / chunk_width_tiles;
+
+	if (chunk_x_index < 0 || chunk_x_index >= width_chunks ||
+		chunk_y_index < 0 || chunk_y_index >= height_chunks) return false;
+
+	auto& chunk = chunks.at(chunk_y_index + chunk_x_index * height_chunks);
+
+	for (auto& object : chunk.objects)
+	{
+		const auto& object_position = object.position;
+		const auto& object_size = generation_data.object_manager->getProperties(object.id).size;
+
+		if (mouse_global_position.x > object_position.x &&
+			mouse_global_position.x < object_position.x + object_size.x &&
+			mouse_global_position.y > object_position.y &&
+			mouse_global_position.y < object_position.y + object_size.y)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+std::optional<Object> World::getObjectOnPosition(const glm::vec2& mouse_global_position) const
+{
+	int chunk_x_index = static_cast<int>(std::floor(mouse_global_position.x / (chunk_width_tiles * 20.f)));
+	int chunk_y_index = static_cast<int>(std::floor(mouse_global_position.y / (chunk_height_tiles * 20.f)));
+
+	int height_chunks = height_tiles / chunk_height_tiles;
+	int width_chunks = width_tiles / chunk_width_tiles;
+
+	if (chunk_x_index < 0 || chunk_x_index >= width_chunks ||
+		chunk_y_index < 0 || chunk_y_index >= height_chunks) return std::nullopt;
+
+	auto& chunk = chunks.at(chunk_y_index + chunk_x_index * height_chunks);
+
+	for (auto& object : chunk.objects)
+	{
+		const auto& object_position = object.position;
+		const auto& object_size = generation_data.object_manager->getProperties(object.id).size;
+
+		if (mouse_global_position.x > object_position.x &&
+			mouse_global_position.x < object_position.x + object_size.x &&
+			mouse_global_position.y > object_position.y &&
+			mouse_global_position.y < object_position.y + object_size.y)
+		{
+			return object;
+		}
+	}
+
+	return std::nullopt;
+}
+
+void World::damageObject(const glm::vec2& mouse_global_position, float damage)
+{
+	int chunk_x_index = static_cast<int>(std::floor(mouse_global_position.x / (chunk_width_tiles * 20.f)));
+	int chunk_y_index = static_cast<int>(std::floor(mouse_global_position.y / (chunk_height_tiles * 20.f)));
+
+	int height_chunks = height_tiles / chunk_height_tiles;
+	int width_chunks = width_tiles / chunk_width_tiles;
+
+	if (chunk_x_index < 0 || chunk_x_index >= width_chunks ||
+		chunk_y_index < 0 || chunk_y_index >= height_chunks) return;
+
+	auto& chunk = chunks[chunk_y_index + chunk_x_index * height_chunks];
+
+	for (int i = 0; auto& object : chunk.objects)
+	{
+		const auto& object_position = object.position;
+		const auto& object_size = generation_data.object_manager->getProperties(object.id).size;
+
+		if (mouse_global_position.x > object_position.x &&
+			mouse_global_position.x < object_position.x + object_size.x &&
+			mouse_global_position.y > object_position.y &&
+			mouse_global_position.y < object_position.y + object_size.y)
+		{
+			object.dealDamage(damage);
+
+			if (object.is_destroyed)
+			{
+				chunk.objects.erase(chunk.objects.begin() + i);
+			}
+			//	//Remove attached mark from the tile beneath the object
+			//	float new_x = static_cast<float>(object_position.x / 20.f);
+			//	float new_y = static_cast<float>(object_position.y / 20.f + object_size.y / 20.f + 1.f);
+			//	int chunk_x_index = static_cast<int>(std::floor(new_x / static_cast<float>(chunk_width_tiles)));
+			//	int chunk_y_index = static_cast<int>(std::floor(new_y / static_cast<float>(chunk_height_tiles)));
+
+			//	if (chunk_x_index < 0 || chunk_x_index >= width_chunks ||
+			//		chunk_y_index < 0 || chunk_y_index >= height_chunks) continue;
+
+			//	int tile_local_x = x % chunk_width_tiles;
+			//	int tile_local_y = y % chunk_height_tiles;
+
+			//	int chunk_index_ = chunk_x_index + chunk_y_index * width_chunks;
+			//	auto& chunk_ = chunks[chunk_index_];
+			//	auto& tile = chunk_.tilemap();
+			//}
+		}
+
+		++i;
 	}
 }
 
@@ -271,6 +379,17 @@ void World::updateTiles()
 				tile.received_damage_last_frame = false;
 			}
 		}
+
+		for (auto& object : chunk.objects)
+		{
+			float max_durability = generation_data.object_manager->getProperties(object.id).durability;
+			if (object.current_durability < max_durability && !object.received_damage_last_frame)
+			{
+				object.current_durability = max_durability;
+			}
+
+			object.received_damage_last_frame = false;
+		}
 	}
 }
 
@@ -306,11 +425,13 @@ void World::splitGrid(const Grid<Tile>& grid, int chunk_width, int chunk_height)
 
 	chunks.reserve(world_width_chunks * world_height_chunks);
 
+	//Fill chunks with empty tiles
 	for (int i = 0; i < world_width_chunks * world_height_chunks; ++i)
 	{
 		chunks.emplace_back(tileset, SDL_FRect{}, chunk_height, chunk_width);
 	}
 
+	//Divide tiles between all chunks
 	for (int x = 0; x < width; ++x)
 	{
 		for (int y = 0; y < height; ++y)
@@ -328,6 +449,7 @@ void World::splitGrid(const Grid<Tile>& grid, int chunk_width, int chunk_height)
 
 	float tile_size = 20.f;
 
+	//Precalculate the rect of each chunk
 	for (int i = 0; auto& chunk : chunks)
 	{
 		int chunk_x = i / world_height_chunks;
@@ -340,6 +462,20 @@ void World::splitGrid(const Grid<Tile>& grid, int chunk_width, int chunk_height)
 		rect.h = chunk_height * tile_size;
 
 		++i;
+	}
+
+	//Divide objects between chunks
+	for (auto& chunk : chunks)
+	{
+		for (const auto& object : objects)
+		{
+			const auto& object_size = generation_data.object_manager->getProperties(object.id).size;
+			SDL_FRect object_rect{ object.position.x, object.position.y, object_size.x, object_size.y };
+			if (isRectInsideFloat(object_rect, chunk.rect))
+			{
+				chunk.objects.push_back(object);
+			}
+		}
 	}
 }
 
@@ -612,8 +748,11 @@ void World::addObjects()
 
 					if (is_space)
 					{
-						Object tree{ 0,200.f };
-						objects[glm::ivec2{ x,y - 3 }] = tree;
+						glm::vec2 position = { position_x * 20.f, (position_y - 3.f) * 20.f };
+						objects.emplace_back(0, 200.f, position);
+
+						//Make the tile attached
+						tile.attached = true;
 					}
 				}
 
@@ -641,8 +780,44 @@ void World::addObjects()
 
 						if (is_space)
 						{
-							Object tree{ 1,200.f };
-							objects[glm::ivec2{ x,y - 3 }] = tree;
+							glm::vec2 position = { position_x * 20.f, (position_y - 3.f) * 20.f };
+							objects.emplace_back(1, 200.f, position);
+
+							//Make the tile attached
+							tile.attached = true;
+						}
+					}
+				}
+
+				//Kaktus
+				if (tree_noise > generation_data.tree_threshold)
+				{
+					if (tile.id == generation_data.tiles.at(BlockType::SAND))
+					{
+						//Check for space above
+						bool is_space = true;
+						for (int i = 1; i < 4; i++)
+						{
+							int new_y = y - i;
+							if (new_y >= 0)
+							{
+								auto& tile_above = world_map(x, new_y);
+								bool is_solid = generation_data.tile_manager->getProperties(tile_above.id).is_solid;
+								if (is_solid)
+								{
+									is_space = false;
+									break;
+								}
+							}
+						}
+
+						if (is_space)
+						{
+							glm::vec2 position = { position_x * 20.f, (position_y - 3.f) * 20.f };
+							objects.emplace_back(2, 200.f, position);
+
+							//Make the tile attached
+							tile.attached = true;
 						}
 					}
 				}

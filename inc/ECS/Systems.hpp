@@ -200,14 +200,16 @@ struct InputSystem
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
 
-	void update(float dt)
+	void update(const Renderer& screen, float dt)
 	{
+		//Calculate global mouse position
+		glm::vec2 mouse_global_position = getMouseGlobalPosition(screen);
+
 		for (auto& entity : entity_manager.getEntities())
 		{
-			if (component_manager.player.contains(entity) && component_manager.physics.contains(entity))
+			if (component_manager.player.contains(entity))
 			{
 				auto& p = component_manager.player.at(entity);
-				auto& ph = component_manager.physics.at(entity);
 
 				if (component_manager.jump.contains(entity))
 				{
@@ -215,34 +217,65 @@ struct InputSystem
 					j.jump_ready = InputManager::isKey(SDLK_U);
 				}
 
+				//Mining
 				if (component_manager.mine_intent.contains(entity))
 				{
 					auto& mi = component_manager.mine_intent.at(entity);
-					mi.active = InputManager::getMouseState().left == MouseButtonState::HELD;
+					//mi.active = InputManager::getMouseState().left == MouseButtonState::HELD;
+
+					if (InputManager::getMouseState().left == MouseButtonState::DOWN)
+					{
+						mi.active = true;
+						mi.start_mouse_position = mouse_global_position;
+					}
+					if (InputManager::getMouseState().left == MouseButtonState::RELEASED || component_manager.mine_objects_finished.contains(entity))
+					{
+						mi.active = false;
+					}
+
+					mi.current_mouse_position = mouse_global_position;
 				}
 
 				if (component_manager.place_intent.contains(entity))
 				{
 					auto& pi = component_manager.place_intent.at(entity);
 					pi.active = InputManager::getMouseState().right == MouseButtonState::HELD;
+					pi.target_global_position = mouse_global_position;
 				}
 
-				if (InputManager::isKey(SDLK_H))
+				if (component_manager.physics.contains(entity))
 				{
-					ph.velocity.x -= ph.acceleration.x * dt;
-					ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
-				}
-				if (InputManager::isKey(SDLK_K))
-				{
-					ph.velocity.x += ph.acceleration.x * dt;
-					ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
-				}
-				if (!InputManager::isKey(SDLK_K) && !InputManager::isKey(SDLK_H))
-				{
-					ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
+					auto& ph = component_manager.physics.at(entity);
+					if (InputManager::isKey(SDLK_H))
+					{
+						ph.velocity.x -= ph.acceleration.x * dt;
+						ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
+					}
+					if (InputManager::isKey(SDLK_K))
+					{
+						ph.velocity.x += ph.acceleration.x * dt;
+						ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
+					}
+					if (!InputManager::isKey(SDLK_K) && !InputManager::isKey(SDLK_H))
+					{
+						ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
+					}
+
 				}
 			}
 		}
+	}
+
+private:
+	glm::vec2 getMouseGlobalPosition(const Renderer& screen)
+	{
+		const auto& view_position = screen.getView();
+		const auto& zoom = screen.getZoom();
+		const auto& window_size = screen.getWindowSize();
+
+		glm::vec2 mid_screen = { window_size.x / 2.f, window_size.y / 2.f };
+		glm::vec2 view_centered = view_position + mid_screen;
+		return view_centered + (InputManager::getMouseState().position - mid_screen) / zoom;
 	}
 };
 
@@ -264,8 +297,8 @@ struct JumpSystem
 		{
 			if (component_manager.physics.contains(entity) && component_manager.jump.contains(entity))
 			{
-				auto& ph = component_manager.physics[entity];
-				auto& j = component_manager.jump[entity];
+				auto& ph = component_manager.physics.at(entity);
+				auto& j = component_manager.jump.at(entity);
 
 				if (j.jump_ready && ph.is_ground)
 				{
@@ -278,10 +311,10 @@ struct JumpSystem
 	}
 };
 
-class MiningSystem
+class MiningTilesSystem
 {
 public:
-	MiningSystem(ComponentManager& component_manager, const EntityManager& entity_manager, World& world, float tile_width, float tile_height)
+	MiningTilesSystem(ComponentManager& component_manager, const EntityManager& entity_manager, World& world, float tile_width, float tile_height)
 		: component_manager(component_manager)
 		, entity_manager(entity_manager)
 		, tile_width(tile_width)
@@ -291,22 +324,21 @@ public:
 
 	}
 
-	void update(float dt, const MouseState& mouse_state, Renderer& screen)
+	void update(float dt)
 	{
 		for (const auto& entity : entity_manager.getEntities())
 		{
-			if (component_manager.transform.contains(entity) && component_manager.mine_ability.contains(entity) && component_manager.mine_intent.contains(entity))
+			if (component_manager.transform.contains(entity) && component_manager.mine_tiles_ability.contains(entity) && component_manager.mine_intent.contains(entity) && !component_manager.mine_objects_state.contains(entity))
 			{
 				auto& mi = component_manager.mine_intent.at(entity);
 
 				if (!mi.active) continue;
 
 				auto& ts = component_manager.transform.at(entity);
-				auto& mn = component_manager.mine_ability.at(entity);
+				auto& mta = component_manager.mine_tiles_ability.at(entity);
 
-				const auto& tile_position = getTileGridPosition(ts, mouse_state, screen);
-				int tile_x = tile_position.x;
-				int tile_y = tile_position.y;
+				int tile_x = static_cast<int>(std::floor((mi.current_mouse_position.x) / tile_width));
+				int tile_y = static_cast<int>(std::floor((mi.current_mouse_position.y) / tile_height));
 				
 				Color transparent_blue{ 0, 0, 255, 50 };
 				Color transparent_red{ 255, 0, 0, 50 };
@@ -314,7 +346,7 @@ public:
 				glm::vec2 player_mid_posiiton = ts.position + ts.size * 0.5f;
 
 				//Mine in 3x3 radius
-				int mine_size = mn.mine_size;
+				int mine_size = mta.mine_size;
 				float mid_radius_f = std::floor(mine_size / 2.f);
 				float mid_radius_c = std::ceil(mine_size / 2.f);
 				for (int i = -mid_radius_f; i < mid_radius_c; i++)
@@ -324,8 +356,8 @@ public:
 						glm::vec2 tile_posiiton_global = { (tile_x + i) * tile_width, (tile_y + j) * tile_height };
 						float distance = glm::distance(tile_posiiton_global, player_mid_posiiton);
 
-						if (distance <= mn.radius)
-							world.damageTile(tile_x + i, tile_y + j, mn.speed * dt);
+						if (distance <= mta.radius)
+							world.damageTile(tile_x + i, tile_y + j, mta.speed * dt);
 					}
 				}
 				
@@ -333,25 +365,24 @@ public:
 		}
 	}
 
-	void renderOutline(float dt, const MouseState& mouse_state, Renderer& screen)
+	void renderOutline(Renderer& screen)
 	{
 		for (const auto& entity : entity_manager.getEntities())
 		{
-			if (component_manager.transform.contains(entity) && component_manager.mine_ability.contains(entity) && component_manager.mine_intent.contains(entity))
+			if (component_manager.transform.contains(entity) && component_manager.mine_tiles_ability.contains(entity) && component_manager.mine_intent.contains(entity) && !component_manager.mine_objects_state.contains(entity))
 			{
 				auto& mi = component_manager.mine_intent.at(entity);
 
 				auto& ts = component_manager.transform.at(entity);
-				auto& mn = component_manager.mine_ability.at(entity);
+				auto& mta = component_manager.mine_tiles_ability.at(entity);
 
-				const auto& tile_position = getTileGridPosition(ts, mouse_state, screen);
-				int tile_x = tile_position.x;
-				int tile_y = tile_position.y;
+				int tile_x = static_cast<int>(std::floor((mi.current_mouse_position.x) / tile_width));
+				int tile_y = static_cast<int>(std::floor((mi.current_mouse_position.y) / tile_height));
 
 				glm::vec2 player_mid_posiiton = ts.position + ts.size * 0.5f;
 
 				//Mine in 3x3 radius
-				int mine_size = mn.mine_size;
+				int mine_size = mta.mine_size;
 				float mid_radius_f = std::floor(mine_size / 2.f);
 				float mid_radius_c = std::ceil(mine_size / 2.f);
 				for (int i = -mid_radius_f; i < mid_radius_c; i++)
@@ -361,7 +392,7 @@ public:
 						glm::vec2 tile_posiiton_global = { (tile_x + i) * tile_width, (tile_y + j) * tile_height };
 						float distance = glm::distance(tile_posiiton_global, player_mid_posiiton);
 
-						if (distance > mn.radius)
+						if (distance > mta.radius)
 						{
 							screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_RED);
 						}
@@ -377,29 +408,6 @@ public:
 	}
 
 private:
-	glm::ivec2 getTileGridPosition(const Transform& ts, const MouseState& mouse_state, const Renderer& screen) const
-	{
-		const auto& view_position = screen.getView();
-		const auto& zoom = screen.getZoom();
-		const auto& window_size = screen.getWindowSize();
-
-		glm::vec2 mid_screen = { window_size.x / 2.f, window_size.y / 2.f };
-		glm::vec2 view_centered = view_position + mid_screen;
-		glm::vec2 mid_position = ts.position + ts.size * 0.5f;
-
-		//Mouse global position
-		const auto& mouse_position = view_centered + (mouse_state.position - mid_screen) / zoom;
-
-		float distance = glm::distance(mid_position, mouse_position);
-
-		//if (distance > mn.radius) return;
-
-		int tile_x = static_cast<int>(std::floor((mouse_position.x) / tile_width));
-		int tile_y = static_cast<int>(std::floor((mouse_position.y) / tile_height));
-
-		return { tile_x, tile_y };
-	}
-
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
 
@@ -421,7 +429,7 @@ public:
 	{
 	}
 
-	void update(float dt, const MouseState& mouse_state, Renderer& screen)
+	void update(float dt)
 	{
 		for (const auto& entity : entity_manager.getEntities())
 		{
@@ -438,17 +446,10 @@ public:
 
 				auto& ts = component_manager.transform.at(entity);
 
-				const auto& view_position = screen.getView();
-				const auto& zoom = screen.getZoom();
-				const auto& window_size = screen.getWindowSize();
-
-				glm::vec2 mid_screen = { window_size.x / 2.f, window_size.y / 2.f };
-				glm::vec2 view_centered = view_position + mid_screen;
 				glm::vec2 mid_position = ts.position + ts.size * 0.5f;
+				const auto& mouse_global_position = pi.target_global_position;
 
-				const auto& mouse_position = view_centered + (mouse_state.position - mid_screen) / zoom;
-
-				float distance = glm::distance(mid_position, mouse_position);
+				float distance = glm::distance(mid_position, mouse_global_position);
 
 				if (distance > pl.radius) continue;
 
@@ -456,8 +457,8 @@ public:
 				float min_distance = glm::distance(mid_position, ts.position);
 				if (distance < min_distance) continue;
 
-				int tile_x = static_cast<int>(std::floor((mouse_position.x) / tile_width));
-				int tile_y = static_cast<int>(std::floor((mouse_position.y) / tile_height));
+				int tile_x = static_cast<int>(std::floor((mouse_global_position.x) / tile_width));
+				int tile_y = static_cast<int>(std::floor((mouse_global_position.y) / tile_height));
 
 				world.placeTile(tile_x, tile_y, BlockType::GRASS);
 
@@ -523,4 +524,144 @@ public:
 private:
 	ComponentManager& component_manager;
 	Entity& target_entity;
+};
+
+
+class MiningObjectsSystem
+{
+public:
+	MiningObjectsSystem(ComponentManager& component_manager, const EntityManager& entity_manager, World& world, std::shared_ptr<ObjectManager> object_manager, float tile_width, float tile_height)
+		: component_manager(component_manager)
+		, entity_manager(entity_manager)
+		, object_manager(object_manager)
+		, tile_width(tile_width)
+		, tile_height(tile_height)
+		, world(world)
+	{
+		
+	}
+
+	void update(float dt)
+	{
+		for (auto& entity : entity_manager.getEntities())
+		{
+			if (component_manager.transform.contains(entity))
+			{
+				auto& ts = component_manager.transform.at(entity);
+
+				//Remove start-finish marks
+				if (component_manager.mine_objects_started.contains(entity))
+				{
+					component_manager.mine_objects_started.erase(entity);
+				}
+				if (component_manager.mine_objects_finished.contains(entity))
+				{
+					component_manager.mine_objects_finished.erase(entity);
+				}
+
+				if (component_manager.mine_intent.contains(entity) && component_manager.mine_objects_ability.contains(entity))
+				{
+					auto& mi = component_manager.mine_intent.at(entity);
+					auto& moa = component_manager.mine_objects_ability.at(entity);
+
+					const auto& mid_position = ts.position + ts.size * 0.5f;
+					float distance = glm::distance(mid_position, mi.start_mouse_position);
+
+					bool is_mouse_covering_object = world.isObjectOnPosition(mi.start_mouse_position) && distance < moa.radius;
+					//Mining started
+					if (!component_manager.mine_objects_state.contains(entity))
+					{
+						if (mi.active && is_mouse_covering_object)
+						{
+							//Do something at the start
+							component_manager.mine_objects_state[entity] = MineObjectsState{};
+							component_manager.mine_objects_started[entity] = MineObjectsStarted{};
+							std::cout << "Mining_Objects_Started" << std::endl;
+
+						}
+					}
+
+					//Mining stopped
+					if (component_manager.mine_objects_state.contains(entity))
+					{
+						if (!mi.active || distance > moa.radius)
+						{
+							component_manager.mine_objects_state.erase(entity);
+							component_manager.mine_objects_finished[entity] = MineObjectsFinished{};
+
+							//Do something at the end
+							std::cout << "Mining_Objects_Ended" << std::endl;
+						}
+						else if (mi.active)
+						{
+							 world.damageObject(mi.start_mouse_position, moa.speed * dt);
+							// std::cout << "Deal damage\n";
+						}
+					}
+				}
+			}
+		}
+	}
+
+	void render(Renderer& screen)
+	{
+		for (auto& entity : entity_manager.getEntities())
+		{
+			if (component_manager.mine_intent.contains(entity) && component_manager.transform.contains(entity) && component_manager.mine_objects_ability.contains(entity))
+			{
+				auto& moa = component_manager.mine_objects_ability.at(entity);
+				auto& ts = component_manager.transform.at(entity);
+				auto& mi = component_manager.mine_intent.at(entity);
+				if (component_manager.mine_objects_state.contains(entity))
+				{
+					auto object = world.getObjectOnPosition(mi.start_mouse_position);
+
+					if (object)
+					{
+						if (auto s = object_manager.lock())
+						{
+							const auto& object_position = object->position;
+							const auto& object_size = s->getProperties(object->id).size;
+							screen.drawRectangle(object_position.x, object_position.y, object_size.x, object_size.y, RenderType::NONE, Color::YELLOW);
+						}
+					}
+				}
+				else
+				{
+					auto object = world.getObjectOnPosition(mi.current_mouse_position);
+
+					if (object)
+					{
+						if (auto s = object_manager.lock())
+						{
+							const auto& mid_position = ts.position + ts.size * 0.5f;
+							float distance = glm::distance(mid_position, mi.current_mouse_position);
+							const auto& object_position = object->position;
+							const auto& object_size = s->getProperties(object->id).size;
+
+							if (distance < moa.radius)
+							{
+								
+								screen.drawRectangle(object_position.x, object_position.y, object_size.x, object_size.y, RenderType::NONE, Color::BLUE);
+							}
+							else
+							{
+								screen.drawRectangle(object_position.x, object_position.y, object_size.x, object_size.y, RenderType::NONE, Color::RED);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+private:
+
+	ComponentManager& component_manager;
+	const EntityManager& entity_manager;
+	std::weak_ptr<ObjectManager> object_manager;
+
+	World& world;
+
+	float tile_width = 1.f;
+	float tile_height = 1.f;
 };

@@ -41,18 +41,42 @@ namespace Components
 
 	struct MineIntent
 	{
+		glm::vec2 start_mouse_position;
+		glm::vec2 current_mouse_position;
 		bool active;
 	};
 
-	struct MineAbility
+	struct MineTilesAbility
 	{
 		float radius;
 		float speed;
 		int mine_size;
 	};
 
+	struct MineObjectsAbility
+	{
+		float radius;
+		float speed;
+	};
+
+	struct MineObjectsState
+	{
+
+	};
+
+	struct MineObjectsStarted
+	{
+
+	};
+
+	struct MineObjectsFinished
+	{
+
+	};
+
 	struct PlaceIntent
 	{
+		glm::vec2 target_global_position;
 		bool active;
 	};
 
@@ -93,7 +117,13 @@ public:
 	std::unordered_map<Entity, Jump> jump;
 	std::unordered_map<Entity, Player> player; 
 	std::unordered_map<Entity, Health> health;
-	std::unordered_map<Entity, MineAbility> mine_ability;
+
+	std::unordered_map<Entity, MineTilesAbility> mine_tiles_ability;
+	std::unordered_map<Entity, MineObjectsAbility> mine_objects_ability;
+	std::unordered_map<Entity, MineObjectsState> mine_objects_state;
+	std::unordered_map<Entity, MineObjectsStarted> mine_objects_started;
+	std::unordered_map<Entity, MineObjectsFinished> mine_objects_finished;
+
 	std::unordered_map<Entity, MineIntent> mine_intent;
 	std::unordered_map<Entity, PlaceAbility> place_ability;
 	std::unordered_map<Entity, PlaceIntent> place_intent;

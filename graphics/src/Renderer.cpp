@@ -22,7 +22,7 @@ Renderer::~Renderer()
 
 void Renderer::setView(const glm::vec2& view_position)
 {
-	this->view_position = view_position;
+	this->view_position = view_position - static_cast<glm::vec2>(getWindowSize()) * 0.5f;
 }
 
 void Renderer::setZoom(float zoom)

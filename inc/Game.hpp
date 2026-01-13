@@ -83,7 +83,8 @@ private:
 	std::unique_ptr<InputSystem> input_system;
 	std::shared_ptr<CollisionSystem> collision_system;
 	std::unique_ptr<JumpSystem> jump_system;
-	std::unique_ptr<MiningSystem> mining_system;
+	std::unique_ptr<MiningTilesSystem> mining_tiles_system;
+	std::unique_ptr<MiningObjectsSystem> mining_objects_system;
 	std::unique_ptr<PlaceSystem> place_system;
 	std::shared_ptr<ItemUsageSystem> item_usage_system;
 

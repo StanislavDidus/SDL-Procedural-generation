@@ -1,6 +1,14 @@
 #include "UI/InventoryView.hpp"
 #include <sstream>
 
+InventoryView::InventoryView(const Font& font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position)
+	: UIElement(position, { slot_size * columns , slot_size * rows }), font(font), item_sprites(item_sprites), inventory(inventory), rows(rows), columns(columns), slot_size(slot_size)
+{
+	if (inventory) {
+		slot_text.resize(inventory->getItems().size());
+	}
+}
+
 void InventoryView::update()
 {
 	isCoveringInventory();
