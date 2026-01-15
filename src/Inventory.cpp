@@ -1,4 +1,5 @@
 #include "Inventory.hpp"
+#include "ECS/Systems.hpp"
 #include <iostream>
 
 Inventory::Inventory(std::shared_ptr<ItemUsageSystem> item_usage_system, std::shared_ptr<ItemManager> item_manager, int size) 

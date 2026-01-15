@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <unordered_map>
 
-#include "glm/glm.hpp"
 #include "ECS/Entity.hpp"
 #include "Sprite.hpp"
 
@@ -25,6 +24,7 @@ namespace Components
 
 	struct Physics
 	{
+		bool can_move_horizontal = true;
 		glm::vec2 velocity;
 		glm::vec2 acceleration;
 		glm::vec2 max_velocity;
@@ -89,7 +89,7 @@ namespace Components
 
 	struct Player
 	{
-
+		
 	};
 
 	struct Health
@@ -102,11 +102,13 @@ namespace Components
 	{
 		std::shared_ptr<Inventory> inventory;
 	};
-
 }
 
 using namespace Components;
 
+/// <summary>
+/// Manager of components.
+/// </summary>
 class ComponentManager
 {
 public:
@@ -124,7 +126,7 @@ public:
 	std::unordered_map<Entity, MineObjectsStarted> mine_objects_started;
 	std::unordered_map<Entity, MineObjectsFinished> mine_objects_finished;
 
-	std::unordered_map<Entity, MineIntent> mine_intent;
+	std::unordered_map<Entity, MineIntent> mine_intent; ///< Shows the <b>entity's</b> intent to mine.
 	std::unordered_map<Entity, PlaceAbility> place_ability;
 	std::unordered_map<Entity, PlaceIntent> place_intent;
 	std::unordered_map<Entity, HasInventory> has_inventory;

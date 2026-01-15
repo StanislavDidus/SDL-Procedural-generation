@@ -9,6 +9,12 @@ public:
 	Window(const char* title, int width, int height, SDL_WindowFlags flags);
 	~Window();
 
+	Window(const Window& copy) = delete;
+	Window& operator=(const Window& copy) = delete;
+
+	Window(const Window&& move) noexcept = delete;
+	Window& operator=(Window&& move) noexcept = delete;
+
 	bool pollEvent(SDL_Event& event);
 
 	//Getters

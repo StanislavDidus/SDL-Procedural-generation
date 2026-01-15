@@ -2,16 +2,15 @@
 
 #include <iostream>
 #include <string>
-#include "Item.hpp"
+#include "RandomizedItem.hpp"
 #include "glm/vec2.hpp"
-#include "SDL3/SDL_rect.h"
 
 struct ObjectProperties
 {
 	float durability;
 	int sprite_index;
 	std::string name;
-	Item item;
+	std::vector<RandomizedItem> drop;
 	glm::vec2 size;
 };
 

@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include <algorithm>
 #include <iostream>
 
 #include "imgui.h"
@@ -47,7 +48,7 @@ Game::Game(Renderer& screen)
 	initGenerationData();
 	initBiomes();
 
-	world = std::make_shared<World>(generation_data, tileset, object_spritesheet, collision_system, object_manager, 500, 200);
+	world = std::make_shared<World>(generation_data, tileset, object_spritesheet, collision_system, object_manager, 500, 200, 20.f, 20.f);
 
 	initSystems();
 	initPlayer();	
@@ -139,6 +140,13 @@ void Game::initItems()
 
 		item_manager->addItem(properties);
 	}
+
+	//Wood
+	{
+		std::vector<std::shared_ptr<ItemComponent>> components;
+		ItemProperties properties{ true, 4, "Wood", components };
+		item_manager->addItem(properties);
+	}
 }
 
 void Game::initObjects()
@@ -147,25 +155,32 @@ void Game::initObjects()
 
 	//Tree
 	{
-		Item apple{ 0, 1 };
-		ObjectProperties properties{ 200.f, 0, "Tree", apple, glm::vec2{20.f, 60.f} };
+		RandomizedItem apple{ 0, 0.5f, 1, 1 };
+		RandomizedItem wood{ 4, 1.f, 2, 7 };
+		std::vector<RandomizedItem> items{ apple, wood };
+		ObjectProperties properties{ 200.f, 0, "Tree", items, glm::vec2{20.f, 60.f} };
 		object_manager->addObject(properties);
 	}
 
 	//Snow Tree
 	{
-		Item apple{ 0, 1 };
-		ObjectProperties properties{ 200.f, 1, "Snow_Tree", apple, glm::vec2{20.f, 60.f} };
+		RandomizedItem apple{ 0, 0.5f, 1, 1 };
+		RandomizedItem wood{ 4, 1.f, 2, 7 };
+		std::vector<RandomizedItem> items{ apple, wood };
+		ObjectProperties properties{ 200.f, 1, "Snow_Tree", items, glm::vec2{20.f, 60.f} };
 		object_manager->addObject(properties);
 	}
 
-	//Kaktus
+	//Cactus
 	{
-		Item apple{ 0, 1 };
-		ObjectProperties properties{ 200.f, 2, "Kaktus", apple, glm::vec2{20.f, 60.f} };
+		RandomizedItem apple{ 0, 0.5f, 1, 1 };
+		RandomizedItem wood{ 4, 1.f, 2, 7 };
+		std::vector<RandomizedItem> items{ apple, wood };
+		ObjectProperties properties{ 200.f, 2, "cactus", items, glm::vec2{20.f, 60.f} };
 		object_manager->addObject(properties);
 	}
 }
+
 
 void Game::initTiles()
 {
@@ -381,6 +396,7 @@ void Game::initPlayer()
 	};
 
 	component_manager.physics[player] = Physics{
+		true,
 	glm::vec2{0.f, 0.f},
 	glm::vec2{1500.f, 0.f},
 	glm::vec2{250.f, 200.f,},
@@ -477,6 +493,7 @@ void Game::update(float dt)
 
 	world->update(screen, dt, world_target);
 	world->updateTiles();
+	world->rebuildChunks();
 
 	updateTilemapTarget();
 

@@ -14,7 +14,7 @@ Window::Window(const char* title, int width, int height, SDL_WindowFlags flags)
 }
 
 Window::~Window()
-{;
+{
 	SDL_DestroyWindow(window);
 
 	std::cout << "Window was deleted" << std::endl;

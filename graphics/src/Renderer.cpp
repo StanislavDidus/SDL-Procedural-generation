@@ -1,5 +1,7 @@
 #include "Renderer.hpp"
 #include "Sprite.hpp"
+#include "Color.hpp"
+#include "Window.hpp"
 
 #include <iostream>
 

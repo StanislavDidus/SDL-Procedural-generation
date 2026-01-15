@@ -25,7 +25,7 @@ void EntityManager::destroyEntity(Entity id)
 {
 	ids.push_back(id);
 
-	entities.erase(std::remove(entities.begin(), entities.end(), id));
+	std::erase(entities, id);
 }
 
 const std::vector<Entity>& EntityManager::getEntities() const

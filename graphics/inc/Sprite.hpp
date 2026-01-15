@@ -1,9 +1,6 @@
 #pragma once
 
-#include <SDL3/SDL.h>
-#include "Surface.hpp"
-#include "Renderer.hpp"
-#include "glm/glm.hpp"
+#include "SDL3/SDL_render.h"
 
 class Sprite
 {

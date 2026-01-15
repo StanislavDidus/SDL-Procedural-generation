@@ -19,7 +19,11 @@
 
 class CollisionSystem;
 
-
+struct TileChange
+{
+	int id;
+	glm::ivec2 position;
+};
 
 	
 class World
@@ -31,27 +35,31 @@ public:
 		const SpriteSheet& object_spritesheet,
 		std::shared_ptr<CollisionSystem> collision_system,
 		std::shared_ptr<ObjectManager> object_manager,
-		int width_tiles, int height_tiles
+		int width_tiles, int height_tiles,
+		float tile_width_world, float tile_height_world
 	);
-	~World();
+	~World() = default;
 
 	//Setters
 	void setCollisionSystem(std::shared_ptr<CollisionSystem> collision_system);
 
-	void update(Renderer& screen, float dt, const glm::vec2& target);
+	void update(const Renderer& screen, float dt, const glm::vec2& target);
 	void render(Renderer& screen) const;
 
-	void placeTile(int x, int y, BlockType block);
-	void damageTile(int x, int y, float damage);
-	bool isObjectOnPosition(const glm::vec2& mouse_global_position) const;
-	std::optional<Object> getObjectOnPosition(const glm::vec2& mouse_global_position) const;
-	void damageObject(const glm::vec2& mouse_global_position, float damage);
+	void rebuildChunks();
+
+	void placeTile(int x, int tile_y, BlockType block);
+	void damageTile(int tile_x, int tile_y, float damage);
+	Object* getObjectOnPosition(const glm::vec2& mouse_global_position);
+	std::optional<int> damageObject(const glm::vec2& mouse_global_position, float damage); ///< Returns <b>id</b> of a destroyed object, returns <b>std::nullopt</b> if no object was ndestroyed.
 
 	void updateTiles();
 
 	void generateWorld(std::optional<int> seed);
 private:
 	void splitGrid(const Grid<Tile>& grid, int chunk_width, int chunk_height);
+	Chunk& tilePositionToChunk(const glm::ivec2 tile_position);
+	glm::ivec2 getTileLocalPosition(const glm::ivec2 tile_position) const;
 	
 	void initSeeds(std::optional<int> seed_opt);
 	GenerationData generation_data;
@@ -94,6 +102,13 @@ private:
 
 	Grid<Tile> world_map;
 
+	std::vector<TileChange> dirt_tiles;
+
+	float tile_width_world;
+	float tile_height_world;
+	
+	float world_width_chunks;
+	float world_height_chunks;
 
 	int width_tiles;
 	int height_tiles;

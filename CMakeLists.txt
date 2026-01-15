@@ -62,6 +62,7 @@ set(HEADER_FILES
     "inc/Grid.hpp"
     "inc/TileManager.hpp"
     "inc/GenerationData.hpp"
+    "inc/RandomizedItem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

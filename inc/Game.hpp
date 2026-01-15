@@ -23,6 +23,8 @@
 #include "GenerationData.hpp"
 #include <memory>
 
+#include "glm/gtc/random.inl"
+
 class Game
 {
 public:
@@ -96,10 +98,10 @@ private:
 	std::shared_ptr<ObjectManager> object_manager;
 	std::shared_ptr<ItemManager> item_manager;
 
-	Item apple;
+	/*Item apple;
 	Item banana;
 	Item heal_potion;
-	Item regeneration_potion;
+	Item regeneration_potion;*/
 
 	UserInterface interface;
 

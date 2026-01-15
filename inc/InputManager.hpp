@@ -11,7 +11,7 @@ enum class MouseButtonState
 	DOWN,
 	HELD,
 	RELEASED,
-};
+};	
 
 struct MouseState
 {

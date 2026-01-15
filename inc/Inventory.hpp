@@ -3,9 +3,11 @@
 #include "Item.hpp"
 #include <optional>
 #include <vector>
-#include "ECS/Systems.hpp"
+
 
 #include "ItemManager.hpp"
+
+class ItemUsageSystem;
 
 class Renderer;
 
@@ -29,8 +31,6 @@ public:
 
 	const std::vector<std::optional<Item>>& getItems() const;
 	void printContent();
-
-	void render(Renderer& screen);
 
 	//Getters
 	std::shared_ptr<ItemManager> getItemManager() const;

@@ -28,6 +28,9 @@ int main()
         return SDL_APP_FAILURE;
     }
 
+    //Initialize randomizer
+    srand(time(0));
+
     Window window{ "First SDL program", 960, 540, SDL_WINDOW_RESIZABLE};
     Renderer renderer{ window };
     Game game{ renderer };

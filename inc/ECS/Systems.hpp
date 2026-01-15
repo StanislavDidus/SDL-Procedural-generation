@@ -5,8 +5,28 @@
 #include "Renderer.hpp"
 #include "World.hpp"
 #include "Item.hpp"
+#include "RandomizedItem.hpp"
 
 #include "InputManager.hpp"
+#include "Inventory.hpp"
+#include "glm/gtc/random.hpp"
+
+/// <summary>
+/// Static function that takes an item and randomly decides whether add the item to the given inventory.
+/// Quantities are also generated randomly based on the variables defined in <b>RandomizedItem</b> class.
+/// </summary>
+/// <param name="inventory">Takes an inventory where an item will be added.</param>
+/// <param name="item">Item that is being added to the inventory</param>
+static void addRandomizedItem(Inventory& inventory, const RandomizedItem& item)
+{
+	float drop_rand = glm::linearRand(0.0f, 1.0f);
+	int quantities_rand = glm::linearRand(item.drop_quantity_min, item.drop_quantity_max);
+
+	if (drop_rand <= item.drop_chance)
+	{
+		inventory.addItem(item.item_id, quantities_rand);
+	}
+}
 
 static bool AABB(const Transform& a, const Transform& b)
 {
@@ -41,7 +61,9 @@ struct PhysicsSystem
 				float gravity = 1400.f;
 				ph.velocity.y += gravity * dt;
 
-				ts.position += ph.velocity * dt;
+				ts.position.y += ph.velocity.y * dt;
+
+				if (ph.can_move_horizontal) ts.position.x += ph.velocity.x * dt;
 			}
 		}
 	}
@@ -211,6 +233,7 @@ struct InputSystem
 			{
 				auto& p = component_manager.player.at(entity);
 
+				// Jump
 				if (component_manager.jump.contains(entity))
 				{
 					auto& j = component_manager.jump.at(entity);
@@ -236,6 +259,7 @@ struct InputSystem
 					mi.current_mouse_position = mouse_global_position;
 				}
 
+				//Block placement
 				if (component_manager.place_intent.contains(entity))
 				{
 					auto& pi = component_manager.place_intent.at(entity);
@@ -243,6 +267,7 @@ struct InputSystem
 					pi.target_global_position = mouse_global_position;
 				}
 
+				//Horizontal movement
 				if (component_manager.physics.contains(entity))
 				{
 					auto& ph = component_manager.physics.at(entity);
@@ -328,39 +353,37 @@ public:
 	{
 		for (const auto& entity : entity_manager.getEntities())
 		{
-			if (component_manager.transform.contains(entity) && component_manager.mine_tiles_ability.contains(entity) && component_manager.mine_intent.contains(entity) && !component_manager.mine_objects_state.contains(entity))
+			if (!component_manager.transform.contains(entity) ||
+				!component_manager.mine_tiles_ability.contains(entity) ||
+				!component_manager.mine_intent.contains(entity) ||
+				component_manager.mine_objects_state.contains(entity))
+				continue;
+			
+			auto& mi = component_manager.mine_intent.at(entity);
+			auto& ts = component_manager.transform.at(entity);
+			auto& mta = component_manager.mine_tiles_ability.at(entity);
+
+			if (!mi.active) continue;
+
+			const auto& mid_position = ts.position + ts.size * 0.5f;
+
+			int tile_x = static_cast<int>(std::floor((mi.current_mouse_position.x) / tile_width));
+			int tile_y = static_cast<int>(std::floor((mi.current_mouse_position.y) / tile_height));
+
+			//Mine in 3x3 radius
+			int mine_size = mta.mine_size;
+			float mid_radius_f = std::floor(mine_size / 2.f);
+			float mid_radius_c = std::ceil(mine_size / 2.f);
+			for (int i = -mid_radius_f; i < mid_radius_c; i++)
 			{
-				auto& mi = component_manager.mine_intent.at(entity);
-
-				if (!mi.active) continue;
-
-				auto& ts = component_manager.transform.at(entity);
-				auto& mta = component_manager.mine_tiles_ability.at(entity);
-
-				int tile_x = static_cast<int>(std::floor((mi.current_mouse_position.x) / tile_width));
-				int tile_y = static_cast<int>(std::floor((mi.current_mouse_position.y) / tile_height));
-				
-				Color transparent_blue{ 0, 0, 255, 50 };
-				Color transparent_red{ 255, 0, 0, 50 };
-
-				glm::vec2 player_mid_posiiton = ts.position + ts.size * 0.5f;
-
-				//Mine in 3x3 radius
-				int mine_size = mta.mine_size;
-				float mid_radius_f = std::floor(mine_size / 2.f);
-				float mid_radius_c = std::ceil(mine_size / 2.f);
-				for (int i = -mid_radius_f; i < mid_radius_c; i++)
+				for (int j = -mid_radius_f; j < mid_radius_c; j++)
 				{
-					for (int j = -mid_radius_f; j < mid_radius_c; j++)
-					{
-						glm::vec2 tile_posiiton_global = { (tile_x + i) * tile_width, (tile_y + j) * tile_height };
-						float distance = glm::distance(tile_posiiton_global, player_mid_posiiton);
+					glm::vec2 tile_position_global = { (tile_x + i) * tile_width, (tile_y + j) * tile_height };
+					float distance = glm::distance(tile_position_global, mid_position);
 
-						if (distance <= mta.radius)
-							world.damageTile(tile_x + i, tile_y + j, mta.speed * dt);
-					}
+					if (distance <= mta.radius)
+						world.damageTile(tile_x + i, tile_y + j, mta.speed * dt);
 				}
-				
 			}
 		}
 	}
@@ -452,6 +475,7 @@ public:
 				float distance = glm::distance(mid_position, mouse_global_position);
 
 				if (distance > pl.radius) continue;
+				if (world.getObjectOnPosition(mouse_global_position)) continue;
 
 				//Prevents from placing blocks on the player 
 				float min_distance = glm::distance(mid_position, ts.position);
@@ -474,59 +498,6 @@ private:
 	float tile_height = 1.f;
 };
 
-class ItemUsageSystem
-{
-public:
-	ItemUsageSystem(ComponentManager& component_manager, Entity& target_entity)
-		: component_manager(component_manager)
-		, target_entity(target_entity)
-	{
-	}
-
-	bool useItem(const ItemProperties& item_properties) // returns true if item was used
-	{
-		bool is_usable = false;
-		const auto& components = item_properties.components;
-		for (const auto& component : components)
-		{
-			if (std::dynamic_pointer_cast<ItemComponents::Usable>(component))
-			{
-				is_usable = true;
-				break;
-			}
-		}
-
-		if (!is_usable) return false; 
-
-		for (const auto& component : components)
-		{
-			auto heal_component = std::dynamic_pointer_cast<ItemComponents::Heal>(component);
-			if (heal_component)
-			{
-				//Heal
-				auto& health_component = component_manager.health[target_entity];
-				health_component.current_health = std::min(health_component.max_health, health_component.current_health + heal_component->value);
-			}
-			else if (std::dynamic_pointer_cast<ItemComponents::AddEffect>(component))
-			{
-				//AddEffect
-			}
-		}
-
-		return true;
-	}
-
-	void update(float dt)
-	{
-
-	}
-
-private:
-	ComponentManager& component_manager;
-	Entity& target_entity;
-};
-
-
 class MiningObjectsSystem
 {
 public:
@@ -545,59 +516,83 @@ public:
 	{
 		for (auto& entity : entity_manager.getEntities())
 		{
-			if (component_manager.transform.contains(entity))
+			//Check if required components exist
+			if (!component_manager.transform.contains(entity) ||
+				!component_manager.mine_intent.contains(entity) ||
+				!component_manager.mine_objects_ability.contains(entity))
+				continue;
+			
+			auto& ts = component_manager.transform.at(entity);
+			auto& mi = component_manager.mine_intent.at(entity);
+			auto& moa = component_manager.mine_objects_ability.at(entity);
+
+			const auto& mid_position = ts.position + ts.size * 0.5f;
+			float distance = glm::distance(mid_position, mi.start_mouse_position);
+			bool is_mining = world.getObjectOnPosition(mi.start_mouse_position) && distance < moa.radius && mi.active;
+
+			//Remove start-finish marks
+			if (component_manager.mine_objects_started.contains(entity))
 			{
-				auto& ts = component_manager.transform.at(entity);
+				component_manager.mine_objects_started.erase(entity);
+			}
+			if (component_manager.mine_objects_finished.contains(entity))
+			{
+				component_manager.mine_objects_finished.erase(entity);
+			}
 
-				//Remove start-finish marks
-				if (component_manager.mine_objects_started.contains(entity))
+			//Entity was not mining 
+			if (!component_manager.mine_objects_state.contains(entity))
+			{
+				if (is_mining)
 				{
-					component_manager.mine_objects_started.erase(entity);
-				}
-				if (component_manager.mine_objects_finished.contains(entity))
-				{
-					component_manager.mine_objects_finished.erase(entity);
-				}
+					//Do something at the start
+					component_manager.mine_objects_state[entity] = MineObjectsState{};
+					component_manager.mine_objects_started[entity] = MineObjectsStarted{};
+					//std::cout << "Mining_Objects_Started" << std::endl;
 
-				if (component_manager.mine_intent.contains(entity) && component_manager.mine_objects_ability.contains(entity))
-				{
-					auto& mi = component_manager.mine_intent.at(entity);
-					auto& moa = component_manager.mine_objects_ability.at(entity);
-
-					const auto& mid_position = ts.position + ts.size * 0.5f;
-					float distance = glm::distance(mid_position, mi.start_mouse_position);
-
-					bool is_mouse_covering_object = world.isObjectOnPosition(mi.start_mouse_position) && distance < moa.radius;
-					//Mining started
-					if (!component_manager.mine_objects_state.contains(entity))
+					//If entity has physics component - limit horizontal movement
+					if (component_manager.physics.contains(entity))
 					{
-						if (mi.active && is_mouse_covering_object)
-						{
-							//Do something at the start
-							component_manager.mine_objects_state[entity] = MineObjectsState{};
-							component_manager.mine_objects_started[entity] = MineObjectsStarted{};
-							std::cout << "Mining_Objects_Started" << std::endl;
-
-						}
+						component_manager.physics.at(entity).can_move_horizontal = false;
 					}
 
-					//Mining stopped
-					if (component_manager.mine_objects_state.contains(entity))
-					{
-						if (!mi.active || distance > moa.radius)
-						{
-							component_manager.mine_objects_state.erase(entity);
-							component_manager.mine_objects_finished[entity] = MineObjectsFinished{};
+				}
+			}
+			//Entity was mining
+			else
+			{
+				if (!is_mining)
+				{
+					component_manager.mine_objects_state.erase(entity);
+					component_manager.mine_objects_finished[entity] = MineObjectsFinished{};
 
-							//Do something at the end
-							std::cout << "Mining_Objects_Ended" << std::endl;
-						}
-						else if (mi.active)
-						{
-							 world.damageObject(mi.start_mouse_position, moa.speed * dt);
-							// std::cout << "Deal damage\n";
-						}
+					//Do something at the end
+					//std::cout << "Mining_Objects_Ended" << std::endl;
+
+					//If entity has physics component - return horizontal movement
+					if (component_manager.physics.contains(entity))
+					{
+						component_manager.physics.at(entity).can_move_horizontal = true;
 					}
+				}
+				else
+				{
+					auto destroyed_object_id = world.damageObject(mi.start_mouse_position, moa.speed * dt);
+
+					//If object was successfully destroyed - add items to the entity's inventory
+					if (destroyed_object_id && component_manager.has_inventory.contains(entity))
+					{
+						if (auto s = object_manager.lock())
+						{
+							const auto& items = s->getProperties(*destroyed_object_id).drop;
+							for (const auto& item : items)
+							{
+								addRandomizedItem(*component_manager.has_inventory.at(entity).inventory, item);
+							}
+						}
+						
+					}
+					// std::cout << "Deal damage\n";
 				}
 			}
 		}
@@ -664,4 +659,56 @@ private:
 
 	float tile_width = 1.f;
 	float tile_height = 1.f;
+};
+
+class ItemUsageSystem
+{
+public:
+	ItemUsageSystem(ComponentManager& component_manager, Entity& target_entity)
+		: component_manager(component_manager)
+		, target_entity(target_entity)
+	{
+	}
+
+	bool useItem(const ItemProperties& item_properties) ///< returns true if item was used and returns false if item was not possible to use
+	{
+		bool is_usable = false;
+		const auto& components = item_properties.components;
+		for (const auto& component : components)
+		{
+			if (std::dynamic_pointer_cast<ItemComponents::Usable>(component))
+			{
+				is_usable = true;
+				break;
+			}
+		}
+
+		if (!is_usable) return false;
+
+		for (const auto& component : components)
+		{
+			auto heal_component = std::dynamic_pointer_cast<ItemComponents::Heal>(component);
+			if (heal_component)
+			{
+				//Heal
+				auto& health_component = component_manager.health[target_entity];
+				health_component.current_health = std::min(health_component.max_health, health_component.current_health + heal_component->value);
+			}
+			else if (std::dynamic_pointer_cast<ItemComponents::AddEffect>(component))
+			{
+				//AddEffect
+			}
+		}
+
+		return true;
+	}
+
+	void update(float dt)
+	{
+
+	}
+
+private:
+	ComponentManager& component_manager;
+	Entity& target_entity;
 };
