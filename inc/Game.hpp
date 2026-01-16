@@ -1,29 +1,22 @@
 #pragma once
 
-#include <SDL3/SDL.h>
-
 #include "Renderer.hpp"
 #include "SpriteSheet.hpp"
-#include "ValueNoise.hpp"
-#include "PerlynNoise.hpp"
 #include "MapRange.hpp"
-#include "Biomes.hpp"
 #include "TileMap.hpp"
 #include "World.hpp"
-#include "glm/glm.hpp"
+#include "glm/vec2.hpp"
 #include "Item.hpp"
 #include "Font.hpp"
-#include <bitset>
 
 #include "ECS/Systems.hpp"
 #include "UI/UserInterface.hpp"
 #include "ItemManager.hpp"
-#include "Inventory.hpp"
 #include "ObjectManager.hpp"
 #include "GenerationData.hpp"
 #include <memory>
 
-#include "glm/gtc/random.inl"
+#include "Surface.hpp"
 
 class Game
 {

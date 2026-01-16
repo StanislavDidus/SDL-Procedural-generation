@@ -1,5 +1,8 @@
 #pragma once
 
+#include <algorithm>
+
+#include "Color.hpp"
 #include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
 #include "Renderer.hpp"

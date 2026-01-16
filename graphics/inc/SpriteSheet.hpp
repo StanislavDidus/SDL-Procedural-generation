@@ -1,11 +1,12 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
 
 #include "Sprite.hpp"
 #include "glm/glm.hpp"
-#include "Renderer.hpp"
+
+class Renderer;
+class Surface;
 
 class SpriteSheet
 {

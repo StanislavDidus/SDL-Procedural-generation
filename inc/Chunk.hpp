@@ -1,10 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <map>
 
 #include <SDL3/SDL_rect.h>
-#include "Vec2Less.hpp"
 #include "TileMap.hpp"
 #include "Object.hpp"
 

@@ -1,9 +1,6 @@
 #pragma once
 
-#include <iostream>
 #include <string>
-
-#include "Tile.hpp"
 
 static float between(float value, float min, float max)
 {

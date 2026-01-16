@@ -1,5 +1,4 @@
 #include "Sprite.hpp"
-#include <iostream>
 
 Sprite::Sprite(SDL_Texture& texture, const SDL_FRect& rect) : texture(texture), rect(rect)
 {

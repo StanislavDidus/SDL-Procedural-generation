@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cstdint>
 #include <unordered_map>
 
 #include "ECS/Entity.hpp"
 #include "Sprite.hpp"
+#include "glm/vec2.hpp"
 
 class Inventory;
 

@@ -18,6 +18,7 @@ bool InputManager::isKey(SDL_Keycode key)
 bool InputManager::isKeyUp(SDL_Keycode key)
 {
 	return released[key];
+
 }
 
 const MouseState& InputManager::getMouseState()

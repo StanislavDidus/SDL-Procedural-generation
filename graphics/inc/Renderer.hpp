@@ -1,21 +1,19 @@
 #pragma once
 
-#include <SDL3/SDL.h>
-#include <SDL3_ttf/SDL_ttf.h>
+#include "glm/vec2.hpp"
+#include "SDL3/SDL_render.h"
 
-#include "Window.hpp"
-#include "glm/glm.hpp"
-#include "Color.hpp"
-#include <string>
+struct Color;
+class Window;
 
-const float BaseWidthScreen = 960.f;
-const float BaseHeightScreen = 540.f;
+constexpr float BaseWidthScreen = 960.f;
+constexpr float BaseHeightScreen = 540.f;
 
-const float TileWidth = 25.f;
-const float TileHeight = 25.f;
+constexpr float TileWidth = 25.f;
+constexpr float TileHeight = 25.f;
 
-const float PlayerWidth = 25.f;
-const float PlayerHeight = 50.f;
+constexpr float PlayerWidth = 25.f;
+constexpr float PlayerHeight = 50.f;
 
 class Sprite;
 
@@ -32,6 +30,11 @@ class Renderer
 public:
 	explicit Renderer(Window& window);
 	~Renderer();
+
+	Renderer(const Renderer& other) = delete;
+	Renderer(Renderer&& other) noexcept = delete;
+	Renderer& operator=(const Renderer& other) = delete;
+	Renderer& operator=(Renderer&& other) noexcept = delete;
 
 	//Setters
 	void setView(const glm::vec2& view_position);

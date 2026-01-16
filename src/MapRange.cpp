@@ -1,6 +1,8 @@
 #include "MapRange.hpp"
-#include "glm/glm.hpp"
+#include "glm/vec2.hpp"
 #include <algorithm>
+
+#include "glm/common.hpp"
 
 MapRange::MapRange(float inMin, float inMax, float outMin, float outMax) : outMin(outMin), outMax(outMax)
 {

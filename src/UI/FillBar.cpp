@@ -1,5 +1,7 @@
 #include "UI/FillBar.hpp"
 
+#include <algorithm>
+
 void FillBar::update()
 {
 	fill_percentage = value / max_value;

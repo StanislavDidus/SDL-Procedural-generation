@@ -368,7 +368,7 @@ void World::generateWorld(std::optional<int> seed)
 	addGrass();
 	addDirt();
 	addCaves();
-	addWater();
+	//addWater();
 	addBiomes();
 	addObjects();
 	splitGrid(world_map, chunk_width_tiles, chunk_height_tiles);

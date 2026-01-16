@@ -1,10 +1,6 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
-
 #include "SpriteSheet.hpp"
-#include "Debug.hpp"
 #include "Tile.hpp"
 #include "Grid.hpp"
 

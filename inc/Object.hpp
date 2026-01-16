@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <string>
 #include "RandomizedItem.hpp"
 #include "glm/vec2.hpp"

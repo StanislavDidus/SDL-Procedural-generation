@@ -48,6 +48,7 @@ Game::Game(Renderer& screen)
 	initGenerationData();
 	initBiomes();
 
+
 	world = std::make_shared<World>(generation_data, tileset, object_spritesheet, collision_system, object_manager, 500, 200, 20.f, 20.f);
 
 	initSystems();
