@@ -16,6 +16,8 @@
 #include "GenerationData.hpp"
 #include <memory>
 
+#include "tinyxml2.h"
+
 #include "Surface.hpp"
 
 class Game
@@ -84,8 +86,6 @@ private:
 	std::shared_ptr<ItemUsageSystem> item_usage_system;
 
 	Entity player;
-
-	std::vector<Item> items;
 
 	std::shared_ptr<TileManager> tile_manager;
 	std::shared_ptr<ObjectManager> object_manager;

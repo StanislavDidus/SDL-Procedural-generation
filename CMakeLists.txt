@@ -31,6 +31,7 @@ set(SOURCE_FILES
     "src/ItemManager.cpp"
     "src/ObjectManager.cpp"
     "src/TileManager.cpp"
+    "src/Object.cpp"
     )
 
 set(HEADER_FILES
@@ -86,6 +87,7 @@ target_link_libraries(
     glm::glm 
     noise
     imgui
+    tinyxml2
 )
 
 target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_20)

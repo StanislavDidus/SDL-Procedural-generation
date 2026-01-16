@@ -64,6 +64,19 @@ Game::Game(Renderer& screen)
 	inventory->addItem(1, 1);
 	inventory->addItem(2, 1);
 	//inventory.removeItem(1);
+
+	//Test tinyxml2
+
+	tinyxml2::XMLDocument doc;
+	doc.LoadFile("data/objects.xml");
+
+	auto object = doc.FirstChildElement("objectListing")->FirstChildElement("object");
+
+	auto id1 = object->Attribute("id");
+	std::cout << id1 << std::endl;
+
+	auto id2 = object->NextSiblingElement()->Attribute("id");
+	std::cout << id2 << std::endl;
 }
 
 Game::~Game()
@@ -92,7 +105,6 @@ void Game::initGenerationData()
 	generation_data.sea_y_base = 19.f;
 	generation_data.scale = 0.5f;
 	generation_data.density_threshold = 0.5f;
-	generation_data.tree_threshold = 0.65f;
 
 	generation_data.tile_manager = tile_manager;
 	generation_data.object_manager = object_manager;
@@ -154,31 +166,58 @@ void Game::initObjects()
 {
 	object_manager = std::make_shared<ObjectManager>();
 
+	NoiseSettings object_settings;
+	object_settings.octaves = 2;
+	object_settings.frequency = 0.7f;
+	object_settings.amplitude = 1.5f;
+
 	//Tree
 	{
+		//Add Properties
 		RandomizedItem apple{ 0, 0.5f, 1, 1 };
 		RandomizedItem wood{ 4, 1.f, 2, 7 };
 		std::vector<RandomizedItem> items{ apple, wood };
 		ObjectProperties properties{ 200.f, 0, "Tree", items, glm::vec2{20.f, 60.f} };
-		object_manager->addObject(properties);
+		int properties_id = object_manager->registerObjectProperties(properties);
+
+		//Add SpawnInfo
+		std::vector<int> spawn_tiles {0};
+		float threshold = 0.65f;
+		glm::ivec2 object_size { 2,5 };
+		ObjectSpawnInfo spawn_info{ spawn_tiles, object_settings, threshold, object_size, properties_id};
+		object_manager->addObjectSpawnInfo(spawn_info);
 	}
 
 	//Snow Tree
 	{
+		//Add Properties
 		RandomizedItem apple{ 0, 0.5f, 1, 1 };
 		RandomizedItem wood{ 4, 1.f, 2, 7 };
 		std::vector<RandomizedItem> items{ apple, wood };
 		ObjectProperties properties{ 200.f, 1, "Snow_Tree", items, glm::vec2{20.f, 60.f} };
-		object_manager->addObject(properties);
+		int properties_id = object_manager->registerObjectProperties(properties);
+
+		//Add SpawnInfo
+		std::vector<int> spawn_tiles{ 5 };
+		float threshold = 0.65f;
+		glm::ivec2 object_size{ 2,5 };
+		ObjectSpawnInfo spawn_info{ spawn_tiles, object_settings, threshold, object_size, properties_id };
+		object_manager->addObjectSpawnInfo(spawn_info);
 	}
 
 	//Cactus
 	{
-		RandomizedItem apple{ 0, 0.5f, 1, 1 };
-		RandomizedItem wood{ 4, 1.f, 2, 7 };
-		std::vector<RandomizedItem> items{ apple, wood };
-		ObjectProperties properties{ 200.f, 2, "cactus", items, glm::vec2{20.f, 60.f} };
-		object_manager->addObject(properties);
+		//Add Properties
+		std::vector<RandomizedItem> items;;
+		ObjectProperties properties{ 200.f, 2, "Cactus", items, glm::vec2{20.f, 60.f} };
+		int properties_id = object_manager->registerObjectProperties(properties);
+
+		//Add SpawnInfo
+		std::vector<int> spawn_tiles{ 3 };
+		float threshold = 0.65f;
+		glm::ivec2 object_size{ 2, 5 };
+		ObjectSpawnInfo spawn_info{ spawn_tiles, object_settings, threshold, object_size, properties_id };
+		object_manager->addObjectSpawnInfo(spawn_info);
 	}
 }
 
@@ -307,14 +346,6 @@ void Game::initNoiseSettings()
 		settings.octaves = 2;
 		settings.frequency = 0.04f;
 		settings.amplitude = 1.2f;
-	}
-
-	//Trees
-	{
-		NoiseSettings& settings = generation_data.noise_settings[NoiseType::TREES];
-		settings.octaves = 2;
-		settings.frequency = 0.7f;
-		settings.amplitude = 1.5f;
 	}
 }
 

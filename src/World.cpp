@@ -133,9 +133,11 @@ void World::render(Renderer& screen) const
 		{
 			for (const auto& object : chunk.objects)
 			{
-				const auto& object_size = generation_data.object_manager->getProperties(object.id).size;
-				int sprite_index = generation_data.object_manager->getProperties(object.id).sprite_index;
-				screen.drawScaledSprite(object_spritesheet[sprite_index], object.position.x, object.position.y, object_size.x, object_size.y);
+				if (SDL_HasRectIntersectionFloat(&camera_rect, &object.rect))
+				{
+					int sprite_index = generation_data.object_manager->getProperties(object.properties_id).sprite_index;
+					screen.drawScaledSprite(object_spritesheet[sprite_index], object.rect.x, object.rect.y, object.rect.w, object.rect.h);
+				}
 			}
 		}
 	}
@@ -207,15 +209,11 @@ Object* World::getObjectOnPosition(const glm::vec2& mouse_global_position)
 
 	auto& chunk = chunks.at(static_cast<size_t>(static_cast<float>(chunk_y_index) + static_cast<float>(chunk_x_index) * world_height_chunks));
 
+	SDL_FRect mouse_rect = {mouse_global_position.x, mouse_global_position.y, 1.f, 1.f};
+
 	for (auto& object : chunk.objects)
 	{
-		const auto& object_position = object.position;
-		const auto& object_size = generation_data.object_manager->getProperties(object.id).size;
-
-		if (mouse_global_position.x > object_position.x &&
-			mouse_global_position.x < object_position.x + object_size.x &&
-			mouse_global_position.y > object_position.y &&
-			mouse_global_position.y < object_position.y + object_size.y)
+		if (SDL_HasRectIntersectionFloat(&mouse_rect, &object.rect))
 		{
 			return &object;
 		}
@@ -253,40 +251,24 @@ std::optional<int> World::damageObject(const glm::vec2& mouse_global_position, f
 
 	auto& chunk = chunks[chunk_y_index + chunk_x_index * height_chunks];
 
+	SDL_FRect mouse_rect = { mouse_global_position.x, mouse_global_position.y, 1.f, 1.f };
+
 	for (int i = 0; auto& object : chunk.objects)
 	{
-		const auto& object_position = object.position;
-		const auto& object_size = generation_data.object_manager->getProperties(object.id).size;
+		const auto& object_rect = object.rect;
 
-		if (mouse_global_position.x > object_position.x &&
-			mouse_global_position.x < object_position.x + object_size.x &&
-			mouse_global_position.y > object_position.y &&
-			mouse_global_position.y < object_position.y + object_size.y)
+		if (SDL_HasRectIntersectionFloat(&mouse_rect, &object_rect))
 		{
 			object.dealDamage(damage);
 
 			if (object.is_destroyed)
 			{
+				//TODO: Change this to erase objects based on their unique_id. Not position in an array.
+
 				chunk.objects.erase(chunk.objects.begin() + i);
-				return object.id;
+				return object.properties_id;
 				//inventory.addItem(generation_data.object_manager->getProperties(object.id).item);
 			}
-			//	//Remove attached mark from the tile beneath the object
-			//	float new_x = static_cast<float>(object_position.x / 20.f);
-			//	float new_y = static_cast<float>(object_position.y / 20.f + object_size.y / 20.f + 1.f);
-			//	int chunk_x_index = static_cast<int>(std::floor(new_x / static_cast<float>(chunk_width_tiles)));
-			//	int chunk_y_index = static_cast<int>(std::floor(new_y / static_cast<float>(chunk_height_tiles)));
-
-			//	if (chunk_x_index < 0 || chunk_x_index >= width_chunks ||
-			//		chunk_y_index < 0 || chunk_y_index >= height_chunks) continue;
-
-			//	int tile_local_x = x % chunk_width_tiles;
-			//	int tile_local_y = y % chunk_height_tiles;
-
-			//	int chunk_index_ = chunk_x_index + chunk_y_index * width_chunks;
-			//	auto& chunk_ = chunks[chunk_index_];
-			//	auto& tile = chunk_.tilemap();
-			//}
 		}
 
 		++i;
@@ -327,7 +309,7 @@ void World::updateTiles()
 	{
 		for (auto& object : chunk.objects)
 		{
-			float max_durability = generation_data.object_manager->getProperties(object.id).durability;
+			float max_durability = generation_data.object_manager->getProperties(object.properties_id).durability;
 			if (object.current_durability < max_durability && !object.received_damage_last_frame)
 			{
 				object.current_durability = max_durability;
@@ -408,8 +390,6 @@ void World::splitGrid(const Grid<Tile>& grid, int chunk_width, int chunk_height)
 		}
 	}
 
-	float tile_size = 20.f;
-
 	//Precalculate the rect of each chunk
 	for (int i = 0; auto& chunk : chunks)
 	{
@@ -417,10 +397,10 @@ void World::splitGrid(const Grid<Tile>& grid, int chunk_width, int chunk_height)
 		int chunk_y = i % world_height_chunks;
 
 		auto& rect = chunk.rect;
-		rect.x = chunk_x * chunk_width * tile_size;
-		rect.y = chunk_y * chunk_height * tile_size;
-		rect.w = chunk_width * tile_size;
-		rect.h = chunk_height * tile_size;
+		rect.x = chunk_x * chunk_width * tile_width_world;
+		rect.y = chunk_y * chunk_height * tile_height_world;
+		rect.w = chunk_width * tile_width_world;
+		rect.h = chunk_height * tile_height_world;
 
 		++i;
 	}
@@ -430,8 +410,7 @@ void World::splitGrid(const Grid<Tile>& grid, int chunk_width, int chunk_height)
 	{
 		for (const auto& object : objects)
 		{
-			const auto& object_size = generation_data.object_manager->getProperties(object.id).size;
-			SDL_FRect object_rect{ object.position.x, object.position.y, object_size.x, object_size.y };
+			const auto& object_rect = object.rect;
 			if (isRectInsideFloat(object_rect, chunk.rect))
 			{
 				chunk.objects.push_back(object);
@@ -706,106 +685,80 @@ void World::addObjects()
 		{
 			float position_y = static_cast<float>(y);
 
-			auto& tile = world_map(x, y);
+			const auto& object_spawn_infos = generation_data.object_manager->getAllObjectSpawnInfos();
 
-			float tree_noise = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::TREES], position_x * scale, position_y * scale);
-			if (tree_noise > generation_data.tree_threshold)
+			for (const auto& spawn_info : object_spawn_infos)
 			{
-				//Tree
-				if (tile.id == generation_data.tiles.at(BlockType::GRASS))
+				//Check all 3 conditions
+
+				//First - Noise
+				float noise_value = Noise::fractal2D<ValueNoise>(spawn_info.noise_settings, position_x * scale, position_y * scale);
+				if (noise_value < spawn_info.noise_threshold) continue;
+
+				//Second - Tile type
+				bool is_area_good = true;
+				for (int i = 0; i < spawn_info.size_tiles.x; ++i)
 				{
-					//Check for space above
-					bool is_space = true;
-					for (int i = 1; i < 4; i++)
+					bool is_tile_good = false;
+					auto& new_tile = world_map(x + i, y);
+					for (const auto& required_tile_id : spawn_info.spawn_tile_ids)
 					{
-						int new_y = y - i;
-						if (new_y >= 0)
+						if (new_tile.id == required_tile_id)
 						{
-							auto& tile_above = world_map(x, new_y);
-							bool is_solid = generation_data.tile_manager->getProperties(tile_above.id).is_solid;
-							if (is_solid)
-							{
-								is_space = false;
-								break;
-							}
+							is_tile_good = true;
+							break;
 						}
 					}
-
-					if (is_space)
+					if (!is_tile_good)
 					{
-						glm::vec2 position = { position_x * 20.f, (position_y - 3.f) * 20.f };
-						objects.emplace_back(0, 200.f, position);
-
-						//Make the tile attached
-						//tile.attached = true;
+						is_area_good = false;
+						break;
 					}
 				}
+				if (!is_area_good) continue;
 
-				//Snow Tree
-				if (tree_noise > generation_data.tree_threshold)
+				//Third - Object Size
+				auto& object_size = spawn_info.size_tiles;
+
+				bool is_space_free = true;
+				for (int i = 0; i < object_size.x; ++i)
 				{
-					if (tile.id == generation_data.tiles.at(BlockType::SNOW_GRASS))
+					//Set a small 1 tile offset for y loop because we want to check tiles above the ground
+					for (int j = 1; j <= object_size.y; ++j)
 					{
-						//Check for space above
-						bool is_space = true;
-						for (int i = 1; i < 4; i++)
+						//TODO Check the boundaries of thw world before getting a tile from the world_map
+						auto& new_tile = world_map(x + i, y - j);
+
+						if (generation_data.tile_manager->getProperties(new_tile.id).is_solid)
 						{
-							int new_y = y - i;
-							if (new_y >= 0)
-							{
-								auto& tile_above = world_map(x, new_y);
-								bool is_solid = generation_data.tile_manager->getProperties(tile_above.id).is_solid;
-								if (is_solid)
-								{
-									is_space = false;
-									break;
-								}
-							}
+							is_space_free = false;
+							break;
 						}
 
-						if (is_space)
-						{
-							glm::vec2 position = { position_x * 20.f, (position_y - 3.f) * 20.f };
-							objects.emplace_back(1, 200.f, position);
-
-							//Make the tile attached
-							//tile.attached = true;
-						}
 					}
+
+					if (!is_space_free) break;
 				}
 
-				//Kaktus
-				if (tree_noise > generation_data.tree_threshold)
+				if (!is_space_free) continue;
+
+				//FINALLY! Spawn an object
+				int unique_id = next_object_id++;
+				int properties_id = spawn_info.object_properties_id;
+				
+				float y_offset = static_cast<float>(object_size.y) * tile_height_world;
+				SDL_FRect object_rect 
 				{
-					if (tile.id == generation_data.tiles.at(BlockType::SAND))
-					{
-						//Check for space above
-						bool is_space = true;
-						for (int i = 1; i < 4; i++)
-						{
-							int new_y = y - i;
-							if (new_y >= 0)
-							{
-								auto& tile_above = world_map(x, new_y);
-								bool is_solid = generation_data.tile_manager->getProperties(tile_above.id).is_solid;
-								if (is_solid)
-								{
-									is_space = false;
-									break;
-								}
-							}
-						}
+					position_x * tile_width_world,
+					position_y * tile_height_world - y_offset,
+					static_cast<float>(object_size.x) * tile_width_world,
+					static_cast<float>(object_size.y) * tile_height_world
+				};
 
-						if (is_space)
-						{
-							glm::vec2 position = { position_x * 20.f, (position_y - 3.f) * 20.f };
-							objects.emplace_back(2, 200.f, position);
+				//TODO Check if the new object intersects with any other already existing object
+				objects.emplace_back(unique_id, properties_id, object_rect);
 
-							//Make the tile attached
-							//tile.attached = true;
-						}
-					}
-				}
+				break;
 			}
 		}
 	}

@@ -6,6 +6,8 @@ set(SDLTTF_VENDORED ON)
 add_subdirectory(SDL_ttf EXCLUDE_FROM_ALL)
 #glm
 add_subdirectory(glm EXCLUDE_FROM_ALL)
+#tinyxml2
+add_subdirectory(tinyxml2 EXCLUDE_FROM_ALL)
 
 #ImGui
 add_library(imgui

@@ -1,19 +1,22 @@
 #include "ObjectManager.hpp"
 
-ObjectManager::ObjectManager()
+const ObjectProperties& ObjectManager::getProperties(int ID) const
 {
+	return object_properties.at(ID);
 }
 
-ObjectManager::~ObjectManager()
+int ObjectManager::registerObjectProperties(const ObjectProperties& properties)
 {
+	object_properties.push_back(properties);
+	return static_cast<int>(object_properties.size() - 1ULL);
 }
 
-const ObjectProperties& ObjectManager::getProperties(int id) const
+const std::vector<ObjectSpawnInfo>& ObjectManager::getAllObjectSpawnInfos() const
 {
-	return objects[id];
+	return object_spawn_infos;
 }
 
-void ObjectManager::addObject(const ObjectProperties& properties)
+void ObjectManager::addObjectSpawnInfo(const ObjectSpawnInfo& spawn_info)
 {
-	objects.push_back(properties);
+	object_spawn_infos.push_back(spawn_info);
 }

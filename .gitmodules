@@ -10,3 +10,6 @@
 [submodule "extern/SDL_ttf"]
 	path = extern/SDL_ttf
 	url = https://github.com/libsdl-org/SDL_ttf.git
+[submodule "extern/tinyxml2"]
+	path = extern/tinyxml2
+	url = https://github.com/leethomason/tinyxml2.git

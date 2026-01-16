@@ -82,6 +82,7 @@ private:
 	//Objects
 	std::weak_ptr<ObjectManager> object_manager;
 	std::weak_ptr<CollisionSystem> collision_system;
+	int next_object_id = 0;
 
 	
 

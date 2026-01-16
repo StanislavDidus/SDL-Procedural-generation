@@ -618,9 +618,8 @@ public:
 					{
 						if (auto s = object_manager.lock())
 						{
-							const auto& object_position = object->position;
-							const auto& object_size = s->getProperties(object->id).size;
-							screen.drawRectangle(object_position.x, object_position.y, object_size.x, object_size.y, RenderType::NONE, Color::YELLOW);
+							const auto& object_rect = object->rect;
+							screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::YELLOW);
 						}
 					}
 				}
@@ -634,17 +633,16 @@ public:
 						{
 							const auto& mid_position = ts.position + ts.size * 0.5f;
 							float distance = glm::distance(mid_position, mi.current_mouse_position);
-							const auto& object_position = object->position;
-							const auto& object_size = s->getProperties(object->id).size;
+							const auto& object_rect = object->rect;
 
 							if (distance < moa.radius)
 							{
 								
-								screen.drawRectangle(object_position.x, object_position.y, object_size.x, object_size.y, RenderType::NONE, Color::BLUE);
+								screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::BLUE);
 							}
 							else
 							{
-								screen.drawRectangle(object_position.x, object_position.y, object_size.x, object_size.y, RenderType::NONE, Color::RED);
+								screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::RED);
 							}
 						}
 					}

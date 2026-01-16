@@ -40,7 +40,6 @@ enum class NoiseType
 	TUNNEL,
 	TEMPERATURE,
 	MOISTURE,
-	TREES,
 };
 
 enum class MapRangeType
@@ -64,5 +63,4 @@ struct GenerationData
 	float cave_y_base = 0.f;
 	float sea_y_base = 0.f;
 	float density_threshold;
-	float tree_threshold;
 };
