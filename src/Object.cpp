@@ -1,12 +1,11 @@
 ﻿#include "Object.hpp"
 
 ObjectProperties::ObjectProperties(float durability, int sprite_index, const std::string& name,
-	const std::vector<RandomizedItem>& drop, const glm::vec2& size) 
+	const std::vector<RandomizedItem>& drop) 
 	: durability(durability)
 	, sprite_index(sprite_index)
 	, name(name)
 	, drop(drop)
-	, size(size)
 {
 }
 

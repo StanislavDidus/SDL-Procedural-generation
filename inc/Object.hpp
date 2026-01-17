@@ -12,13 +12,12 @@
 struct ObjectProperties
 {
 	ObjectProperties(float durability, int sprite_index, const std::string& name,
-		const std::vector<RandomizedItem>& drop, const glm::vec2& size);
+		const std::vector<RandomizedItem>& drop);
 
 	float durability;
 	int sprite_index;
 	std::string name;
 	std::vector<RandomizedItem> drop;
-	glm::vec2 size;
 };
 
 /// <summary>

@@ -5,12 +5,12 @@
             <sprite>0</sprite>
             <durability>200</durability>
             <drop>
-                <item id="Apple" dropChance="0.5" dropQuantityMin="1" dropQuantityMax="1" />
-                <item id="Wood" dropChance="1" dropQuantityMin="2" dropQuantityMax="7" />
+                <item id="0" dropChance="0.5" dropQuantityMin="1" dropQuantityMax="1" />
+                <item id="4" dropChance="1" dropQuantityMin="2" dropQuantityMax="7" />
             </drop>
         </properties>
         <spawnInfo>
-            <size x="1" y="3" />
+            <size x="2" y="5" />
             <noiseSettings octaves="2" frequency="0.7" amplitude="1.5" />
             <noiseThreshold>0.65</noiseThreshold>
             <spawnTiles>
@@ -20,19 +20,35 @@
     </object>
     <object id="Snow_Tree">
         <properties>
-            <sprite>0</sprite>
+            <sprite>1</sprite>
             <durability>200</durability>
             <drop>
-                <item id="Apple" dropChance="0.5" dropQuantityMin="1" dropQuantityMax="1" />
-                <item id="Wood" dropChance="1" dropQuantityMin="2" dropQuantityMax="7" />
+                <item id="4" dropChance="1" dropQuantityMin="3" dropQuantityMax="8" />
             </drop>
         </properties>
         <spawnInfo>
-            <size x="1" y="3" />
+            <size x="2" y="5" />
             <noiseSettings octaves="2" frequency="0.7" amplitude="1.5" />
             <noiseThreshold>0.65</noiseThreshold>
             <spawnTiles>
-                <tile id="0"/>
+                <tile id="5"/>
+            </spawnTiles>
+        </spawnInfo>
+    </object>
+    <object id="Cactus">
+        <properties>
+            <sprite>2</sprite>
+            <durability>200</durability>
+            <drop>
+               
+            </drop>
+        </properties>
+        <spawnInfo>
+            <size x="2" y="5" />
+            <noiseSettings octaves="2" frequency="0.7" amplitude="1.5" />
+            <noiseThreshold>0.65</noiseThreshold>
+            <spawnTiles>
+                <tile id="3"/>
             </spawnTiles>
         </spawnInfo>
     </object>

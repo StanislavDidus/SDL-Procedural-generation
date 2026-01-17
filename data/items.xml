@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<itemListing>
+    <item id="Apple">
+        <canStack>true</canStack>
+        <spriteIndex>0</spriteIndex>
+        <ID>0</ID>
+        <components>
+            <component name="Heal" value="10"/>
+        </components>
+    </item>
+</itemListing>

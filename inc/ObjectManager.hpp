@@ -3,6 +3,8 @@
 #include <vector>
 
 #include "Object.hpp"
+#include "XMLParsing.hpp"
+#include <filesystem>
 
 /// <summary>
 /// Manager that holds <b>ObjectProperties</b> and <b>ObjectSpawnInfo</b> and gives access to them by a special ID that is assigned to all objects
@@ -11,6 +13,9 @@ class ObjectManager
 {
 public:
 	ObjectManager() = default;
+
+	//Load data from XML file
+	void loadXML(const std::filesystem::path& path); ///< Takes a <b>path</b> to the <b>XML</b> file and loads the contents of it
 
 	//ObjectProperties
 	const ObjectProperties& getProperties(int ID) const;
