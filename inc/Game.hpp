@@ -16,8 +16,6 @@
 #include "GenerationData.hpp"
 #include <memory>
 
-#include "tinyxml2.h"
-
 #include "Surface.hpp"
 
 class Game

@@ -1,5 +1,13 @@
 #include "Tile.hpp"
 
+TileProperties::TileProperties(int sprites_index, TileType type, bool is_solid, float max_durability)
+	: sprites_index(sprites_index)
+	, type(type)
+	, is_solid(is_solid)
+	, max_durability(max_durability)
+{
+}
+
 void Tile::dealDamage(float damage)
 {
     current_durability -= damage;

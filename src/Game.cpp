@@ -12,6 +12,8 @@
 
 #include <algorithm>
 
+#include "tinyxml2.h"
+
 namespace
 {
 	std::random_device rd;
@@ -60,9 +62,9 @@ Game::Game(Renderer& screen)
 	//tilemap = std::make_unique<TileMap>(*world, tileset, object_spritesheet, collision_system, 20.f, 20.f);
 
 	auto& inventory = component_manager.has_inventory[player].inventory;
-	inventory->addItem(0, 15);
-	inventory->addItem(1, 1);
-	inventory->addItem(2, 1);
+	inventory->addItem(item_manager->getItemID("Apple"), 15);
+	inventory->addItem(item_manager->getItemID("Banana"), 1);
+	inventory->addItem(item_manager->getItemID("Heal_Potion"), 1);
 	//inventory.removeItem(1);
 
 	//Test tinyxml2
@@ -113,128 +115,20 @@ void Game::initGenerationData()
 void Game::initItems()
 {
 	item_manager = std::make_shared<ItemManager>();
-	
-	//Apple
-	{
-		std::vector<std::shared_ptr<ItemComponent>> components;
-		components.push_back(std::make_shared<ItemComponents::Usable>());
-		components.push_back(std::make_shared<ItemComponents::Heal>(10));
-		ItemProperties properties{ true, 0, "Apple", components };
-
-		item_manager->addItem(properties);
-	}
-
-	//Banana
-	{
-		std::vector<std::shared_ptr<ItemComponent>> components;
-		components.push_back(std::make_shared<ItemComponents::Usable>());
-		components.push_back(std::make_shared<ItemComponents::Heal>(5));
-		ItemProperties properties{ true, 1, "Banana", components };
-
-		item_manager->addItem(properties);
-	}
-
-	//Heal Potion
-	{
-		std::vector<std::shared_ptr<ItemComponent>> components;
-		components.push_back(std::make_shared<ItemComponents::Usable>());
-		components.push_back(std::make_shared<ItemComponents::Heal>(50));
-		ItemProperties properties{ true, 2, "Heal_Potion", components };
-
-		item_manager->addItem(properties);
-	}
-
-	//Regeneration Potion
-	{
-		std::vector<std::shared_ptr<ItemComponent>> components;
-		components.push_back(std::make_shared<ItemComponents::Usable>());
-		components.push_back(std::make_shared<ItemComponents::AddEffect>(Effect::HEALTH_REGENERATION, 120.f));
-		ItemProperties properties{ true, 3, "Regeneration_Potion", components };
-
-		item_manager->addItem(properties);
-	}
-
-	//Wood
-	{
-		std::vector<std::shared_ptr<ItemComponent>> components;
-		ItemProperties properties{ true, 4, "Wood", components };
-		item_manager->addItem(properties);
-	}
+	item_manager->loadXml("data/items.xml");
 }
 
 void Game::initObjects()
 {
 	object_manager = std::make_shared<ObjectManager>();
-	object_manager->loadXML("data/objects.xml");
+	object_manager->loadXml("data/objects.xml", *item_manager, *tile_manager);
 }
 
 
 void Game::initTiles()
 {
 	tile_manager = std::make_shared<TileManager>();
-
-	//Grass
-	{
-		TileProperties properties{ 0, TileType::SURFACE, true, 100.f };
-		int id = tile_manager->addTile(properties);
-		generation_data.tiles[BlockType::GRASS] = id;
-	}
-
-	//Dirt
-	{
-		TileProperties properties{ 1, TileType::DIRT, true, 100.f };
-		int id = tile_manager->addTile(properties);
-		generation_data.tiles[BlockType::DIRT] = id;
-	}
-
-	//Stone
-	{
-		TileProperties properties{ 2, TileType::STONE, true, 125.f };
-		int id = tile_manager->addTile(properties);
-		generation_data.tiles[BlockType::STONE] = id;
-	}
-
-	//Sand
-	{
-		TileProperties properties{ 3, TileType::SURFACE, true, 50.f };
-		int id = tile_manager->addTile(properties);
-		generation_data.tiles[BlockType::SAND] = id;
-	}
-
-	//Sky
-	{
-		TileProperties properties{ 4, TileType::NONE, false, 0.f };
-		int id = tile_manager->addTile(properties);
-		generation_data.tiles[BlockType::SKY] = id;
-	}
-
-	//Snow Grass
-	{
-		TileProperties properties{ 5, TileType::SURFACE, true, 100.f };
-		int id = tile_manager->addTile(properties);
-		generation_data.tiles[BlockType::SNOW_GRASS] = id;
-	}
-
-	//Snow Dirt
-	{
-		TileProperties properties{ 8, TileType::DIRT, true, 100.f };
-		int id = tile_manager->addTile(properties);
-		generation_data.tiles[BlockType::SNOW_DIRT] = id;
-	}
-
-	//Rock
-	{
-		TileProperties properties{ 6, TileType::STONE, true, 125.f };
-		int id = tile_manager->addTile(properties);
-		generation_data.tiles[BlockType::ROCK] = id;
-	}
-
-	//Water
-	{
-		TileProperties properties{ 7, TileType::NONE, false, 0.f };
-		int id = tile_manager->addTile(properties);
-		generation_data.tiles[BlockType::WATER] = id;
-	}
+	tile_manager->loadXml("data/tiles.xml");
 }
 
 void Game::initNoiseSettings()
@@ -322,46 +216,37 @@ void Game::initMapRanges()
 
 void Game::initBiomes()
 {
-	//Forest
-	{
-		Biome& biome = generation_data.biomes[BiomeType::FOREST];
-		biome.name = "Forest";
-		biome.pv_min = 0.0f;
-		biome.pv_max = 1.0f;
-		biome.temperature_min = 0.4f;
-		biome.temperature_max = 0.8f;
-		biome.moisture_min = 0.f;
-		biome.moisture_max = 1.0f;
-		biome.surface_tile = generation_data.tiles.at(BlockType::GRASS);
-		biome.dirt_tile = generation_data.tiles.at(BlockType::DIRT);
-	}
+	tinyxml2::XMLDocument doc;
+	doc.LoadFile("data/biomes.xml");
 
-	//Tundra
-	{
-		Biome& biome = generation_data.biomes[BiomeType::TUNDRA];
-		biome.name = "Tundra";
-		biome.pv_min = 0.f;
-		biome.pv_max = 1.f;
-		biome.temperature_min = 0.0f;
-		biome.temperature_max = 0.4f;
-		biome.moisture_min = 0.f;
-		biome.moisture_max = 1.f;
-		biome.surface_tile = generation_data.tiles.at(BlockType::SNOW_GRASS);
-		biome.dirt_tile = generation_data.tiles.at(BlockType::SNOW_DIRT);
-	}
+	const auto& biome_listing_node = doc.FirstChildElement("biomeListing");
 
-	//Desert
+	for (auto* biome_node = biome_listing_node->FirstChildElement("biome"); biome_node != nullptr; biome_node = biome_node->NextSiblingElement())
 	{
-		Biome& biome = generation_data.biomes[BiomeType::DESERT];
-		biome.name = "Desert";
-		biome.pv_min = 0.0f;
-		biome.pv_max = 0.6f;
-		biome.temperature_min = 0.8f;
-		biome.temperature_max = 1.0f;
-		biome.moisture_min = 0.0f;
-		biome.moisture_max = 1.0f;
-		biome.surface_tile = generation_data.tiles.at(BlockType::SAND);
-		biome.dirt_tile = generation_data.tiles.at(BlockType::SAND);
+		std::string biome_name = biome_node->Attribute("id");
+
+		const auto& pv_node = biome_node->FirstChildElement("pv");
+		float pv_min;
+		float pv_max;
+		pv_node->QueryFloatAttribute("min", &pv_min);
+		pv_node->QueryFloatAttribute("max", &pv_max);
+
+		const auto& temperature_node = biome_node->FirstChildElement("temperature");
+		float temperature_min;
+		float temperature_max;
+		temperature_node->QueryFloatAttribute("min", &temperature_min);
+		temperature_node->QueryFloatAttribute("max", &temperature_max);
+
+		const auto& moisture_node = biome_node->FirstChildElement("moisture");
+		float moisture_min;
+		float moisture_max;
+		moisture_node->QueryFloatAttribute("min", &moisture_min);
+		moisture_node->QueryFloatAttribute("max", &moisture_max);
+
+		size_t surface_tile_id = tile_manager->getTileID(biome_node->FirstChildElement("surfaceTile")->GetText());
+		size_t dirt_tile_id = tile_manager->getTileID(biome_node->FirstChildElement("dirtTile")->GetText());
+
+		generation_data.biomes.emplace_back(biome_name, pv_min, pv_max, temperature_min, temperature_max, moisture_min, moisture_max, surface_tile_id, dirt_tile_id);
 	}
 }
 

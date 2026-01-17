@@ -143,7 +143,7 @@ void World::render(Renderer& screen) const
 	}
 }
 
-void World::placeTile(int tile_x, int tile_y, BlockType block)
+void World::placeTile(int tile_x, int tile_y, size_t tile_id)
 {
 	if (tile_x < 0 || tile_x > width_tiles - 1 | tile_y < 0 || tile_y > height_tiles - 1) return;
 
@@ -170,7 +170,7 @@ void World::placeTile(int tile_x, int tile_y, BlockType block)
 
 		if (is_placement_allowed)
 		{
-			tile.id = generation_data.tiles[block];
+			tile.id = tile_id;
 
 			//Mark tile dirty
 			dirt_tiles.emplace_back(tile.id, glm::ivec2{ tile_x, tile_y });
@@ -190,7 +190,7 @@ void World::damageTile(int tile_x, int tile_y, float damage)
 
 		if (tile.is_destroyed)
 		{
-			tile.id = generation_data.tiles[BlockType::SKY];
+			tile.id = generation_data.tile_manager->getTileID("Sky");
 			tile.is_destroyed = false;
 		}
 
@@ -505,12 +505,12 @@ void World::generateBase()
 			if (density_noise >= generation_data.density_threshold)
 			{
 				//Solid tile
-				tile.id = generation_data.tiles.at(BlockType::STONE);
+				tile.id = generation_data.tile_manager->getTileID("Stone");
 			}
 			if (density_noise < generation_data.density_threshold)
 			{
 				//Air tile
-				tile.id = generation_data.tiles.at(BlockType::SKY);
+				tile.id = generation_data.tile_manager->getTileID("Sky");
 			}
 		}
 	}
@@ -535,7 +535,7 @@ void World::addGrass()
 
 			if (is_solid && was_air)
 			{
-				tile.id = generation_data.tiles.at(BlockType::GRASS);
+				tile.id = generation_data.tile_manager->getTileID("Grass");
 			}
 
 			was_air = false;
@@ -573,7 +573,7 @@ void World::addDirt()
 				int distance = y - surface_y;
 				if (distance <= dirt_level)
 				{
-					tile.id = generation_data.tiles.at(BlockType::DIRT);
+					tile.id = generation_data.tile_manager->getTileID("Dirt");
 				}
 			}
 
@@ -599,7 +599,7 @@ void World::addCaves()
 	
 			if (is_solid&& cave_noise < correlated_cave_threshold)
 			{
-				tile.id = tile.id = generation_data.tiles.at(BlockType::SKY);
+				tile.id = generation_data.tile_manager->getTileID("Sky");
 				tile.sealed = true;
 			}
 		}
@@ -618,7 +618,7 @@ void World::addWater()
 
 			if (!is_solid && static_cast<float>(y) > generation_data.sea_y_base && !tile.sealed)
 			{
-				tile.id = tile.id = generation_data.tiles.at(BlockType::WATER);
+				tile.id = generation_data.tile_manager->getTileID("Water");
 			}
 		}
 	}
@@ -643,7 +643,30 @@ void World::addBiomes()
 			float temperature = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::TEMPERATURE], position_x * scale, position_y * scale);
 			float moisture = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::MOISTURE], position_x * scale, position_y * scale);
 
-			//Desert,Forest,Snow
+			for (const auto& biome : generation_data.biomes)
+			{
+				if (peaks_and_valleys >= biome.pv_min && peaks_and_valleys < biome.pv_max)
+				{
+					if (temperature >= biome.temperature_min && temperature < biome.temperature_max)
+					{
+						if (moisture >= biome.moisture_min && moisture < biome.moisture_max)
+						{
+							if (type == TileType::SURFACE)
+							{
+								tile.id = biome.surface_tile_id;
+								break;
+							}
+							else if (type == TileType::DIRT)
+							{
+								tile.id = biome.dirt_tile_id;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			/*//Desert,Forest,Snow
 			if (temperature < 0.45f && moisture > 0.55f)
 			{
 				//Snow
@@ -664,7 +687,7 @@ void World::addBiomes()
 					tile.id = generation_data.biomes[BiomeType::FOREST].surface_tile;
 				else		  
 					tile.id = generation_data.biomes[BiomeType::FOREST].dirt_tile;
-			}
+			}*/
 
 #ifdef DEBUG_TILES
 			tile.pv = std::min(peaks_and_valleys, 1.f);
@@ -689,7 +712,7 @@ void World::addObjects()
 
 			for (const auto& spawn_info : object_spawn_infos)
 			{
-				//Check all 3 conditions
+				//Check all 4 conditions
 
 				//First - Noise
 				float noise_value = Noise::fractal2D<ValueNoise>(spawn_info.noise_settings, position_x * scale, position_y * scale);
@@ -742,18 +765,36 @@ void World::addObjects()
 
 				if (!is_space_free) continue;
 
-				//FINALLY! Spawn an object
-				int unique_id = next_object_id++;
-				int properties_id = spawn_info.object_properties_id;
-				
+				//Fourth - Does the object intersect with any other object?
+
+				//Calculate rect
 				float y_offset = static_cast<float>(object_size.y) * tile_height_world;
-				SDL_FRect object_rect 
+				SDL_FRect object_rect
 				{
 					position_x * tile_width_world,
 					position_y * tile_height_world - y_offset,
-					static_cast<float>(object_size.x) * tile_width_world,
-					static_cast<float>(object_size.y) * tile_height_world
+					//Subtracted -1 from their width and height because otherwise SDL_HasRectIntersectionFloat would return true if the edges of both object collide
+					static_cast<float>(object_size.x) * tile_width_world - 1.f,
+					static_cast<float>(object_size.y) * tile_height_world - 1.f
 				};
+
+				bool object_intersection = false;
+				for (const auto& obj : objects)
+				{
+					if (SDL_HasRectIntersectionFloat(&object_rect , &obj.rect))
+					{
+						object_intersection = true;
+						break;
+					}
+				}
+
+				if (object_intersection) continue;
+
+				//TODO Check if the object fits in the chunk here instead of doing it in splitGrid()
+
+				//FINALLY! Spawn an object
+				int unique_id = next_object_id++;
+				int properties_id = spawn_info.object_properties_id;
 
 				//TODO Check if the new object intersects with any other already existing object
 				objects.emplace_back(unique_id, properties_id, object_rect);

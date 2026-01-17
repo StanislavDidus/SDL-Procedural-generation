@@ -12,15 +12,17 @@ struct ItemComponent
 
 struct ItemProperties
 {
+	ItemProperties(bool can_stack, int sprite_index, const std::string& name, std::vector<std::unique_ptr<ItemComponent>> components);
+
 	bool can_stack;
 	int sprite_index;
 	std::string name;
-	std::vector<std::shared_ptr<ItemComponent>> components;
+	std::vector<std::unique_ptr<ItemComponent>> components;
 };
 
 struct Item
 {
-	int id;
+	size_t id;
 	int stack_number;
 
 	bool operator==(const Item& other) const { return this->id == other.id; }

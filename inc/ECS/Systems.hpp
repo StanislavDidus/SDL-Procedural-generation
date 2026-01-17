@@ -487,7 +487,8 @@ public:
 				int tile_x = static_cast<int>(std::floor((mouse_global_position.x) / tile_width));
 				int tile_y = static_cast<int>(std::floor((mouse_global_position.y) / tile_height));
 
-				world.placeTile(tile_x, tile_y, BlockType::GRASS);
+				//TODO Temporary placed 0 instead of a tile id
+				world.placeTile(tile_x, tile_y, 0);
 
 			}
 		}
@@ -677,7 +678,7 @@ public:
 		const auto& components = item_properties.components;
 		for (const auto& component : components)
 		{
-			if (std::dynamic_pointer_cast<ItemComponents::Usable>(component))
+			if (dynamic_cast<ItemComponents::Usable*>(component.get()))
 			{
 				is_usable = true;
 				break;
@@ -688,14 +689,14 @@ public:
 
 		for (const auto& component : components)
 		{
-			auto heal_component = std::dynamic_pointer_cast<ItemComponents::Heal>(component);
+			auto* heal_component = dynamic_cast<ItemComponents::Heal*>(component.get());
 			if (heal_component)
 			{
 				//Heal
 				auto& health_component = component_manager.health[target_entity];
 				health_component.current_health = std::min(health_component.max_health, health_component.current_health + heal_component->value);
 			}
-			else if (std::dynamic_pointer_cast<ItemComponents::AddEffect>(component))
+			else if (dynamic_cast<ItemComponents::AddEffect*>(component.get()))
 			{
 				//AddEffect
 			}

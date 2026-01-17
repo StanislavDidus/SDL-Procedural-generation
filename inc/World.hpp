@@ -19,7 +19,7 @@ class CollisionSystem;
 
 struct TileChange
 {
-	int id;
+	size_t id;
 	glm::ivec2 position;
 };
 
@@ -46,7 +46,7 @@ public:
 
 	void rebuildChunks();
 
-	void placeTile(int x, int tile_y, BlockType block);
+	void placeTile(int x, int tile_y, size_t tile_id);
 	void damageTile(int tile_x, int tile_y, float damage);
 	Object* getObjectOnPosition(const glm::vec2& mouse_global_position);
 	std::optional<int> damageObject(const glm::vec2& mouse_global_position, float damage); ///< Returns <b>id</b> of a destroyed object, returns <b>std::nullopt</b> if no object was ndestroyed.

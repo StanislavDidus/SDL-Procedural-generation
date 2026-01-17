@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<tileListing>
+    <tile id="Grass">
+        <spriteIndex>0</spriteIndex>
+        <tileType>Surface</tileType>
+        <isSolid>true</isSolid>
+        <durability>100</durability>
+    </tile>
+     <tile id="Dirt">
+        <spriteIndex>1</spriteIndex>
+        <tileType>Dirt</tileType>
+        <isSolid>true</isSolid>
+        <durability>100</durability>
+    </tile>
+     <tile id="Stone">
+        <spriteIndex>2</spriteIndex>
+        <tileType>Stone</tileType>
+        <isSolid>true</isSolid>
+        <durability>125</durability>
+    </tile>
+     <tile id="Sand">
+        <spriteIndex>3</spriteIndex>
+        <tileType>Surface</tileType>
+        <isSolid>true</isSolid>
+        <durability>50</durability>
+    </tile>
+     <tile id="Sky">
+        <spriteIndex>4</spriteIndex>
+        <tileType>None</tileType>
+        <isSolid>false</isSolid>
+        <durability>0</durability>
+    </tile>
+     <tile id="Snow_Grass">
+        <spriteIndex>5</spriteIndex>
+        <tileType>Surface</tileType>
+        <isSolid>true</isSolid>
+        <durability>100</durability>
+    </tile>
+     <tile id="Snow_Dirt">
+        <spriteIndex>8</spriteIndex>
+        <tileType>Dirt</tileType>
+        <isSolid>true</isSolid>
+        <durability>100</durability>
+    </tile>
+     <tile id="Rock">
+        <spriteIndex>6</spriteIndex>
+        <tileType>Stone</tileType>
+        <isSolid>true</isSolid>
+        <durability>125</durability>
+    </tile>
+    <tile id="Water">
+        <spriteIndex>7</spriteIndex>
+        <tileType>None</tileType>
+        <isSolid>false</isSolid>
+        <durability>0</durability>
+    </tile>
+    <tile id="Jungle_Grass">
+        <spriteIndex>9</spriteIndex>
+        <tileType>Surface</tileType>
+        <isSolid>true</isSolid>
+        <durability>100</durability>
+    </tile>
+    <tile id="Jungle_Dirt">
+        <spriteIndex>10</spriteIndex>
+        <tileType>Dirt</tileType>
+        <isSolid>true</isSolid>
+        <durability>100</durability>
+    </tile>
+</tileListing>

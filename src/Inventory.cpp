@@ -37,7 +37,7 @@ void Inventory::useItem(int slot)
 	
 }
 
-void Inventory::addItem(int id, int number)
+void Inventory::addItem(size_t id, int number)
 {
 	for (auto& item : items)
 	{
@@ -53,7 +53,7 @@ void Inventory::addItem(int id, int number)
 	}
 
 	//Otherwise put the item in an empty slot
-	if (free_slots.size() > 0)
+	if (!free_slots.empty())
 	{
 		auto free_slot = findFreeSlot();
 		if(free_slot) items[*free_slot] = {id, number};

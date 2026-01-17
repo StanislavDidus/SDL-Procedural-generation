@@ -6,7 +6,7 @@
 /// </summary>
 struct RandomizedItem
 {
-	RandomizedItem(const int item_id, const float drop_chance, const int drop_quantity_min, const int drop_quantity_max)
+	RandomizedItem(const size_t item_id, const float drop_chance, const int drop_quantity_min, const int drop_quantity_max)
 		: item_id(item_id),
 		  drop_chance(drop_chance),
 		  drop_quantity_min(drop_quantity_min),
@@ -14,7 +14,7 @@ struct RandomizedItem
 	{
 	}
 
-	int item_id; ///< Item's properties id.
+	size_t item_id; ///< Item's properties id.
 	float drop_chance; ///< Chance to drop item.
 	int drop_quantity_min; ///< Minimum quantity of the item that can drop.
 	int drop_quantity_max; ///< Maximum quantity of the item that can drop.

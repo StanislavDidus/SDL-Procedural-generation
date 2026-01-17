@@ -22,7 +22,7 @@ public:
 
 	void useItem(int slot);
 
-	void addItem(int id, int number);
+	void addItem(size_t id, int number);
 	void removeItem(int slot);
 
 	void splitItemTo(int item_slot, int split_slot);

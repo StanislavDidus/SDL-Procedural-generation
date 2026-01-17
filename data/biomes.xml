@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<biomeListing>
+    <biome id="Forest">
+        <pv min="0" max="1" />
+        <temperature min="0" max="0.6" />
+        <moisture min="0" max="0.5" />
+        <surfaceTile>Grass</surfaceTile>
+        <dirtTile>Dirt</dirtTile>
+    </biome>
+    <biome id="Tundra">
+        <pv min="0" max="1" />
+        <temperature min="0" max="0.45" />
+        <moisture min="0.5" max="1" />
+        <surfaceTile>Snow_Grass</surfaceTile>
+        <dirtTile>Snow_Dirt</dirtTile>
+    </biome>
+    <biome id="Desert">
+        <pv min="0" max="1" />
+        <temperature min="0.6" max="1" />
+        <moisture min="0" max="0.5" />
+        <surfaceTile>Sand</surfaceTile>
+        <dirtTile>Sand</dirtTile>
+    </biome>
+    <biome id="Jungle">
+        <pv min="0" max="1" />
+        <temperature min="0.6" max="1" />
+        <moisture min="0.5" max="1" />
+         <surfaceTile>Grass</surfaceTile>
+        <dirtTile>Dirt</dirtTile>
+    </biome>
+</biomeListing>

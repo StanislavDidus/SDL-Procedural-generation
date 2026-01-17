@@ -12,6 +12,9 @@ class Biome
 public:
 	Biome() = default;
 
+	Biome(const std::string& name, float pv_min, float pv_max, float temperature_min, float temperature_max,
+		float moisture_min, float moisture_max, size_t surface_tile_id, size_t dirt_tile_id);
+
 	std::string name;
 
 	float pv_min;
@@ -23,6 +26,6 @@ public:
 	float moisture_min;
 	float moisture_max;
 
-	int surface_tile;
-	int dirt_tile;
+	size_t surface_tile_id;
+	size_t dirt_tile_id;
 };

@@ -1,7 +1,9 @@
 #include "ObjectManager.hpp"
 #include "tinyxml2.h"
+#include "ItemManager.hpp"
+#include "TileManager.hpp"
 
-void ObjectManager::loadXML(const std::filesystem::path& path)
+void ObjectManager::loadXml(const std::filesystem::path& path, const ItemManager& item_manager, const TileManager& tile_manager)
 {
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile(path.string().c_str());
@@ -18,7 +20,7 @@ void ObjectManager::loadXML(const std::filesystem::path& path)
 		const auto& properties_node = object_node->FirstChildElement("properties");
 
 		const char* id = object_node->Attribute("id");
-		std::string name = id;
+		std::string object_name = id;
 
 		int sprite_index;
 		properties_node->FirstChildElement("sprite")->QueryIntText(&sprite_index);
@@ -30,8 +32,8 @@ void ObjectManager::loadXML(const std::filesystem::path& path)
 		const auto& drop_node = properties_node->FirstChildElement("drop");
 		for (auto* item_node = drop_node->FirstChildElement("item"); item_node != nullptr; item_node = item_node->NextSiblingElement())
 		{
-			int item_id;
-			item_node->QueryIntAttribute("id", &item_id);
+			std::string item_name = item_node->Attribute("ref");
+			size_t item_id = item_manager.getItemID(item_name);
 
 			float drop_chance;
 			item_node->QueryFloatAttribute("dropChance", &drop_chance);
@@ -45,7 +47,7 @@ void ObjectManager::loadXML(const std::filesystem::path& path)
 			drop.emplace_back(item_id, drop_chance, drop_quantity_min, drop_quantity_max);
 		}
 
-		ObjectProperties properties{ durability, sprite_index, name, drop };
+		ObjectProperties properties{ durability, sprite_index, object_name, drop };
 
 		int properties_id = registerObjectProperties(properties);
 
@@ -70,8 +72,8 @@ void ObjectManager::loadXML(const std::filesystem::path& path)
 		const auto& spawn_tiles_node = spawn_info_node->FirstChildElement("spawnTiles");
 		for (auto* tile_node = spawn_tiles_node->FirstChildElement("tile"); tile_node != nullptr; tile_node = tile_node->NextSiblingElement())
 		{
-			int tile_id;
-			tile_node->QueryIntAttribute("id", &tile_id);
+			const char* tile_name = tile_node->Attribute("ref");
+			size_t tile_id = tile_manager.getTileID(tile_name);
 			spawn_tiles.push_back(tile_id);
 		}
 

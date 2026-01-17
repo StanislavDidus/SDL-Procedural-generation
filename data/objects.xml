@@ -5,8 +5,8 @@
             <sprite>0</sprite>
             <durability>200</durability>
             <drop>
-                <item id="0" dropChance="0.5" dropQuantityMin="1" dropQuantityMax="1" />
-                <item id="4" dropChance="1" dropQuantityMin="2" dropQuantityMax="7" />
+                <item ref="Apple" dropChance="0.5" dropQuantityMin="1" dropQuantityMax="1" />
+                <item ref="Wood" dropChance="1" dropQuantityMin="2" dropQuantityMax="7" />
             </drop>
         </properties>
         <spawnInfo>
@@ -14,7 +14,7 @@
             <noiseSettings octaves="2" frequency="0.7" amplitude="1.5" />
             <noiseThreshold>0.65</noiseThreshold>
             <spawnTiles>
-                <tile id="0"/>
+                <tile ref="Grass"/>
             </spawnTiles>
         </spawnInfo>
     </object>
@@ -23,7 +23,7 @@
             <sprite>1</sprite>
             <durability>200</durability>
             <drop>
-                <item id="4" dropChance="1" dropQuantityMin="3" dropQuantityMax="8" />
+                <item ref="Wood" dropChance="1" dropQuantityMin="3" dropQuantityMax="8" />
             </drop>
         </properties>
         <spawnInfo>
@@ -31,7 +31,7 @@
             <noiseSettings octaves="2" frequency="0.7" amplitude="1.5" />
             <noiseThreshold>0.65</noiseThreshold>
             <spawnTiles>
-                <tile id="5"/>
+                <tile ref="Snow_Grass"/>
             </spawnTiles>
         </spawnInfo>
     </object>
@@ -48,7 +48,7 @@
             <noiseSettings octaves="2" frequency="0.7" amplitude="1.5" />
             <noiseThreshold>0.65</noiseThreshold>
             <spawnTiles>
-                <tile id="3"/>
+                <tile ref="Sand"/>
             </spawnTiles>
         </spawnInfo>
     </object>

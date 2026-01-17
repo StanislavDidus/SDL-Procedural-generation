@@ -7,7 +7,7 @@
 class TileManager;
 class ObjectManager;
 
-enum class BlockType
+/*enum class BlockType
 {
 	GRASS,
 	DIRT,
@@ -22,7 +22,7 @@ enum class BlockType
 
 	SKY,
 	WATER,
-};
+};*/
 
 enum class BiomeType
 {
@@ -51,8 +51,9 @@ enum class MapRangeType
 
 struct GenerationData
 {
-	std::unordered_map<BlockType, int> tiles;
-	std::unordered_map<BiomeType, Biome> biomes;
+	//std::unordered_map<BlockType, int> tiles;
+	//std::unordered_map<BiomeType, Biome> biomes;
+	std::vector<Biome> biomes;
 	std::unordered_map<NoiseType, NoiseSettings> noise_settings;
 	std::shared_ptr<TileManager> tile_manager;
 	std::shared_ptr<ObjectManager> object_manager;
