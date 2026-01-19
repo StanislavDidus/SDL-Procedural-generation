@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<craftListing>
+    <craft id="Pickaxe">
+        <requiredBlueprint>false</requiredBlueprint>
+        <requiredItems>
+            <item ref="Wood" amount="3" />
+            <item ref="Stone" amount="2" />
+        </requiredItems>
+    </craft>
+</craftListing>

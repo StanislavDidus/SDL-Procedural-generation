@@ -21,7 +21,7 @@
         <surfaceTile>Sand</surfaceTile>
         <dirtTile>Sand</dirtTile>
     </biome>
-    <biome id="Jungle">
+    <biome id="Forest2">
         <pv min="0" max="1" />
         <temperature min="0.6" max="1" />
         <moisture min="0.5" max="1" />

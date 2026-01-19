@@ -52,4 +52,22 @@
             </spawnTiles>
         </spawnInfo>
     </object>
+    <object id="Rock">
+        <properties>
+            <sprite>3</sprite>
+            <durability>300</durability>
+            <drop>
+                <item ref="Stone" dropChance="1" dropQuantityMin="2" dropQuantityMax="3" />
+            </drop>
+        </properties>
+        <spawnInfo>
+            <size x="5" y="3" />
+            <noiseSettings octaves="3" frequency="0.5" amplitude="1.2" />
+            <noiseThreshold>0.60</noiseThreshold>
+            <spawnTiles>
+                <tile ref="Grass"/>
+                <tile ref="Snow_Grass"/>
+            </spawnTiles>
+        </spawnInfo>
+    </object>
 </objectListing>

@@ -42,8 +42,8 @@ struct Object
 {
 	Object(int object_id, int properties_id, const SDL_FRect& rect);
 
-	int object_id = 0; ///< Object's unique id.
-	int properties_id = 0; ///< ID used to get object's properties in <b>Object Manager</b>.
+	size_t object_id = 0; ///< Object's unique id.
+	size_t properties_id = 0; ///< ID used to get object's properties in <b>Object Manager</b>.
 	SDL_FRect rect; ///< Object's rect that is used for rendering and collision detection
 
 	float current_durability = 0.0f;
@@ -61,5 +61,5 @@ struct Object
 
 inline bool operator==(const Object& lhs, const Object& rhs)
 {
-	return { lhs.object_id == rhs.object_id };
+	return lhs.object_id == rhs.object_id;
 }

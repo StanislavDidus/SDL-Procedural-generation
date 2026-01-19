@@ -26,7 +26,6 @@ Game::Game(Renderer& screen)
 	//, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
 	, tileset(screen, Surface{ "assets/Sprites/tileset.png" }, { 16.f, 16.f }, SDL_SCALEMODE_NEAREST)
 	, items_spritesheet(screen, Surface{ "assets/Sprites/items.png" }, {16.f, 16.f}, SDL_SCALEMODE_NEAREST)
-	, object_spritesheet(screen, Surface{ "assets/Sprites/objects.png" }, {16.f, 48.f}, SDL_SCALEMODE_NEAREST)
 	//, tilemap(world, tileset, 960.f, 540.f, 75.f, 100.f)
 	, font("assets/Fonts/Roboto-Black.ttf", 32)
 	, text_surface(font.getFont(), "Player", {0,0,0,0})
@@ -42,6 +41,7 @@ Game::Game(Renderer& screen)
 	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
 	item_manager = std::make_shared<ItemManager>();
 
+	initSprites();
 	initItems();
 	initNoiseSettings();
 	initMapRanges();
@@ -51,7 +51,7 @@ Game::Game(Renderer& screen)
 	initBiomes();
 
 
-	world = std::make_shared<World>(generation_data, tileset, object_spritesheet, collision_system, object_manager, 500, 200, 20.f, 20.f);
+	world = std::make_shared<World>(generation_data, tileset, *object_spritesheet, collision_system, object_manager, 500, 200, 20.f, 20.f);
 
 	initSystems();
 	initPlayer();	
@@ -84,6 +84,16 @@ Game::Game(Renderer& screen)
 Game::~Game()
 {
 	std::cout << "Game was deleted" << std::endl;
+}
+
+void Game::initSprites()
+{
+	std::vector<SDL_FRect> texture_rects;
+	texture_rects.emplace_back(0.f, 0.f, 16.f, 48.f);
+	texture_rects.emplace_back(16.f, 0.f, 16.f, 48.f);
+	texture_rects.emplace_back(32.f, 0.f, 16.f, 48.f);
+	texture_rects.emplace_back(48.f, 0.f, 48.f, 32.f);;
+	object_spritesheet = std::make_unique<SpriteSheet>(screen, Surface{ "assets/Sprites/objects.png" }, texture_rects, SDL_SCALEMODE_NEAREST);
 }
 
 void Game::initSystems()
@@ -420,7 +430,7 @@ void Game::updateTilemapTarget()
 
 		glm::vec2 view_center = { view_position.x + window_size.x / 2.f, view_position.y + window_size.y / 2.f };
 
-		world_target = view_center;
+		world_target = view_position;
 	}
 }
 

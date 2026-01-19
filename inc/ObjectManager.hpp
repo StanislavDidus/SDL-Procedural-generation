@@ -26,9 +26,11 @@ public:
 	//ObjectSpawnInfo
 	const std::vector<ObjectSpawnInfo>& getAllObjectSpawnInfos() const;
 private:
-	int registerObjectProperties(const ObjectProperties& properties); ///< Adds new <b>ObjectProperties</b> to the <b>ObjectManager</b> and returns an ID to them.
+	size_t registerObjectProperties(const ObjectProperties& properties); ///< Adds new <b>ObjectProperties</b> to the <b>ObjectManager</b> and returns an ID to them.
 	void addObjectSpawnInfo(const ObjectSpawnInfo& spawn_info);
 
 	std::vector<ObjectProperties> object_properties;
 	std::vector<ObjectSpawnInfo> object_spawn_infos;
+
+	size_t objects_count = 0;
 };

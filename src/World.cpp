@@ -3,6 +3,7 @@
 #include "ECS/Systems.hpp"
 
 #include <random>
+#include <ranges>
 
 namespace
 {
@@ -24,9 +25,9 @@ static float mapRange(float x, float inMin, float inMax, float outMin, float out
 static bool isRectInsideFloat(const SDL_FRect& a, const SDL_FRect& b)
 {
 	return a.x >= b.x &&
-		   a.x + a.w <= b.x + b.w &&
-		   a.y >= b.y &&
-	   	   a.y + a.h <= b.y + b.h;
+		a.x + a.w <= b.x + b.w &&
+		a.y >= b.y &&
+		a.y + a.h <= b.y + b.h;
 }
 
 World::World
@@ -52,7 +53,7 @@ World::World
 	, world_width_chunks(static_cast<float>(width_tiles) / chunk_width_tiles)
 	, world_height_chunks(static_cast<float>(height_tiles) / chunk_height_tiles)
 {
-	
+
 }
 
 void World::setCollisionSystem(std::shared_ptr<CollisionSystem> collision_system)
@@ -159,7 +160,12 @@ void World::placeTile(int tile_x, int tile_y, size_t tile_id)
 			//Don't check the middle tile (it is where we want to place a new tile)
 			if (i == 0 && j == 0) continue;
 
-			auto& tile_temp = world_map(tile_x + i, tile_y + j);
+			int new_x = tile_x + i;
+			int new_y = tile_y + j;
+
+			if (new_x < 0 || new_x >= width_tiles || new_y < 0 || new_y >= height_tiles) continue;
+
+			auto& tile_temp = world_map(new_x, new_y);
 			auto& properties_temp = tile_manager->getProperties(tile_temp.id);
 			if (properties_temp.is_solid)
 			{
@@ -179,7 +185,7 @@ void World::placeTile(int tile_x, int tile_y, size_t tile_id)
 }
 
 void World::damageTile(int tile_x, int tile_y, float damage)
-{	
+{
 	if (tile_x < 0 || tile_x > width_tiles - 1 | tile_y < 0 || tile_y > height_tiles - 1) return;
 
 	auto& tile = world_map(tile_x, tile_y);
@@ -209,7 +215,7 @@ Object* World::getObjectOnPosition(const glm::vec2& mouse_global_position)
 
 	auto& chunk = chunks.at(static_cast<size_t>(static_cast<float>(chunk_y_index) + static_cast<float>(chunk_x_index) * world_height_chunks));
 
-	SDL_FRect mouse_rect = {mouse_global_position.x, mouse_global_position.y, 1.f, 1.f};
+	SDL_FRect mouse_rect = { mouse_global_position.x, mouse_global_position.y, 1.f, 1.f };
 
 	for (auto& object : chunk.objects)
 	{
@@ -253,8 +259,9 @@ std::optional<int> World::damageObject(const glm::vec2& mouse_global_position, f
 
 	SDL_FRect mouse_rect = { mouse_global_position.x, mouse_global_position.y, 1.f, 1.f };
 
-	for (int i = 0; auto& object : chunk.objects)
+	for (auto& object : chunk.objects)
 	{
+		int object_properties_id = object.properties_id;
 		const auto& object_rect = object.rect;
 
 		if (SDL_HasRectIntersectionFloat(&mouse_rect, &object_rect))
@@ -263,15 +270,11 @@ std::optional<int> World::damageObject(const glm::vec2& mouse_global_position, f
 
 			if (object.is_destroyed)
 			{
-				//TODO: Change this to erase objects based on their unique_id. Not position in an array.
+				std::erase_if(chunk.objects, [&object](const Object& obj) {return object == obj; });
+				return object_properties_id;
 
-				chunk.objects.erase(chunk.objects.begin() + i);
-				return object.properties_id;
-				//inventory.addItem(generation_data.object_manager->getProperties(object.id).item);
 			}
 		}
-
-		++i;
 	}
 
 	return std::nullopt;
@@ -339,7 +342,6 @@ void World::updateTiles()
 void World::generateWorld(std::optional<int> seed)
 {
 	world_map.reset();
-	objects.clear();
 
 	initSeeds(seed);
 
@@ -352,11 +354,13 @@ void World::generateWorld(std::optional<int> seed)
 	addCaves();
 	//addWater();
 	addBiomes();
-	addObjects();
-	splitGrid(world_map, chunk_width_tiles, chunk_height_tiles);
+
+	std::vector<Object> objects;
+	addObjects(objects);
+	splitGrid(world_map, objects, chunk_width_tiles, chunk_height_tiles);
 }
 
-void World::splitGrid(const Grid<Tile>& grid, int chunk_width, int chunk_height)
+void World::splitGrid(const Grid<Tile>& grid, const std::vector<Object>& objects, int chunk_width, int chunk_height)
 {
 	chunks.clear();
 
@@ -456,17 +460,17 @@ void World::initSeeds(std::optional<int> seed_opt)
 		seed = seed_opt.value();
 	}
 
-	/*for (int i = 1; i < seeds.size(); ++i)
-	{
-		//seeds[i] = seeds[0] + i;
-	}*/
 
-	for (int i = 0; auto& [type, noise] : generation_data.noise_settings)
+	for (auto& noise : generation_data.noise_settings | std::views::values)
 	{
-		noise.seed = seed + i;
-		++i;
+		noise.seed = getNewSeed(seed);
 	}
 
+}
+
+uint32_t World::getNewSeed(uint32_t master_seed)
+{
+	return master_seed + static_cast<uint32_t>(seeds_count++);	
 }
 
 void World::generateBase()
@@ -497,7 +501,7 @@ void World::generateBase()
 			density_noise += change;
 
 			//Tile new_tile{};
-				
+
 			auto& tile = world_map(x, y);
 			//tile.x = x % chunk_width_tiles;
 			//tile.y = y % chunk_height_tiles;
@@ -596,8 +600,8 @@ void World::addCaves()
 			float c_difference = (generation_data.cave_y_base - static_cast<float>(y)) * -1.f;
 			auto& change_map = generation_data.maps[MapRangeType::CAVE_CHANGE];
 			float correlated_cave_threshold = std::clamp(change_map.getValue(c_difference), 0.001f, change_map.getOutMax());
-	
-			if (is_solid&& cave_noise < correlated_cave_threshold)
+
+			if (is_solid && cave_noise < correlated_cave_threshold)
 			{
 				tile.id = generation_data.tile_manager->getTileID("Sky");
 				tile.sealed = true;
@@ -685,7 +689,7 @@ void World::addBiomes()
 				//Forest
 				if (type == TileType::SURFACE)
 					tile.id = generation_data.biomes[BiomeType::FOREST].surface_tile;
-				else		  
+				else
 					tile.id = generation_data.biomes[BiomeType::FOREST].dirt_tile;
 			}*/
 
@@ -698,7 +702,7 @@ void World::addBiomes()
 	}
 }
 
-void World::addObjects()
+void World::addObjects(std::vector<Object>& objects)
 {
 	float scale = generation_data.scale;
 	for (int x = 0; x < width_tiles; x++)
@@ -749,7 +753,17 @@ void World::addObjects()
 					//Set a small 1 tile offset for y loop because we want to check tiles above the ground
 					for (int j = 1; j <= object_size.y; ++j)
 					{
-						//TODO Check the boundaries of thw world before getting a tile from the world_map
+
+						//Check the boundaries of thw world before getting a tile from the world_map
+						int new_x = x + i;
+						int new_y = y - j;
+
+						if (new_x < 0 || new_x >= width_tiles || new_y < 0 || new_y >= height_tiles)
+						{
+							is_space_free = false;
+							break;
+						}
+
 						auto& new_tile = world_map(x + i, y - j);
 
 						if (generation_data.tile_manager->getProperties(new_tile.id).is_solid)
@@ -781,7 +795,7 @@ void World::addObjects()
 				bool object_intersection = false;
 				for (const auto& obj : objects)
 				{
-					if (SDL_HasRectIntersectionFloat(&object_rect , &obj.rect))
+					if (SDL_HasRectIntersectionFloat(&object_rect, &obj.rect))
 					{
 						object_intersection = true;
 						break;
@@ -790,15 +804,26 @@ void World::addObjects()
 
 				if (object_intersection) continue;
 
-				//TODO Check if the object fits in the chunk here instead of doing it in splitGrid()
+				/*//Fifth - object must completely fit inside a chunk that it belongs to
+
+				float chunk_x_index = std::floor(object_rect.x / static_cast<float>(chunk_width_tiles));
+				float chunk_y_index = std::floor(object_rect.y / static_cast<float>(chunk_height_tiles));
+				SDL_FRect chunk_rect
+				{ 
+					chunk_x_index * tile_width_world,
+					chunk_y_index * tile_height_world,
+					static_cast<int>(chunk_width_tiles) * tile_width_world,
+					static_cast<int>(chunk_height_tiles) * tile_height_world 
+				};
+
+				bool does_object_fit = isRectInsideFloat(object_rect, chunk_rect);
+
+				if (!does_object_fit) continue;*/
 
 				//FINALLY! Spawn an object
 				int unique_id = next_object_id++;
 				int properties_id = spawn_info.object_properties_id;
-
-				//TODO Check if the new object intersects with any other already existing object
 				objects.emplace_back(unique_id, properties_id, object_rect);
-
 				break;
 			}
 		}

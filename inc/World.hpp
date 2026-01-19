@@ -55,11 +55,12 @@ public:
 
 	void generateWorld(std::optional<int> seed);
 private:
-	void splitGrid(const Grid<Tile>& grid, int chunk_width, int chunk_height);
+	void splitGrid(const Grid<Tile>& grid, const std::vector<Object>& objects, int chunk_width, int chunk_height);
 	Chunk& tilePositionToChunk(const glm::ivec2 tile_position);
 	glm::ivec2 getTileLocalPosition(const glm::ivec2 tile_position) const;
 	
 	void initSeeds(std::optional<int> seed_opt);
+	uint32_t getNewSeed(uint32_t master_seed);
 	GenerationData generation_data;
 
 	std::array<int, 7> seeds;
@@ -70,7 +71,7 @@ private:
 	void addCaves();
 	void addWater();
 	void addBiomes();
-	void addObjects();
+	void addObjects(std::vector<Object>& objects);
 	void applyChanges();
 
 	std::optional<ObjectProperties> getProperties(int id) const;
@@ -84,7 +85,7 @@ private:
 	std::weak_ptr<CollisionSystem> collision_system;
 	int next_object_id = 0;
 
-	
+	size_t seeds_count = 0;
 
 	//TileManager tile_manager;
 	std::vector<Chunk> chunks;
@@ -94,10 +95,6 @@ private:
 
 	SpriteSheet tileset;
 	SpriteSheet object_spritesheet;
-
-	//std::map<glm::ivec2, Object, Vec2Less> objects;
-	std::vector<Object> objects;
-	std::vector<Object> active_objects;
 
 	Grid<Tile> world_map;
 

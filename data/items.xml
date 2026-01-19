@@ -39,4 +39,18 @@
             
         </components>
     </item>
+    <item id="Stone">
+        <canStack>true</canStack>
+        <spriteIndex>5</spriteIndex>
+        <components>
+            
+        </components>
+    </item>
+    <item id="Pickaxe">
+        <canStack>false</canStack>
+        <spriteIndex>6</spriteIndex>
+        <components>
+            
+        </components>
+    </item>
 </itemListing>

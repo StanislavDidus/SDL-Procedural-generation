@@ -5,7 +5,7 @@
 #include "Renderer.hpp"
 #include "Surface.hpp"
 
-SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, std::vector<SDL_FRect> sprite_rects, SDL_ScaleMode scale_mode)
+SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, const std::vector<SDL_FRect>& sprite_rects, SDL_ScaleMode scale_mode)
 {
 	loadTexture(renderer, surface, scale_mode);
 	

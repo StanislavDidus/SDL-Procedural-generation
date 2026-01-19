@@ -49,7 +49,7 @@ void ObjectManager::loadXml(const std::filesystem::path& path, const ItemManager
 
 		ObjectProperties properties{ durability, sprite_index, object_name, drop };
 
-		int properties_id = registerObjectProperties(properties);
+		size_t properties_id = registerObjectProperties(properties);
 
 		//Get spawn info
 		const auto& spawn_info_node = object_node->FirstChildElement("spawnInfo");
@@ -77,7 +77,7 @@ void ObjectManager::loadXml(const std::filesystem::path& path, const ItemManager
 			spawn_tiles.push_back(tile_id);
 		}
 
-		ObjectSpawnInfo spawn_info {spawn_tiles, noise_settings, noise_threshold, size, properties_id};
+		ObjectSpawnInfo spawn_info {spawn_tiles, noise_settings, noise_threshold, size, static_cast<int>(properties_id)};
 
 		addObjectSpawnInfo(spawn_info);
 	}
@@ -88,10 +88,10 @@ const ObjectProperties& ObjectManager::getProperties(int ID) const
 	return object_properties.at(ID);
 }
 
-int ObjectManager::registerObjectProperties(const ObjectProperties& properties)
+size_t ObjectManager::registerObjectProperties(const ObjectProperties& properties)
 {
 	object_properties.push_back(properties);
-	return static_cast<int>(object_properties.size() - 1ULL);
+	return objects_count++;
 }
 
 const std::vector<ObjectSpawnInfo>& ObjectManager::getAllObjectSpawnInfos() const

@@ -45,6 +45,9 @@ static float smoothStep(float value)
 	return value * value * (3.f - 2.f * value);
 }
 
+/// <summary>
+/// A simple struct that stores all necessary data to use noise functions (octaves, frequency, amplitude, and seed) 
+/// </summary>
 struct NoiseSettings
 {
 	int octaves;
