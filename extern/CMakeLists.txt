@@ -23,3 +23,28 @@ add_library(imgui
 target_include_directories(imgui PUBLIC imgui imgui/backends)
 
 target_link_libraries(imgui PUBLIC SDL3::SDL3-static)
+
+macro( set_targets_folder TARGETS FOLDER )
+	foreach( target ${TARGETS} )
+		if( TARGET ${target} )
+			set_target_properties( ${target} PROPERTIES FOLDER ${FOLDER})
+		endif()
+	endforeach()
+endmacro()
+
+set ( ALL_LIBS
+    SDL3-static
+    SDL3_ttf
+    glm
+    imgui
+    tinyxml2
+    freetype
+    harfbuzz
+    plutosvg
+    plutovg
+    SDL_uclibc
+    SDL3_test
+    SDL3_ttf-static
+)
+
+set_targets_folder("${ALL_LIBS}" "externals")

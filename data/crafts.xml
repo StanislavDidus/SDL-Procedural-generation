@@ -1,10 +1,24 @@
 <?xml version="1.0"?>
 <craftListing>
-    <craft id="Pickaxe">
+    <craft id="Common_Pickaxe">
         <requiredBlueprint>false</requiredBlueprint>
         <requiredItems>
             <item ref="Wood" amount="3" />
             <item ref="Stone" amount="2" />
+        </requiredItems>
+    </craft>
+    <craft id="Common_Sword">
+        <requiredBlueprint>false</requiredBlueprint>
+        <requiredItems>
+            <item ref="Wood" amount="5" />
+            <item ref="Rope" amount="1" />
+            <item ref="Stone" amount="3" />
+        </requiredItems>
+    </craft>
+    <craft id="Rope">
+        <requiredBlueprint>false</requiredBlueprint>
+        <requiredItems>
+            <item ref="Grass" amount="3" />
         </requiredItems>
     </craft>
 </craftListing>

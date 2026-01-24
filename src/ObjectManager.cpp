@@ -3,7 +3,7 @@
 #include "ItemManager.hpp"
 #include "TileManager.hpp"
 
-void ObjectManager::loadXml(const std::filesystem::path& path, const ItemManager& item_manager, const TileManager& tile_manager)
+void ObjectManager::loadXml(const std::filesystem::path& path)
 {
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile(path.string().c_str());
@@ -33,7 +33,7 @@ void ObjectManager::loadXml(const std::filesystem::path& path, const ItemManager
 		for (auto* item_node = drop_node->FirstChildElement("item"); item_node != nullptr; item_node = item_node->NextSiblingElement())
 		{
 			std::string item_name = item_node->Attribute("ref");
-			size_t item_id = item_manager.getItemID(item_name);
+			size_t item_id = ItemManager::get().getItemID(item_name);
 
 			float drop_chance;
 			item_node->QueryFloatAttribute("dropChance", &drop_chance);
@@ -73,7 +73,7 @@ void ObjectManager::loadXml(const std::filesystem::path& path, const ItemManager
 		for (auto* tile_node = spawn_tiles_node->FirstChildElement("tile"); tile_node != nullptr; tile_node = tile_node->NextSiblingElement())
 		{
 			const char* tile_name = tile_node->Attribute("ref");
-			size_t tile_id = tile_manager.getTileID(tile_name);
+			size_t tile_id = TileManager::get().getTileID(tile_name);
 			spawn_tiles.push_back(tile_id);
 		}
 
@@ -94,7 +94,7 @@ size_t ObjectManager::registerObjectProperties(const ObjectProperties& propertie
 	return objects_count++;
 }
 
-const std::vector<ObjectSpawnInfo>& ObjectManager::getAllObjectSpawnInfos() const
+std::vector<ObjectSpawnInfo>& ObjectManager::getAllObjectSpawnInfos()
 {
 	return object_spawn_infos;
 }

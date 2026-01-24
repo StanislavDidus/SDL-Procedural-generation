@@ -5,7 +5,7 @@
 #include "Renderer.hpp"
 #include "Surface.hpp"
 
-SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, const std::vector<SDL_FRect>& sprite_rects, SDL_ScaleMode scale_mode)
+SpriteSheet::SpriteSheet(const Renderer& renderer, const Surface& surface, const std::vector<SDL_FRect>& sprite_rects, SDL_ScaleMode scale_mode)
 {
 	loadTexture(renderer, surface, scale_mode);
 	
@@ -15,7 +15,7 @@ SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, const std::
 	}
 }
 
-SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, const glm::vec2& sprite_size, SDL_ScaleMode scale_mode)
+SpriteSheet::SpriteSheet(const Renderer& renderer, const Surface& surface, const glm::vec2& sprite_size, SDL_ScaleMode scale_mode)
 {
 	loadTexture(renderer, surface, scale_mode);
 	
@@ -34,7 +34,7 @@ SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface, const glm::
 	}
 }
 
-SpriteSheet::SpriteSheet(Renderer& renderer, const Surface& surface)
+SpriteSheet::SpriteSheet(const Renderer& renderer, const Surface& surface)
 {
 	loadTexture(renderer, surface, SDL_SCALEMODE_LINEAR);
 }
@@ -49,7 +49,7 @@ SDL_Texture* SpriteSheet::getTexture() const
 	return texture;
 }
 
-void SpriteSheet::loadTexture(Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode)
+void SpriteSheet::loadTexture(const Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode)
 {
 	texture = SDL_CreateTextureFromSurface(renderer.getRenderer(), surface.getSurface());
 

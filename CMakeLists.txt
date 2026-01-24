@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15...4.2.1)
 
 project(SDL_PRO_GEN VERSION 1.0
-    DESCRIPTION "Small SDL procedural generation game"
+    DESCRIPTION "Small survival game with procedural generation made with SDL3"
     LANGUAGES C CXX)
 
 add_subdirectory(EXTERN extern)
@@ -32,6 +32,12 @@ set(SOURCE_FILES
     "src/ObjectManager.cpp"
     "src/TileManager.cpp"
     "src/Object.cpp"
+    "src/Craft.cpp"
+    "src/CraftView.cpp"
+    "src/CraftingManager.cpp"
+    "src/Manager.cpp"
+    "src/UI/Button.cpp"
+    "src/ResourceManager.cpp"
     )
 
 set(HEADER_FILES
@@ -64,18 +70,24 @@ set(HEADER_FILES
     "inc/TileManager.hpp"
     "inc/GenerationData.hpp"
     "inc/RandomizedItem.hpp"
+    "inc/Craft.hpp"
+    "inc/CraftView.hpp"
+    "inc/CraftingManager.hpp"
+    "inc/Manager.hpp"
+    "inc/UI/Button.hpp"
+    "inc/ResourceManager.hpp"
+    "inc/ECS/RenderSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
 
 add_executable(SDL_PRO_GEN ${ALL_FILES})
 
-add_custom_command(
-    TARGET SDL_PRO_GEN POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_SOURCE_DIR}/assets"
-            "${CMAKE_BINARY_DIR}/assets"
+#Copy assets and data folders to the build folder
+add_custom_target(copy_assets
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_LIST_DIR}/copy_assets.cmake
 )
+add_dependencies(SDL_PRO_GEN copy_assets)
 
 target_include_directories(SDL_PRO_GEN PUBLIC inc)
 

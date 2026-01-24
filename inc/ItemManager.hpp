@@ -10,7 +10,12 @@
 class ItemManager
 {
 public:
-	ItemManager() = default;
+
+	static ItemManager& get()
+	{
+		static ItemManager s;
+		return s;
+	}
 
 	void loadXml(const std::filesystem::path& path);
 
@@ -18,6 +23,13 @@ public:
 	size_t getItemID(const std::string& item_name) const;
 	const ItemProperties& getProperties(int ID) const; ///< Get <b>ItemProperties</b> of an item by their <b>ID</b>.
 private:
+	ItemManager() = default;
+
+	ItemManager(const ItemManager& other) = delete;
+	ItemManager(ItemManager&& other) noexcept = delete;
+	ItemManager& operator=(const ItemManager& other) = delete;
+	ItemManager& operator=(ItemManager&& other) noexcept = delete;
+
 	size_t registerItemProperties(ItemProperties properties);
 
 	std::vector<ItemProperties> items;

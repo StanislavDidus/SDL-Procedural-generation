@@ -102,6 +102,52 @@ namespace Components
 	{
 		std::shared_ptr<Inventory> inventory;
 	};
+
+	struct Button
+	{
+		
+	};
+
+	struct ButtonEntered
+	{
+		
+	};
+
+	struct ButtonCovered ///< Button is covered by a cursor.
+	{
+		
+	};
+
+	struct ButtonExit ///< Button is covered by a cursor.
+	{
+
+	};
+
+	struct ButtonHeld
+	{
+		
+	};
+
+	struct ButtonReleased
+	{
+		
+	};
+
+	struct CraftButton
+	{
+		bool is_available; ///< Shows if the recipe is unlocked and can be crafted.
+		size_t recipe_id;
+	};
+
+	struct CraftItem
+	{
+		size_t recipe_id;
+	};
+
+	struct CraftingAbility
+	{
+		std::vector<size_t> recipes_acquired;
+	};
 }
 
 using namespace Components;
@@ -119,6 +165,18 @@ public:
 	std::unordered_map<Entity, Jump> jump;
 	std::unordered_map<Entity, Player> player; 
 	std::unordered_map<Entity, Health> health;
+	std::unordered_map<Entity, CraftItem> craft_item;
+	std::unordered_map<Entity, CraftingAbility> crafting_ability;
+	
+	//Button control
+	std::unordered_map<Entity, Button> button;
+	std::unordered_map<Entity, ButtonEntered> button_entered;
+	std::unordered_map<Entity, ButtonCovered> button_covered;
+	std::unordered_map<Entity, ButtonExit> button_exit;
+	std::unordered_map<Entity, ButtonHeld> button_held;
+	std::unordered_map<Entity, ButtonReleased> button_released;
+
+	std::unordered_map<Entity, CraftButton> craft_button;
 
 	std::unordered_map<Entity, MineTilesAbility> mine_tiles_ability;
 	std::unordered_map<Entity, MineObjectsAbility> mine_objects_ability;

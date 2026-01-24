@@ -10,7 +10,12 @@
 class TileManager
 {
 public:
-	TileManager() = default;
+
+	static TileManager& get()
+	{
+		static TileManager s;
+		return s;
+	}
 
 	void loadXml(const std::filesystem::path& path);
 
@@ -20,6 +25,13 @@ public:
 	size_t getTileID(const std::string& tile_name) const;
 	const TileProperties& getProperties(int ID) const;
 private:
+	TileManager() = default;
+
+	TileManager(const TileManager& other) = delete;
+	TileManager(TileManager&& other) noexcept = delete;
+	TileManager& operator=(const TileManager& other) = delete;
+	TileManager& operator=(TileManager&& other) noexcept = delete;
+
 	std::vector<TileProperties> tiles;
 	std::unordered_map<std::string, size_t> tileNameToID;///< Map that returns an <b>ID</b> of a tile with the specified name.
 	size_t tiles_count = 0;

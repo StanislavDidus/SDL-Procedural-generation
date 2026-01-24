@@ -2,8 +2,8 @@
 #include "ECS/Systems.hpp"
 #include <iostream>
 
-Inventory::Inventory(std::shared_ptr<ItemUsageSystem> item_usage_system, std::shared_ptr<ItemManager> item_manager, int size) 
-	: item_usage_system(item_usage_system), item_manager(item_manager), size(size)
+Inventory::Inventory(std::shared_ptr<ItemUsageSystem> item_usage_system, int size) 
+	: item_usage_system(item_usage_system), size(size)
 {
 	//Fill items and free slots
 	items.resize(size);
@@ -18,9 +18,9 @@ void Inventory::useItem(int slot)
 {
 	auto& item = items[slot];
 
-	if(item && item_usage_system && item_manager)
+	if(item && item_usage_system)
 	{ 
-		bool was_used = item_usage_system->useItem(item_manager->getProperties((item->id)));
+		bool was_used = item_usage_system->useItem(ItemManager::get().getProperties((item->id)));
 
 		//If useItem returned true than the item was used
 		if (was_used)
@@ -44,7 +44,7 @@ void Inventory::addItem(size_t id, int number)
 		if (item)
 		{
 			//Stack two items if they are the same and can stack
-			if (item->id == id && item_manager->getProperties(id).can_stack)
+			if (item->id == id && ItemManager::get().getProperties(id).can_stack)
 			{
 				item->stack_number += number;
 				return;
@@ -60,7 +60,7 @@ void Inventory::addItem(size_t id, int number)
 	}
 }
 
-void Inventory::removeItem(int slot)
+void Inventory::removeItemAtSlot(int slot)
 {
 	//Remove the item and free the slot
 	if (slot > 0 && slot < items.size())
@@ -101,7 +101,7 @@ void Inventory::stackItems(int old_item, int new_item)
 	auto& item = items[old_item];
 	auto& item_new = items[new_item];
 
-	if (item && item_new)
+	if (item && item_new && ItemManager::get().getProperties(item->id).can_stack)
 	{
 		item_new->stack_number += item->stack_number;
 		item = std::nullopt;
@@ -112,14 +112,66 @@ void Inventory::stackItems(int old_item, int new_item)
 
 void Inventory::moveItem(int old_slot, int new_slot)
 {
-	
 	std::erase_if(free_slots, [new_slot](int x) { return x == new_slot; });
 
 	if(!items[new_slot]) free_slots.push_back(old_slot);
 
 	std::swap(items[old_slot], items[new_slot]);
+}
 
-	
+bool Inventory::hasItem(const Item& item) const
+{
+	int number = 0;
+	for (const auto& i : items)
+	{
+		if (i)
+		{
+			//If items have the same id - increase the number by the number of items in stack
+			if (item == *i)
+			{
+				number += i->stack_number;
+			}
+		}
+	}
+
+	//If number of items is bigger or equal than required - return true
+	return number >= item.stack_number;
+}
+
+void Inventory::removeItem(const Item& item)
+{
+	int target_number = item.stack_number;
+	int number_destroyed = 0;
+	for (size_t i = 0; i < items.size(); i++)
+	{
+		auto& item_ = items[i];
+		if (item_)
+		{
+			if (item == *item_)
+			{
+				//If destroyed number is bigger than a target then we don't need to delete some resources
+				if ( number_destroyed + item_->stack_number > target_number)
+				{
+					number_destroyed += item_->stack_number;
+
+					int number_to_save = number_destroyed - target_number;
+
+					item_->stack_number = number_to_save;
+				}
+				else
+				{
+					number_destroyed += item_->stack_number;
+
+					removeItemAtSlot(i);
+				}
+
+				if (number_destroyed >= target_number)
+				{
+					return;
+				}
+			}
+		}
+	}
 }
 
 const std::vector<std::optional<Item>>& Inventory::getItems() const
@@ -135,7 +187,7 @@ void Inventory::printContent()
 		if (item)
 		{
 			Item& item_ = *item;
-			const auto& properties = item_manager->getProperties(item_.id);
+			const auto& properties = ItemManager::get().getProperties(item_.id);
 			std::cout << "Slot<" << i << "> item: " << properties.name << " " << item_.stack_number << std::endl;
 		}
 		else
@@ -144,11 +196,6 @@ void Inventory::printContent()
 		}
 		++i;
 	}
-}
-
-std::shared_ptr<ItemManager> Inventory::getItemManager() const
-{
-	return item_manager;
 }
 
 std::shared_ptr<ItemUsageSystem> Inventory::getItemUsageSystem() const

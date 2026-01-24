@@ -29,10 +29,7 @@ class World
 public:
 	World(
 		const GenerationData& generation_data,
-		const SpriteSheet& tileset,
-		const SpriteSheet& object_spritesheet,
 		std::shared_ptr<CollisionSystem> collision_system,
-		std::shared_ptr<ObjectManager> object_manager,
 		int width_tiles, int height_tiles,
 		float tile_width_world, float tile_height_world
 	);
@@ -81,7 +78,6 @@ private:
 	SDL_FRect camera_rect;
 
 	//Objects
-	std::weak_ptr<ObjectManager> object_manager;
 	std::weak_ptr<CollisionSystem> collision_system;
 	int next_object_id = 0;
 
@@ -92,9 +88,6 @@ private:
 
 	int chunk_width_tiles = 25;
 	int chunk_height_tiles = 25;
-
-	SpriteSheet tileset;
-	SpriteSheet object_spritesheet;
 
 	Grid<Tile> world_map;
 

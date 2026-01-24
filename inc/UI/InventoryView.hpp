@@ -46,5 +46,5 @@ private:
 	//Items
 	const Font& font;
 	std::vector<std::optional<Text>> slot_text;
-	SpriteSheet item_sprites;
+	const SpriteSheet& item_sprites;
 };

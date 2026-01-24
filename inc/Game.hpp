@@ -16,7 +16,10 @@
 #include "GenerationData.hpp"
 #include <memory>
 
+#include "CraftingManager.hpp"
+#include "CraftView.hpp"
 #include "Surface.hpp"
+#include "ECS/RenderSystem.hpp"
 
 class Game
 {
@@ -30,15 +33,11 @@ public:
 	
 	glm::vec2 view_position = {0.f, 0.f};
 private:
-	void initSprites();
 	void initSystems();
 	void initGenerationData();
-	void initItems();
-	void initTiles();
 	void initNoiseSettings();
 	void initMapRanges();
 	void initBiomes();
-	void initObjects();
 	void initPlayer();
 	void initUserInterface();
 
@@ -59,9 +58,9 @@ private:
 	Renderer& screen;
 	//SpriteSheet background;
 	//SpriteSheet player;
-	SpriteSheet tileset;
-	SpriteSheet items_spritesheet;
-	std::unique_ptr<SpriteSheet> object_spritesheet;
+	//SpriteSheet tileset;
+	//SpriteSheet items_spritesheet;
+	//std::unique_ptr<SpriteSheet> object_spritesheet;
 
 	std::unique_ptr<TileMap> tilemap;
 
@@ -83,12 +82,14 @@ private:
 	std::unique_ptr<MiningObjectsSystem> mining_objects_system;
 	std::unique_ptr<PlaceSystem> place_system;
 	std::shared_ptr<ItemUsageSystem> item_usage_system;
+	std::unique_ptr<ButtonSystem> button_system;
+	std::unique_ptr<CraftSystem> craft_system;
+	std::unique_ptr<RenderSystem> render_system;
+
+	std::unique_ptr<CraftView> craft_view;
 
 	Entity player;
 
-	std::shared_ptr<TileManager> tile_manager;
-	std::shared_ptr<ObjectManager> object_manager;
-	std::shared_ptr<ItemManager> item_manager;
 
 	/*Item apple;
 	Item banana;

@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "Color.hpp"
+#include "CraftingManager.hpp"
 #include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
 #include "Renderer.hpp"
@@ -22,6 +23,8 @@
 /// <param name="item">Item that is being added to the inventory</param>
 static void addRandomizedItem(Inventory& inventory, const RandomizedItem& item)
 {
+	if (item.drop_chance == 0.0f) return;
+
 	float drop_rand = glm::linearRand(0.0f, 1.0f);
 	int quantities_rand = glm::linearRand(item.drop_quantity_min, item.drop_quantity_max);
 
@@ -31,6 +34,26 @@ static void addRandomizedItem(Inventory& inventory, const RandomizedItem& item)
 	}
 }
 
+/// <summary>
+/// Checks if a mouse cursor is inside a bounding box.
+/// </summary>
+/// <param name="mouse_position">Position of a cursor,</param>
+/// <param name="rect">Bounding box that we are checking.</param>
+/// <returns>True if mouse is inside a bounding box.</returns>
+static bool isMouseIntersection(const glm::vec2& mouse_position, const SDL_FRect& rect)
+{
+	return (mouse_position.x >= rect.x &&
+		mouse_position.x < rect.x + rect.w &&
+		mouse_position.y >= rect.y &&
+		mouse_position.y < rect.y + rect.h);
+}
+
+/// <summary>
+/// Checks intersection between two bounding boxes.
+/// </summary>
+/// <param name="a"></param>
+/// <param name="b"></param>
+/// <returns></returns>
 static bool AABB(const Transform& a, const Transform& b)
 {
 	return a.position.x <= b.position.x + b.size.x &&
@@ -361,7 +384,7 @@ public:
 				!component_manager.mine_intent.contains(entity) ||
 				component_manager.mine_objects_state.contains(entity))
 				continue;
-			
+
 			auto& mi = component_manager.mine_intent.at(entity);
 			auto& ts = component_manager.transform.at(entity);
 			auto& mta = component_manager.mine_tiles_ability.at(entity);
@@ -505,15 +528,14 @@ private:
 class MiningObjectsSystem
 {
 public:
-	MiningObjectsSystem(ComponentManager& component_manager, const EntityManager& entity_manager, World& world, std::shared_ptr<ObjectManager> object_manager, float tile_width, float tile_height)
+	MiningObjectsSystem(ComponentManager& component_manager, const EntityManager& entity_manager, World& world, float tile_width, float tile_height)
 		: component_manager(component_manager)
 		, entity_manager(entity_manager)
-		, object_manager(object_manager)
 		, tile_width(tile_width)
 		, tile_height(tile_height)
 		, world(world)
 	{
-		
+
 	}
 
 	void update(float dt)
@@ -525,7 +547,7 @@ public:
 				!component_manager.mine_intent.contains(entity) ||
 				!component_manager.mine_objects_ability.contains(entity))
 				continue;
-			
+
 			auto& ts = component_manager.transform.at(entity);
 			auto& mi = component_manager.mine_intent.at(entity);
 			auto& moa = component_manager.mine_objects_ability.at(entity);
@@ -586,15 +608,12 @@ public:
 					//If object was successfully destroyed - add items to the entity's inventory
 					if (destroyed_object_id && component_manager.has_inventory.contains(entity))
 					{
-						if (auto s = object_manager.lock())
+						const auto& items = ObjectManager::get().getProperties(*destroyed_object_id).drop;
+						for (const auto& item : items)
 						{
-							const auto& items = s->getProperties(*destroyed_object_id).drop;
-							for (const auto& item : items)
-							{
-								addRandomizedItem(*component_manager.has_inventory.at(entity).inventory, item);
-							}
+							addRandomizedItem(*component_manager.has_inventory.at(entity).inventory, item);
 						}
-						
+
 					}
 					// std::cout << "Deal damage\n";
 				}
@@ -617,11 +636,8 @@ public:
 
 					if (object)
 					{
-						if (auto s = object_manager.lock())
-						{
-							const auto& object_rect = object->rect;
-							screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::YELLOW);
-						}
+						const auto& object_rect = object->rect;
+						screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::YELLOW);
 					}
 				}
 				else
@@ -630,21 +646,18 @@ public:
 
 					if (object)
 					{
-						if (auto s = object_manager.lock())
-						{
-							const auto& mid_position = ts.position + ts.size * 0.5f;
-							float distance = glm::distance(mid_position, mi.current_mouse_position);
-							const auto& object_rect = object->rect;
+						const auto& mid_position = ts.position + ts.size * 0.5f;
+						float distance = glm::distance(mid_position, mi.current_mouse_position);
+						const auto& object_rect = object->rect;
 
-							if (distance < moa.radius)
-							{
-								
-								screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::BLUE);
-							}
-							else
-							{
-								screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::RED);
-							}
+						if (distance < moa.radius)
+						{
+
+							screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::BLUE);
+						}
+						else
+						{
+							screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::RED);
 						}
 					}
 				}
@@ -655,7 +668,6 @@ private:
 
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
-	std::weak_ptr<ObjectManager> object_manager;
 
 	World& world;
 
@@ -713,4 +725,158 @@ public:
 private:
 	ComponentManager& component_manager;
 	Entity& target_entity;
+};
+
+
+class ButtonSystem
+{
+public:
+	ButtonSystem(ComponentManager& component_manager, const EntityManager& entity_manager)
+		: component_manager(component_manager)
+		, entity_manager(entity_manager)
+	{
+	}
+
+	void update()
+	{
+		for (const auto& entity : entity_manager.getEntities())
+		{
+			if (component_manager.transform.contains(entity) && component_manager.button.contains(entity))
+			{
+				//Remove CraftItem components from the last frame
+				if (component_manager.craft_item.contains(entity))
+				{
+					component_manager.craft_item.erase(entity);
+				}
+
+				const auto& ts = component_manager.transform.at(entity);
+				auto& bt = component_manager.button.at(entity);
+
+				const auto& mouse_state = InputManager::getMouseState();
+				const auto& mouse_position = mouse_state.position;
+				const auto& mouse_left_state = mouse_state.left;
+
+				bool is_covered = isMouseIntersection(mouse_position, SDL_FRect{ ts.position.x, ts.position.y, ts.size.x, ts.size.y });
+				bool was_covered = component_manager.button_covered.contains(entity);
+
+				//If button is not being held right now
+				if (!component_manager.button_held.contains(entity))
+				{
+					//If cursor is on the button now but wasn't last frame - ENTER
+					if (is_covered && !was_covered)
+					{
+						component_manager.button_entered[entity] = ButtonEntered{};
+					}
+					//If cursor is on the button and was last frame - STAY/COVERED
+					else if (is_covered && was_covered)
+					{
+						component_manager.button_covered[entity] = ButtonCovered{};
+
+						if (mouse_left_state == MouseButtonState::DOWN)
+						{
+							component_manager.button_held[entity] = ButtonHeld{};
+						}
+					}
+					//If cursor is not on the mouse but was last frame - EXIT
+					else if (!is_covered && was_covered)
+					{
+						component_manager.button_exit[entity] = ButtonExit{};
+					}
+				}
+				//If button is being held
+				else
+				{
+					//If cursor is no longer on the button - Remove ButtonHeld component
+					if (!is_covered)
+					{
+						component_manager.button_held.erase(entity);
+					}
+					//Or if left mouse button was released - Remove ButtonHeld component and call a function assigned to the button
+					else if (mouse_left_state == MouseButtonState::RELEASED)
+					{
+						component_manager.button_held.erase(entity);
+
+						//Do func()
+						press(entity);
+					}
+				}
+
+				if (is_covered && !was_covered)
+				{
+					component_manager.button_covered[entity] = ButtonCovered{};
+				}
+				else if (!is_covered && was_covered)
+				{
+					component_manager.button_covered.erase(entity);
+				}
+			}
+		}
+	}
+
+private:
+	void press(Entity button)
+	{
+		if (component_manager.craft_button.contains(button))
+		{
+			const auto& craft_component = component_manager.craft_button.at(button);
+
+			if (craft_component.is_available)
+			{
+				component_manager.craft_item[button] = CraftItem{ craft_component.recipe_id };
+			}
+		}
+	}
+
+	ComponentManager& component_manager;
+	const EntityManager& entity_manager;
+};
+
+
+class CraftSystem
+{
+public:
+	CraftSystem(ComponentManager& component_manager, const EntityManager& entity_manager)
+		: component_manager(component_manager)
+		, entity_manager(entity_manager)
+	{
+	}
+
+	void update(Entity target_entity)
+	{
+		for (const auto& entity : entity_manager.getEntities())
+		{
+			if (!component_manager.craft_item.contains(entity) || !component_manager.has_inventory.contains(target_entity)) continue;
+
+			auto& inventory_component = component_manager.has_inventory.at(target_entity);
+			auto& craft_item_component = component_manager.craft_item.at(entity);
+
+			auto& inventory = inventory_component.inventory;
+
+			const auto& recipe = CraftingManager::get().getRecipe(craft_item_component.recipe_id);
+
+			bool can_craft = true;
+			for (const auto& required_craft_item : recipe.required_items)
+			{
+				if (!inventory->hasItem(required_craft_item))
+				{
+					can_craft = false;
+					break;
+				}
+			}
+
+			if (can_craft)
+			{
+				inventory->addItem(recipe.item_id, 1);
+				
+				for (const auto& required_craft_item : recipe.required_items)
+				{
+					inventory->removeItem(required_craft_item);
+				}
+			}
+		}
+	}
+
+private:
+	ComponentManager& component_manager;
+	const EntityManager& entity_manager;
 };

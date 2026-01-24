@@ -46,9 +46,37 @@
             
         </components>
     </item>
-    <item id="Pickaxe">
+    <item id="Common_Pickaxe">
         <canStack>false</canStack>
         <spriteIndex>6</spriteIndex>
+        <components>
+            
+        </components>
+    </item>
+    <item id="Cactus">
+        <canStack>false</canStack>
+        <spriteIndex>7</spriteIndex>
+        <components>
+            
+        </components>
+    </item>
+    <item id="Rope">
+        <canStack>true</canStack>
+        <spriteIndex>8</spriteIndex>
+        <components>
+            
+        </components>
+    </item>
+    <item id="Common_Sword">
+        <canStack>false</canStack>
+        <spriteIndex>9</spriteIndex>
+        <components>
+            
+        </components>
+    </item>
+    <item id="Grass">
+        <canStack>true</canStack>
+        <spriteIndex>10</spriteIndex>
         <components>
             
         </components>

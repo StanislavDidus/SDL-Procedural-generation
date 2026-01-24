@@ -7,6 +7,7 @@
 #include "imgui_impl_sdlrenderer3.h"
 
 #include "InputManager.hpp"
+#include "ResourceManager.hpp"
 
 #include <random>
 
@@ -24,11 +25,9 @@ Game::Game(Renderer& screen)
 	: screen(screen)
 	//, background(screen, Surface{ "assets/Sprites/bg1.png" }, {320.f, 180.f})
 	//, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
-	, tileset(screen, Surface{ "assets/Sprites/tileset.png" }, { 16.f, 16.f }, SDL_SCALEMODE_NEAREST)
-	, items_spritesheet(screen, Surface{ "assets/Sprites/items.png" }, {16.f, 16.f}, SDL_SCALEMODE_NEAREST)
 	//, tilemap(world, tileset, 960.f, 540.f, 75.f, 100.f)
 	, font("assets/Fonts/Roboto-Black.ttf", 32)
-	, text_surface(font.getFont(), "Player", {0,0,0,0})
+	, text_surface(font.getFont(), "Player", { 0,0,0,0 })
 	, text(screen, text_surface)
 	/*, health_bar({ 0.f, screen.getWindowSize().y - 50.f, }, {250.f, 50.f}, component_manager.health[player].current_health, 100.f, Color::RED)*/
 	//, mapRange(0.f, 1.f, 0.f, 0.f)
@@ -37,24 +36,32 @@ Game::Game(Renderer& screen)
 
 	screen.setView({ 0.f, 0.f });
 
-	
-	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
-	item_manager = std::make_shared<ItemManager>();
 
-	initSprites();
-	initItems();
+	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
+
+	ResourceManager::get().loadXml("data/assets.xml", screen);
+
 	initNoiseSettings();
 	initMapRanges();
-	initTiles();
-	initObjects();
+
+	ItemManager::get().loadXml("data/items.xml");
+
+	TileManager::get().loadXml("data/tiles.xml");
+
+	CraftingManager::get().loadXml("data/crafts.xml");
+
+	
+	ObjectManager::get().loadXml("data/objects.xml");
+
+
 	initGenerationData();
 	initBiomes();
 
 
-	world = std::make_shared<World>(generation_data, tileset, *object_spritesheet, collision_system, object_manager, 500, 200, 20.f, 20.f);
+	world = std::make_shared<World>(generation_data, collision_system, 500, 200, 20.f, 20.f);
 
 	initSystems();
-	initPlayer();	
+	initPlayer();
 	initUserInterface();
 
 	world->generateWorld(0);
@@ -62,9 +69,13 @@ Game::Game(Renderer& screen)
 	//tilemap = std::make_unique<TileMap>(*world, tileset, object_spritesheet, collision_system, 20.f, 20.f);
 
 	auto& inventory = component_manager.has_inventory[player].inventory;
-	inventory->addItem(item_manager->getItemID("Apple"), 15);
-	inventory->addItem(item_manager->getItemID("Banana"), 1);
-	inventory->addItem(item_manager->getItemID("Heal_Potion"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Apple"), 15);
+	inventory->addItem(ItemManager::get().getItemID("Banana"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Cactus"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Cactus"), 1);
+
+	SpriteSheet spritesheet_test = SpriteSheet{screen, Surface{"assets/Sprites/tileset.png"}, {16.f, 16.f}, SDL_SCALEMODE_NEAREST};
 	//inventory.removeItem(1);
 
 	//Test tinyxml2
@@ -79,21 +90,31 @@ Game::Game(Renderer& screen)
 
 	auto id2 = object->NextSiblingElement()->Attribute("id");
 	std::cout << id2 << std::endl;*/
+
+	//Add ui
+
+	/*Entity button = *entity_manager.createEntity();
+
+	component_manager.transform[button] = Transform
+	{
+		{400.f, 400.f },
+		{ 50.f, 50.f }
+	};
+
+	component_manager.button[button] = Button
+	{
+
+	};
+
+	component_manager.craft_button[button] = CraftButton
+	{
+		CraftingManager::get().getRecipeID("Common_Pickaxe")
+	};*/
 }
 
 Game::~Game()
 {
 	std::cout << "Game was deleted" << std::endl;
-}
-
-void Game::initSprites()
-{
-	std::vector<SDL_FRect> texture_rects;
-	texture_rects.emplace_back(0.f, 0.f, 16.f, 48.f);
-	texture_rects.emplace_back(16.f, 0.f, 16.f, 48.f);
-	texture_rects.emplace_back(32.f, 0.f, 16.f, 48.f);
-	texture_rects.emplace_back(48.f, 0.f, 48.f, 32.f);;
-	object_spritesheet = std::make_unique<SpriteSheet>(screen, Surface{ "assets/Sprites/objects.png" }, texture_rects, SDL_SCALEMODE_NEAREST);
 }
 
 void Game::initSystems()
@@ -103,9 +124,12 @@ void Game::initSystems()
 	collision_system = std::make_shared<CollisionSystem>(component_manager, entity_manager);
 	jump_system = std::make_unique<JumpSystem>(component_manager, entity_manager);
 	mining_tiles_system = std::make_unique<MiningTilesSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
-	mining_objects_system = std::make_unique<MiningObjectsSystem>(component_manager, entity_manager, *world, object_manager, 20.f, 20.f);
+	mining_objects_system = std::make_unique<MiningObjectsSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
 	place_system = std::make_unique<PlaceSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
 	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
+	button_system = std::make_unique<ButtonSystem>(component_manager, entity_manager);
+	craft_system = std::make_unique<CraftSystem>(component_manager, entity_manager);
+	render_system = std::make_unique<RenderSystem>(component_manager, entity_manager);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -117,28 +141,6 @@ void Game::initGenerationData()
 	generation_data.sea_y_base = 19.f;
 	generation_data.scale = 0.5f;
 	generation_data.density_threshold = 0.5f;
-
-	generation_data.tile_manager = tile_manager;
-	generation_data.object_manager = object_manager;
-}
-
-void Game::initItems()
-{
-	item_manager = std::make_shared<ItemManager>();
-	item_manager->loadXml("data/items.xml");
-}
-
-void Game::initObjects()
-{
-	object_manager = std::make_shared<ObjectManager>();
-	object_manager->loadXml("data/objects.xml", *item_manager, *tile_manager);
-}
-
-
-void Game::initTiles()
-{
-	tile_manager = std::make_shared<TileManager>();
-	tile_manager->loadXml("data/tiles.xml");
 }
 
 void Game::initNoiseSettings()
@@ -253,8 +255,8 @@ void Game::initBiomes()
 		moisture_node->QueryFloatAttribute("min", &moisture_min);
 		moisture_node->QueryFloatAttribute("max", &moisture_max);
 
-		size_t surface_tile_id = tile_manager->getTileID(biome_node->FirstChildElement("surfaceTile")->GetText());
-		size_t dirt_tile_id = tile_manager->getTileID(biome_node->FirstChildElement("dirtTile")->GetText());
+		size_t surface_tile_id = TileManager::get().getTileID(biome_node->FirstChildElement("surfaceTile")->GetText());
+		size_t dirt_tile_id = TileManager::get().getTileID(biome_node->FirstChildElement("dirtTile")->GetText());
 
 		generation_data.biomes.emplace_back(biome_name, pv_min, pv_max, temperature_min, temperature_max, moisture_min, moisture_max, surface_tile_id, dirt_tile_id);
 	}
@@ -323,7 +325,7 @@ void Game::initPlayer()
 
 	component_manager.has_inventory[player] = HasInventory
 	{
-		std::make_shared<Inventory>(item_usage_system, item_manager, 15)
+		std::make_shared<Inventory>(item_usage_system, 15)
 	};
 
 	component_manager.health[player] = Health
@@ -331,13 +333,33 @@ void Game::initPlayer()
 		100.f,
 		50.f
 	};
+
+	component_manager.crafting_ability[player] = CraftingAbility
+	{
+		
+	};
+
+	//Add all recipes that do not require blueprints
+
+	for (size_t i = 0; i < CraftingManager::get().size(); ++i)
+	{
+		const auto& recipe = CraftingManager::get().getRecipe(i);
+
+		if (!recipe.is_blueprint_required)
+		{
+			component_manager.crafting_ability[player].recipes_acquired.push_back(i);
+		}
+	}
+
 }
 
 void Game::initUserInterface()
 {
 	interface.addFillBar({ 0.f, screen.getWindowSize().y - 50.f, }, { 250.f, 50.f }, component_manager.health[player].current_health, 100.f, Color::RED);
 
-	interface.addInventoryView(font, items_spritesheet, component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
+	interface.addInventoryView(font, ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
+
+	craft_view = std::make_unique<CraftView>(player, entity_manager, component_manager, 5, 5, 60.f, glm::vec2{660.f, 0.f});
 }
 
 void Game::update(float dt)
@@ -357,6 +379,8 @@ void Game::update(float dt)
 	jump_system->update(dt);
 	physics_system->update(dt);
 	collision_system->update(dt);
+	button_system->update();
+	craft_system->update(player);
 
 	if (!interface.isMouseCoveringInventory())
 	{
@@ -397,6 +421,8 @@ void Game::update(float dt)
 	const auto& player_pos = component_manager.transform[player].position;
 	const auto& player_size = component_manager.transform[player].size;
 	screen.printText(text.getTexture(), player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
+
+	render_system->render(screen);
 
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.getRenderer());

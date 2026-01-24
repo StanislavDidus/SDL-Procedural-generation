@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include "Biomes.hpp"
 #include "Noise.hpp"
+#include "MapRange.hpp"
 
 class TileManager;
 class ObjectManager;
@@ -29,8 +30,6 @@ struct GenerationData
 {
 	std::vector<Biome> biomes;
 	std::unordered_map<NoiseType, NoiseSettings> noise_settings;
-	std::shared_ptr<TileManager> tile_manager;
-	std::shared_ptr<ObjectManager> object_manager;
 	std::unordered_map<MapRangeType, MapRange> maps;
 
 	float scale;

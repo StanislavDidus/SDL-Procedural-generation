@@ -138,11 +138,9 @@ void InventoryView::render(Renderer& screen)
 
 		if (!item) continue;
 		
-		const auto& item_manager = inventory->getItemManager();
+		const auto& item_manager = ItemManager::get();
 
-		if (!item_manager) continue;
-
-		const auto& item_properties = item_manager->getProperties(item->id);
+		const auto& item_properties = item_manager.getProperties(item->id);
 		
 
 		//Draw static items in an inventory slot
@@ -178,7 +176,7 @@ void InventoryView::render(Renderer& screen)
 
 void InventoryView::drawStackNumbers(Renderer& screen)
 {
-	const auto& item_manager = inventory->getItemManager();
+	const auto& item_manager = ItemManager::get();
 	
 	if (inventory)
 	{
@@ -188,7 +186,7 @@ void InventoryView::drawStackNumbers(Renderer& screen)
 			if (item)
 			{
 				//const auto& item_ = *item;
-				const auto& item_properties = item_manager->getProperties(item->id);
+				const auto& item_properties = item_manager.getProperties(item->id);
 				int stack_number = item->stack_number;
 				std::stringstream ss;
 				ss << stack_number;
@@ -229,8 +227,8 @@ void InventoryView::drawItem(Renderer& screen, const Item& item, const glm::vec2
 {
 	if (!inventory) return;
 
-	const auto& item_manager = inventory->getItemManager();
-	const auto& item_properties = item_manager->getProperties(item.id);
+	const auto& item_manager = ItemManager::get();
+	const auto& item_properties = item_manager.getProperties(item.id);
 
 	const auto& item_sprite = item_sprites[item_properties.sprite_index];
 

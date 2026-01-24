@@ -5,6 +5,8 @@
 #include <random>
 #include <ranges>
 
+#include "ResourceManager.hpp"
+
 namespace
 {
 	std::random_device rd;
@@ -33,21 +35,15 @@ static bool isRectInsideFloat(const SDL_FRect& a, const SDL_FRect& b)
 World::World
 (
 	const GenerationData& generation_data,
-	const SpriteSheet& tileset,
-	const SpriteSheet& object_spritesheet,
 	std::shared_ptr<CollisionSystem> collision_system,
-	std::shared_ptr<ObjectManager> object_manager,
 	int width_tiles, int height_tiles,
 	float tile_width_world, float tile_height_world
 )
 	: generation_data(generation_data)
-	, tileset(tileset)
-	, object_spritesheet(object_spritesheet)
 	, world_map(height_tiles, width_tiles)
 	, width_tiles(width_tiles)
 	, height_tiles(height_tiles)
 	, collision_system(collision_system)
-	, object_manager(object_manager)
 	, tile_width_world(tile_width_world)
 	, tile_height_world(tile_height_world)
 	, world_width_chunks(static_cast<float>(width_tiles) / chunk_width_tiles)
@@ -114,7 +110,7 @@ void World::render(Renderer& screen) const
 						int sprite_index = getTileProperties(tile.id).sprites_index;
 						int is_solid = getTileProperties(tile.id).is_solid;
 
-						screen.drawScaledSprite(tileset[sprite_index], tile_rect.x, tile_rect.y, 20.f, 20.f);
+						screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("tiles")[sprite_index], tile_rect.x, tile_rect.y, 20.f, 20.f);
 
 						//Add collisions
 						if (auto s = collision_system.lock())
@@ -136,8 +132,8 @@ void World::render(Renderer& screen) const
 			{
 				if (SDL_HasRectIntersectionFloat(&camera_rect, &object.rect))
 				{
-					int sprite_index = generation_data.object_manager->getProperties(object.properties_id).sprite_index;
-					screen.drawScaledSprite(object_spritesheet[sprite_index], object.rect.x, object.rect.y, object.rect.w, object.rect.h);
+					int sprite_index = ObjectManager::get().getProperties(object.properties_id).sprite_index;
+					screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("objects")[sprite_index], object.rect.x, object.rect.y, object.rect.w, object.rect.h);
 				}
 			}
 		}
@@ -149,9 +145,9 @@ void World::placeTile(int tile_x, int tile_y, size_t tile_id)
 	if (tile_x < 0 || tile_x > width_tiles - 1 | tile_y < 0 || tile_y > height_tiles - 1) return;
 
 	auto& tile = world_map(tile_x, tile_y);
-	auto& tile_manager = generation_data.tile_manager;
+	auto& tile_manager = TileManager::get();
 
-	if (auto& tile_properties = tile_manager->getProperties(tile.id); !tile_properties.is_solid)
+	if (auto& tile_properties = tile_manager.getProperties(tile.id); !tile_properties.is_solid)
 	{
 		//Check adjacent tiles
 		bool is_placement_allowed = false;
@@ -166,7 +162,7 @@ void World::placeTile(int tile_x, int tile_y, size_t tile_id)
 			if (new_x < 0 || new_x >= width_tiles || new_y < 0 || new_y >= height_tiles) continue;
 
 			auto& tile_temp = world_map(new_x, new_y);
-			auto& properties_temp = tile_manager->getProperties(tile_temp.id);
+			auto& properties_temp = tile_manager.getProperties(tile_temp.id);
 			if (properties_temp.is_solid)
 			{
 				is_placement_allowed = true;
@@ -190,13 +186,13 @@ void World::damageTile(int tile_x, int tile_y, float damage)
 
 	auto& tile = world_map(tile_x, tile_y);
 
-	if (auto& tile_properties = generation_data.tile_manager->getProperties(tile.id); tile_properties.is_solid && !tile.attached)
+	if (auto& tile_properties = TileManager::get().getProperties(tile.id); tile_properties.is_solid && !tile.attached)
 	{
 		tile.dealDamage(damage);
 
 		if (tile.is_destroyed)
 		{
-			tile.id = generation_data.tile_manager->getTileID("Sky");
+			tile.id = TileManager::get().getTileID("Sky");
 			tile.is_destroyed = false;
 		}
 
@@ -282,16 +278,15 @@ std::optional<int> World::damageObject(const glm::vec2& mouse_global_position, f
 
 std::optional<ObjectProperties> World::getProperties(int id) const
 {
-	if (auto s = object_manager.lock())
-	{
-		return s->getProperties(id);
-	}
+
+	return ObjectManager::get().getProperties(id);
+	
 	return std::nullopt;
 }
 
 const TileProperties& World::getTileProperties(int id) const
 {
-	return generation_data.tile_manager->getProperties(id);
+	return TileManager::get().getProperties(id);
 }
 
 void World::rebuildChunks()
@@ -312,7 +307,7 @@ void World::updateTiles()
 	{
 		for (auto& object : chunk.objects)
 		{
-			float max_durability = generation_data.object_manager->getProperties(object.properties_id).durability;
+			float max_durability = ObjectManager::get().getProperties(object.properties_id).durability;
 			if (object.current_durability < max_durability && !object.received_damage_last_frame)
 			{
 				object.current_durability = max_durability;
@@ -328,7 +323,7 @@ void World::updateTiles()
 		{
 			auto& tile = world_map(x, y);
 
-			float max_durability = generation_data.tile_manager->getProperties(tile.id).max_durability;
+			float max_durability = TileManager::get().getProperties(tile.id).max_durability;
 			if (tile.current_durability < max_durability && !tile.received_damage_last_frame)
 			{
 				tile.current_durability = max_durability;
@@ -375,7 +370,7 @@ void World::splitGrid(const Grid<Tile>& grid, const std::vector<Object>& objects
 	//Fill chunks with empty tiles
 	for (int i = 0; i < world_width_chunks * world_height_chunks; ++i)
 	{
-		chunks.emplace_back(tileset, SDL_FRect{}, chunk_height, chunk_width);
+		chunks.emplace_back(ResourceManager::get().getSpriteSheet("tiles"), SDL_FRect{}, chunk_height, chunk_width);
 	}
 
 	//Divide tiles between all chunks
@@ -449,6 +444,7 @@ glm::ivec2 World::getTileLocalPosition(const glm::ivec2 tile_position) const
 
 void World::initSeeds(std::optional<int> seed_opt)
 {
+	seeds_count = 0;
 	int seed = 0;
 	if (!seed_opt.has_value())
 	{
@@ -464,6 +460,13 @@ void World::initSeeds(std::optional<int> seed_opt)
 	for (auto& noise : generation_data.noise_settings | std::views::values)
 	{
 		noise.seed = getNewSeed(seed);
+	}
+
+	for (auto& object : ObjectManager::get().getAllObjectSpawnInfos())
+	{
+		// TODO: Set the seeds for ObjectSpawnInfo before generation them!
+
+		object.noise_settings.seed = getNewSeed(seed);
 	}
 
 }
@@ -509,12 +512,12 @@ void World::generateBase()
 			if (density_noise >= generation_data.density_threshold)
 			{
 				//Solid tile
-				tile.id = generation_data.tile_manager->getTileID("Stone");
+				tile.id = TileManager::get().getTileID("Stone");
 			}
 			if (density_noise < generation_data.density_threshold)
 			{
 				//Air tile
-				tile.id = generation_data.tile_manager->getTileID("Sky");
+				tile.id = TileManager::get().getTileID("Sky");
 			}
 		}
 	}
@@ -529,7 +532,7 @@ void World::addGrass()
 		for (int y = 0; y < height_tiles; y++)
 		{
 			auto& tile = world_map(x, y);
-			bool is_solid = generation_data.tile_manager->getProperties(tile.id).is_solid;
+			bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
 
 			if (!is_solid)
 			{
@@ -539,7 +542,7 @@ void World::addGrass()
 
 			if (is_solid && was_air)
 			{
-				tile.id = generation_data.tile_manager->getTileID("Grass");
+				tile.id = TileManager::get().getTileID("Grass");
 			}
 
 			was_air = false;
@@ -562,8 +565,8 @@ void World::addDirt()
 		for (int y = 0; y < height_tiles; y++)
 		{
 			auto& tile = world_map(x, y);
-			TileType type = generation_data.tile_manager->getProperties(tile.id).type;
-			bool is_solid = generation_data.tile_manager->getProperties(tile.id).is_solid;
+			TileType type = TileManager::get().getProperties(tile.id).type;
+			bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
 
 			if (type == TileType::SURFACE)
 			{
@@ -577,7 +580,7 @@ void World::addDirt()
 				int distance = y - surface_y;
 				if (distance <= dirt_level)
 				{
-					tile.id = generation_data.tile_manager->getTileID("Dirt");
+					tile.id = TileManager::get().getTileID("Dirt");
 				}
 			}
 
@@ -593,7 +596,7 @@ void World::addCaves()
 		for (int y = 0; y < height_tiles; y++)
 		{
 			auto& tile = world_map(x, y);
-			bool is_solid = generation_data.tile_manager->getProperties(tile.id).is_solid;
+			bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
 
 			float cave_noise = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::CAVE], static_cast<float>(x) * scale, static_cast<float>(y) * scale);
 
@@ -603,7 +606,7 @@ void World::addCaves()
 
 			if (is_solid && cave_noise < correlated_cave_threshold)
 			{
-				tile.id = generation_data.tile_manager->getTileID("Sky");
+				tile.id = TileManager::get().getTileID("Sky");
 				tile.sealed = true;
 			}
 		}
@@ -618,11 +621,11 @@ void World::addWater()
 		for (int y = 0; y < height_tiles; y++)
 		{
 			auto& tile = world_map(x, y);
-			bool is_solid = generation_data.tile_manager->getProperties(tile.id).is_solid;
+			bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
 
 			if (!is_solid && static_cast<float>(y) > generation_data.sea_y_base && !tile.sealed)
 			{
-				tile.id = generation_data.tile_manager->getTileID("Water");
+				tile.id = TileManager::get().getTileID("Water");
 			}
 		}
 	}
@@ -639,7 +642,7 @@ void World::addBiomes()
 			float position_y = static_cast<float>(y);
 
 			auto& tile = world_map(x, y);
-			TileType type = generation_data.tile_manager->getProperties(tile.id).type;
+			TileType type = TileManager::get().getProperties(tile.id).type;
 
 			if (type != TileType::SURFACE && type != TileType::DIRT) continue;
 
@@ -712,7 +715,7 @@ void World::addObjects(std::vector<Object>& objects)
 		{
 			float position_y = static_cast<float>(y);
 
-			const auto& object_spawn_infos = generation_data.object_manager->getAllObjectSpawnInfos();
+			const auto& object_spawn_infos = ObjectManager::get().getAllObjectSpawnInfos();
 
 			for (const auto& spawn_info : object_spawn_infos)
 			{
@@ -766,7 +769,7 @@ void World::addObjects(std::vector<Object>& objects)
 
 						auto& new_tile = world_map(x + i, y - j);
 
-						if (generation_data.tile_manager->getProperties(new_tile.id).is_solid)
+						if (TileManager::get().getProperties(new_tile.id).is_solid)
 						{
 							is_space_free = false;
 							break;

@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<assetListing>
+    <spriteListing>
+        <sprite id="tiles">
+            <!--String Path-->>
+            <path>assets/Sprites/tileset.png</path>
+            <!--Sprite size OR Rects-->>
+            <size x="16" y="16" />
+            <!--OR
+            <rectListing>
+                <rect x="0" y="0" w="16" h="16" />
+                <rect x="16" y="16" w="16" h="16" />
+            </rectListing>
+            -->>
+            <!--Scale Mode (NEAREST, LINEAR, INVALID, PIXELART)-->>
+            <scaleMode>NEAREST</scaleMode>
+        </sprite>
+        <sprite id="items">
+            <path>assets/Sprites/items.png</path>
+            <size x="16" y="16" />
+            <scaleMode>NEAREST</scaleMode>
+        </sprite>
+        <sprite id="objects">
+            <path>assets/Sprites/objects.png</path>
+            <scaleMode>NEAREST</scaleMode>
+            <rectListing>
+                <rect x="0" y="0" w="16" h="48" />
+                <rect x="16" y="0" w="16" h="48" />
+                <rect x="32" y="0" w="16" h="48" />
+                <rect x="48" y="0" w="48" h="32" />
+                <rect x="48" y="32" w="16" h="16" />
+                <rect x="64" y="32" w="16" h="16" />
+            </rectListing>
+        </sprite>
+        <sprite id="ui">
+            <path>assets/Sprites/UI.png</path>
+            <scaleMode>NEAREST</scaleMode>
+            <size x="16" y="16" />
+        </sprite>
+    </spriteListing>
+</assetListing>

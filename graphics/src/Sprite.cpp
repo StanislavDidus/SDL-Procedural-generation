@@ -5,11 +5,6 @@ Sprite::Sprite(SDL_Texture& texture, const SDL_FRect& rect) : texture(texture), 
 	
 }
 
-Sprite::~Sprite()
-{
-	
-}
-
 const SDL_FRect& Sprite::getRect() const
 {
 	return rect;
