@@ -130,6 +130,7 @@ void Game::initSystems()
 	button_system = std::make_unique<ButtonSystem>(component_manager, entity_manager);
 	craft_system = std::make_unique<CraftSystem>(component_manager, entity_manager);
 	render_system = std::make_unique<RenderSystem>(component_manager, entity_manager);
+	item_description_system = std::make_unique<ItemDescriptionSystem>(component_manager, entity_manager);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -423,6 +424,7 @@ void Game::update(float dt)
 	screen.printText(text.getTexture(), player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
 
 	render_system->render(screen);
+	item_description_system->render(screen);
 
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.getRenderer());

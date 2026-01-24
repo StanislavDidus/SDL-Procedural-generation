@@ -53,6 +53,11 @@ void ItemManager::loadXml(const std::filesystem::path& path)
 	}
 }
 
+const ItemProperties& ItemManager::getItem(size_t ID) const
+{
+	return items.at(ID);
+}
+
 size_t ItemManager::getItemID(const std::string& item_name) const
 {
 	return itemNameToID.at(item_name);

@@ -20,6 +20,7 @@ public:
 	void loadXml(const std::filesystem::path& path);
 
 	//Getters
+	const ItemProperties& getItem(size_t ID) const;
 	size_t getItemID(const std::string& item_name) const;
 	const ItemProperties& getProperties(int ID) const; ///< Get <b>ItemProperties</b> of an item by their <b>ID</b>.
 private:

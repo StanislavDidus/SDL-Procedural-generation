@@ -77,6 +77,7 @@ set(HEADER_FILES
     "inc/UI/Button.hpp"
     "inc/ResourceManager.hpp"
     "inc/ECS/RenderSystem.hpp"
+    "inc/ECS/ItemDescriptionSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

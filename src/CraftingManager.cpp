@@ -37,7 +37,7 @@ size_t CraftingManager::getRecipeID(const std::string& recipe_name) const
 	return recipeNameToID.at(recipe_name);
 }
 
-const CraftingRecipe& CraftingManager::getRecipe(int ID) const
+const CraftingRecipe& CraftingManager::getRecipe(size_t ID) const
 {
 	return recipes.at(ID);
 }

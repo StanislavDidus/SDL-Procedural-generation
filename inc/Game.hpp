@@ -19,6 +19,7 @@
 #include "CraftingManager.hpp"
 #include "CraftView.hpp"
 #include "Surface.hpp"
+#include "ECS/ItemDescriptionSystem.hpp"
 #include "ECS/RenderSystem.hpp"
 
 class Game
@@ -85,8 +86,10 @@ private:
 	std::unique_ptr<ButtonSystem> button_system;
 	std::unique_ptr<CraftSystem> craft_system;
 	std::unique_ptr<RenderSystem> render_system;
+	std::unique_ptr<ItemDescriptionSystem> item_description_system;
 
 	std::unique_ptr<CraftView> craft_view;
+	
 
 	Entity player;
 

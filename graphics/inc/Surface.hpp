@@ -9,7 +9,7 @@ class Surface
 public:
 	Surface() = default;
 	Surface(const std::filesystem::path& path);
-	Surface(TTF_Font* font, const std::string& text, SDL_Color color);
+	Surface(TTF_Font* font, const std::string& text, SDL_Color color = SDL_Color{ 0,0,0,255 });
 	~Surface();
 
 	bool loadImage(const std::filesystem::path& path);

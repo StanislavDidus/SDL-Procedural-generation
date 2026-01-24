@@ -19,7 +19,7 @@ public:
 
 	//CraftingRecipe
 	size_t getRecipeID(const std::string& recipe_name) const;
-	const CraftingRecipe& getRecipe(int ID) const;
+	const CraftingRecipe& getRecipe(size_t ID) const;
 	const std::vector<CraftingRecipe>& getAllRecipes() const;
 	size_t size() const;
 private:
