@@ -1,5 +1,6 @@
 #include "ResourceManager.hpp"
 
+
 #include "Surface.hpp"
 #include "tinyxml2.h"
 
@@ -13,6 +14,7 @@ void ResourceManager::loadXml(const std::filesystem::path& path, const Renderer&
 	const auto& asset_listing_node = doc.FirstChildElement("assetListing");
 	const auto& sprite_listing_node = asset_listing_node->FirstChildElement("spriteListing");
 
+	//Loop through sprites
 	for (auto* sprite_node = sprite_listing_node->FirstChildElement("sprite"); sprite_node != nullptr; sprite_node = sprite_node->NextSiblingElement())
 	{
 		std::string asset_name = sprite_node->Attribute("id");
@@ -71,6 +73,23 @@ void ResourceManager::loadXml(const std::filesystem::path& path, const Renderer&
 		}
 
 	}
+
+	const auto& font_listing_node = asset_listing_node->FirstChildElement("fontListing");
+	//Loop through fonts
+	for (auto* font_node = font_listing_node->FirstChildElement("font"); font_node != nullptr; font_node = font_node->NextSiblingElement())
+	{
+		const char* font_name = font_node->Attribute("id");
+		const char* path = font_node->FirstChildElement("path")->GetText();
+		int size;
+		font_node->FirstChildElement("size")->QueryIntText(&size);
+
+		addFont(font_name, path, size);
+	}
+}
+
+const Font* ResourceManager::getFont(const std::string& name) const
+{
+	return fonts.at(name).get();
 }
 
 const SpriteSheet& ResourceManager::getSpriteSheet(const std::string& name) const
@@ -79,7 +98,7 @@ const SpriteSheet& ResourceManager::getSpriteSheet(const std::string& name) cons
 }
 
 void ResourceManager::addSpriteSheet(const std::string& name, const Renderer& screen, const std::filesystem::path& path, const glm::vec2& size,
-                                            SDL_ScaleMode scale_mode)
+	SDL_ScaleMode scale_mode)
 {
 	spritesheets[name] = std::make_unique<SpriteSheet>(screen, Surface{ path }, size, scale_mode);
 	//spritesheets[name] = std::move(SpriteSheet{ screen, Surface{path}, size, scale_mode });
@@ -90,5 +109,10 @@ void ResourceManager::addSpriteSheet(const std::string& name, const Renderer& sc
 {
 	spritesheets[name] = std::make_unique<SpriteSheet>(screen, Surface{ path }, rects, scale_mode);
 	//spritesheets[name] = std::move(SpriteSheet{ screen, Surface{path}, rects, scale_mode });
+}
+
+void ResourceManager::addFont(const std::string& name, const std::filesystem::path& path, int size)
+{
+	fonts[name] = std::make_unique<Font>(path, size);
 }
 

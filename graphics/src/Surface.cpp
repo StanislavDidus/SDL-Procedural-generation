@@ -13,7 +13,8 @@ Surface::Surface(TTF_Font* font, const std::string& text, SDL_Color color)
 
 Surface::~Surface()
 {
-	SDL_DestroySurface(surface);
+	if (surface)
+		SDL_DestroySurface(surface);
 }
 
 bool Surface::loadImage(const std::filesystem::path& path)

@@ -34,11 +34,6 @@ SpriteSheet::SpriteSheet(const Renderer& renderer, const Surface& surface, const
 	}
 }
 
-SpriteSheet::SpriteSheet(const Renderer& renderer, const Surface& surface)
-{
-	loadTexture(renderer, surface, SDL_SCALEMODE_LINEAR);
-}
-
 SpriteSheet::~SpriteSheet()
 {
 	SDL_DestroyTexture(texture);

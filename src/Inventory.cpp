@@ -174,14 +174,31 @@ void Inventory::removeItem(const Item& item)
 	}
 }
 
+int Inventory::countItem(size_t item_id) const
+{
+	int number = 0;
+	for (const auto& item : items)
+	{
+		if (item)
+		{
+			if (item->id == item_id)
+			{
+				number += item->stack_number;
+			}
+		}
+	}
+
+	return number;
+}
+
 const std::vector<std::optional<Item>>& Inventory::getItems() const
 {
 	return items;
 }
 
-void Inventory::printContent()
+void Inventory::printContent() const
 {
-	int i = 0;
+	/*int i = 0;
 	for (auto& item : items)
 	{
 		if (item)
@@ -195,7 +212,7 @@ void Inventory::printContent()
 			std::cout << "Slot<" << i << "> is empty" << std::endl;
 		}
 		++i;
-	}
+	}*/
 }
 
 std::shared_ptr<ItemUsageSystem> Inventory::getItemUsageSystem() const

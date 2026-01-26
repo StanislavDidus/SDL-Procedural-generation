@@ -59,4 +59,14 @@ namespace ItemComponents
 		Effect effect;
 		float duration;
 	};
+
+	struct Pickaxe : public ItemComponent
+	{
+		Pickaxe(float mining_speed, float mining_radius, int mining_size)
+			: speed(mining_speed), radius(mining_radius), size(mining_size) {}
+
+		float speed;
+		float radius;
+		int size;
+	};
 }

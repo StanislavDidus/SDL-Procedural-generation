@@ -76,7 +76,7 @@ set(HEADER_FILES
     "inc/Manager.hpp"
     "inc/UI/Button.hpp"
     "inc/ResourceManager.hpp"
-    "inc/ECS/RenderSystem.hpp"
+    "inc/ECS/RenderUISystem.hpp"
     "inc/ECS/ItemDescriptionSystem.hpp"
     )
 

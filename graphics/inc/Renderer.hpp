@@ -3,6 +3,7 @@
 #include "glm/vec2.hpp"
 #include "SDL3/SDL_render.h"
 
+class Text;
 struct Color;
 class Window;
 
@@ -68,7 +69,8 @@ public:
 	void drawRotatedSprite(const Sprite& sprite, int x, int y, int width, int height, int angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE);
 	void drawRotatedSprite(const Sprite& sprite, float x, float y, float width, float height, float angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE);
 
-	void printText(SDL_Texture* texture, float x, float y, float w, float h, bool ignore_view_zoom = false);
+	void printText(const Text& text, float x, float y, float w, float h, bool ignore_view_zoom = false);
+	void printTextScaled(const Text& text, float x, float y, float scale_x, float scale_y, bool ignore_view_zoom = false);
 private:
 	void zoomRect(SDL_FRect& rect) const;
 

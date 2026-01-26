@@ -76,11 +76,19 @@ public:
 	void removeItem(const Item& item);
 
 	/// <summary>
+	/// Returns the number of items of the specified ID that the inventory contains.
+	/// </summary>
+	/// <param name="item_id">ID of an item you look for.</param>
+	/// <returns>The number of items in the inventory.</returns>
+	int countItem(size_t item_id) const;
+
+	/// <summary>
 	/// Returns all inventory slots.
 	/// </summary>
 	/// <returns></returns>
 	const std::vector<std::optional<Item>>& getItems() const;
-	void printContent();
+
+	void printContent() const;
 
 	//Getters
 	std::shared_ptr<ItemUsageSystem> getItemUsageSystem() const;

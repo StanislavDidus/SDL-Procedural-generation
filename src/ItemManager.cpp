@@ -29,20 +29,34 @@ void ItemManager::loadXml(const std::filesystem::path& path)
 
 			if (strcmp(component_name, "Usable") == 0)
 			{
-				ItemComponents::Usable usable_component{ };
-				item_components.push_back(std::make_unique<ItemComponents::Usable>(usable_component));
+				auto usable_component = std::make_unique<ItemComponents::Usable>();
+				item_components.push_back(std::move(usable_component));
 			}
 			else if (strcmp(component_name, "Heal") == 0)
 			{
 				int amount;
 				component_node->QueryIntAttribute("amount", &amount);
 
-				ItemComponents::Heal heal_component{ amount };
-				item_components.push_back(std::make_unique<ItemComponents::Heal>(heal_component));
+				auto heal_component = std::make_unique<ItemComponents::Heal>(amount );
+				item_components.push_back(std::move(heal_component));
 			}
 			else if (strcmp(component_name, "AddEffect") == 0)
 			{
 				
+			}
+			else if (strcmp(component_name, "Pickaxe") == 0)
+			{
+				float speed;
+				component_node->QueryFloatAttribute("speed", &speed);
+
+				float radius;
+				component_node->QueryFloatAttribute("radius", &radius);
+
+				int size;
+				component_node->QueryIntAttribute("size", &size);
+
+				auto pickaxe_component = std::make_unique<ItemComponents::Pickaxe>(speed, radius, size );
+				item_components.push_back(std::move(pickaxe_component));
 			}
 		}
 

@@ -3,6 +3,9 @@
 #include <SDL3/SDL.h>
 #include "glm/glm.hpp"
 
+constexpr int WINDOW_WIDTH = 960;
+constexpr int WINDOW_HEIGHT = 540;
+
 class Window
 {
 public:
@@ -18,7 +21,7 @@ public:
 	bool pollEvent(SDL_Event& event);
 
 	//Getters
-	const glm::ivec2& getSize() const;
+	static glm::ivec2 getWindowSize();
 	SDL_Window* getWindow() const;
 
 	explicit operator bool() const
@@ -30,6 +33,5 @@ private:
 
 	SDL_Window* window = nullptr;
 
-	glm::ivec2 window_size {0.f, 0.f};
 };
 

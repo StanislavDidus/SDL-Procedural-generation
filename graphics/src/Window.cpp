@@ -9,8 +9,6 @@ Window::Window(const char* title, int width, int height, SDL_WindowFlags flags)
 
 	SDL_RaiseWindow(window);
 	//SDL_SetWindowAlwaysOnTop(window, true);
-
-	SDL_GetWindowSize(window, &window_size.x, &window_size.y);
 }
 
 Window::~Window()
@@ -32,7 +30,7 @@ bool Window::pollEvent(SDL_Event& event)
 			running = false;
 			break;
 		case SDL_EVENT_WINDOW_RESIZED:
-			SDL_GetWindowSize(window, &window_size.x, &window_size.y);
+			//SDL_GetWindowSize(window, &window_size.x, &window_size.y);
 			break;
 		case SDL_EVENT_KEY_DOWN:
 			if (event.key.key == SDLK_ESCAPE)
@@ -44,9 +42,9 @@ bool Window::pollEvent(SDL_Event& event)
 	return return_value;
 }
 
-const glm::ivec2& Window::getSize() const
+glm::ivec2 Window::getWindowSize()
 {
-	return window_size;
+	return {WINDOW_WIDTH, WINDOW_HEIGHT};
 }
 
 SDL_Window* Window::getWindow() const

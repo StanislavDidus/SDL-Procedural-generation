@@ -2,6 +2,7 @@
 #include "Sprite.hpp"
 #include "Color.hpp"
 #include "Window.hpp"
+#include "Text.hpp"
 
 #include <iostream>
 
@@ -13,6 +14,7 @@ Renderer::Renderer(Window& window) : window(window)
 
 	SDL_SetRenderVSync(renderer, 0);
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+	SDL_SetRenderLogicalPresentation(renderer, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_LOGICAL_PRESENTATION_LETTERBOX);
 }
 
 Renderer::~Renderer()
@@ -49,7 +51,7 @@ SDL_Renderer* Renderer::getRenderer() const
 
 const glm::ivec2& Renderer::getWindowSize() const
 {
-	return window.getSize();
+	return window.getWindowSize();
 }
 
 void Renderer::clear(Color color)
@@ -215,9 +217,11 @@ void Renderer::drawRotatedSprite(const Sprite& sprite, float x, float y, float w
 	}
 }
 
-void Renderer::printText(SDL_Texture* texture, float x, float y, float w, float h, bool ignore_view_zoom)
+void Renderer::printText(const Text& text, float x, float y, float w, float h, bool ignore_view_zoom)
 {
 	SDL_FRect rect;
+
+	SDL_Texture* texture = text.getTexture();
 
 	rect.x = x;
 	rect.y = y;
@@ -235,9 +239,31 @@ void Renderer::printText(SDL_Texture* texture, float x, float y, float w, float 
 	SDL_RenderTexture(renderer, texture, nullptr, &rect);
 }
 
+void Renderer::printTextScaled(const Text& text, float x, float y, float scale_x, float scale_y, bool ignore_view_zoom)
+{
+	SDL_FRect rect;
+
+	SDL_Texture* texture = text.getTexture();
+
+	rect.x = x;
+	rect.y = y;
+	rect.w = static_cast<float>(texture->w) * scale_x;
+	rect.h = static_cast<float>(texture->h) * scale_y;
+
+	if (!ignore_view_zoom)
+	{
+		rect.x -= view_position.x;
+		rect.y -= view_position.y;
+
+		zoomRect(rect);
+	}
+
+	SDL_RenderTexture(renderer, texture, nullptr, &rect);
+}
+
 void Renderer::zoomRect(SDL_FRect& rect) const
 {
-	glm::vec2 midscreen{ window.getSize().x / 2.f, window.getSize().y / 2.f };
+	glm::vec2 midscreen{ window.getWindowSize().x / 2.f, window.getWindowSize().y / 2.f };
 
 	rect.x -= midscreen.x;
 	rect.y -= midscreen.y;

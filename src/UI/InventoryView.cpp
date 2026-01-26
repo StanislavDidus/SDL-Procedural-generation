@@ -1,12 +1,11 @@
 #include "UI/InventoryView.hpp"
 
 #include <iostream>
-#include <sstream>
 
 #include "Color.hpp"
 #include "Surface.hpp"
 
-InventoryView::InventoryView(const Font& font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position)
+InventoryView::InventoryView(const Font* font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position)
 	: UIElement(position, { slot_size * columns , slot_size * rows }), font(font), item_sprites(item_sprites), inventory(inventory), rows(rows), columns(columns), slot_size(slot_size)
 {
 	if (inventory) {
@@ -125,40 +124,34 @@ void InventoryView::render(Renderer& screen)
 
 		glm::vec2 pos = { position.x + x * slot_size, position.y + y * slot_size };
 
+		//Draw slot outline
 		screen.drawRectangle(pos.x, pos.y, slot_size, slot_size, RenderType::NONE, Color::YELLOW, IGNORE_VIEW_ZOOM);
 
-		/*if(std::find(inventory->free_slots.begin(), inventory->free_slots.end(), x + y * columns) !=  inventory->free_slots.end())
-			screen.drawRectangle(pos.x, pos.y, slot_size, slot_size, RenderType::FILL, Color::GREEN, IGNORE_VIEW_ZOOM);
-		else
-			screen.drawRectangle(pos.x, pos.y, slot_size, slot_size, RenderType::FILL, Color::RED, IGNORE_VIEW_ZOOM);*/
 
 		const auto& item = inventory->getItems()[i];
-
-		int index = x + y * columns;
 
 		if (!item) continue;
 		
 		const auto& item_manager = ItemManager::get();
 
 		const auto& item_properties = item_manager.getProperties(item->id);
-		
 
 		//Draw static items in an inventory slot
-		if (item && index != dragged_slot)
+		if (item && i != dragged_slot)
 		{
 			const auto& item_sprite = item_sprites[item_properties.sprite_index];
 
-			drawItem(screen, *item, { pos.x, pos.y }, index);
+			drawItem(screen, *item, { pos.x, pos.y }, i);
 		}
 
 		//Draw item while dragging
-		if (item && index == dragged_slot)
+		if (item && i == dragged_slot)
 		{
 			const auto& item_sprite = item_sprites[item_properties.sprite_index];
 			const auto& mouse_position = InputManager::getMouseState().position;
 
 
-			drawItem(screen, *item, { mouse_position.x - dragged_position.x, mouse_position.y - dragged_position.y }, index);
+			drawItem(screen, *item, { mouse_position.x - dragged_position.x, mouse_position.y - dragged_position.y }, i);
 		}
 	}
 
@@ -170,58 +163,8 @@ void InventoryView::render(Renderer& screen)
 
 		screen.drawRectangle(x * slot_size, y * slot_size, slot_size, slot_size, RenderType::FILL, Color::TRANSPARENT_BLUE, IGNORE_VIEW_ZOOM);
 	}
-
-	//drawStackNumbers(screen);
 }
 
-void InventoryView::drawStackNumbers(Renderer& screen)
-{
-	const auto& item_manager = ItemManager::get();
-	
-	if (inventory)
-	{
-		int i = 0;
-		for (const auto& item : inventory->getItems())
-		{
-			if (item)
-			{
-				//const auto& item_ = *item;
-				const auto& item_properties = item_manager.getProperties(item->id);
-				int stack_number = item->stack_number;
-				std::stringstream ss;
-				ss << stack_number;
-				
-				auto& text = slot_text[i];
-
-				updateText(screen, text, ss.str());
-
-				int x = i % columns;
-				int y = i / columns;
-
-				screen.printText(text->texture, x * slot_size + slot_size * 0.5f, y * slot_size + slot_size * 0.5f, slot_size * 0.5f, slot_size * 0.5f, IGNORE_VIEW_ZOOM);
-			}
-
-			++i;
-		}
-	}
-}
-
-void InventoryView::updateText(const Renderer& screen, std::optional<Text>& text_, const std::string& new_text)
-{
-	if (text_)
-	{
-		auto& text = *text_;
-		if (text.text == new_text) return;
-
-		if (text.texture) SDL_DestroyTexture(text.texture);
-	}
-
-	Surface surface{ font.getFont(), new_text, {0,0,0,255} };
-	SDL_Texture* texture = SDL_CreateTextureFromSurface(screen.getRenderer(), surface.getSurface());
-	if (!texture) std::cerr << "ERROR: Texture was not load succesufully: " << SDL_GetError() << std::endl;
-	SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_LINEAR);
-	text_ = Text{ new_text, texture };
-}
 
 void InventoryView::drawItem(Renderer& screen, const Item& item, const glm::vec2& position, int index)
 {
@@ -234,16 +177,22 @@ void InventoryView::drawItem(Renderer& screen, const Item& item, const glm::vec2
 
 	screen.drawScaledSprite(item_sprite, position.x, position.y, slot_size, slot_size, IGNORE_VIEW_ZOOM);
 
-	int stack_number = item.stack_number;
-	std::stringstream ss;
-	ss << stack_number;
-
 	auto& text = slot_text[index];
 
-	updateText(screen, text, ss.str());
+	if (text)
+	{
+		text->setText(std::to_string(item.stack_number));
+		text->updateText(screen);
+	}
+	else
+	{
+		text = std::make_unique<Text>( font, screen, std::to_string(item.stack_number) );
+	}
 
 	int x = index % columns;
 	int y = index / columns;
 
-	screen.printText(text->texture, position.x + slot_size * 0.5f, position.y + slot_size * 0.5f, slot_size * 0.5f, slot_size * 0.5f, IGNORE_VIEW_ZOOM);
+	//Don't draw stack number if it is 1
+	if (item.stack_number > 1)
+		screen.printText(*text, position.x + slot_size * 0.5f, position.y + slot_size * 0.5f, slot_size * 0.5f, slot_size * 0.5f, IGNORE_VIEW_ZOOM);
 }

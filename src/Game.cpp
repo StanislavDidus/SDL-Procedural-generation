@@ -26,9 +26,6 @@ Game::Game(Renderer& screen)
 	//, background(screen, Surface{ "assets/Sprites/bg1.png" }, {320.f, 180.f})
 	//, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
 	//, tilemap(world, tileset, 960.f, 540.f, 75.f, 100.f)
-	, font("assets/Fonts/Roboto-Black.ttf", 32)
-	, text_surface(font.getFont(), "Player", { 0,0,0,0 })
-	, text(screen, text_surface)
 	/*, health_bar({ 0.f, screen.getWindowSize().y - 50.f, }, {250.f, 50.f}, component_manager.health[player].current_health, 100.f, Color::RED)*/
 	//, mapRange(0.f, 1.f, 0.f, 0.f)
 {
@@ -41,6 +38,8 @@ Game::Game(Renderer& screen)
 
 	ResourceManager::get().loadXml("data/assets.xml", screen);
 
+	text = std::make_unique<Text>(ResourceManager::get().getFont("Main"), screen, "Player");
+		
 	initNoiseSettings();
 	initMapRanges();
 
@@ -129,8 +128,8 @@ void Game::initSystems()
 	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
 	button_system = std::make_unique<ButtonSystem>(component_manager, entity_manager);
 	craft_system = std::make_unique<CraftSystem>(component_manager, entity_manager);
-	render_system = std::make_unique<RenderSystem>(component_manager, entity_manager);
-	item_description_system = std::make_unique<ItemDescriptionSystem>(component_manager, entity_manager);
+	render_system = std::make_unique<RenderUISystem>(component_manager, entity_manager, 5, 5, 60.f, 60.f, glm::vec2{660.f, 0.f});
+	item_description_system = std::make_unique<ItemDescriptionSystem>(component_manager, entity_manager, ResourceManager::get().getFont("Main"));
 
 	world->setCollisionSystem(collision_system);
 }
@@ -358,7 +357,7 @@ void Game::initUserInterface()
 {
 	interface.addFillBar({ 0.f, screen.getWindowSize().y - 50.f, }, { 250.f, 50.f }, component_manager.health[player].current_health, 100.f, Color::RED);
 
-	interface.addInventoryView(font, ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
+	interface.addInventoryView(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
 
 	craft_view = std::make_unique<CraftView>(player, entity_manager, component_manager, 5, 5, 60.f, glm::vec2{660.f, 0.f});
 }
@@ -383,7 +382,7 @@ void Game::update(float dt)
 	button_system->update();
 	craft_system->update(player);
 
-	if (!interface.isMouseCoveringInventory())
+	if (!interface.isMouseCoveringInventory() || component_manager.mine_objects_state.contains(player))
 	{
 		mining_tiles_system->update(dt);
 		place_system->update(dt);
@@ -421,10 +420,10 @@ void Game::update(float dt)
 
 	const auto& player_pos = component_manager.transform[player].position;
 	const auto& player_size = component_manager.transform[player].size;
-	screen.printText(text.getTexture(), player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
+	screen.printText(*text, player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
 
-	render_system->render(screen);
-	item_description_system->render(screen);
+	render_system->render(screen, player);
+	item_description_system->render(screen, player);
 
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.getRenderer());

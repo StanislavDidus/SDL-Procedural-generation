@@ -32,7 +32,7 @@ int main()
     //Initialize randomizer
     srand(time(0));
 
-    Window window{ "First SDL program", 960, 540, SDL_WINDOW_RESIZABLE};
+    Window window{ "First SDL program", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE};
     Renderer renderer{ window };
     Game game{ renderer };
 
@@ -67,7 +67,7 @@ int main()
                 input_manager.buttonUp(event.key.key);
                 break;
             case SDL_EVENT_WINDOW_RESIZED:
-                game.resizeSprites();
+                //game.resizeSprites();
                 break;
             }
         }
@@ -77,6 +77,7 @@ int main()
         //Update mouse input
         float mouse_x, mouse_y = 0.f;
         SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+        SDL_RenderCoordinatesFromWindow(renderer.getRenderer(), mouse_x, mouse_y, &mouse_x, &mouse_y);
    
         input_manager.setMouseState(
             { mouse_x, mouse_y },

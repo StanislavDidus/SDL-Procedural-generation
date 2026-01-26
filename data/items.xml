@@ -50,7 +50,7 @@
         <canStack>false</canStack>
         <spriteIndex>6</spriteIndex>
         <components>
-            
+             <Pickaxe speed="100" radius="100" size="2" />
         </components>
     </item>
     <item id="Cactus">
@@ -78,7 +78,7 @@
         <canStack>true</canStack>
         <spriteIndex>10</spriteIndex>
         <components>
-            
+           
         </components>
     </item>
 </itemListing>

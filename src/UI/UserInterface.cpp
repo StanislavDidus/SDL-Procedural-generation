@@ -8,7 +8,7 @@ void UserInterface::addFillBar(const glm::vec2& position, const glm::vec2& size,
 	elements.push_back(std::move(fill_bar));
 }
 
-void UserInterface::addInventoryView(const Font& font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position)
+void UserInterface::addInventoryView(const Font* font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position)
 {
 	inventory_view = std::make_unique<InventoryView>(font, item_sprites, inventory, rows, columns, slot_size, position);
 }

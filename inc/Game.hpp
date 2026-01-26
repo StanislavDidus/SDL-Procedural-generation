@@ -20,7 +20,7 @@
 #include "CraftView.hpp"
 #include "Surface.hpp"
 #include "ECS/ItemDescriptionSystem.hpp"
-#include "ECS/RenderSystem.hpp"
+#include "ECS/RenderUISystem.hpp"
 
 class Game
 {
@@ -85,7 +85,7 @@ private:
 	std::shared_ptr<ItemUsageSystem> item_usage_system;
 	std::unique_ptr<ButtonSystem> button_system;
 	std::unique_ptr<CraftSystem> craft_system;
-	std::unique_ptr<RenderSystem> render_system;
+	std::unique_ptr<RenderUISystem> render_system;
 	std::unique_ptr<ItemDescriptionSystem> item_description_system;
 
 	std::unique_ptr<CraftView> craft_view;
@@ -104,7 +104,5 @@ private:
 	GenerationData generation_data;
 
 	//Text
-	Font font;
-	Surface text_surface;
-	SpriteSheet text;
+	std::unique_ptr<Text> text;
 };
