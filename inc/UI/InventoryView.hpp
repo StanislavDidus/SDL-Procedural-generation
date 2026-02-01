@@ -6,6 +6,9 @@
 #include "InputManager.hpp"
 #include "Font.hpp"
 #include <vector>
+
+#include "Button.hpp"
+#include "Button.hpp"
 #include "Text.hpp"
 
 /// <summary>
@@ -15,12 +18,36 @@ class InventoryView : public UIElement
 {
 public:
 	InventoryView(const Font* font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position);
+	~InventoryView() override = default;
 
 	/// <summary>
 	/// Check if a mouse is on the inventory.
 	/// </summary>
 	/// <returns>Returns true if the mouse intersects with the inventory bounds.</returns>
-	bool isMouseCoveringInventory() const;
+	inline bool isMouseCoveringInventory() const;
+
+	/// <summary>
+	/// Returns the index of the inventory slot that is being covered by a mouse.
+	/// </summary>
+	/// <returns>Returns <b>std::nulloptr</b> if mouse is oustside of inventory bounds.</returns>
+	std::optional<int> getCoveredSlotIndex() const;
+
+	/// <summary>
+	/// Converts slot index to its centre global position in the world according to inventory position and slot width and height.
+	/// </summary>
+	/// <param name="slot">Slot index.</param>
+	/// <returns>Centre global position in the world space.</returns>
+	glm::vec2 getSlotGlobalCoords(int slot) const;
+
+	/// <summary>
+	/// Get slot world size.
+	/// </summary>
+	/// <returns>World slot size.</returns>
+	glm::vec2 getSlotSize() const;
+
+	std::optional<Item> getItem(int slot) const;
+
+	void setInventory(Inventory* inventory);
 
 	void update() override;
 

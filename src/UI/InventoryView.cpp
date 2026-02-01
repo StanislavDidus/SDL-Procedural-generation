@@ -5,6 +5,13 @@
 #include "Color.hpp"
 #include "Surface.hpp"
 
+constexpr float LABEL_WIDTH = 250.f;
+constexpr float LABEL_HEIGHT = 25.f;
+
+constexpr float RESOURCE_ICON_WIDTH = 50.f;
+constexpr float RESOURCE_ICON_HEIGHT = 50.f;
+
+
 InventoryView::InventoryView(const Font* font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position)
 	: UIElement(position, { slot_size * columns , slot_size * rows }), font(font), item_sprites(item_sprites), inventory(inventory), rows(rows), columns(columns), slot_size(slot_size)
 {
@@ -115,8 +122,46 @@ bool InventoryView::isMouseCoveringInventory() const
 	return covered_slot.has_value();
 }
 
+std::optional<int> InventoryView::getCoveredSlotIndex() const
+{
+	if (!isMouseCoveringInventory()) return std::nullopt;
+
+	const auto& mouse_position = InputManager::getMouseState().position;
+
+	glm::ivec2 mouse_grid_position = static_cast<glm::ivec2>(mouse_position / slot_size);
+
+	int index = mouse_grid_position.x + mouse_grid_position.y * columns;
+
+	return index;
+}
+
+glm::vec2 InventoryView::getSlotGlobalCoords(int slot) const
+{
+	int x = slot % columns;
+	int y = slot / columns;
+
+	return glm::vec2{ position.x + x * slot_size, position.y + y * slot_size };
+}
+
+glm::vec2 InventoryView::getSlotSize() const
+{
+	return glm::vec2{ slot_size, slot_size };
+}
+
+std::optional<Item> InventoryView::getItem(int slot) const
+{
+	return inventory->getItems()[slot];
+}
+
+void InventoryView::setInventory(Inventory* inventory)
+{
+	this->inventory = inventory;
+	slot_text.resize(this->inventory->getItems().size());
+}
+
 void InventoryView::render(Renderer& screen)
 {
+	//Render inventory ui slots
 	for (int i = 0; i < rows * columns; i++)
 	{
 		int x = i % columns;
@@ -155,6 +200,28 @@ void InventoryView::render(Renderer& screen)
 		}
 	}
 
+	/*//Render item description
+	if (covered_slot && inventory)
+	{
+		int slot = *covered_slot;
+		auto& item = inventory->getItems()[slot];
+
+		if (item)
+		{
+
+			int x = slot % columns;
+			int y = slot / columns;
+
+			glm::vec2 slot_position = position + glm::vec2{ x * slot_size, y * slot_size };
+			glm::vec2 button_centre = slot_position + slot_size * 0.5f;
+			float draw_x = button_centre.x - LABEL_WIDTH * 0.5f;
+			float draw_y = slot_position.y + slot_size;
+
+			screen.drawRectangle(draw_x, draw_y, LABEL_WIDTH, 150.f, RenderType::FILL, Color{ 0,125,200,200 }, IGNORE_VIEW_ZOOM);
+		}
+	}*/
+	
+	//Render item that is being dragged by the user
 	if (covered_slot)
 	{
 		int index = *covered_slot;

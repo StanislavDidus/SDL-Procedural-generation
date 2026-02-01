@@ -8,6 +8,7 @@ class UIElement
 {
 public:
 	UIElement(const glm::vec2& position, const glm::vec2& size) : position(position), size(size) {}
+	virtual ~UIElement() = default;
 
 	virtual void update() = 0;
 	virtual void render(Renderer& screen) = 0;

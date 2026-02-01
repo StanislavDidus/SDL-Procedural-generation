@@ -25,7 +25,7 @@ void UserInterface::update()
 		element->update();
 	}
 
-	inventory_view->update();
+	//inventory_view->update();
 }
 
 void UserInterface::render(Renderer& screen)
@@ -35,5 +35,5 @@ void UserInterface::render(Renderer& screen)
 		element->render(screen);
 	}
 
-	inventory_view->render(screen);
+	//inventory_view->render(screen);
 }

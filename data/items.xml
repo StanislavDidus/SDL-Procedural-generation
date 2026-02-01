@@ -71,7 +71,7 @@
         <canStack>false</canStack>
         <spriteIndex>9</spriteIndex>
         <components>
-            
+            <MeleeWeapon damage="10" cooldown="0.5" radius="50" />
         </components>
     </item>
     <item id="Grass">

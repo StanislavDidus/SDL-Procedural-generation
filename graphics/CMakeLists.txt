@@ -7,6 +7,7 @@ set(GRAPHICS_SOURCE_FILES
     "src/Color.cpp"
     "src/Font.cpp"
     "src/Text.cpp"
+    "src/ViewportGuard.cpp"
     )
 
 set(GRAPHICS_HEADER_FILES
@@ -18,6 +19,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/Color.hpp"
     "inc/Font.hpp"
     "inc/Text.hpp"
+    "inc/ViewportGuard.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})

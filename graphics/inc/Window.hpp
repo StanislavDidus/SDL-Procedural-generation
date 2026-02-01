@@ -14,7 +14,6 @@ public:
 
 	Window(const Window& copy) = delete;
 	Window& operator=(const Window& copy) = delete;
-
 	Window(const Window&& move) noexcept = delete;
 	Window& operator=(Window&& move) noexcept = delete;
 
@@ -22,7 +21,7 @@ public:
 
 	//Getters
 	static glm::ivec2 getWindowSize();
-	SDL_Window* getWindow() const;
+	SDL_Window* get() const;
 
 	explicit operator bool() const
 	{

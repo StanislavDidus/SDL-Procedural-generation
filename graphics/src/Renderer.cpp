@@ -8,7 +8,7 @@
 
 Renderer::Renderer(Window& window) : window(window)
 {
-	renderer = SDL_CreateRenderer(window.getWindow(), nullptr);
+	renderer = SDL_CreateRenderer(window.get(), nullptr);
 
 	std::cout << "Renderer was created" << std::endl;
 
@@ -33,6 +33,7 @@ void Renderer::setZoom(float zoom)
 {
 	this->zoom = zoom;
 }
+
 
 const glm::vec2& Renderer::getView() const
 {
@@ -159,7 +160,7 @@ void Renderer::drawSprite(const Sprite& sprite, float x, float y)
 
 	zoomRect(dst);
 
-	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
+	SDL_RenderTexture(renderer, sprite.getTexture().get(), &src, &dst);
 }
 
 void Renderer::drawScaledSprite(const Sprite& sprite, int x, int y, int width, int height, bool ignore_view_zoom)
@@ -186,7 +187,7 @@ void Renderer::drawScaledSprite(const Sprite& sprite, float x, float y, float wi
 		zoomRect(dst);
 	}
 
-	SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
+	SDL_RenderTexture(renderer, sprite.getTexture().get(), &src, &dst);
 }
 
 void Renderer::drawRotatedSprite(const Sprite& sprite, int x, int y, int width, int height, int angle, SDL_FlipMode flip_mode)
@@ -207,14 +208,7 @@ void Renderer::drawRotatedSprite(const Sprite& sprite, float x, float y, float w
 
 	zoomRect(dst);
 
-	if (angle == 0.f || std::fmodf(angle, 360.f) == 0.f)
-	{
-		SDL_RenderTexture(renderer, sprite.getTexture(), &src, &dst);
-	}
-	else
-	{
-		SDL_RenderTextureRotated(renderer, sprite.getTexture(), &src, &dst, angle, nullptr, flip_mode);
-	}
+	SDL_RenderTextureRotated(renderer, sprite.getTexture().get(), &src, &dst, angle, nullptr, flip_mode);
 }
 
 void Renderer::printText(const Text& text, float x, float y, float w, float h, bool ignore_view_zoom)

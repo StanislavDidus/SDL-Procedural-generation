@@ -7,6 +7,7 @@
 #include "CraftingManager.hpp"
 #include "ResourceManager.hpp"
 
+// TODO: Add update function that is going to update all buttons positions separating the logic.
 class RenderUISystem
 {
 public:
@@ -23,6 +24,11 @@ public:
 	}
 
 	static void SortCraftButtons(Entity target_entity, const std::vector<Entity>& buttons, std::vector<Entity>& sorted_buttons)
+	{
+		
+	}
+
+	void update(Entity target_entity)
 	{
 		
 	}
@@ -139,27 +145,6 @@ public:
 
 			++i;
 		}
-
-
-		/*if (component_manager.button.contains(entity) && component_manager.craft_button.contains(entity) && component_manager.has_inventory.contains(target_entity))
-		{
-			const auto& button_component = component_manager.button.at(entity);
-			const auto& craft_button_component = component_manager.craft_button.at(entity);
-			const auto& inventory = component_manager.has_inventory.at(target_entity).inventory;
-
-			if (craft_button_component.is_available)
-			{
-				size_t item_id = CraftingManager::get().getRecipe(craft_button_component.recipe_id).item_id;
-
-				screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("ui")[0], ts.position.x, ts.position.y, ts.size.x, ts.size.y, IGNORE_VIEW_ZOOM);
-				screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("items")[item_id], ts.position.x, ts.position.y, ts.size.x, ts.size.y, IGNORE_VIEW_ZOOM);
-			}
-			else
-			{
-				screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("ui")[1], ts.position.x, ts.position.y, ts.size.x, ts.size.y, IGNORE_VIEW_ZOOM);
-			}
-		}*/
-		
 	}
 
 private:

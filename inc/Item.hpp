@@ -6,8 +6,10 @@
 
 struct ItemComponent
 {
-	ItemComponent() = default;
+	explicit ItemComponent(int number_properties) : number_properties(number_properties) {};
 	virtual ~ItemComponent() = default;
+
+	int number_properties = 0;
 };
 
 struct ItemProperties
@@ -42,19 +44,19 @@ namespace ItemComponents
 {
 	struct Usable : public ItemComponent
 	{
-
+		Usable(int number_properties) : ItemComponent(number_properties) {}
 	};
 
 	struct Heal : public ItemComponent
 	{
-		Heal(int value) : value(value) {}
+		Heal(int number_propertie, int value) : ItemComponent(number_propertie), value(value) {}
 
 		int value;
 	};
 
 	struct AddEffect : public ItemComponent
 	{
-		AddEffect(Effect effect, float duration) : effect(effect), duration(duration) {}
+		AddEffect(int number_propertie, Effect effect, float duration) : ItemComponent(number_propertie), effect(effect), duration(duration) {}
 
 		Effect effect;
 		float duration;
@@ -62,11 +64,22 @@ namespace ItemComponents
 
 	struct Pickaxe : public ItemComponent
 	{
-		Pickaxe(float mining_speed, float mining_radius, int mining_size)
-			: speed(mining_speed), radius(mining_radius), size(mining_size) {}
+		Pickaxe(int number_propertie, float mining_speed, float mining_radius, int mining_size)
+			: ItemComponent(number_propertie), speed(mining_speed), radius(mining_radius), size(mining_size) {}
 
 		float speed;
 		float radius;
 		int size;
+	};
+
+	struct MeleeWeapon : public ItemComponent
+	{
+		MeleeWeapon(int number_propertie, float damage, float cooldown, float radius)
+			: ItemComponent(number_propertie), damage(damage), cooldown(cooldown), radius(radius) {
+		}
+
+		float damage;
+		float cooldown;
+		float radius;
 	};
 }

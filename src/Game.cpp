@@ -59,9 +59,12 @@ Game::Game(Renderer& screen)
 
 	world = std::make_shared<World>(generation_data, collision_system, 500, 200, 20.f, 20.f);
 
-	initSystems();
-	initPlayer();
 	initUserInterface();
+	initSystems();
+	
+	initPlayer();
+	craft_view = std::make_unique<CraftView>(player, entity_manager, component_manager, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
+	
 
 	world->generateWorld(0);
 
@@ -73,6 +76,8 @@ Game::Game(Renderer& screen)
 	inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Cactus"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Cactus"), 1);
+
+	inventory_view->setInventory(inventory.get());
 
 	SpriteSheet spritesheet_test = SpriteSheet{screen, Surface{"assets/Sprites/tileset.png"}, {16.f, 16.f}, SDL_SCALEMODE_NEAREST};
 	//inventory.removeItem(1);
@@ -128,8 +133,9 @@ void Game::initSystems()
 	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
 	button_system = std::make_unique<ButtonSystem>(component_manager, entity_manager);
 	craft_system = std::make_unique<CraftSystem>(component_manager, entity_manager);
-	render_system = std::make_unique<RenderUISystem>(component_manager, entity_manager, 5, 5, 60.f, 60.f, glm::vec2{660.f, 0.f});
-	item_description_system = std::make_unique<ItemDescriptionSystem>(component_manager, entity_manager, ResourceManager::get().getFont("Main"));
+	render_ui_system = std::make_unique<RenderUISystem>(component_manager, entity_manager, 5, 5, 60.f, 60.f, glm::vec2{660.f, 0.f});
+	item_description_system = std::make_unique<ItemDescriptionSystem>(component_manager, entity_manager, ResourceManager::get().getFont("Main"), inventory_view);
+	render_system = std::make_unique<RenderSystem>(component_manager, entity_manager);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -268,7 +274,12 @@ void Game::initPlayer()
 
 	component_manager.transform[player] = Transform{
 	glm::vec2{400.f, -500.f},
-	glm::vec2{25.f, 60.f}
+	glm::vec2{35.f, 40.f}
+	};
+
+	component_manager.renderable[player] = Renderable
+	{
+		ResourceManager::get().getSpriteSheet("player")[0]
 	};
 
 	component_manager.physics[player] = Physics{
@@ -339,8 +350,13 @@ void Game::initPlayer()
 		
 	};
 
-	//Add all recipes that do not require blueprints
+	component_manager.pickaxe[player] = Pickaxe
+	{
 
+	};
+
+
+	//Add all recipes that do not require blueprints
 	for (size_t i = 0; i < CraftingManager::get().size(); ++i)
 	{
 		const auto& recipe = CraftingManager::get().getRecipe(i);
@@ -359,7 +375,7 @@ void Game::initUserInterface()
 
 	interface.addInventoryView(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
 
-	craft_view = std::make_unique<CraftView>(player, entity_manager, component_manager, 5, 5, 60.f, glm::vec2{660.f, 0.f});
+	inventory_view = std::make_shared<InventoryView>(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, glm::vec2{0.f, 0.f});
 }
 
 void Game::update(float dt)
@@ -393,6 +409,8 @@ void Game::update(float dt)
 	world->updateTiles();
 	world->rebuildChunks();
 
+	inventory_view->update();
+
 	updateTilemapTarget();
 
 	ImGui_ImplSDLRenderer3_NewFrame();
@@ -405,24 +423,24 @@ void Game::update(float dt)
 	//Render
 	const auto& window_size = screen.getWindowSize();
 
+
 	collision_system->collisions.clear();
+
 	world->render(screen);
+
+	render_system->render(screen);
 
 	mining_tiles_system->renderOutline(screen);
 
-	auto& pos = component_manager.transform[player].position;
-	auto& size = component_manager.transform[player].size;
-
-	screen.drawRectangle(pos.x, pos.y, size.x, size.y, RenderType::FILL, Color::RED);
-
 	mining_objects_system->render(screen);
 	interface.render(screen);
+	inventory_view->render(screen);
 
 	const auto& player_pos = component_manager.transform[player].position;
 	const auto& player_size = component_manager.transform[player].size;
 	screen.printText(*text, player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
 
-	render_system->render(screen, player);
+	render_ui_system->render(screen, player);
 	item_description_system->render(screen, player);
 
 	ImGui::Render();

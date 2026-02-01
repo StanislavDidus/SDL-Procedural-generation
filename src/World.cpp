@@ -503,11 +503,7 @@ void World::generateBase()
 			float change = difference * new_change;
 			density_noise += change;
 
-			//Tile new_tile{};
-
 			auto& tile = world_map(x, y);
-			//tile.x = x % chunk_width_tiles;
-			//tile.y = y % chunk_height_tiles;
 
 			if (density_noise >= generation_data.density_threshold)
 			{

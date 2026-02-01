@@ -7,17 +7,17 @@
 
 SpriteSheet::SpriteSheet(const Renderer& renderer, const Surface& surface, const std::vector<SDL_FRect>& sprite_rects, SDL_ScaleMode scale_mode)
 {
-	loadTexture(renderer, surface, scale_mode);
+	auto texture = loadTexture(renderer, surface, scale_mode);
 	
 	for (const auto& rect : sprite_rects)
 	{
-		sprites.emplace_back(*texture, rect);
+		sprites.emplace_back(texture, rect);
 	}
 }
 
 SpriteSheet::SpriteSheet(const Renderer& renderer, const Surface& surface, const glm::vec2& sprite_size, SDL_ScaleMode scale_mode)
 {
-	loadTexture(renderer, surface, scale_mode);
+	auto texture = loadTexture(renderer, surface, scale_mode);
 	
 	int texture_width = surface.getSurface()->w;
 	int texture_height = surface.getSurface()->h;
@@ -29,24 +29,14 @@ SpriteSheet::SpriteSheet(const Renderer& renderer, const Surface& surface, const
 	{
 		for (int x = 0; x < columns; x++)
 		{
-			sprites.emplace_back(*texture, SDL_FRect{ static_cast<float>(x) * sprite_size.x, static_cast<float>(y) * sprite_size.y, sprite_size.x, sprite_size.y });
+			sprites.emplace_back(texture, SDL_FRect{ static_cast<float>(x) * sprite_size.x, static_cast<float>(y) * sprite_size.y, sprite_size.x, sprite_size.y });
 		}
 	}
 }
 
-SpriteSheet::~SpriteSheet()
+Texture SpriteSheet::loadTexture(const Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode)
 {
-	SDL_DestroyTexture(texture);
-}
-
-SDL_Texture* SpriteSheet::getTexture() const
-{
-	return texture;
-}
-
-void SpriteSheet::loadTexture(const Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode)
-{
-	texture = SDL_CreateTextureFromSurface(renderer.getRenderer(), surface.getSurface());
+	auto* texture = SDL_CreateTextureFromSurface(renderer.getRenderer(), surface.getSurface());
 
 	SDL_SetTextureScaleMode(texture, scale_mode);
 
@@ -54,4 +44,6 @@ void SpriteSheet::loadTexture(const Renderer& renderer, const Surface& surface, 
 	{
 		std::cerr << "ERROR: Could not load a texture: " << SDL_GetError() << std::endl;
 	}
+
+	return { texture, SDL_DestroyTexture };
 }

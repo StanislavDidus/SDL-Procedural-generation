@@ -20,6 +20,9 @@ void Inventory::useItem(int slot)
 
 	if(item && item_usage_system)
 	{ 
+		item_usage_system->equipItem(item->id);
+
+		//Try to use item
 		bool was_used = item_usage_system->useItem(ItemManager::get().getProperties((item->id)));
 
 		//If useItem returned true than the item was used

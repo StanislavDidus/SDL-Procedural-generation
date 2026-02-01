@@ -1,6 +1,14 @@
 #include "ItemManager.hpp"
 #include "tinyxml2.h"
 
+inline int attributeCount(const tinyxml2::XMLElement* e)
+{
+	int count = 0;
+	for (auto* a = e->FirstAttribute(); a != nullptr; a = a->Next())
+		++count;
+	return count;
+}
+
 void ItemManager::loadXml(const std::filesystem::path& path)
 {
 	tinyxml2::XMLDocument doc;
@@ -27,9 +35,10 @@ void ItemManager::loadXml(const std::filesystem::path& path)
 		{
 			const auto& component_name = component_node->Name();
 
+			int number_properties = attributeCount(component_node);
 			if (strcmp(component_name, "Usable") == 0)
 			{
-				auto usable_component = std::make_unique<ItemComponents::Usable>();
+				auto usable_component = std::make_unique<ItemComponents::Usable>(number_properties);
 				item_components.push_back(std::move(usable_component));
 			}
 			else if (strcmp(component_name, "Heal") == 0)
@@ -37,7 +46,7 @@ void ItemManager::loadXml(const std::filesystem::path& path)
 				int amount;
 				component_node->QueryIntAttribute("amount", &amount);
 
-				auto heal_component = std::make_unique<ItemComponents::Heal>(amount );
+				auto heal_component = std::make_unique<ItemComponents::Heal>(number_properties, amount);
 				item_components.push_back(std::move(heal_component));
 			}
 			else if (strcmp(component_name, "AddEffect") == 0)
@@ -55,8 +64,22 @@ void ItemManager::loadXml(const std::filesystem::path& path)
 				int size;
 				component_node->QueryIntAttribute("size", &size);
 
-				auto pickaxe_component = std::make_unique<ItemComponents::Pickaxe>(speed, radius, size );
+				auto pickaxe_component = std::make_unique<ItemComponents::Pickaxe>(number_properties, speed, radius, size );
 				item_components.push_back(std::move(pickaxe_component));
+			}
+			else if (strcmp(component_name, "MeleeWeapon") == 0)
+			{
+				float damage;
+				component_node->QueryFloatAttribute("damage", &damage);
+
+				float cooldown;
+				component_node->QueryFloatAttribute("cooldown", &cooldown);
+
+				float radius;
+				component_node->QueryFloatAttribute("radius", &radius);
+
+				auto meleeweapon_component = std::make_unique<ItemComponents::MeleeWeapon>(number_properties, damage, cooldown, radius);
+				item_components.push_back(std::move(meleeweapon_component));
 			}
 		}
 

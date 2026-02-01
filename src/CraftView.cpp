@@ -11,63 +11,65 @@ CraftView::CraftView(Entity target_entity, EntityManager& entity_manager, Compon
 	, component_manager(component_manager)
 	, target_entity(target_entity)
 {
-
-	for (int i = 0; const auto& j : component_manager.crafting_ability.at(target_entity).recipes_acquired)
+	if (component_manager.crafting_ability.contains(target_entity))
 	{
-		int x = i % columns;
-		int y = i / columns;
-
-		auto button = entity_manager.createEntity();
-
-		if (button)
+		for (int i = 0; const auto& j : component_manager.crafting_ability.at(target_entity).recipes_acquired)
 		{
-			component_manager.transform[*button] = Transform
-			{
-				glm::vec2{position.x + static_cast<float>(x) * slot_size, position.y + static_cast<float>(y) * slot_size},
-				glm::vec2{slot_size}
-			};
+			int x = i % columns;
+			int y = i / columns;
 
-			component_manager.button[*button] = Button
-			{
+			auto button = entity_manager.createEntity();
 
-			};
-
-			component_manager.craft_button[*button] = CraftButton
+			if (button)
 			{
-				true,
-				j
-			};
+				component_manager.transform[*button] = Transform
+				{
+					glm::vec2{position.x + static_cast<float>(x) * slot_size, position.y + static_cast<float>(y) * slot_size},
+					glm::vec2{slot_size}
+				};
+
+				component_manager.button[*button] = Button
+				{
+
+				};
+
+				component_manager.craft_button[*button] = CraftButton
+				{
+					true,
+					j
+				};
+			}
+
+			++i;
 		}
 
-		++i;
-	}
-
-	size_t recipes_acquired_size = component_manager.crafting_ability.at(target_entity).recipes_acquired.size();
-	size_t recipes_left = CraftingManager::get().size() - recipes_acquired_size;
-	for (size_t i = recipes_acquired_size, j = 0; j < recipes_left; ++j, ++i)
-	{
-		int x = static_cast<int>(i) % columns;
-		int y = static_cast<int>(i) / columns;
-
-		auto button = entity_manager.createEntity();
-
-		if (button)
+		size_t recipes_acquired_size = component_manager.crafting_ability.at(target_entity).recipes_acquired.size();
+		size_t recipes_left = CraftingManager::get().size() - recipes_acquired_size;
+		for (size_t i = recipes_acquired_size, j = 0; j < recipes_left; ++j, ++i)
 		{
-			component_manager.transform[*button] = Transform
-			{
-				glm::vec2{position.x + static_cast<float>(x) * slot_size, position.y + static_cast<float>(y) * slot_size},
-				glm::vec2{slot_size}
-			};
+			int x = static_cast<int>(i) % columns;
+			int y = static_cast<int>(i) / columns;
 
-			component_manager.button[*button] = Button
-			{
+			auto button = entity_manager.createEntity();
 
-			};
-
-			component_manager.craft_button[*button] = CraftButton
+			if (button)
 			{
-				false
-			};
+				component_manager.transform[*button] = Transform
+				{
+					glm::vec2{position.x + static_cast<float>(x) * slot_size, position.y + static_cast<float>(y) * slot_size},
+					glm::vec2{slot_size}
+				};
+
+				component_manager.button[*button] = Button
+				{
+
+				};
+
+				component_manager.craft_button[*button] = CraftButton
+				{
+					false
+				};
+			}
 		}
 	}
 }

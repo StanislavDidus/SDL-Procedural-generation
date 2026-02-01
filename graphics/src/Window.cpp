@@ -47,7 +47,7 @@ glm::ivec2 Window::getWindowSize()
 	return {WINDOW_WIDTH, WINDOW_HEIGHT};
 }
 
-SDL_Window* Window::getWindow() const
+SDL_Window* Window::get() const
 {
 	return window;
 }

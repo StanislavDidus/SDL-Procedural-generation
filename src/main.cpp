@@ -43,7 +43,7 @@ int main()
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
-    ImGui_ImplSDL3_InitForSDLRenderer(window.getWindow(), renderer.getRenderer() );
+    ImGui_ImplSDL3_InitForSDLRenderer(window.get(), renderer.getRenderer() );
     ImGui_ImplSDLRenderer3_Init(renderer.getRenderer());
     ImGui::GetIO().FontGlobalScale = 1.5f;
 

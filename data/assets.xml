@@ -34,6 +34,23 @@
             <scaleMode>NEAREST</scaleMode>
             <size x="16" y="16" />
         </sprite>
+        <sprite id="icons">
+            <path>assets/Sprites/icons.png</path>
+            <scaleMode>NEAREST</scaleMode>
+            <size x="16" y="16" />
+        </sprite>
+        <sprite id="player">
+            <path>assets/Sprites/player.png</path>
+            <scaleMode>NEAREST</scaleMode>
+             <rectListing>
+                <rect x="0" y="111" w="16" h="17" />
+                <rect x="0" y="143" w="16" h="17" />
+                <rect x="16" y="143" w="16" h="17" />
+                <rect x="32" y="143" w="16" h="17" />
+                <rect x="48" y="143" w="16" h="17" />
+
+            </rectListing>
+        </sprite>
     </spriteListing>
     <fontListing>
         <font id="Main">

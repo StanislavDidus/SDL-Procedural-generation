@@ -301,11 +301,17 @@ struct InputSystem
 					{
 						ph.velocity.x -= ph.acceleration.x * dt;
 						ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
+
+						//Flip
+						if (component_manager.renderable.contains(entity)) component_manager.renderable.at(entity).flip_mode = SDL_FLIP_HORIZONTAL;
 					}
 					if (InputManager::isKey(SDLK_K))
 					{
 						ph.velocity.x += ph.acceleration.x * dt;
 						ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
+
+						//Flip
+						if (component_manager.renderable.contains(entity)) component_manager.renderable.at(entity).flip_mode = SDL_FLIP_NONE;
 					}
 					if (!InputManager::isKey(SDLK_K) && !InputManager::isKey(SDLK_H))
 					{
@@ -717,9 +723,37 @@ public:
 		return true;
 	}
 
-	void update(float dt)
+	bool equipItem(size_t item_id)
 	{
+		// Check if an item is pickaxe
 
+		std::cout << "Try to equip" << std::endl;
+
+		bool is_pickaxe = false;
+		ItemComponents::Pickaxe* pickaxe = nullptr;
+		const auto& components = ItemManager::get().getProperties(item_id).components;
+		for (const auto& component : components)
+		{
+			auto* it = dynamic_cast<ItemComponents::Pickaxe*>(component.get());
+			if (it)
+			{
+				pickaxe = it;
+				is_pickaxe = true;
+				break;
+			}
+		}
+
+		if (!is_pickaxe || !pickaxe) return false;
+
+		if (component_manager.pickaxe.contains(target_entity))
+		{
+			auto& pickaxe_component = component_manager.pickaxe.at(target_entity);
+			pickaxe_component.pickaxe_id = item_id;
+
+			std::cout << "Pickaxe equipped" << std::endl;
+		}
+
+		return false;
 	}
 
 private:
