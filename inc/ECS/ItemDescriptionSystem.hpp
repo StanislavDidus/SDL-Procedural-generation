@@ -65,14 +65,11 @@ public:
 				float draw_x = slot_global_position.x - ui_settings.item_description_label_width * 0.5f;
 				float draw_y = slot_global_position.y + slot_size.y;
 
-				const auto& item_components = ItemManager::get().getProperties(item->id).components;
+				const auto& item_properties = ItemManager::get().getProperties(item->id);
 
 				//Count how many properties an item has
 				int number_item_properties = 0;
-				for (const auto& component : item_components)
-				{
-					number_item_properties += component->number_properties;
-				}
+				countProperties(item_properties, number_item_properties);
 
 				const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
 
@@ -85,7 +82,7 @@ public:
 
 				renderDescriptionLabel(screen, draw_x, draw_y, item->id, number_item_properties);
 
-				renderItemComponents(screen, draw_x + ui_settings.item_description_components_offset_x, draw_y + ui_settings.item_description_label_height, item_components);
+				renderItemComponents(screen, draw_x + ui_settings.item_description_components_offset_x, draw_y + ui_settings.item_description_label_height, item_properties);
 			}
 			//Otherwise check if mouse is on any of the crafting recipes
 			else
@@ -104,20 +101,18 @@ public:
 						const auto& recipe = CraftingManager::get().getRecipe(craft_button_component.recipe_id);
 						size_t item_id = recipe.item_id;
 						const auto& item_properties = ItemManager::get().getItem(item_id);
-						const auto& item_components = item_properties.components;
+						
 
 						glm::vec2 button_centre = transform_component.position + transform_component.size * 0.5f;
 						float x = button_centre.x - ui_settings.item_description_label_width * 0.5f;
 						float y = transform_component.position.y + transform_component.size.y;
 
-						int number_item_properties = 0;
+						
 						int required_craft_items = recipe.required_items.size();
 
 						//Count how many properties an item has
-						for (const auto& component : item_components)
-						{
-							number_item_properties += component->number_properties;
-						}
+						int number_item_properties = 0;
+						countProperties(item_properties, number_item_properties);
 
 						const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
 
@@ -132,7 +127,7 @@ public:
 
 						renderItemRecipe(screen, x, y, recipe.required_items, *inventory);
 
-						renderItemComponents(screen, x + ui_settings.item_description_icon_width * 2.f + ui_settings.item_description_components_offset_x, y + ui_settings.item_description_label_height, item_components);
+						renderItemComponents(screen, x + ui_settings.item_description_icon_width * 2.f + ui_settings.item_description_components_offset_x, y + ui_settings.item_description_label_height, item_properties);
 					}
 				}
 			}
@@ -141,6 +136,22 @@ public:
 	}
 
 private:
+	void countProperties(const ItemProperties& item_properties, int& number_properties) const
+	{
+		if (item_properties.heal_data)
+		{
+			number_properties += 1;
+		}
+		if (item_properties.pickaxe_data)
+		{
+			number_properties += 3;
+		}
+		if (item_properties.melee_weapon_data)
+		{
+			number_properties += 3;
+		}
+	}
+
 	void renderDescriptionLabel(Renderer& screen, float x, float y, size_t item_id, int additional_space_height) const
 	{
 		float additional_height = ui_settings.item_description_label_height + additional_space_height * ui_settings.item_description_icon_height;
@@ -176,58 +187,56 @@ private:
 		}
 	}
 
-	void renderItemComponents(Renderer& screen, float x, float y, const std::vector<std::unique_ptr<ItemComponent>>& item_components) const
+	void renderItemComponents(Renderer& screen, float x, float y, const ItemProperties& item_properties) const
 	{
-		auto* heal = getItemComponent<ItemComponents::Heal>(item_components);
-		auto* pickaxe = getItemComponent<ItemComponents::Pickaxe>(item_components);
-		auto* meleeweapon = getItemComponent<ItemComponents::MeleeWeapon>(item_components);
-
 		SDL_Color text_color = { 255,255,255,255 };
-		if (heal)
+
+		if (item_properties.heal_data)
 		{
-			//Render heal amount
-			renderComponentValue(screen, "heal", heal->value, x, y, text_color);
+			renderComponentValue(screen, "heal", item_properties.heal_data->amount, x, y, text_color);
 			y += ui_settings.item_description_step_y;
 		}
-		if (pickaxe)
+
+		if (item_properties.pickaxe_data)
 		{
 
 			//Render Mining Speed
 			{
-				renderComponentValue(screen, "speed", pickaxe->speed, x, y, text_color);
+				renderComponentValue(screen, "speed", item_properties.pickaxe_data->speed, x, y, text_color);
 				y += ui_settings.item_description_step_y;
 			}
 
 			//Render Mining Radius
 			{
-				renderComponentValue(screen, "radius", pickaxe->radius, x, y, text_color);
+				renderComponentValue(screen, "radius", item_properties.pickaxe_data->radius, x, y, text_color);
 				y += ui_settings.item_description_step_y;
 			}
 
 			//Render Mining Size
 			{
-				renderComponentValue(screen, "size", pickaxe->size, x, y, text_color);
+				renderComponentValue(screen, "size", item_properties.pickaxe_data->size, x, y, text_color);
 				y += ui_settings.item_description_step_y;
 			}
 		}
-		if (meleeweapon)
+
+		if (item_properties.melee_weapon_data)
 		{
 			SDL_Color color = { 255,255,255,255 };
 			//Render MeleeWeapon damage
 			{
-				renderComponentValue(screen, "damage", meleeweapon->damage, x, y, text_color);
+				renderComponentValue(screen, "damage", item_properties.melee_weapon_data->damage, x, y, text_color);
 				y += ui_settings.item_description_step_y;
 			}
 
 			//Render MeleeWeapon cooldown
 			{
-				renderComponentValue(screen, "cooldown", meleeweapon->cooldown, x, y, text_color);
+				renderComponentValue(screen, "cooldown", item_properties.melee_weapon_data->cooldown, x, y, text_color);
 				y += ui_settings.item_description_step_y;
 			}
 
 			//Render MeleeWeapon radius
 			{
-				renderComponentValue(screen, "radius", meleeweapon->radius, x, y, text_color);
+				renderComponentValue(screen, "radius", item_properties.melee_weapon_data->radius, x, y, text_color);
 				y += ui_settings.item_description_step_y;
 			}
 		}

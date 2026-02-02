@@ -3,8 +3,26 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <optional>
 
+struct HealData
+{
+	float amount;
+};
 
+struct PickaxeData
+{
+	float speed;
+	float radius;
+	int size;
+};
+
+struct MeleeWeaponData
+{
+	float damage;
+	float cooldown;
+	float radius;
+};
 
 struct ItemComponent
 {
@@ -12,6 +30,13 @@ struct ItemComponent
 	virtual ~ItemComponent() = default;
 
 	int number_properties = 0;
+};
+
+enum class ItemAction
+{
+	NONE,
+	EQUIP,
+	USE,
 };
 
 template<typename T>
@@ -27,18 +52,24 @@ static T* getItemComponent(const std::vector<std::unique_ptr<ItemComponent>>& co
 
 struct ItemProperties
 {
-	ItemProperties(bool can_stack, int sprite_index, const std::string& name, std::vector<std::unique_ptr<ItemComponent>> components);
+	/*ItemProperties(bool can_stack, int sprite_index, const std::string& name, ItemAction action, std::optional<HealData> heal_data, std::optional<PickaxeData> pickaxe_data, std::optional<MeleeWeaponData> melee_weapon_data);*/
 
 	bool can_stack;
 	int sprite_index;
 	std::string name;
-	std::vector<std::unique_ptr<ItemComponent>> components;
+
+	ItemAction action = ItemAction::NONE;
+
+	std::optional<HealData> heal_data;
+	std::optional<PickaxeData> pickaxe_data;
+	std::optional<MeleeWeaponData> melee_weapon_data;
 };
 
 struct Item
 {
 	size_t id;
 	int stack_number;
+	bool equipped = false;
 
 	bool operator==(const Item& other) const { return this->id == other.id; }
 };

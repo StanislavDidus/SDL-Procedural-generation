@@ -130,7 +130,7 @@ namespace Components
 	struct CraftButton
 	{
 		bool is_available; ///< Shows if the recipe is unlocked and can be crafted.
-		size_t recipe_id;
+		size_t recipe_id; ///< ID of the recipe according to CraftingManager.
 	};
 
 	struct CraftItem
@@ -145,12 +145,6 @@ namespace Components
 
 	struct Pickaxe
 	{
-		std::optional<size_t> pickaxe_id;
-
-		/*
-		float speed;
-		float radius;
-		int size;
-		 */
+		size_t pickaxe_id;
 	};
 } //namespace Components

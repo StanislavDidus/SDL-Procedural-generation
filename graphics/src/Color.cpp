@@ -9,3 +9,4 @@ const Color Color::BLUE{ 0,0,255 };
 const Color Color::YELLOW(Color::RED + Color::GREEN);
 const Color Color::TRANSPARENT_BLUE{ 0, 0, 255, 50 };
 const Color Color::TRANSPARENT_RED{ 255, 0, 0, 50 };
+const Color Color::TRANSPARENT_GREEN{ 0,255,0, 50 };

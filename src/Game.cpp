@@ -309,7 +309,7 @@ void Game::initPlayer()
 		false
 	};
 
-	component_manager.mine_tiles_ability[player] = MineTilesAbility
+	/*component_manager.mine_tiles_ability[player] = MineTilesAbility
 	{
 		150.f,
 		200.f,
@@ -320,7 +320,7 @@ void Game::initPlayer()
 	{
 		150.f,
 		200.f,
-	};
+	};*/
 
 	component_manager.place_ability[player] = PlaceAbility
 	{
@@ -349,11 +349,6 @@ void Game::initPlayer()
 	component_manager.crafting_ability[player] = CraftingAbility
 	{
 		
-	};
-
-	component_manager.pickaxe[player] = Pickaxe
-	{
-
 	};
 
 

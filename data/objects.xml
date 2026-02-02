@@ -88,6 +88,26 @@
             </spawnTiles>
         </spawnInfo>
     </object>
+    <object id="Golden_Rock">
+        <properties>
+            <sprite>7</sprite>
+            <durability>350</durability>
+            <drop>
+                <item ref="Gold" dropChance="1" dropQuantityMin="1" dropQuantityMax="2" />
+                <item ref="Stone" dropChance="1" dropQuantityMin="3" dropQuantityMax="5" />
+            </drop>
+        </properties>
+        <spawnInfo>
+            <size x="5" y="3" />
+            <noiseSettings octaves="2" frequency="0.5" amplitude="1.5" />
+            <noiseThreshold>0.75</noiseThreshold>
+            <spawnTiles>
+                <tile ref="Grass"/>
+                <tile ref="Snow_Grass"/>
+                <tile ref="Sand" />
+            </spawnTiles>
+        </spawnInfo>
+    </object>
     <object id="Grass">
         <properties>
             <sprite>4</sprite>

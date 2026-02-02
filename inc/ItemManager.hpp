@@ -31,7 +31,7 @@ private:
 	ItemManager& operator=(const ItemManager& other) = delete;
 	ItemManager& operator=(ItemManager&& other) noexcept = delete;
 
-	size_t registerItemProperties(ItemProperties properties);
+	size_t registerItemProperties(const ItemProperties& properties);
 
 	std::vector<ItemProperties> items;
 	std::unordered_map<std::string, size_t> itemNameToID; ///< Map that returns an <b>ID</b> of an item with the specified name.

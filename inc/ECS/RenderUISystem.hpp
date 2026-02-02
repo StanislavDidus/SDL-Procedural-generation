@@ -98,9 +98,10 @@ public:
 			transform_component.size.y = ui_settings.craft_button_height;
 
 			size_t item_id = CraftingManager::get().getRecipe(craft_button_component.recipe_id).item_id;
+			int item_sprite = ItemManager::get().getProperties(item_id).sprite_index;
 
 			screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("ui")[0], transform_component.position.x, transform_component.position.y, transform_component.size.x, transform_component.size.y, IGNORE_VIEW_ZOOM);
-			screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("items")[item_id], transform_component.position.x, transform_component.position.y, transform_component.size.x, transform_component.size.y, IGNORE_VIEW_ZOOM);
+			screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("items")[item_sprite], transform_component.position.x, transform_component.position.y, transform_component.size.x, transform_component.size.y, IGNORE_VIEW_ZOOM);
 
 			++i;
 		}
@@ -119,9 +120,10 @@ public:
 			trasform_component.size.y = ui_settings.craft_button_height;
 
 			size_t item_id = CraftingManager::get().getRecipe(craft_button_component.recipe_id).item_id;
+			int item_sprite = ItemManager::get().getProperties(item_id).sprite_index;
 
 			screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("ui")[0], trasform_component.position.x, trasform_component.position.y, trasform_component.size.x, trasform_component.size.y, IGNORE_VIEW_ZOOM);
-			screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("items")[item_id], trasform_component.position.x, trasform_component.position.y, trasform_component.size.x, trasform_component.size.y, IGNORE_VIEW_ZOOM);
+			screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("items")[item_sprite], trasform_component.position.x, trasform_component.position.y, trasform_component.size.x, trasform_component.size.y, IGNORE_VIEW_ZOOM);
 			screen.drawRectangle(trasform_component.position.x, trasform_component.position.y, trasform_component.size.x, trasform_component.size.y, RenderType::FILL, Color{0,0,0,125}, IGNORE_VIEW_ZOOM);
 
 			++i;

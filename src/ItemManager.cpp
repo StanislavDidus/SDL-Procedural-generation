@@ -28,64 +28,53 @@ void ItemManager::loadXml(const std::filesystem::path& path)
 
 		std::string item_name = item_node->Attribute("id");
 
-		//Get all components
-		std::vector<std::unique_ptr<ItemComponent>> item_components;
-		const auto& components_node = item_node->FirstChildElement("components");
-		for (auto* component_node = components_node->FirstChildElement(); component_node != nullptr; component_node = component_node->NextSiblingElement())
+		ItemAction action = ItemAction::NONE;
+
+		const char* action_text = item_node->FirstChildElement("action")->GetText();
+		if (strcmp(action_text, "USE") == 0)
 		{
-			const auto& component_name = component_node->Name();
+			action = ItemAction::USE;
+		}
+		else if (strcmp(action_text, "EQUIP") == 0)
+		{
+			action = ItemAction::EQUIP;
+		}
+		else
+		{
+			action = ItemAction::NONE;
+		}
 
-			int number_properties = attributeCount(component_node);
-			if (strcmp(component_name, "Usable") == 0)
-			{
-				auto usable_component = std::make_unique<ItemComponents::Usable>(number_properties);
-				item_components.push_back(std::move(usable_component));
-			}
-			else if (strcmp(component_name, "Heal") == 0)
-			{
-				int amount;
-				component_node->QueryIntAttribute("amount", &amount);
+		std::optional<HealData> heal_data;
+		std::optional<PickaxeData> pickaxe_data;
+		std::optional<MeleeWeaponData> melee_weapon_data;
 
-				auto heal_component = std::make_unique<ItemComponents::Heal>(number_properties, amount);
-				item_components.push_back(std::move(heal_component));
-			}
-			else if (strcmp(component_name, "AddEffect") == 0)
-			{
-				
-			}
-			else if (strcmp(component_name, "Pickaxe") == 0)
-			{
-				float speed;
-				component_node->QueryFloatAttribute("speed", &speed);
+		const auto& heal_data_node = item_node->FirstChildElement("HealData");
+		if (heal_data_node)
+		{
+			heal_data = HealData{heal_data_node->FloatText()};
+		}
 
-				float radius;
-				component_node->QueryFloatAttribute("radius", &radius);
+		const auto& pickaxe_data_node = item_node->FirstChildElement("PickaxeData");
+		if (pickaxe_data_node)
+		{
+			float speed = pickaxe_data_node->FloatAttribute("speed");
+			float radius = pickaxe_data_node->FloatAttribute("radius");
+			int size = pickaxe_data_node->IntAttribute("size");
+			pickaxe_data = PickaxeData{ speed, radius, size };
+		}
 
-				int size;
-				component_node->QueryIntAttribute("size", &size);
-
-				auto pickaxe_component = std::make_unique<ItemComponents::Pickaxe>(number_properties, speed, radius, size );
-				item_components.push_back(std::move(pickaxe_component));
-			}
-			else if (strcmp(component_name, "MeleeWeapon") == 0)
-			{
-				float damage;
-				component_node->QueryFloatAttribute("damage", &damage);
-
-				float cooldown;
-				component_node->QueryFloatAttribute("cooldown", &cooldown);
-
-				float radius;
-				component_node->QueryFloatAttribute("radius", &radius);
-
-				auto meleeweapon_component = std::make_unique<ItemComponents::MeleeWeapon>(number_properties, damage, cooldown, radius);
-				item_components.push_back(std::move(meleeweapon_component));
-			}
+		const auto& melee_weapon_data_node = item_node->FirstChildElement("MeleeWeaponData");
+		if (melee_weapon_data_node)
+		{
+			float damage = melee_weapon_data_node->FloatAttribute("damage");
+			float cooldown = melee_weapon_data_node->FloatAttribute("cooldown");
+			float radius = melee_weapon_data_node->FloatAttribute("radius");
+			melee_weapon_data = MeleeWeaponData{ damage, cooldown, radius};
 		}
 
 		//Register item
-		ItemProperties item_properties {can_stack, sprite_index, item_name, std::move(item_components)};
-		size_t item_id = registerItemProperties(std::move(item_properties));
+		ItemProperties item_properties {can_stack, sprite_index, item_name, action, heal_data, pickaxe_data, melee_weapon_data};
+		size_t item_id = registerItemProperties(item_properties);
 		itemNameToID[item_name] = item_id;
 	}
 }
@@ -105,8 +94,8 @@ const ItemProperties& ItemManager::getProperties(int ID) const
 	return items[ID];
 }
 
-size_t ItemManager::registerItemProperties(ItemProperties properties)
+size_t ItemManager::registerItemProperties(const ItemProperties& properties)
 {
-	items.push_back(std::move(properties));
+	items.push_back(properties);
 	return items_counter++;
 }

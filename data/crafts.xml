@@ -21,4 +21,17 @@
             <item ref="Grass" amount="3" />
         </requiredItems>
     </craft>
+    <craft id="Golden_Pickaxe">
+        <requiredBlueprint>false</requiredBlueprint>
+        <requiredItems>
+            <item ref="Wood" amount="3" />
+            <item ref="Rope" amount="1" />
+            <item ref="Gold" amount="5" />
+        </requiredItems>
+    </craft>
+    <craft id="God_Armor">
+        <requiredBlueprint>true</requiredBlueprint>
+        <requiredItems>
+        </requiredItems>
+    </craft>
 </craftListing>

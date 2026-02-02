@@ -18,26 +18,38 @@ void Inventory::useItem(int slot)
 {
 	auto& item = items[slot];
 
-	if(item && item_usage_system)
-	{ 
-		item_usage_system->equipItem(item->id);
+	if (!item || !item_usage_system) return;
+	
+	const auto& item_properties = ItemManager::get().getProperties(item->id);
 
-		//Try to use item
-		bool was_used = item_usage_system->useItem(ItemManager::get().getProperties((item->id)));
+	switch (item_properties.action)
+	{
+	case ItemAction::USE:
+	{
+		item_usage_system->useItem(ItemManager::get().getProperties((item->id)));
 
-		//If useItem returned true than the item was used
-		if (was_used)
+		item->stack_number--;
+
+		if (item->stack_number <= 0)
 		{
-			item->stack_number--;
-
-			if (item->stack_number <= 0)
-			{
-				item = std::nullopt;
-				free_slots.push_back(slot);
-			}
+			item = std::nullopt;
+			free_slots.push_back(slot);
 		}
 	}
-	
+		break;
+	case ItemAction::EQUIP:
+		if (!item->equipped)
+		{
+			item_usage_system->equipItem(*item);
+		}
+		else if (item->equipped)
+		{
+			item_usage_system->unequip(*item);
+		}
+		break;
+	case ItemAction::NONE:
+		break;
+	}
 }
 
 void Inventory::addItem(size_t id, int number)

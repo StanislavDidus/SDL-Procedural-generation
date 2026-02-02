@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Color.hpp"
+#include "ResourceManager.hpp"
 #include "Surface.hpp"
 
 constexpr float LABEL_WIDTH = 250.f;
@@ -202,27 +203,6 @@ void InventoryView::render(Renderer& screen)
 			drawItem(screen, *item, { mouse_position.x - dragged_position.x, mouse_position.y - dragged_position.y }, i);
 		}
 	}
-
-	/*//Render item description
-	if (covered_slot && inventory)
-	{
-		int slot = *covered_slot;
-		auto& item = inventory->getItems()[slot];
-
-		if (item)
-		{
-
-			int x = slot % columns;
-			int y = slot / columns;
-
-			glm::vec2 slot_position = position + glm::vec2{ x * slot_size, y * slot_size };
-			glm::vec2 button_centre = slot_position + slot_size * 0.5f;
-			float draw_x = button_centre.x - LABEL_WIDTH * 0.5f;
-			float draw_y = slot_position.y + slot_size;
-
-			screen.drawRectangle(draw_x, draw_y, LABEL_WIDTH, 150.f, RenderType::FILL, Color{ 0,125,200,200 }, IGNORE_VIEW_ZOOM);
-		}
-	}*/
 	
 	//Render item that is being dragged by the user
 	if (covered_slot)
@@ -254,6 +234,12 @@ void InventoryView::drawItem(Renderer& screen, const Item& item, const glm::vec2
 	const auto& item_sprite = item_sprites[item_properties.sprite_index];
 
 	screen.drawScaledSprite(item_sprite, position.x, position.y, ui_settings.inventory_slot_width, ui_settings.inventory_slot_height, IGNORE_VIEW_ZOOM);
+
+	if (item.equipped)
+	{
+		//screen.drawRectangle(position.x, position.y, ui_settings.inventory_slot_width, ui_settings.inventory_slot_height, RenderType::FILL, Color::TRANSPARENT_GREEN, IGNORE_VIEW_ZOOM);
+		screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("icons")[0], position.x, position.y, ui_settings.inventory_slot_width, ui_settings.inventory_slot_height, IGNORE_VIEW_ZOOM);
+	}
 
 	auto& text = slot_text[index];
 

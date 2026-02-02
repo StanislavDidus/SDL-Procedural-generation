@@ -15,6 +15,10 @@
 #include "Inventory.hpp"
 #include "glm/gtc/random.hpp"
 
+constexpr float BASE_MINING_SPEED = 100.0f;
+constexpr float BASE_MINING_RADIUS = 100.0f;
+constexpr int BASE_MINING_SIZE = 2;
+
 /// <summary>
 /// Static function that takes an item and randomly decides whether add the item to the given inventory.
 /// Quantities are also generated randomly based on the variables defined in <b>RandomizedItem</b> class.
@@ -386,27 +390,34 @@ public:
 		for (const auto& entity : entity_manager.getEntities())
 		{
 			if (!component_manager.transform.contains(entity) ||
-				!component_manager.mine_tiles_ability.contains(entity) ||
 				!component_manager.mine_intent.contains(entity) ||
-				component_manager.mine_objects_state.contains(entity) ||
-				!component_manager.pickaxe.contains(entity))
+				component_manager.mine_objects_state.contains(entity))
 				continue;
 
 			tiles_covered.clear();
 
 			auto& mi = component_manager.mine_intent.at(entity);
 			auto& ts = component_manager.transform.at(entity);
-			auto& mta = component_manager.mine_tiles_ability.at(entity);
-			const auto& pickaxe_component = component_manager.pickaxe.at(entity);
 
-			if (!pickaxe_component.pickaxe_id) continue;
+			float mining_speed;
+			float mining_radius;
+			float mining_size;
+			if (component_manager.pickaxe.contains(entity))
+			{
+				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.pickaxe_id);
+				const auto& pickaxe_data = item_properties.pickaxe_data;
 
-			const auto& pickaxe_item = ItemManager::get().getProperties(*pickaxe_component.pickaxe_id);
-			const auto& pickaxe = getItemComponent<ItemComponents::Pickaxe>(pickaxe_item.components);
-
-			float mining_speed = pickaxe->speed;
-			float mining_radius = pickaxe->radius;
-			float mining_size = pickaxe->size;
+				mining_speed = pickaxe_data->speed;
+				mining_radius = pickaxe_data->radius;
+				mining_size = pickaxe_data->size;
+			}
+			else
+			{
+				mining_speed = BASE_MINING_SPEED;
+				mining_radius = BASE_MINING_RADIUS;
+				mining_size = BASE_MINING_SIZE;
+			}
 
 			const auto& mid_position = ts.position + ts.size * 0.5f;
 
@@ -443,35 +454,40 @@ public:
 		for (const auto& entity : entity_manager.getEntities())
 		{
 			if (!component_manager.transform.contains(entity) ||
-				!component_manager.mine_tiles_ability.contains(entity) ||
 				component_manager.mine_objects_state.contains(entity) ||
-				!component_manager.pickaxe.contains(entity))
+				!component_manager.mine_intent.contains(entity))
 				continue;
 
 			auto& ts = component_manager.transform.at(entity);
 
-			const auto& pickaxe_component = component_manager.pickaxe.at(entity);
+			float mining_radius;
+			if (component_manager.pickaxe.contains(entity))
+			{
+				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.pickaxe_id);
+				const auto& pickaxe_data = item_properties.pickaxe_data;
 
-			if (!pickaxe_component.pickaxe_id) continue;
+				mining_radius = pickaxe_data->radius;
+			}
+			else
+			{
+				mining_radius = BASE_MINING_RADIUS;
+			}
 
-			const auto& pickaxe_item = ItemManager::get().getProperties(*pickaxe_component.pickaxe_id);
-			const auto& pickaxe = getItemComponent<ItemComponents::Pickaxe>(pickaxe_item.components);
-
-			float mining_radius = pickaxe->radius;
 			const auto& player_mid_position = ts.position + ts.size * 0.5f;
 
 			for (const auto& tile_covered : tiles_covered)
 			{
-				glm::vec2 tile_posiiton_global = { tile_covered.x * tile_width, tile_covered.y * tile_height };
-				float distance = glm::distance(tile_posiiton_global, player_mid_position);
+				glm::vec2 tile_position_global = { tile_covered.x * tile_width, tile_covered.y * tile_height };
+				float distance = glm::distance(tile_position_global, player_mid_position);
 
 				if (distance > mining_radius)
 				{
-					screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_RED);
+					screen.drawRectangle(tile_position_global.x, tile_position_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_RED);
 				}
 				else
 				{
-					screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_BLUE);
+					screen.drawRectangle(tile_position_global.x, tile_position_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_BLUE);
 				}
 			}
 		}
@@ -567,17 +583,36 @@ public:
 		{
 			//Check if required components exist
 			if (!component_manager.transform.contains(entity) ||
-				!component_manager.mine_intent.contains(entity) ||
-				!component_manager.mine_objects_ability.contains(entity))
+				!component_manager.mine_intent.contains(entity))
 				continue;
 
 			auto& ts = component_manager.transform.at(entity);
 			auto& mi = component_manager.mine_intent.at(entity);
-			auto& moa = component_manager.mine_objects_ability.at(entity);
+
+			float mining_speed;
+			float mining_radius;
+			float mining_size;
+			if (component_manager.pickaxe.contains(entity))
+			{
+				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.pickaxe_id);
+				const auto& pickaxe_data = item_properties.pickaxe_data;
+
+				mining_speed = pickaxe_data->speed;
+				mining_radius = pickaxe_data->radius;
+				mining_size = pickaxe_data->size;
+			}
+			else
+			{
+				mining_speed = BASE_MINING_SPEED;
+				mining_radius = BASE_MINING_RADIUS;
+				mining_size = BASE_MINING_SIZE;
+			}
+			
 
 			const auto& mid_position = ts.position + ts.size * 0.5f;
 			float distance = glm::distance(mid_position, mi.start_mouse_position);
-			bool is_mining = world.getObjectOnPosition(mi.start_mouse_position) && distance < moa.radius && mi.active;
+			bool is_mining = world.getObjectOnPosition(mi.start_mouse_position) && distance < mining_radius && mi.active;
 
 			//Remove start-finish marks
 			if (component_manager.mine_objects_started.contains(entity))
@@ -626,7 +661,7 @@ public:
 				}
 				else
 				{
-					auto destroyed_object_id = world.damageObject(mi.start_mouse_position, moa.speed * dt);
+					auto destroyed_object_id = world.damageObject(mi.start_mouse_position, mining_speed * dt);
 
 					//If object was successfully destroyed - add items to the entity's inventory
 					if (destroyed_object_id && component_manager.has_inventory.contains(entity))
@@ -648,11 +683,31 @@ public:
 	{
 		for (auto& entity : entity_manager.getEntities())
 		{
-			if (component_manager.mine_intent.contains(entity) && component_manager.transform.contains(entity) && component_manager.mine_objects_ability.contains(entity))
+			if (component_manager.mine_intent.contains(entity) && component_manager.transform.contains(entity) &&  component_manager.mine_intent.contains(entity))
 			{
-				auto& moa = component_manager.mine_objects_ability.at(entity);
 				auto& ts = component_manager.transform.at(entity);
 				auto& mi = component_manager.mine_intent.at(entity);
+
+				float mining_speed;
+				float mining_radius;
+				float mining_size;
+				if (component_manager.pickaxe.contains(entity))
+				{
+					const auto& pickaxe_component = component_manager.pickaxe.at(entity);
+					const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.pickaxe_id);
+					const auto& pickaxe_data = item_properties.pickaxe_data;
+
+					mining_speed = pickaxe_data->speed;
+					mining_radius = pickaxe_data->radius;
+					mining_size = pickaxe_data->size;
+				}
+				else
+				{
+					mining_speed = BASE_MINING_SPEED;
+					mining_radius = BASE_MINING_RADIUS;
+					mining_size = BASE_MINING_SIZE;
+				}
+
 				if (component_manager.mine_objects_state.contains(entity))
 				{
 					auto object = world.getObjectOnPosition(mi.start_mouse_position);
@@ -673,7 +728,7 @@ public:
 						float distance = glm::distance(mid_position, mi.current_mouse_position);
 						const auto& object_rect = object->rect;
 
-						if (distance < moa.radius)
+						if (distance < mining_radius)
 						{
 
 							screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::BLUE);
@@ -707,70 +762,39 @@ public:
 	{
 	}
 
-	bool useItem(const ItemProperties& item_properties) ///< returns true if item was used and returns false if item was not possible to use
+	void useItem(const ItemProperties& item_properties)
 	{
-		bool is_usable = false;
-		const auto& components = item_properties.components;
-		for (const auto& component : components)
+		if (item_properties.heal_data)
 		{
-			if (dynamic_cast<ItemComponents::Usable*>(component.get()))
-			{
-				is_usable = true;
-				break;
-			}
+			auto& health_component = component_manager.health[target_entity];
+			health_component.current_health = std::min(health_component.max_health, health_component.current_health + item_properties.heal_data->amount);
 		}
-
-		if (!is_usable) return false;
-
-		for (const auto& component : components)
-		{
-			auto* heal_component = dynamic_cast<ItemComponents::Heal*>(component.get());
-			if (heal_component)
-			{
-				//Heal
-				auto& health_component = component_manager.health[target_entity];
-				health_component.current_health = std::min(health_component.max_health, health_component.current_health + heal_component->value);
-			}
-			else if (dynamic_cast<ItemComponents::AddEffect*>(component.get()))
-			{
-				//AddEffect
-			}
-		}
-
-		return true;
 	}
 
-	bool equipItem(size_t item_id)
+	void equipItem(Item& item)
 	{
-		// Check if an item is pickaxe
+		const auto& item_properties = ItemManager::get().getProperties(item.id);
 
-		std::cout << "Try to equip" << std::endl;
-
-		bool is_pickaxe = false;
-		ItemComponents::Pickaxe* pickaxe = nullptr;
-		const auto& components = ItemManager::get().getProperties(item_id).components;
-		for (const auto& component : components)
+		if (item_properties.pickaxe_data)
 		{
-			auto* it = dynamic_cast<ItemComponents::Pickaxe*>(component.get());
-			if (it)
-			{
-				pickaxe = it;
-				is_pickaxe = true;
-				break;
-			}
+			
+
+			component_manager.pickaxe[target_entity] = Pickaxe{ item.id };
 		}
 
-		if (!is_pickaxe || !pickaxe) return false;
+		item.equipped = true;
+	}
 
-		if (component_manager.pickaxe.contains(target_entity))
+	void unequip(Item& item)
+	{
+		const auto& item_properties = ItemManager::get().getProperties(item.id);
+
+		if (item_properties.pickaxe_data)
 		{
-			auto& pickaxe_component = component_manager.pickaxe.at(target_entity);
-			pickaxe_component.pickaxe_id = item_id;
-
-			std::cout << "Pickaxe equipped" << std::endl;
+			component_manager.pickaxe.erase(target_entity);
 		}
 
-		return false;
+		item.equipped = false;
 	}
 
 private:
