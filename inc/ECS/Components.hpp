@@ -146,5 +146,11 @@ namespace Components
 	struct Pickaxe
 	{
 		std::optional<size_t> pickaxe_id;
+
+		/*
+		float speed;
+		float radius;
+		int size;
+		 */
 	};
 } //namespace Components

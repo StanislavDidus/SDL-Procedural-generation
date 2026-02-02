@@ -388,14 +388,25 @@ public:
 			if (!component_manager.transform.contains(entity) ||
 				!component_manager.mine_tiles_ability.contains(entity) ||
 				!component_manager.mine_intent.contains(entity) ||
-				component_manager.mine_objects_state.contains(entity))
+				component_manager.mine_objects_state.contains(entity) ||
+				!component_manager.pickaxe.contains(entity))
 				continue;
+
+			tiles_covered.clear();
 
 			auto& mi = component_manager.mine_intent.at(entity);
 			auto& ts = component_manager.transform.at(entity);
 			auto& mta = component_manager.mine_tiles_ability.at(entity);
+			const auto& pickaxe_component = component_manager.pickaxe.at(entity);
 
-			if (!mi.active) continue;
+			if (!pickaxe_component.pickaxe_id) continue;
+
+			const auto& pickaxe_item = ItemManager::get().getProperties(*pickaxe_component.pickaxe_id);
+			const auto& pickaxe = getItemComponent<ItemComponents::Pickaxe>(pickaxe_item.components);
+
+			float mining_speed = pickaxe->speed;
+			float mining_radius = pickaxe->radius;
+			float mining_size = pickaxe->size;
 
 			const auto& mid_position = ts.position + ts.size * 0.5f;
 
@@ -403,19 +414,26 @@ public:
 			int tile_y = static_cast<int>(std::floor((mi.current_mouse_position.y) / tile_height));
 
 			//Mine in 3x3 radius
-			int mine_size = mta.mine_size;
+			int mine_size = mining_size;
 			float mid_radius_f = std::floor(mine_size / 2.f);
 			float mid_radius_c = std::ceil(mine_size / 2.f);
 			for (int i = -mid_radius_f; i < mid_radius_c; i++)
 			{
 				for (int j = -mid_radius_f; j < mid_radius_c; j++)
 				{
-					glm::vec2 tile_position_global = { (tile_x + i) * tile_width, (tile_y + j) * tile_height };
-					float distance = glm::distance(tile_position_global, mid_position);
-
-					if (distance <= mta.radius)
-						world.damageTile(tile_x + i, tile_y + j, mta.speed * dt);
+					tiles_covered.emplace_back(tile_x + i, tile_y + j);
 				}
+			}
+
+			if (!mi.active) continue;
+
+			for (const auto& tile_covered : tiles_covered)
+			{
+				glm::vec2 tile_position_global = { tile_covered.x * tile_width, tile_covered.y * tile_height };
+				float distance = glm::distance(tile_position_global, mid_position);
+
+					if (distance <= mining_radius)
+						world.damageTile(tile_covered.x, tile_covered.y, mining_speed * dt); 
 			}
 		}
 	}
@@ -424,40 +442,37 @@ public:
 	{
 		for (const auto& entity : entity_manager.getEntities())
 		{
-			if (component_manager.transform.contains(entity) && component_manager.mine_tiles_ability.contains(entity) && component_manager.mine_intent.contains(entity) && !component_manager.mine_objects_state.contains(entity))
+			if (!component_manager.transform.contains(entity) ||
+				!component_manager.mine_tiles_ability.contains(entity) ||
+				component_manager.mine_objects_state.contains(entity) ||
+				!component_manager.pickaxe.contains(entity))
+				continue;
+
+			auto& ts = component_manager.transform.at(entity);
+
+			const auto& pickaxe_component = component_manager.pickaxe.at(entity);
+
+			if (!pickaxe_component.pickaxe_id) continue;
+
+			const auto& pickaxe_item = ItemManager::get().getProperties(*pickaxe_component.pickaxe_id);
+			const auto& pickaxe = getItemComponent<ItemComponents::Pickaxe>(pickaxe_item.components);
+
+			float mining_radius = pickaxe->radius;
+			const auto& player_mid_position = ts.position + ts.size * 0.5f;
+
+			for (const auto& tile_covered : tiles_covered)
 			{
-				auto& mi = component_manager.mine_intent.at(entity);
+				glm::vec2 tile_posiiton_global = { tile_covered.x * tile_width, tile_covered.y * tile_height };
+				float distance = glm::distance(tile_posiiton_global, player_mid_position);
 
-				auto& ts = component_manager.transform.at(entity);
-				auto& mta = component_manager.mine_tiles_ability.at(entity);
-
-				int tile_x = static_cast<int>(std::floor((mi.current_mouse_position.x) / tile_width));
-				int tile_y = static_cast<int>(std::floor((mi.current_mouse_position.y) / tile_height));
-
-				glm::vec2 player_mid_posiiton = ts.position + ts.size * 0.5f;
-
-				//Mine in 3x3 radius
-				int mine_size = mta.mine_size;
-				float mid_radius_f = std::floor(mine_size / 2.f);
-				float mid_radius_c = std::ceil(mine_size / 2.f);
-				for (int i = -mid_radius_f; i < mid_radius_c; i++)
+				if (distance > mining_radius)
 				{
-					for (int j = -mid_radius_f; j < mid_radius_c; j++)
-					{
-						glm::vec2 tile_posiiton_global = { (tile_x + i) * tile_width, (tile_y + j) * tile_height };
-						float distance = glm::distance(tile_posiiton_global, player_mid_posiiton);
-
-						if (distance > mta.radius)
-						{
-							screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_RED);
-						}
-						else
-						{
-							screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_BLUE);
-						}
-					}
+					screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_RED);
 				}
-
+				else
+				{
+					screen.drawRectangle(tile_posiiton_global.x, tile_posiiton_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_BLUE);
+				}
 			}
 		}
 	}
@@ -470,6 +485,8 @@ private:
 
 	float tile_width = 1.f;
 	float tile_height = 1.f;
+
+	std::vector<glm::ivec2> tiles_covered;
 };
 
 class PlaceSystem

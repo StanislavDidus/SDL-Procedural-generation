@@ -9,40 +9,19 @@
 #include "Font.hpp"
 #include "ResourceManager.hpp"
 #include "ViewportGuard.hpp"
-
-constexpr float LABEL_WIDTH = 250.f;
-constexpr float LABEL_HEIGHT = 25.f;
-
-const float ID_POSITION_X = 200.f;
-
-constexpr float RESOURCE_ICON_WIDTH = 50.f;
-constexpr float RESOURCE_ICON_HEIGHT = 50.f;
-
-constexpr float DESCRIPTION_Y_STEP = 50.f;
-
-constexpr float ITEM_COMPONENTS_OFFSET_X = 10.f;
+#include "UI/UISettings.hpp"
 
 class ItemDescriptionSystem
 {
 public:
-	ItemDescriptionSystem(ComponentManager& component_manager, const EntityManager& entity_manager, const Font* font, std::shared_ptr<InventoryView> inventory_view)
+	ItemDescriptionSystem(ComponentManager& component_manager, const EntityManager& entity_manager, const Font* font, std::shared_ptr<InventoryView> inventory_view, const UISettings& ui_settings)
 		: component_manager(component_manager)
 		, entity_manager(entity_manager)
 		, font(font)
 		, inventory_view(inventory_view)
+		, ui_settings(ui_settings)
 	{
 
-	}
-
-	template<typename T>
-	static T* getItemComponent(const std::vector<std::unique_ptr<ItemComponent>>& components)
-	{
-		auto it = std::ranges::find_if(components, [](const std::unique_ptr<ItemComponent>& other)
-			{
-				return	dynamic_cast<T*>(other.get()) != nullptr;
-			});
-
-		return it != components.end() ? static_cast<T*>(it->get()) : nullptr;
 	}
 
 	static void removeDigitsAfterComma(std::string& text, int digits_after_comma)
@@ -83,7 +62,7 @@ public:
 				auto slot_global_position = inventory_view_s->getSlotGlobalCoords(*covered_slot);
 				slot_global_position.x += slot_size.x * 0.5f;
 
-				float draw_x = slot_global_position.x - LABEL_WIDTH * 0.5f;
+				float draw_x = slot_global_position.x - ui_settings.item_description_label_width * 0.5f;
 				float draw_y = slot_global_position.y + slot_size.y;
 
 				const auto& item_components = ItemManager::get().getProperties(item->id).components;
@@ -101,12 +80,12 @@ public:
 				draw_x = std::max(0.f, draw_x);
 				draw_y = std::max(0.f, draw_y);
 
-				draw_x = std::min(draw_x, window_size.x - LABEL_WIDTH);
-				draw_y = std::min(draw_y, window_size.y - (LABEL_HEIGHT + number_item_properties * RESOURCE_ICON_HEIGHT));
+				draw_x = std::min(draw_x, window_size.x - ui_settings.item_description_label_width);
+				draw_y = std::min(draw_y, window_size.y - (ui_settings.item_description_label_height + number_item_properties * ui_settings.item_description_icon_height));
 
 				renderDescriptionLabel(screen, draw_x, draw_y, item->id, number_item_properties);
 
-				renderItemComponents(screen, draw_x + ITEM_COMPONENTS_OFFSET_X, draw_y + LABEL_HEIGHT, item_components);
+				renderItemComponents(screen, draw_x + ui_settings.item_description_components_offset_x, draw_y + ui_settings.item_description_label_height, item_components);
 			}
 			//Otherwise check if mouse is on any of the crafting recipes
 			else
@@ -128,7 +107,7 @@ public:
 						const auto& item_components = item_properties.components;
 
 						glm::vec2 button_centre = transform_component.position + transform_component.size * 0.5f;
-						float x = button_centre.x - LABEL_WIDTH * 0.5f;
+						float x = button_centre.x - ui_settings.item_description_label_width * 0.5f;
 						float y = transform_component.position.y + transform_component.size.y;
 
 						int number_item_properties = 0;
@@ -146,14 +125,14 @@ public:
 						x = std::max(0.f, x);
 						y = std::max(0.f, y);
 
-						x = std::min(x, window_size.x - LABEL_WIDTH);
-						y = std::min(y, window_size.y - (LABEL_HEIGHT + number_item_properties * RESOURCE_ICON_HEIGHT));
+						x = std::min(x, window_size.x - ui_settings.item_description_label_width);
+						y = std::min(y, window_size.y - (ui_settings.item_description_label_height + number_item_properties * ui_settings.item_description_icon_height));
 
 						renderDescriptionLabel(screen, x, y, item_id, std::max(number_item_properties, required_craft_items));
 
 						renderItemRecipe(screen, x, y, recipe.required_items, *inventory);
 
-						renderItemComponents(screen, x + RESOURCE_ICON_WIDTH * 2.f + ITEM_COMPONENTS_OFFSET_X, y + LABEL_HEIGHT, item_components);
+						renderItemComponents(screen, x + ui_settings.item_description_icon_width * 2.f + ui_settings.item_description_components_offset_x, y + ui_settings.item_description_label_height, item_components);
 					}
 				}
 			}
@@ -164,16 +143,16 @@ public:
 private:
 	void renderDescriptionLabel(Renderer& screen, float x, float y, size_t item_id, int additional_space_height) const
 	{
-		float additional_height = LABEL_HEIGHT + additional_space_height * RESOURCE_ICON_HEIGHT;
+		float additional_height = ui_settings.item_description_label_height + additional_space_height * ui_settings.item_description_icon_height;
 
-		screen.drawRectangle(x, y, LABEL_WIDTH, additional_height, RenderType::FILL, Color{ 0,125,200,200 }, IGNORE_VIEW_ZOOM);
+		screen.drawRectangle(x, y, ui_settings.item_description_label_width, additional_height, RenderType::FILL, Color{ 0,125,200,200 }, IGNORE_VIEW_ZOOM);
 
 		const auto& item_properties = ItemManager::get().getProperties(item_id);
 		Text item_name_text{ font, screen, item_properties.name };
 		Text item_id_text{ font, screen, "ID: " + std::to_string(item_id), SDL_Color{175, 175,175,255} };
 
-		screen.printTextScaled(item_name_text, x, y, 0.6f, 0.6f, IGNORE_VIEW_ZOOM);
-		screen.printTextScaled(item_id_text, x + ID_POSITION_X, y, 0.5f, 0.5f, IGNORE_VIEW_ZOOM);
+		screen.printTextScaled(item_name_text, x, y, ui_settings.item_name_text_scale_x, ui_settings.item_name_text_scale_y, IGNORE_VIEW_ZOOM);
+		screen.printTextScaled(item_id_text, x + ui_settings.item_description_id_position_x, y, ui_settings.item_id_text_scale_x, ui_settings.item_id_text_scale_y, IGNORE_VIEW_ZOOM);
 	}
 
 	void renderItemRecipe(Renderer& screen, float x, float y, const std::vector<Item>& recipe, const Inventory& inventory) const
@@ -184,7 +163,7 @@ private:
 			int sprite_index = required_item_properties.sprite_index;
 			int required_item_number = required_item.stack_number;
 
-			float new_y = y + DESCRIPTION_Y_STEP * i + LABEL_HEIGHT;
+			float new_y = y + ui_settings.item_description_step_y * i + ui_settings.item_description_label_height;
 
 			int item_number_entity_has = inventory.countItem(required_item.id);
 			std::string item_number_string = std::to_string(item_number_entity_has) + "/" + std::to_string(required_item_number);
@@ -208,7 +187,7 @@ private:
 		{
 			//Render heal amount
 			renderComponentValue(screen, "heal", heal->value, x, y, text_color);
-			y += DESCRIPTION_Y_STEP;
+			y += ui_settings.item_description_step_y;
 		}
 		if (pickaxe)
 		{
@@ -216,19 +195,19 @@ private:
 			//Render Mining Speed
 			{
 				renderComponentValue(screen, "speed", pickaxe->speed, x, y, text_color);
-				y += DESCRIPTION_Y_STEP;
+				y += ui_settings.item_description_step_y;
 			}
 
 			//Render Mining Radius
 			{
 				renderComponentValue(screen, "radius", pickaxe->radius, x, y, text_color);
-				y += DESCRIPTION_Y_STEP;
+				y += ui_settings.item_description_step_y;
 			}
 
 			//Render Mining Size
 			{
 				renderComponentValue(screen, "size", pickaxe->size, x, y, text_color);
-				y += DESCRIPTION_Y_STEP;
+				y += ui_settings.item_description_step_y;
 			}
 		}
 		if (meleeweapon)
@@ -237,19 +216,19 @@ private:
 			//Render MeleeWeapon damage
 			{
 				renderComponentValue(screen, "damage", meleeweapon->damage, x, y, text_color);
-				y += DESCRIPTION_Y_STEP;
+				y += ui_settings.item_description_step_y;
 			}
 
 			//Render MeleeWeapon cooldown
 			{
 				renderComponentValue(screen, "cooldown", meleeweapon->cooldown, x, y, text_color);
-				y += DESCRIPTION_Y_STEP;
+				y += ui_settings.item_description_step_y;
 			}
 
 			//Render MeleeWeapon radius
 			{
 				renderComponentValue(screen, "radius", meleeweapon->radius, x, y, text_color);
-				y += DESCRIPTION_Y_STEP;
+				y += ui_settings.item_description_step_y;
 			}
 		}
 	}
@@ -263,20 +242,22 @@ private:
 
 		removeDigitsAfterComma(text, 1);
 		Text print_text{ font, screen, text, color };
-		screen.printTextScaled(print_text, x, y + 12.5f, 0.5f, 0.5f, IGNORE_VIEW_ZOOM);
+		screen.printTextScaled(print_text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x, ui_settings.crafting_component_text_scale_y, IGNORE_VIEW_ZOOM);
 	}
 
 	void drawSpriteWithText(Renderer& screen, const std::string& text, const Sprite& sprite, float x, float y, SDL_Color text_color) const
 	{
 		Text pickaxe_text{ font, screen, text, text_color };
-		screen.drawScaledSprite(sprite, x, y, RESOURCE_ICON_WIDTH, RESOURCE_ICON_HEIGHT, IGNORE_VIEW_ZOOM);
-		screen.printTextScaled(pickaxe_text, x + RESOURCE_ICON_WIDTH, y + 12.5f, 0.6f, 0.6f, IGNORE_VIEW_ZOOM);
+		screen.drawScaledSprite(sprite, x, y, ui_settings.item_description_icon_width, ui_settings.item_description_icon_height, IGNORE_VIEW_ZOOM);
+		screen.printTextScaled(pickaxe_text, x + ui_settings.item_description_icon_width, y + 12.5f, ui_settings.item_recipe_text_scale_x, ui_settings.item_recipe_text_scale_y, IGNORE_VIEW_ZOOM);
 	}
 
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
 	const Font* font;	
 	std::weak_ptr<InventoryView> inventory_view;
+
+	const UISettings& ui_settings;
 
 	std::vector<std::unique_ptr<Text>> texts;
 };

@@ -11,14 +11,10 @@
 class RenderUISystem
 {
 public:
-	RenderUISystem(ComponentManager& component_manager, const EntityManager& entity_manager, int craft_button_rows, int craft_button_columns, float craft_button_width, float craft_button_height, const glm::vec2& craft_button_position)
+	RenderUISystem(ComponentManager& component_manager, const EntityManager& entity_manager,  const UISettings& ui_settings)
 		: component_manager(component_manager)
 		, entity_manager(entity_manager)
-		, craft_button_rows(craft_button_rows)
-		, craft_button_columns(craft_button_columns)
-		, craft_button_width(craft_button_width)
-		, craft_button_height(craft_button_height)
-		, craft_button_position(craft_button_position)
+		, ui_settings(ui_settings)
 	{
 		
 	}
@@ -84,19 +80,22 @@ public:
 			}
 		}
 
+		float craft_button_position_x = screen.getWindowSize().x - ui_settings.craft_button_columns * ui_settings.craft_button_width;
+		float craft_button_position_y = 0.0f;
+
 		int i = 0;
 		for (const auto& button : buttons_craftable)
 		{
 			auto& transform_component = component_manager.transform.at(button);
 			const auto& craft_button_component = component_manager.craft_button.at(button);
 			
-			int x = i % craft_button_columns;
-			int y = i / craft_button_columns;
+			int x = i % ui_settings.craft_button_columns;
+			int y = i / ui_settings.craft_button_columns;
 
-			transform_component.position.x = craft_button_position.x + x * craft_button_width;
-			transform_component.position.y = craft_button_position.y + y * craft_button_height;
-			transform_component.size.x = craft_button_width;
-			transform_component.size.y = craft_button_height;
+			transform_component.position.x = craft_button_position_x + x * ui_settings.craft_button_width;
+			transform_component.position.y = craft_button_position_y + y * ui_settings.craft_button_height;
+			transform_component.size.x = ui_settings.craft_button_width;
+			transform_component.size.y = ui_settings.craft_button_height;
 
 			size_t item_id = CraftingManager::get().getRecipe(craft_button_component.recipe_id).item_id;
 
@@ -111,13 +110,13 @@ public:
 			auto& trasform_component = component_manager.transform.at(button);
 			const auto& craft_button_component = component_manager.craft_button.at(button);
 
-			int x = i % craft_button_columns;
-			int y = i / craft_button_columns;
+			int x = i % ui_settings.craft_button_columns;
+			int y = i / ui_settings.craft_button_columns;
 
-			trasform_component.position.x = craft_button_position.x + x * craft_button_width;
-			trasform_component.position.y = craft_button_position.y + y * craft_button_height;
-			trasform_component.size.x = craft_button_width;
-			trasform_component.size.y = craft_button_height;
+			trasform_component.position.x = craft_button_position_x + x * ui_settings.craft_button_width;
+			trasform_component.position.y = craft_button_position_y + y * ui_settings.craft_button_height;
+			trasform_component.size.x = ui_settings.craft_button_width;
+			trasform_component.size.y = ui_settings.craft_button_height;
 
 			size_t item_id = CraftingManager::get().getRecipe(craft_button_component.recipe_id).item_id;
 
@@ -133,13 +132,13 @@ public:
 			auto& trasform_component = component_manager.transform.at(button);
 			const auto& craft_button_component = component_manager.craft_button.at(button);
 
-			int x = i % craft_button_columns;
-			int y = i / craft_button_columns;
+			int x = i % ui_settings.craft_button_columns;
+			int y = i / ui_settings.craft_button_columns;
 
-			trasform_component.position.x = craft_button_position.x + x * craft_button_width;
-			trasform_component.position.y = craft_button_position.y + y * craft_button_height;
-			trasform_component.size.x = craft_button_width;
-			trasform_component.size.y = craft_button_height;
+			trasform_component.position.x = craft_button_position_x + x * ui_settings.craft_button_width;
+			trasform_component.position.y = craft_button_position_y + y * ui_settings.craft_button_height;
+			trasform_component.size.x = ui_settings.craft_button_width;
+			trasform_component.size.y = ui_settings.craft_button_height;
 
 			screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("ui")[1], trasform_component.position.x, trasform_component.position.y, trasform_component.size.x, trasform_component.size.y, IGNORE_VIEW_ZOOM);
 
@@ -150,11 +149,6 @@ public:
 private:
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
-
-	int craft_button_rows = 0;
-	int craft_button_columns = 0;
-	float craft_button_width = 0.f;
-	float craft_button_height = 0.f;
-
-	glm::vec2 craft_button_position{ 0.f };
+	
+	const UISettings& ui_settings;
 };

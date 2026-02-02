@@ -80,6 +80,7 @@ set(HEADER_FILES
     "inc/ECS/ItemDescriptionSystem.hpp"
     "inc/ECS/Components.hpp"
     "inc/ECS/RenderSystem.hpp"
+    "inc/UI/UISettings.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

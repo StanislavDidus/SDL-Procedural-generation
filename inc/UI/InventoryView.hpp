@@ -10,6 +10,7 @@
 #include "Button.hpp"
 #include "Button.hpp"
 #include "Text.hpp"
+#include "UISettings.hpp"
 
 /// <summary>
 /// Class that draws the inventory contents and lets the user manipulate it by using or dragging items.
@@ -17,7 +18,7 @@
 class InventoryView : public UIElement
 {
 public:
-	InventoryView(const Font* font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position);
+	InventoryView(const Font* font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings);
 	~InventoryView() override = default;
 
 	/// <summary>
@@ -95,7 +96,7 @@ private:
 	glm::vec2 dragged_position{};
 
 
-	float slot_size;
+	const UISettings& ui_settings;
 
 	//Items
 	const Font* font;

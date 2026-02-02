@@ -4,6 +4,8 @@
 #include <vector>
 #include <memory>
 
+
+
 struct ItemComponent
 {
 	explicit ItemComponent(int number_properties) : number_properties(number_properties) {};
@@ -11,6 +13,17 @@ struct ItemComponent
 
 	int number_properties = 0;
 };
+
+template<typename T>
+static T* getItemComponent(const std::vector<std::unique_ptr<ItemComponent>>& components)
+{
+	auto it = std::ranges::find_if(components, [](const std::unique_ptr<ItemComponent>& other)
+		{
+			return	dynamic_cast<T*>(other.get()) != nullptr;
+		});
+
+	return it != components.end() ? static_cast<T*>(it->get()) : nullptr;
+}
 
 struct ItemProperties
 {

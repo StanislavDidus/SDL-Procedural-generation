@@ -12,8 +12,8 @@ constexpr float RESOURCE_ICON_WIDTH = 50.f;
 constexpr float RESOURCE_ICON_HEIGHT = 50.f;
 
 
-InventoryView::InventoryView(const Font* font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, float slot_size, const glm::vec2& position)
-	: UIElement(position, { slot_size * columns , slot_size * rows }), font(font), item_sprites(item_sprites), inventory(inventory), rows(rows), columns(columns), slot_size(slot_size)
+InventoryView::InventoryView(const Font* font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings)
+	: UIElement(position, { ui_settings.inventory_slot_width * columns , ui_settings.inventory_slot_height * rows }), font(font), item_sprites(item_sprites), inventory(inventory), rows(rows), columns(columns), ui_settings(ui_settings)
 {
 	if (inventory) {
 		slot_text.resize(inventory->getItems().size());
@@ -22,6 +22,9 @@ InventoryView::InventoryView(const Font* font, const SpriteSheet& item_sprites, 
 
 void InventoryView::update()
 {
+	//TODO: remove this hack
+	size = {ui_settings.inventory_slot_width * columns, ui_settings.inventory_slot_height * rows };
+
 	isCoveringInventory();
 	isUsing();
 	isDragging();
@@ -40,8 +43,8 @@ void InventoryView::isCoveringInventory()
 		mouse_position.y >= position.y &&
 		mouse_position.y < position.y + size.y)
 	{
-		int x = static_cast<int>(std::floor(mouse_position.x / slot_size));
-		int y = static_cast<int>(std::floor(mouse_position.y / slot_size));
+		int x = static_cast<int>(std::floor(mouse_position.x / ui_settings.inventory_slot_width));
+		int y = static_cast<int>(std::floor(mouse_position.y / ui_settings.inventory_slot_height));
 
 		covered_slot = x + y * columns;
 		is_covered = true;
@@ -75,7 +78,7 @@ void InventoryView::isDragging()
 		
 		dragged_slot = covered_slot;
 		//Offset for mouse dragging
-		dragged_position = glm::vec2{ std::fmodf(mouse_position.x, slot_size), std::fmodf(mouse_position.y, slot_size) };
+		dragged_position = glm::vec2{ std::fmodf(mouse_position.x, ui_settings.inventory_slot_width), std::fmodf(mouse_position.y, ui_settings.inventory_slot_height) };
 	}
 }
 
@@ -128,7 +131,7 @@ std::optional<int> InventoryView::getCoveredSlotIndex() const
 
 	const auto& mouse_position = InputManager::getMouseState().position;
 
-	glm::ivec2 mouse_grid_position = static_cast<glm::ivec2>(mouse_position / slot_size);
+	glm::ivec2 mouse_grid_position = static_cast<glm::ivec2>(mouse_position / glm::vec2{ui_settings.inventory_slot_width, ui_settings.inventory_slot_height});
 
 	int index = mouse_grid_position.x + mouse_grid_position.y * columns;
 
@@ -140,12 +143,12 @@ glm::vec2 InventoryView::getSlotGlobalCoords(int slot) const
 	int x = slot % columns;
 	int y = slot / columns;
 
-	return glm::vec2{ position.x + x * slot_size, position.y + y * slot_size };
+	return glm::vec2{ position.x + x * ui_settings.inventory_slot_width, position.y + y * ui_settings.inventory_slot_height};
 }
 
 glm::vec2 InventoryView::getSlotSize() const
 {
-	return glm::vec2{ slot_size, slot_size };
+	return glm::vec2{ ui_settings.inventory_slot_width, ui_settings.inventory_slot_height };
 }
 
 std::optional<Item> InventoryView::getItem(int slot) const
@@ -167,10 +170,10 @@ void InventoryView::render(Renderer& screen)
 		int x = i % columns;
 		int y = i / columns;
 
-		glm::vec2 pos = { position.x + x * slot_size, position.y + y * slot_size };
+		glm::vec2 pos = { position.x + x * ui_settings.inventory_slot_width, position.y + y * ui_settings.inventory_slot_height };
 
 		//Draw slot outline
-		screen.drawRectangle(pos.x, pos.y, slot_size, slot_size, RenderType::NONE, Color::YELLOW, IGNORE_VIEW_ZOOM);
+		screen.drawRectangle(pos.x, pos.y, ui_settings.inventory_slot_width, ui_settings.inventory_slot_height, RenderType::NONE, Color::YELLOW, IGNORE_VIEW_ZOOM);
 
 
 		const auto& item = inventory->getItems()[i];
@@ -228,7 +231,15 @@ void InventoryView::render(Renderer& screen)
 		int x = index % columns;
 		int y = index / columns;
 
-		screen.drawRectangle(x * slot_size, y * slot_size, slot_size, slot_size, RenderType::FILL, Color::TRANSPARENT_BLUE, IGNORE_VIEW_ZOOM);
+		screen.drawRectangle
+		(
+			x * ui_settings.inventory_slot_width,
+			y * ui_settings.inventory_slot_height,
+			ui_settings.inventory_slot_width,
+			ui_settings.inventory_slot_height,
+			RenderType::FILL,
+			Color::TRANSPARENT_BLUE, IGNORE_VIEW_ZOOM
+		);
 	}
 }
 
@@ -242,7 +253,7 @@ void InventoryView::drawItem(Renderer& screen, const Item& item, const glm::vec2
 
 	const auto& item_sprite = item_sprites[item_properties.sprite_index];
 
-	screen.drawScaledSprite(item_sprite, position.x, position.y, slot_size, slot_size, IGNORE_VIEW_ZOOM);
+	screen.drawScaledSprite(item_sprite, position.x, position.y, ui_settings.inventory_slot_width, ui_settings.inventory_slot_height, IGNORE_VIEW_ZOOM);
 
 	auto& text = slot_text[index];
 
@@ -261,5 +272,15 @@ void InventoryView::drawItem(Renderer& screen, const Item& item, const glm::vec2
 
 	//Don't draw stack number if it is 1
 	if (item.stack_number > 1)
-		screen.printText(*text, position.x + slot_size * 0.5f, position.y + slot_size * 0.5f, slot_size * 0.5f, slot_size * 0.5f, IGNORE_VIEW_ZOOM);
+	{
+		screen.printText
+		(
+			*text,
+			position.x + ui_settings.inventory_slot_width * 0.5f,
+			position.y + ui_settings.inventory_slot_height * 0.5f,
+			ui_settings.inventory_slot_width * 0.5f,
+			ui_settings.inventory_slot_height * 0.5f,
+			IGNORE_VIEW_ZOOM
+		);
+	}
 }

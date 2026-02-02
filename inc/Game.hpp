@@ -22,6 +22,7 @@
 #include "ECS/ItemDescriptionSystem.hpp"
 #include "ECS/RenderSystem.hpp"
 #include "ECS/RenderUISystem.hpp"
+#include "UI/UISettings.hpp"
 
 class Game
 {
@@ -93,6 +94,9 @@ private:
 	//UI
 	std::unique_ptr<CraftView> craft_view;
 	std::shared_ptr<InventoryView> inventory_view;
+	UISettings ui_settings;
+
+	float ui_scale = 1.0f;
 	
 
 	Entity player;

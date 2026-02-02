@@ -76,6 +76,7 @@ Game::Game(Renderer& screen)
 	inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Cactus"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Cactus"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
 
 	inventory_view->setInventory(inventory.get());
 
@@ -133,8 +134,8 @@ void Game::initSystems()
 	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
 	button_system = std::make_unique<ButtonSystem>(component_manager, entity_manager);
 	craft_system = std::make_unique<CraftSystem>(component_manager, entity_manager);
-	render_ui_system = std::make_unique<RenderUISystem>(component_manager, entity_manager, 5, 5, 60.f, 60.f, glm::vec2{660.f, 0.f});
-	item_description_system = std::make_unique<ItemDescriptionSystem>(component_manager, entity_manager, ResourceManager::get().getFont("Main"), inventory_view);
+	render_ui_system = std::make_unique<RenderUISystem>(component_manager, entity_manager, ui_settings);
+	item_description_system = std::make_unique<ItemDescriptionSystem>(component_manager, entity_manager, ResourceManager::get().getFont("Main"), inventory_view, ui_settings);
 	render_system = std::make_unique<RenderSystem>(component_manager, entity_manager);
 
 	world->setCollisionSystem(collision_system);
@@ -373,9 +374,9 @@ void Game::initUserInterface()
 {
 	interface.addFillBar({ 0.f, screen.getWindowSize().y - 50.f, }, { 250.f, 50.f }, component_manager.health[player].current_health, 100.f, Color::RED);
 
-	interface.addInventoryView(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
+	//interface.addInventoryView(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
 
-	inventory_view = std::make_shared<InventoryView>(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, glm::vec2{0.f, 0.f});
+	inventory_view = std::make_shared<InventoryView>(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, glm::vec2{0.f, 0.f}, ui_settings);
 }
 
 void Game::update(float dt)
@@ -389,7 +390,13 @@ void Game::update(float dt)
 	//Check mouse state
 	const auto& mouse = InputManager::getMouseState();
 
-	interface.update();
+	//interface.update();
+
+	ImGui_ImplSDLRenderer3_NewFrame();
+	ImGui_ImplSDL3_NewFrame();
+	ImGui::NewFrame();
+
+	updateImGui(dt);
 
 	input_system->update(screen, dt);
 	jump_system->update(dt);
@@ -398,7 +405,7 @@ void Game::update(float dt)
 	button_system->update();
 	craft_system->update(player);
 
-	if (!interface.isMouseCoveringInventory() || component_manager.mine_objects_state.contains(player))
+	if (!inventory_view->isMouseCoveringInventory() || component_manager.mine_objects_state.contains(player))
 	{
 		mining_tiles_system->update(dt);
 		place_system->update(dt);
@@ -412,13 +419,6 @@ void Game::update(float dt)
 	inventory_view->update();
 
 	updateTilemapTarget();
-
-	ImGui_ImplSDLRenderer3_NewFrame();
-	ImGui_ImplSDL3_NewFrame();
-	ImGui::NewFrame();
-
-	// … your UI code
-	updateImGui(dt);
 	
 	//Render
 	const auto& window_size = screen.getWindowSize();
@@ -584,6 +584,14 @@ void Game::updateImGui(float dt)
 		ImGui::SliderFloat("zoom", &zoom, 0.1f, 5.f);
 
 		ImGui::Checkbox("Lock camera on player", &lock_camera);
+	}
+
+	if (ImGui::CollapsingHeader("UI"))
+	{
+		if (ImGui::SliderFloat("UI Scale", &ui_scale, 0.5f, 1.7f))
+		{
+			ui_settings = UISettings(ui_scale);
+		}
 	}
 
 	if (ImGui::CollapsingHeader("Procedural generation"))
