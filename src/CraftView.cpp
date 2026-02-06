@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+using namespace graphics;
+
 CraftView::CraftView(Entity target_entity, EntityManager& entity_manager, ComponentManager& component_manager, int rows, int columns, float slot_size, const glm::vec2& position)
 	: UIElement(position, {})
 	, rows(rows)
@@ -52,7 +54,7 @@ void CraftView::update()
 
 }
 
-void CraftView::render(Renderer& screen)
+void CraftView::render(graphics::Renderer& screen)
 {
 
 }

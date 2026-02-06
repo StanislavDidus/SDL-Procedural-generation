@@ -57,7 +57,7 @@ void World::setCollisionSystem(std::shared_ptr<CollisionSystem> collision_system
 	this->collision_system = collision_system;
 }
 
-void World::update(const Renderer& screen, float dt, const glm::vec2& target)
+void World::update(const graphics::Renderer& screen, float dt, const glm::vec2& target)
 {
 	const auto& window_size = screen.getWindowSize();
 	const auto& view_position = screen.getView();
@@ -82,7 +82,7 @@ void World::update(const Renderer& screen, float dt, const glm::vec2& target)
 	camera_rect.h = down_world - up_world;
 }
 
-void World::render(Renderer& screen) const
+void World::render(graphics::Renderer& screen) const
 {
 	float chunk_width_tiles = 25.f;
 	float chunk_height_tiles = 25.f;
@@ -110,7 +110,7 @@ void World::render(Renderer& screen) const
 						int sprite_index = getTileProperties(tile.id).sprites_index;
 						int is_solid = getTileProperties(tile.id).is_solid;
 
-						screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("tiles")[sprite_index], tile_rect.x, tile_rect.y, 20.f, 20.f);
+						graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("tiles")[sprite_index], tile_rect.x, tile_rect.y, 20.f, 20.f);
 
 						//Add collisions
 						if (auto s = collision_system.lock())
@@ -133,7 +133,7 @@ void World::render(Renderer& screen) const
 				if (SDL_HasRectIntersectionFloat(&camera_rect, &object.rect))
 				{
 					int sprite_index = ObjectManager::get().getProperties(object.properties_id).sprite_index;
-					screen.drawScaledSprite(ResourceManager::get().getSpriteSheet("objects")[sprite_index], object.rect.x, object.rect.y, object.rect.w, object.rect.h);
+					graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("objects")[sprite_index], object.rect.x, object.rect.y, object.rect.w, object.rect.h);
 				}
 			}
 		}

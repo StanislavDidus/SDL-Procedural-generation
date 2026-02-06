@@ -2,32 +2,37 @@
 
 #include "Renderer.hpp"
 
-/// <summary>
-/// RAII class that sets the viewport of the given renderer and automatically resets it at the end of the lifetime.
-/// </summary>
-class ViewportGuard
+namespace graphics
 {
-public:
-	ViewportGuard(Renderer& renderer, const SDL_Rect& viewport_rect);
-	~ViewportGuard();
 
-	ViewportGuard(const ViewportGuard& other) = delete;
-	ViewportGuard(ViewportGuard&& other) noexcept = delete;
-	ViewportGuard& operator=(const ViewportGuard& other) = delete;
-	ViewportGuard& operator=(ViewportGuard&& other) noexcept = delete;
+	/// <summary>
+	/// RAII class that sets the viewport of the given renderer and automatically resets it at the end of the lifetime.
+	/// </summary>
+	class ViewportGuard
+	{
+	public:
+		ViewportGuard(graphics::Renderer& renderer, const SDL_Rect& viewport_rect);
+		~ViewportGuard();
 
-private:
-	Renderer& renderer;
-};
+		ViewportGuard(const ViewportGuard& other) = delete;
+		ViewportGuard(ViewportGuard&& other) noexcept = delete;
+		ViewportGuard& operator=(const ViewportGuard& other) = delete;
+		ViewportGuard& operator=(ViewportGuard&& other) noexcept = delete;
 
-/*Usage example
-Some scope
-{
-	//Create an object of a class ViewportGuard
-	auto viewport = ViewportGuard(screen{ 100,100,100,100 });
+	private:
+		graphics::Renderer& renderer;
+	};
 
-	//Draw 
-	//... 
+	/*Usage example
+	Some scope
+	{
+		//Create an object of a class ViewportGuard
+		auto viewport = ViewportGuard(screen{ 100,100,100,100 });
 
-	//Viewport will be automatically reset when it goes out of scope
-}*/
+		//Draw
+		//...
+
+		//Viewport will be automatically reset when it goes out of scope
+	}*/
+
+} // namespace graphics

@@ -14,7 +14,7 @@
 class ItemDescriptionSystem
 {
 public:
-	ItemDescriptionSystem(ComponentManager& component_manager, const EntityManager& entity_manager, const Font* font, std::shared_ptr<InventoryView> inventory_view, const UISettings& ui_settings)
+	ItemDescriptionSystem(ComponentManager& component_manager, const EntityManager& entity_manager, const graphics::Font* font, std::shared_ptr<InventoryView> inventory_view, const UISettings& ui_settings)
 		: component_manager(component_manager)
 		, entity_manager(entity_manager)
 		, font(font)
@@ -44,7 +44,7 @@ public:
 		text.erase(text.begin() + comma_position + digits_after_comma + 1, text.end());
 	}
 
-	void render(Renderer& screen, Entity target_entity) const
+	void render(graphics::Renderer& screen, Entity target_entity) const
 	{
 		if (auto inventory_view_s = inventory_view.lock())
 		{
@@ -152,21 +152,21 @@ private:
 		}
 	}
 
-	void renderDescriptionLabel(Renderer& screen, float x, float y, size_t item_id, int additional_space_height) const
+	void renderDescriptionLabel(graphics::Renderer& screen, float x, float y, size_t item_id, int additional_space_height) const
 	{
 		float additional_height = ui_settings.item_description_label_height + additional_space_height * ui_settings.item_description_icon_height;
 
-		screen.drawRectangle(x, y, ui_settings.item_description_label_width, additional_height, RenderType::FILL, Color{ 0,125,200,200 }, IGNORE_VIEW_ZOOM);
+		graphics::drawRectangle(screen, x, y, ui_settings.item_description_label_width, additional_height, graphics::RenderType::FILL, graphics::Color{ 0,125,200,200 }, graphics::IGNORE_VIEW_ZOOM);
 
 		const auto& item_properties = ItemManager::get().getProperties(item_id);
-		Text item_name_text{ font, screen, item_properties.name };
-		Text item_id_text{ font, screen, "ID: " + std::to_string(item_id), SDL_Color{175, 175,175,255} };
+		graphics::Text item_name_text{ font, screen, item_properties.name };
+		graphics::Text item_id_text{ font, screen, "ID: " + std::to_string(item_id), graphics::Color{175, 175,175,255} };
 
-		screen.printTextScaled(item_name_text, x, y, ui_settings.item_name_text_scale_x, ui_settings.item_name_text_scale_y, IGNORE_VIEW_ZOOM);
-		screen.printTextScaled(item_id_text, x + ui_settings.item_description_id_position_x, y, ui_settings.item_id_text_scale_x, ui_settings.item_id_text_scale_y, IGNORE_VIEW_ZOOM);
+		graphics::printTextScaled(screen, item_name_text, x, y, ui_settings.item_name_text_scale_x, ui_settings.item_name_text_scale_y, graphics::IGNORE_VIEW_ZOOM);
+		graphics::printTextScaled(screen, item_id_text, x + ui_settings.item_description_id_position_x, y, ui_settings.item_id_text_scale_x, ui_settings.item_id_text_scale_y, graphics::IGNORE_VIEW_ZOOM);
 	}
 
-	void renderItemRecipe(Renderer& screen, float x, float y, const std::vector<Item>& recipe, const Inventory& inventory) const
+	void renderItemRecipe(graphics::Renderer& screen, float x, float y, const std::vector<Item>& recipe, const Inventory& inventory) const
 	{
 		for (int i = 0; const auto& required_item : recipe)
 		{
@@ -179,17 +179,17 @@ private:
 			int item_number_entity_has = inventory.countItem(required_item.id);
 			std::string item_number_string = std::to_string(item_number_entity_has) + "/" + std::to_string(required_item_number);
 
-			SDL_Color text_color = item_number_entity_has >= required_item_number ? SDL_Color{ 0,255,0,255 } : SDL_Color{ 255,0,0,255 };
+			graphics::Color text_color = item_number_entity_has >= required_item_number ? graphics::Color{ 0,255,0,255 } : graphics::Color{ 255,0,0,255 };
 
 			drawSpriteWithText(screen, item_number_string, ResourceManager::get().getSpriteSheet("items")[sprite_index], x, new_y, text_color);
-
+			
 			++i;
 		}
 	}
 
-	void renderItemComponents(Renderer& screen, float x, float y, const ItemProperties& item_properties) const
+	void renderItemComponents(graphics::Renderer& screen, float x, float y, const ItemProperties& item_properties) const
 	{
-		SDL_Color text_color = { 255,255,255,255 };
+		graphics::Color text_color = { 255,255,255,255 };
 
 		if (item_properties.heal_data)
 		{
@@ -221,7 +221,7 @@ private:
 
 		if (item_properties.melee_weapon_data)
 		{
-			SDL_Color color = { 255,255,255,255 };
+			graphics::Color color = { 255,255,255,255 };
 			//Render MeleeWeapon damage
 			{
 				renderComponentValue(screen, "damage", item_properties.melee_weapon_data->damage, x, y, text_color);
@@ -243,30 +243,30 @@ private:
 	}
 
 	template <typename T>
-	void renderComponentValue(Renderer& screen, const std::string& component_name, const T& component_value, float x, float y, SDL_Color color) const
+	void renderComponentValue(graphics::Renderer& screen, const std::string& component_name, const T& component_value, float x, float y, graphics::Color color) const
 	{
 		std::string text{ };
 		text += component_name + ": ";
 		text += std::to_string(component_value);
 
 		removeDigitsAfterComma(text, 1);
-		Text print_text{ font, screen, text, color };
-		screen.printTextScaled(print_text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x, ui_settings.crafting_component_text_scale_y, IGNORE_VIEW_ZOOM);
+		graphics::Text print_text{ font, screen, text, color };
+		graphics::printTextScaled(screen, print_text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x, ui_settings.crafting_component_text_scale_y, graphics::IGNORE_VIEW_ZOOM);
 	}
 
-	void drawSpriteWithText(Renderer& screen, const std::string& text, const Sprite& sprite, float x, float y, SDL_Color text_color) const
+	void drawSpriteWithText(graphics::Renderer& screen, const std::string& text, const graphics::Sprite& sprite, float x, float y, graphics::Color text_color) const
 	{
-		Text pickaxe_text{ font, screen, text, text_color };
-		screen.drawScaledSprite(sprite, x, y, ui_settings.item_description_icon_width, ui_settings.item_description_icon_height, IGNORE_VIEW_ZOOM);
-		screen.printTextScaled(pickaxe_text, x + ui_settings.item_description_icon_width, y + 12.5f, ui_settings.item_recipe_text_scale_x, ui_settings.item_recipe_text_scale_y, IGNORE_VIEW_ZOOM);
+		graphics::Text pickaxe_text{ font, screen, text, text_color };
+		graphics::drawScaledSprite(screen, sprite, x, y, ui_settings.item_description_icon_width, ui_settings.item_description_icon_height, graphics::IGNORE_VIEW_ZOOM);
+		graphics::printTextScaled(screen, pickaxe_text, x + ui_settings.item_description_icon_width, y + 12.5f, ui_settings.item_recipe_text_scale_x, ui_settings.item_recipe_text_scale_y, graphics::IGNORE_VIEW_ZOOM);
 	}
 
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
-	const Font* font;	
+	const graphics::Font* font;	
 	std::weak_ptr<InventoryView> inventory_view;
 
 	const UISettings& ui_settings;
 
-	std::vector<std::unique_ptr<Text>> texts;
+	std::vector<std::unique_ptr<graphics::Text>> texts;
 };

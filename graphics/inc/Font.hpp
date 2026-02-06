@@ -3,16 +3,20 @@
 #include <SDL3_ttf/SDL_ttf.h>
 #include <filesystem>
 
-class Font
+namespace graphics
 {
-public:
-	Font(const std::filesystem::path& path, int size);
-	~Font();
+	class Font
+	{
+	public:
+		Font(const std::filesystem::path& path, int size);
+		~Font();
 
-	bool loadFont(const std::filesystem::path& path, int size);
+		bool loadFont(const std::filesystem::path& path, int size);
 
-	TTF_Font* getFont() const;
+		TTF_Font* getFont() const;
 
-private:
-	TTF_Font* ttf_font;
-};
+	private:
+		TTF_Font* ttf_font;
+	};
+
+} // namespace graphics

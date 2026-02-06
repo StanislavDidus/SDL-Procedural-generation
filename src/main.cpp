@@ -15,6 +15,11 @@
 
 #include "InputManager.hpp"
 
+constexpr int WINDOW_WIDTH = 960;
+constexpr int WINDOW_HEIGHT = 540;
+
+using namespace graphics;
+
 int main()
 {
     if (!SDL_Init(SDL_INIT_VIDEO))
@@ -33,7 +38,7 @@ int main()
     srand(time(0));
 
     Window window{ "First SDL program", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE};
-    Renderer renderer{ window };
+	graphics::Renderer renderer{ window };
     Game game{ renderer };
 
     InputManager input_manager;
@@ -43,8 +48,8 @@ int main()
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
-    ImGui_ImplSDL3_InitForSDLRenderer(window.get(), renderer.getRenderer() );
-    ImGui_ImplSDLRenderer3_Init(renderer.getRenderer());
+    ImGui_ImplSDL3_InitForSDLRenderer(window.get(), renderer.get() );
+    ImGui_ImplSDLRenderer3_Init(renderer.get());
     ImGui::GetIO().FontGlobalScale = 1.5f;
 
     float dt = 0.f;
@@ -58,6 +63,7 @@ int main()
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
 
+            //Handle input
             switch (event.type)
             {
             case SDL_EVENT_KEY_DOWN:
@@ -65,9 +71,6 @@ int main()
                 break;
             case SDL_EVENT_KEY_UP:
                 input_manager.buttonUp(event.key.key);
-                break;
-            case SDL_EVENT_WINDOW_RESIZED:
-                //game.resizeSprites();
                 break;
             }
         }
@@ -77,7 +80,7 @@ int main()
         //Update mouse input
         float mouse_x, mouse_y = 0.f;
         SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-        SDL_RenderCoordinatesFromWindow(renderer.getRenderer(), mouse_x, mouse_y, &mouse_x, &mouse_y);
+        SDL_RenderCoordinatesFromWindow(renderer.get(), mouse_x, mouse_y, &mouse_x, &mouse_y);
    
         input_manager.setMouseState(
             { mouse_x, mouse_y },
@@ -85,13 +88,13 @@ int main()
             static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_RIGHT))
         );
 
-        renderer.clear(Color::BLACK);
+        clear(renderer, Color::BLACK);
+
+        input_manager.update();
 
         game.update(dt);
 
-        renderer.update(dt);
-
-        input_manager.update();
+        update(renderer);
 
         const auto finish = std::chrono::steady_clock::now();   
         const std::chrono::duration<double> elapsed_seconds{ finish - start };

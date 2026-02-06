@@ -12,7 +12,7 @@ namespace Components
 
 	struct Renderable
 	{
-		Sprite sprite;
+		graphics::Sprite sprite;
 		SDL_FlipMode flip_mode = SDL_FLIP_NONE;
 	};
 
@@ -145,6 +145,6 @@ namespace Components
 
 	struct Pickaxe
 	{
-		size_t pickaxe_id;
+		Item item;
 	};
 } //namespace Components

@@ -1,11 +1,10 @@
 #pragma once
 
 #include <SDL3/SDL.h>
-#include "glm/glm.hpp"
+#include "glm/vec2.hpp"
 
-constexpr int WINDOW_WIDTH = 960;
-constexpr int WINDOW_HEIGHT = 540;
-
+namespace graphics
+{
 class Window
 {
 public:
@@ -20,7 +19,7 @@ public:
 	bool pollEvent(SDL_Event& event);
 
 	//Getters
-	static glm::ivec2 getWindowSize();
+	glm::ivec2 getWindowSize() const;
 	SDL_Window* get() const;
 
 	explicit operator bool() const
@@ -32,5 +31,8 @@ private:
 
 	SDL_Window* window = nullptr;
 
-};
+	int width;
+	int height;
 
+};
+} //namespace graphics

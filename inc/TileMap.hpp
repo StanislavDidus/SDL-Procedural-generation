@@ -7,13 +7,13 @@
 class TileMap
 {
 public:
-	TileMap(const SpriteSheet& tileset, int rows, int columns);
+	TileMap(const graphics::SpriteSheet& tileset, int rows, int columns);
 	~TileMap();
 
 	//Getters
 	int getRows() const;
 	int getColumns() const;
-	const SpriteSheet& getSpriteSheet() const;
+	const graphics::SpriteSheet& getSpriteSheet() const;
 
 	const Tile& operator()(int x, int y) const
 	{
@@ -26,5 +26,5 @@ public:
 	}
 private:
 	Grid<Tile> grid;
-	const SpriteSheet& tileset;
+	const graphics::SpriteSheet& tileset;
 };

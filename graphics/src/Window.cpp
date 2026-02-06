@@ -1,10 +1,12 @@
 #include "Window.hpp"
 #include <iostream>
 
-Window::Window(const char* title, int width, int height, SDL_WindowFlags flags)
+namespace graphics
+{
+Window::Window(const char* title, int width, int height, SDL_WindowFlags flags) : width(width), height(height)
 {
 	window = SDL_CreateWindow(title, width, height, flags);
-	
+
 	std::cout << "Window was created" << std::endl;
 
 	SDL_RaiseWindow(window);
@@ -20,7 +22,7 @@ Window::~Window()
 
 bool Window::pollEvent(SDL_Event& event)
 {
-	bool return_value = SDL_PollEvent(&event); 
+	bool return_value = SDL_PollEvent(&event);
 
 	if (return_value)
 	{
@@ -42,13 +44,13 @@ bool Window::pollEvent(SDL_Event& event)
 	return return_value;
 }
 
-glm::ivec2 Window::getWindowSize()
+glm::ivec2 Window::getWindowSize() const
 {
-	return {WINDOW_WIDTH, WINDOW_HEIGHT};
+	return { width, height };
 }
 
 SDL_Window* Window::get() const
 {
 	return window;
 }
-
+} //namespace graphics

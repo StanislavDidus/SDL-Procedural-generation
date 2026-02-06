@@ -5,10 +5,9 @@
 #include <string>
 
 #include "SpriteSheet.hpp"
+#include "Font.hpp"
 
 // TODO: Use smart pointers to store SpriteSheets in dynamic arrays or maps.
-
-#include "Font.hpp"
 
 class ResourceManager
 {
@@ -19,21 +18,21 @@ public:
 		return s;
 	}
 
-	void loadXml(const std::filesystem::path& path, const Renderer& screen);
+	void loadXml(const std::filesystem::path& path, graphics::Renderer& screen);
 
-	const Font* getFont(const std::string& name) const;
-	const SpriteSheet& getSpriteSheet(const std::string& name) const;
+	const graphics::Font* getFont(const std::string& name) const;
+	const graphics::SpriteSheet& getSpriteSheet(const std::string& name) const;
 
 private:
 	ResourceManager() = default;
 
-	void addSpriteSheet(const std::string& name, const Renderer& screen, const std::filesystem::path& path, const glm::vec2& size, SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR);
-	void addSpriteSheet(const std::string& name, const Renderer& screen, const std::filesystem::path& path, const std::vector<SDL_FRect>& rects, SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR);
+	void addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path, const glm::vec2& size, SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR);
+	void addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path, const std::vector<SDL_FRect>& rects, SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR);
 
 	void addFont(const std::string& name, const std::filesystem::path& path, int size);
 
-	std::unordered_map<std::string, std::unique_ptr<SpriteSheet>> spritesheets;
-	std::unordered_map<std::string, std::unique_ptr<Font>> fonts;
+	std::unordered_map<std::string, std::unique_ptr<graphics::SpriteSheet>> spritesheets;
+	std::unordered_map<std::string, std::unique_ptr<graphics::Font>> fonts;
 	//std::unordered_map<std::string, size_t> nameToIndex; ///< Gives user an index to the place where the spritesheet with the given name lies in a vector
 	//size_t spritesheets_counter = 0;
 };

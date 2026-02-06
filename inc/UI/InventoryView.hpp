@@ -18,7 +18,7 @@
 class InventoryView : public UIElement
 {
 public:
-	InventoryView(const Font* font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings);
+	InventoryView(const graphics::Font* font, const graphics::SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings);
 	~InventoryView() override = default;
 
 	/// <summary>
@@ -56,7 +56,7 @@ public:
 	/// Renders inventory items on screen.
 	/// </summary>
 	/// <param name="screen">Takes renderer as a parameter to render things on the screen.</param>
-	void render(Renderer& screen) override;
+	void render(graphics::Renderer& screen) override;
 private:
 	/// <summary>
 	/// Finds the inventory slot that is being covered by a mouse(if mouse is on the inventory UI).
@@ -83,7 +83,7 @@ private:
 	/// </summary>
 	void isMovingItems();
 
-	void drawItem(Renderer& screen, const Item& item, const glm::vec2& position, int index);
+	void drawItem(graphics::Renderer& screen, const Item& item, const glm::vec2& position, int index);
 
 	Inventory* inventory;
 
@@ -99,7 +99,7 @@ private:
 	const UISettings& ui_settings;
 
 	//Items
-	const Font* font;
-	std::vector<std::unique_ptr<Text>> slot_text;
-	const SpriteSheet& item_sprites;
+	const graphics::Font* font;
+	std::vector<std::unique_ptr<graphics::Text>> slot_text;
+	const graphics::SpriteSheet& item_sprites;
 };

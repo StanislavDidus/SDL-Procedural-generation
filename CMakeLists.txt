@@ -36,7 +36,7 @@ set(SOURCE_FILES
     "src/CraftView.cpp"
     "src/CraftingManager.cpp"
     "src/Manager.cpp"
-    "src/UI/Button.cpp"
+    #"src/UI/Button.cpp"
     "src/ResourceManager.cpp"
     )
 
@@ -74,7 +74,7 @@ set(HEADER_FILES
     "inc/CraftView.hpp"
     "inc/CraftingManager.hpp"
     "inc/Manager.hpp"
-    "inc/UI/Button.hpp"
+    #"inc/UI/Button.hpp"
     "inc/ResourceManager.hpp"
     "inc/ECS/RenderUISystem.hpp"
     "inc/ECS/ItemDescriptionSystem.hpp"
@@ -106,4 +106,4 @@ target_link_libraries(
     tinyxml2
 )
 
-target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_20)
+target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_23)

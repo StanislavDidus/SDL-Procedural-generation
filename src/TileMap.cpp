@@ -1,5 +1,7 @@
 #include "TileMap.hpp"
 
+using namespace graphics;
+
 TileMap::TileMap(const SpriteSheet& tileset, int rows, int columns) 
 	: grid(rows, columns)
 	, tileset(tileset)

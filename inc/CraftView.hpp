@@ -16,7 +16,7 @@ public:
 	CraftView(Entity target_entity, EntityManager& entity_manager, ComponentManager& component_manager, int rows, int columns, float slot_size, const glm::vec2& position);
 
 	void update() override;
-	void render(Renderer& screen) override;
+	void render(graphics::Renderer& screen) override;
 private:
 	int rows;
 	int columns;

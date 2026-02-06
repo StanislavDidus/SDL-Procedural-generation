@@ -2,39 +2,45 @@
 
 #include <string>
 #include "Font.hpp"
+#include "Color.hpp"
 
-class Renderer;
 struct SDL_Texture;
-class Surface;
 
-class  Text
+namespace graphics
 {
-public:
-	Text(const Font* font, const Renderer& renderer, const std::string& text, SDL_Color color = SDL_Color{0,0,0,255});
-	~Text();
+	class Renderer;
+	class Surface;
 
-	Text(const Text& other) = delete;
-	Text(Text&& other) noexcept = delete;
-	Text& operator=(const Text& other) = delete;
-	Text& operator=(Text&& other) noexcept = delete;
+	class  Text
+	{
+	public:
+		Text(const Font* font, graphics::Renderer& renderer, const std::string& text, Color color = Color::BLACK);
+		~Text();
 
-	//Getters
-	SDL_Texture* getTexture() const;
+		Text(const Text& other) = delete;
+		Text(Text&& other) noexcept = delete;
+		Text& operator=(const Text& other) = delete;
+		Text& operator=(Text&& other) noexcept = delete;
 
-	//Setters
-	void setFont(const Font* font);
-	void setColor(SDL_Color color);
-	void setText(const std::string& text);
+		//Getters
+		SDL_Texture* getTexture() const;
 
-	void updateText(const Renderer& renderer);
-private:
-	void loadTexture(const Renderer& renderer, const Surface& surface);
-	void generateTextTexture(const Renderer& renderer);
+		//Setters
+		void setFont(const Font* font);
+		void setColor(Color color);
+		void setText(const std::string& text);
 
-	std::string text;
-	SDL_Texture* texture;
-	const Font* font;
-	SDL_Color color;
+		void updateText(graphics::Renderer& renderer);
+	private:
+		void loadTexture(graphics::Renderer& renderer, const Surface& surface);
+		void generateTextTexture(graphics::Renderer& renderer);
 
-	bool is_dirty = false;
-};
+		std::string text;
+		SDL_Texture* texture;
+		const Font* font;
+		Color color;
+
+		bool is_dirty = false;
+	};
+
+} // namespace graphics

@@ -6,7 +6,7 @@
 #include "CraftingManager.hpp"
 #include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
-#include "Renderer.hpp"
+#include "RenderFunctions.hpp"
 #include "World.hpp"
 #include "Item.hpp"
 #include "RandomizedItem.hpp"
@@ -252,7 +252,7 @@ struct InputSystem
 	ComponentManager& component_manager;
 	const EntityManager& entity_manager;
 
-	void update(const Renderer& screen, float dt)
+	void update(const graphics::Renderer& screen, float dt)
 	{
 		//Calculate global mouse position
 		glm::vec2 mouse_global_position = getMouseGlobalPosition(screen);
@@ -328,7 +328,7 @@ struct InputSystem
 	}
 
 private:
-	glm::vec2 getMouseGlobalPosition(const Renderer& screen)
+	glm::vec2 getMouseGlobalPosition(const graphics::Renderer& screen)
 	{
 		const auto& view_position = screen.getView();
 		const auto& zoom = screen.getZoom();
@@ -405,7 +405,7 @@ public:
 			if (component_manager.pickaxe.contains(entity))
 			{
 				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.pickaxe_id);
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item.id);
 				const auto& pickaxe_data = item_properties.pickaxe_data;
 
 				mining_speed = pickaxe_data->speed;
@@ -449,7 +449,7 @@ public:
 		}
 	}
 
-	void renderOutline(Renderer& screen)
+	void renderOutline(graphics::Renderer& screen)
 	{
 		for (const auto& entity : entity_manager.getEntities())
 		{
@@ -464,7 +464,7 @@ public:
 			if (component_manager.pickaxe.contains(entity))
 			{
 				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.pickaxe_id);
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item.id);
 				const auto& pickaxe_data = item_properties.pickaxe_data;
 
 				mining_radius = pickaxe_data->radius;
@@ -483,11 +483,11 @@ public:
 
 				if (distance > mining_radius)
 				{
-					screen.drawRectangle(tile_position_global.x, tile_position_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_RED);
+					graphics::drawRectangle(screen, tile_position_global.x, tile_position_global.y, tile_width, tile_height, graphics::RenderType::FILL, graphics::Color::TRANSPARENT_RED);
 				}
 				else
 				{
-					screen.drawRectangle(tile_position_global.x, tile_position_global.y, tile_width, tile_height, RenderType::FILL, Color::TRANSPARENT_BLUE);
+					graphics::drawRectangle(screen, tile_position_global.x, tile_position_global.y, tile_width, tile_height, graphics::RenderType::FILL, graphics::Color::TRANSPARENT_BLUE);
 				}
 			}
 		}
@@ -595,7 +595,7 @@ public:
 			if (component_manager.pickaxe.contains(entity))
 			{
 				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.pickaxe_id);
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item.id);
 				const auto& pickaxe_data = item_properties.pickaxe_data;
 
 				mining_speed = pickaxe_data->speed;
@@ -679,7 +679,7 @@ public:
 		}
 	}
 
-	void render(Renderer& screen)
+	void render(graphics::Renderer& screen)
 	{
 		for (auto& entity : entity_manager.getEntities())
 		{
@@ -694,7 +694,7 @@ public:
 				if (component_manager.pickaxe.contains(entity))
 				{
 					const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-					const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.pickaxe_id);
+					const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item.id);
 					const auto& pickaxe_data = item_properties.pickaxe_data;
 
 					mining_speed = pickaxe_data->speed;
@@ -715,7 +715,7 @@ public:
 					if (object)
 					{
 						const auto& object_rect = object->rect;
-						screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::YELLOW);
+						graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::YELLOW);
 					}
 				}
 				else
@@ -731,11 +731,11 @@ public:
 						if (distance < mining_radius)
 						{
 
-							screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::BLUE);
+							graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::BLUE);
 						}
 						else
 						{
-							screen.drawRectangle(object_rect.x, object_rect.y, object_rect.w, object_rect.h, RenderType::NONE, Color::RED);
+							graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::RED);
 						}
 					}
 				}
@@ -775,11 +775,14 @@ public:
 	{
 		const auto& item_properties = ItemManager::get().getProperties(item.id);
 
+		/*if (component_manager.pickaxe.contains(target_entity))
+		{
+			component_manager.pickaxe.at(target_entity).item.equipped = false;
+		}*/
+
 		if (item_properties.pickaxe_data)
 		{
-			
-
-			component_manager.pickaxe[target_entity] = Pickaxe{ item.id };
+			component_manager.pickaxe[target_entity] = Pickaxe{ item };
 		}
 
 		item.equipped = true;

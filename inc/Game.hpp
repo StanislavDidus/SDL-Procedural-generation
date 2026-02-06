@@ -27,7 +27,7 @@
 class Game
 {
 public:
-	explicit Game(Renderer& screen);
+	explicit Game(graphics::Renderer& screen);
 	virtual ~Game();
 
 	void update(float dt);
@@ -58,7 +58,7 @@ private:
 
 	float camera_move_speed = 1500.f;
 
-	Renderer& screen;
+	graphics::Renderer& screen;
 	//SpriteSheet background;
 	//SpriteSheet player;
 	//SpriteSheet tileset;
@@ -112,5 +112,5 @@ private:
 	GenerationData generation_data;
 
 	//Text
-	std::unique_ptr<Text> text;
+	std::unique_ptr<graphics::Text> text;
 };

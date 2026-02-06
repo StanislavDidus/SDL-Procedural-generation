@@ -2,7 +2,7 @@
 
 #include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
-#include "Renderer.hpp"
+#include "RenderFunctions.hpp"
 
 class RenderSystem
 {
@@ -14,7 +14,7 @@ public:
 
 	}
 
-	void render(Renderer& screen) const
+	void render(graphics::Renderer& screen) const
 	{
 		for (const auto& entity : entity_manager.getEntities())
 		{
@@ -27,7 +27,7 @@ public:
 			const auto& size = transform_component.size;
 			const auto& sprite = renderable_component.sprite;
 
-			screen.drawRotatedSprite(sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component.flip_mode);
+			graphics::drawRotatedSprite(screen, sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component.flip_mode);
 		}
 	}
 

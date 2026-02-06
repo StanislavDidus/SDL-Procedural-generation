@@ -1,12 +1,16 @@
 #include "ResourceManager.hpp"
 
+#include <UI/Button.hpp>
+#include <UI/Button.hpp>
+
 
 #include "Surface.hpp"
 #include "tinyxml2.h"
 
+using namespace graphics;
 using namespace tinyxml2;
 
-void ResourceManager::loadXml(const std::filesystem::path& path, const Renderer& screen)
+void ResourceManager::loadXml(const std::filesystem::path& path, graphics::Renderer& screen)
 {
 	XMLDocument doc;
 	doc.LoadFile(path.string().c_str());
@@ -97,15 +101,15 @@ const SpriteSheet& ResourceManager::getSpriteSheet(const std::string& name) cons
 	return *spritesheets.at(name);
 }
 
-void ResourceManager::addSpriteSheet(const std::string& name, const Renderer& screen, const std::filesystem::path& path, const glm::vec2& size,
-	SDL_ScaleMode scale_mode)
+void ResourceManager::addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path, const glm::vec2& size,
+                                     SDL_ScaleMode scale_mode)
 {
 	spritesheets[name] = std::make_unique<SpriteSheet>(screen, Surface{ path }, size, scale_mode);
 	//spritesheets[name] = std::move(SpriteSheet{ screen, Surface{path}, size, scale_mode });
 }
 
-void ResourceManager::addSpriteSheet(const std::string& name, const Renderer& screen, const std::filesystem::path& path,
-	const std::vector<SDL_FRect>& rects, SDL_ScaleMode scale_mode)
+void ResourceManager::addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path,
+                                     const std::vector<SDL_FRect>& rects, SDL_ScaleMode scale_mode)
 {
 	spritesheets[name] = std::make_unique<SpriteSheet>(screen, Surface{ path }, rects, scale_mode);
 	//spritesheets[name] = std::move(SpriteSheet{ screen, Surface{path}, rects, scale_mode });

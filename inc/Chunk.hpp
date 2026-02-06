@@ -8,7 +8,7 @@
 
 struct Chunk
 {
-	Chunk(const SpriteSheet& tileset, const SDL_FRect& rect, int rows, int columns);
+	Chunk(const graphics::SpriteSheet& tileset, const SDL_FRect& rect, int rows, int columns);
 	~Chunk() = default;
 	
 	SDL_FRect rect;

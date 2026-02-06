@@ -11,7 +11,7 @@ public:
 	virtual ~UIElement() = default;
 
 	virtual void update() = 0;
-	virtual void render(Renderer& screen) = 0;
+	virtual void render(graphics::Renderer& screen) = 0;
 
 protected:
 	glm::vec2 position;

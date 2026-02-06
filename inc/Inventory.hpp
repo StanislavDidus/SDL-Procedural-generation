@@ -9,7 +9,10 @@
 
 class ItemUsageSystem;
 
-class Renderer;
+namespace graphics
+{
+	class Renderer;
+}
 
 /// <summary>
 /// Stores a certain number of items and allows you to manipulate the items inside by using several public functions. <br>

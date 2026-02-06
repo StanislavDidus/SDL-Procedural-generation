@@ -1,6 +1,9 @@
 #include "UI/UserInterface.hpp"
 #include "UI/FillBar.hpp"
 #include <utility>
+#include "RenderFunctions.hpp"
+
+using namespace graphics;
 
 void UserInterface::addFillBar(const glm::vec2& position, const glm::vec2& size, const float& value, float max_value, Color color)
 {
@@ -28,7 +31,7 @@ void UserInterface::update()
 	//inventory_view->update();
 }
 
-void UserInterface::render(Renderer& screen)
+void UserInterface::render(graphics::Renderer& screen)
 {
 	for (const auto& element : elements)
 	{

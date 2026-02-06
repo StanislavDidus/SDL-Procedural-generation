@@ -15,13 +15,18 @@
 
 #include "tinyxml2.h"
 
+
+#include "RenderFunctions.hpp"
+
+using namespace graphics;
+
 namespace
 {
 	std::random_device rd;
 	std::minstd_rand rng(rd());
 }
 
-Game::Game(Renderer& screen)
+Game::Game(graphics::Renderer& screen)
 	: screen(screen)
 	//, background(screen, Surface{ "assets/Sprites/bg1.png" }, {320.f, 180.f})
 	//, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
@@ -376,6 +381,8 @@ void Game::initUserInterface()
 
 void Game::update(float dt)
 {
+	
+
 	//Update
 	updateInput(dt);
 
@@ -418,7 +425,6 @@ void Game::update(float dt)
 	//Render
 	const auto& window_size = screen.getWindowSize();
 
-
 	collision_system->collisions.clear();
 
 	world->render(screen);
@@ -428,18 +434,24 @@ void Game::update(float dt)
 	mining_tiles_system->renderOutline(screen);
 
 	mining_objects_system->render(screen);
-	interface.render(screen);
+	//interface.render(screen);
 	inventory_view->render(screen);
 
 	const auto& player_pos = component_manager.transform[player].position;
 	const auto& player_size = component_manager.transform[player].size;
-	screen.printText(*text, player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
+	printText(screen, *text, player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
 
 	render_ui_system->render(screen, player);
 	item_description_system->render(screen, player);
+	
+	//Set window base size to properly render imgui without scaling
+	SDL_SetRenderLogicalPresentation(screen.get(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
 
 	ImGui::Render();
-	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.getRenderer());
+	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.get());
+
+	SDL_SetRenderLogicalPresentation(screen.get(), window_size.x, window_size.y, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
 }
 
 void Game::resizeSprites()

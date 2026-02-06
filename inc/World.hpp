@@ -14,6 +14,7 @@
 #include "ObjectManager.hpp"
 #include "TileManager.hpp"
 #include "GenerationData.hpp"
+#include "RenderFunctions.hpp"
 
 class CollisionSystem;
 
@@ -38,8 +39,8 @@ public:
 	//Setters
 	void setCollisionSystem(std::shared_ptr<CollisionSystem> collision_system);
 
-	void update(const Renderer& screen, float dt, const glm::vec2& target);
-	void render(Renderer& screen) const;
+	void update(const graphics::Renderer& screen, float dt, const glm::vec2& target);
+	void render(graphics::Renderer& screen) const;
 
 	void rebuildChunks();
 

@@ -1,17 +1,21 @@
 #include "Sprite.hpp"
 
-Sprite::Sprite(std::shared_ptr<SDL_Texture> texture, const SDL_FRect& rect) : texture(texture), rect(rect)
+namespace graphics
 {
-	
-}
 
-const SDL_FRect& Sprite::getRect() const
-{
-	return rect;
-}
+	Sprite::Sprite(std::shared_ptr<SDL_Texture> texture, const SDL_FRect& rect) : texture(texture), rect(rect)
+	{
 
-std::shared_ptr<SDL_Texture> Sprite::getTexture() const
-{
-	return texture;
-}
+	}
 
+	const SDL_FRect& Sprite::getRect() const
+	{
+		return rect;
+	}
+
+	std::shared_ptr<SDL_Texture> Sprite::getTexture() const
+	{
+		return texture;
+	}
+
+} // namespace graphics

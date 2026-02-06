@@ -20,6 +20,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/Font.hpp"
     "inc/Text.hpp"
     "inc/ViewportGuard.hpp"
+    "inc/RenderFunctions.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})
@@ -30,4 +31,4 @@ target_include_directories(graphics PUBLIC inc)
 
 target_link_libraries(graphics PUBLIC SDL3::SDL3-static SDL3_ttf::SDL3_ttf-static glm::glm)
 
-target_compile_features(graphics PUBLIC cxx_std_20)
+target_compile_features(graphics PUBLIC cxx_std_23)
