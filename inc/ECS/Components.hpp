@@ -145,6 +145,6 @@ namespace Components
 
 	struct Pickaxe
 	{
-		Item item;
+		Item* item;
 	};
 } //namespace Components

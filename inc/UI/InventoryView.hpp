@@ -46,7 +46,7 @@ public:
 	/// <returns>World slot size.</returns>
 	glm::vec2 getSlotSize() const;
 
-	std::optional<Item> getItem(int slot) const;
+	std::optional<Item>getItem(int slot) const;
 
 	void setInventory(Inventory* inventory);
 

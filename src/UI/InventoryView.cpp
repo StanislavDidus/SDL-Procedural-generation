@@ -106,7 +106,7 @@ void InventoryView::isMovingItems()
 		auto& dragged_item = inventory->getItems()[*dragged_slot];
 		auto& covered_item = inventory->getItems()[*covered_slot];
 
-		if (dragged_item == covered_item && *dragged_slot != *covered_slot)
+		if (dragged_item && covered_item && dragged_item->id == covered_item->id && *dragged_slot != *covered_slot)
 		{
 			inventory->stackItems(*dragged_slot, *covered_slot);
 			dragged_slot = std::nullopt;
@@ -156,7 +156,8 @@ glm::vec2 InventoryView::getSlotSize() const
 
 std::optional<Item> InventoryView::getItem(int slot) const
 {
-	return inventory->getItems()[slot];
+	if (const auto& val = inventory->getItems()[slot]) return *val;
+	return std::nullopt;
 }
 
 void InventoryView::setInventory(Inventory* inventory)

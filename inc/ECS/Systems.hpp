@@ -405,7 +405,7 @@ public:
 			if (component_manager.pickaxe.contains(entity))
 			{
 				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item.id);
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item->id);
 				const auto& pickaxe_data = item_properties.pickaxe_data;
 
 				mining_speed = pickaxe_data->speed;
@@ -464,7 +464,7 @@ public:
 			if (component_manager.pickaxe.contains(entity))
 			{
 				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item.id);
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item->id);
 				const auto& pickaxe_data = item_properties.pickaxe_data;
 
 				mining_radius = pickaxe_data->radius;
@@ -595,7 +595,7 @@ public:
 			if (component_manager.pickaxe.contains(entity))
 			{
 				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item.id);
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item->id);
 				const auto& pickaxe_data = item_properties.pickaxe_data;
 
 				mining_speed = pickaxe_data->speed;
@@ -694,7 +694,7 @@ public:
 				if (component_manager.pickaxe.contains(entity))
 				{
 					const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-					const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item.id);
+					const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item->id);
 					const auto& pickaxe_data = item_properties.pickaxe_data;
 
 					mining_speed = pickaxe_data->speed;
@@ -771,33 +771,33 @@ public:
 		}
 	}
 
-	void equipItem(Item& item)
+	void equipItem(Item* item)
 	{
-		const auto& item_properties = ItemManager::get().getProperties(item.id);
+		const auto& item_properties = ItemManager::get().getProperties(item->id);
 
-		/*if (component_manager.pickaxe.contains(target_entity))
+		if (component_manager.pickaxe.contains(target_entity))
 		{
-			component_manager.pickaxe.at(target_entity).item.equipped = false;
-		}*/
+			component_manager.pickaxe.at(target_entity).item->equipped = false;
+		}
 
 		if (item_properties.pickaxe_data)
 		{
 			component_manager.pickaxe[target_entity] = Pickaxe{ item };
 		}
 
-		item.equipped = true;
+		item->equipped = true;
 	}
 
-	void unequip(Item& item)
+	void unequip(Item* item)
 	{
-		const auto& item_properties = ItemManager::get().getProperties(item.id);
+		const auto& item_properties = ItemManager::get().getProperties(item->id);
 
 		if (item_properties.pickaxe_data)
 		{
 			component_manager.pickaxe.erase(target_entity);
 		}
 
-		item.equipped = false;
+		item->equipped = false;
 	}
 
 private:

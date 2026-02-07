@@ -3,7 +3,7 @@
 #include "Item.hpp"
 #include <optional>
 #include <vector>
-
+#include <memory>
 
 #include "ItemManager.hpp"
 
@@ -42,7 +42,7 @@ public:
 	/// Clears the given item slot and makes it empty.
 	/// </summary>
 	/// <param name="slot">Slot index.</param>
-	void removeItemAtSlot(int slot);
+	void removeItemAtSlot(size_t slot);
 
 	/// <summary>
 	/// Takes 1 item from the first slot and moves it to the second.
@@ -89,7 +89,7 @@ public:
 	/// Returns all inventory slots.
 	/// </summary>
 	/// <returns></returns>
-	const std::vector<std::optional<Item>>& getItems() const;
+	const std::vector<std::unique_ptr<Item>>& getItems() const;
 
 	void printContent() const;
 
@@ -102,7 +102,7 @@ private:
 	std::optional<int> findFreeSlot();
 
 	std::shared_ptr<ItemUsageSystem> item_usage_system;
-	std::vector<std::optional<Item>> items;
+	std::vector<std::unique_ptr<Item>> items;
 
 	int size;
 };

@@ -1,5 +1,6 @@
 #include "Inventory.hpp"
 #include "ECS/Systems.hpp"
+#include <algorithm>
 #include <iostream>
 
 Inventory::Inventory(std::shared_ptr<ItemUsageSystem> item_usage_system, int size) 
@@ -32,7 +33,8 @@ void Inventory::useItem(int slot)
 
 		if (item->stack_number <= 0)
 		{
-			item = std::nullopt;
+			items[slot].reset();
+
 			free_slots.push_back(slot);
 		}
 	}
@@ -40,11 +42,11 @@ void Inventory::useItem(int slot)
 	case ItemAction::EQUIP:
 		if (!item->equipped)
 		{
-			item_usage_system->equipItem(*item);
+			item_usage_system->equipItem(item.get());
 		}
 		else if (item->equipped)
 		{
-			item_usage_system->unequip(*item);
+			item_usage_system->unequip(item.get());
 		}
 		break;
 	case ItemAction::NONE:
@@ -70,17 +72,17 @@ void Inventory::addItem(size_t id, int number)
 	//Otherwise put the item in an empty slot
 	if (!free_slots.empty())
 	{
-		auto free_slot = findFreeSlot();
-		if(free_slot) items[*free_slot] = {id, number};
+		if(auto free_slot = findFreeSlot()) items[*free_slot] = std::make_unique<Item>(id, number);
 	}
 }
 
-void Inventory::removeItemAtSlot(int slot)
+void Inventory::removeItemAtSlot(size_t slot)
 {
 	//Remove the item and free the slot
 	if (slot > 0 && slot < items.size())
 	{
-		items[slot] = std::nullopt;
+		items[slot].reset();
+
 		free_slots.push_back(slot);
 	}
 }
@@ -90,21 +92,20 @@ void Inventory::splitItemTo(int item_slot, int split_slot)
 	auto& item = items[item_slot];
 	auto& split = items[split_slot];
 
-	if (item && item->stack_number > 1)
+	if (item->stack_number > 1)
 	{
 		//If items are the same move one item 
-		if (split == item)
+		if (split && split->id == item->id)
 		{
 			item->stack_number--;
 			split->stack_number++;
 		}
-		//If slot is empty than copy item
+		//If slot is empty, then copy item
 		else if (!split)
 		{
 			item->stack_number--;
 
-			split = item;
-			split->stack_number = 1;
+			split = std::make_unique<Item>(item->id, 1);
 
 			std::erase_if(free_slots, [split_slot](int x) { return x == split_slot; });
 		}
@@ -119,7 +120,8 @@ void Inventory::stackItems(int old_item, int new_item)
 	if (item && item_new && ItemManager::get().getProperties(item->id).can_stack)
 	{
 		item_new->stack_number += item->stack_number;
-		item = std::nullopt;
+
+		items[old_item].reset();
 
 		free_slots.push_back(old_item);
 	}
@@ -206,7 +208,7 @@ int Inventory::countItem(size_t item_id) const
 	return number;
 }
 
-const std::vector<std::optional<Item>>& Inventory::getItems() const
+const std::vector<std::unique_ptr<Item>>& Inventory::getItems() const
 {
 	return items;
 }
@@ -237,12 +239,12 @@ std::shared_ptr<ItemUsageSystem> Inventory::getItemUsageSystem() const
 
 std::optional<int> Inventory::findFreeSlot()
 {
-	if (free_slots.size() <= 0) return std::nullopt;
+	if (free_slots.empty()) return std::nullopt;
 
 	int min = std::numeric_limits<int>::max();
-	for (int i = 0; i < free_slots.size(); i++)
+	for (int free_slot : free_slots)
 	{
-		if (free_slots[i] < min) min = free_slots[i];
+		min = std::min(free_slot, min);
 	}
 
 	std::erase_if(free_slots, [min](int value) {return value == min; });
