@@ -24,6 +24,7 @@ namespace graphics
 
 		//Getters
 		SDL_Texture* getTexture() const;
+		const std::string& getText() const;
 
 		//Setters
 		void setFont(const Font* font);

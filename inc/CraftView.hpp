@@ -13,7 +13,7 @@
 class CraftView : public UIElement
 {
 public:
-	CraftView(Entity target_entity, EntityManager& entity_manager, ComponentManager& component_manager, int rows, int columns, float slot_size, const glm::vec2& position);
+	CraftView(Entity target_entity, int rows, int columns, float slot_size, const glm::vec2& position);
 
 	void update() override;
 	void render(graphics::Renderer& screen) override;
@@ -22,9 +22,6 @@ private:
 	int columns;
 
 	float slot_size;
-
-	EntityManager& entity_manager;
-	ComponentManager& component_manager;
 
 	Entity target_entity;
 };	

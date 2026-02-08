@@ -143,8 +143,20 @@ namespace Components
 		std::vector<size_t> recipes_acquired;
 	};
 
+	/*struct Weapons
+	{
+		std::vector<Item*> items;
+	};
+
 	struct Pickaxe
 	{
 		Item* item;
+	};*/
+
+	struct Equipment
+	{
+		int max_weapon = 0;
+		std::vector<Item*> weapons;
+		Item* pickaxe;
 	};
 } //namespace Components

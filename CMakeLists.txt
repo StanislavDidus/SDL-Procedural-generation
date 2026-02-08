@@ -76,11 +76,12 @@ set(HEADER_FILES
     "inc/Manager.hpp"
     #"inc/UI/Button.hpp"
     "inc/ResourceManager.hpp"
-    "inc/ECS/RenderUISystem.hpp"
+    "inc/ECS/RenderCraftingUISystem.hpp"
     "inc/ECS/ItemDescriptionSystem.hpp"
     "inc/ECS/Components.hpp"
     "inc/ECS/RenderSystem.hpp"
     "inc/UI/UISettings.hpp"
+    "inc/ECS/RenderWeaponMenuSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

@@ -4,15 +4,15 @@
 
 using namespace graphics;
 
-CraftView::CraftView(Entity target_entity, EntityManager& entity_manager, ComponentManager& component_manager, int rows, int columns, float slot_size, const glm::vec2& position)
+CraftView::CraftView(Entity target_entity, int rows, int columns, float slot_size, const glm::vec2& position)
 	: UIElement(position, {})
 	, rows(rows)
 	, columns(columns)
 	, slot_size(slot_size)
-	, entity_manager(entity_manager)
-	, component_manager(component_manager)
 	, target_entity(target_entity)
 {
+	auto& component_manager = ComponentManager::get();
+
 	if (component_manager.crafting_ability.contains(target_entity))
 	{
 		for (size_t i = 0; i < CraftingManager::get().size(); ++i)
@@ -20,7 +20,7 @@ CraftView::CraftView(Entity target_entity, EntityManager& entity_manager, Compon
 			int x = i % columns;
 			int y = i / columns;
 
-			auto button = entity_manager.createEntity();
+			auto button = EntityManager::get().createEntity();
 
 			const auto& recipes_acquired = component_manager.crafting_ability.at(target_entity).recipes_acquired;
 

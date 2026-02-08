@@ -14,10 +14,8 @@
 class ItemDescriptionSystem
 {
 public:
-	ItemDescriptionSystem(ComponentManager& component_manager, const EntityManager& entity_manager, const graphics::Font* font, std::shared_ptr<InventoryView> inventory_view, const UISettings& ui_settings)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-		, font(font)
+	ItemDescriptionSystem(const graphics::Font* font, std::shared_ptr<InventoryView> inventory_view, const UISettings& ui_settings)
+		: font(font)
 		, inventory_view(inventory_view)
 		, ui_settings(ui_settings)
 	{
@@ -46,6 +44,8 @@ public:
 
 	void render(graphics::Renderer& screen, Entity target_entity) const
 	{
+		auto& component_manager = ComponentManager::get();
+
 		if (auto inventory_view_s = inventory_view.lock())
 		{
 			auto covered_slot = inventory_view_s->getCoveredSlotIndex();
@@ -87,7 +87,7 @@ public:
 			//Otherwise check if mouse is on any of the crafting recipes
 			else
 			{
-				for (const auto& entity : entity_manager.getEntities())
+				for (const auto& entity : EntityManager::get().getEntities())
 				{
 					if (!component_manager.transform.contains(entity) || !component_manager.button_covered.contains(entity) || !component_manager.craft_button.contains(entity) || !component_manager.has_inventory.contains(target_entity)) continue;
 					{
@@ -261,8 +261,6 @@ private:
 		graphics::printTextScaled(screen, pickaxe_text, x + ui_settings.item_description_icon_width, y + 12.5f, ui_settings.item_recipe_text_scale_x, ui_settings.item_recipe_text_scale_y, graphics::IGNORE_VIEW_ZOOM);
 	}
 
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
 	const graphics::Font* font;	
 	std::weak_ptr<InventoryView> inventory_view;
 

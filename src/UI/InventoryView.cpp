@@ -6,6 +6,7 @@
 #include "ResourceManager.hpp"
 #include "Surface.hpp"
 #include "RenderFunctions.hpp"
+#include "ECS/ComponentManager.hpp"
 
 constexpr float LABEL_WIDTH = 250.f;
 constexpr float LABEL_HEIGHT = 25.f;
@@ -15,12 +16,9 @@ constexpr float RESOURCE_ICON_HEIGHT = 50.f;
 
 using namespace graphics;
 
-InventoryView::InventoryView(const Font* font, const SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings)
-	: UIElement(position, { ui_settings.inventory_slot_width * columns , ui_settings.inventory_slot_height * rows }), font(font), item_sprites(item_sprites), inventory(inventory), rows(rows), columns(columns), ui_settings(ui_settings)
+InventoryView::InventoryView(const Font* font, const SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings)
+	: UIElement(position, { ui_settings.inventory_slot_width * columns , ui_settings.inventory_slot_height * rows }), font(font), item_sprites(item_sprites), rows(rows), columns(columns), ui_settings(ui_settings)
 {
-	if (inventory) {
-		slot_text.resize(inventory->getItems().size());
-	}
 }
 
 void InventoryView::update()
@@ -160,10 +158,15 @@ std::optional<Item> InventoryView::getItem(int slot) const
 	return std::nullopt;
 }
 
-void InventoryView::setInventory(Inventory* inventory)
+void InventoryView::setTargetEntity(Entity entity)
 {
-	this->inventory = inventory;
-	slot_text.resize(this->inventory->getItems().size());
+	target_entity = entity;
+
+	if (ComponentManager::get().has_inventory.contains(target_entity))
+	{
+		inventory = ComponentManager::get().has_inventory.at(target_entity).inventory.get();
+		slot_text.resize(inventory->getItems().size());
+	}
 }
 
 void InventoryView::render(graphics::Renderer& screen)
@@ -225,6 +228,8 @@ void InventoryView::render(graphics::Renderer& screen)
 			Color::TRANSPARENT_BLUE, IGNORE_VIEW_ZOOM
 		);
 	}
+
+
 }
 
 
@@ -249,8 +254,12 @@ void InventoryView::drawItem(graphics::Renderer& screen, const Item& item, const
 
 	if (text)
 	{
-		text->setText(std::to_string(item.stack_number));
-		text->updateText(screen);
+		std::string new_text = std::to_string(item.stack_number);
+		if (text->getText() != new_text)
+		{
+			text->setText(new_text);
+			text->updateText(screen);
+		}
 	}
 	else
 	{

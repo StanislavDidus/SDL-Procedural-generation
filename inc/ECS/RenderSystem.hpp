@@ -7,16 +7,12 @@
 class RenderSystem
 {
 public:
-	RenderSystem(ComponentManager& component_manager, const EntityManager& entity_manager)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-	{
-
-	}
+	RenderSystem() = default;
 
 	void render(graphics::Renderer& screen) const
 	{
-		for (const auto& entity : entity_manager.getEntities())
+		auto& component_manager = ComponentManager::get();
+		for (const auto& entity : EntityManager::get().getEntities())
 		{
 			if (!component_manager.transform.contains(entity) || !component_manager.renderable.contains(entity)) continue;
 
@@ -30,8 +26,4 @@ public:
 			graphics::drawRotatedSprite(screen, sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component.flip_mode);
 		}
 	}
-
-private:
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
 };

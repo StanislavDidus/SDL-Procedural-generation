@@ -25,6 +25,11 @@ namespace graphics
 		return texture;
 	}
 
+	const std::string& Text::getText() const
+	{
+		return text;
+	}
+
 	void Text::setFont(const Font* font)
 	{
 		this->font = font;

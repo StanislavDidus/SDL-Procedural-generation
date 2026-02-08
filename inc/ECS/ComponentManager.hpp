@@ -17,7 +17,12 @@ using namespace Components;
 class ComponentManager
 {
 public:
-	ComponentManager() = default;
+
+	static ComponentManager& get()
+	{
+		static ComponentManager s;
+		return s;
+	}
 
 	std::unordered_map<Entity, Transform> transform;
 	std::unordered_map<Entity, Physics> physics;
@@ -49,5 +54,10 @@ public:
 	std::unordered_map<Entity, PlaceIntent> place_intent;
 	std::unordered_map<Entity, HasInventory> has_inventory;
 
-	std::unordered_map<Entity, Pickaxe> pickaxe;
+	//std::unordered_map<Entity, Weapons> weapons;
+	//std::unordered_map<Entity, Pickaxe> pickaxe;
+	std::unordered_map<Entity, Equipment> equipment;
+
+private:
+	ComponentManager() = default;
 };

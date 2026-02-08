@@ -8,13 +8,11 @@
 #include "ResourceManager.hpp"
 
 // TODO: Add update function that is going to update all buttons positions separating the logic.
-class RenderUISystem
+class RenderCraftingUISystem
 {
 public:
-	RenderUISystem(ComponentManager& component_manager, const EntityManager& entity_manager,  const UISettings& ui_settings)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-		, ui_settings(ui_settings)
+	RenderCraftingUISystem(const UISettings& ui_settings)
+		: ui_settings(ui_settings)
 	{
 		
 	}
@@ -31,6 +29,8 @@ public:
 
 	void render(graphics::Renderer& screen, Entity target_entity)
 	{
+		auto& component_manager = ComponentManager::get();
+
 		//Render Craft Buttons
 		std::vector<Entity> buttons_craftable;
 		std::vector<Entity> buttons_missing_resources;
@@ -41,7 +41,7 @@ public:
 		const auto& inventory = component_manager.has_inventory.at(target_entity).inventory;
 
 		//Loop through all craft buttons and split them in 3 arrays for rendering order
-		for (const auto& entity : entity_manager.getEntities())
+		for (const auto& entity : EntityManager::get().getEntities())
 		{
 			if (!component_manager.transform.contains(entity) || !component_manager.button.contains(entity) || !component_manager.craft_button.contains(entity)) continue;
 
@@ -149,8 +149,5 @@ public:
 	}
 
 private:
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
-	
 	const UISettings& ui_settings;
 };

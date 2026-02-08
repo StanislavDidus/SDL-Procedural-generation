@@ -68,24 +68,16 @@ static bool AABB(const Transform& a, const Transform& b)
 
 struct PhysicsSystem
 {
-	PhysicsSystem(ComponentManager& component_manager, const EntityManager& entity_manager)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-	{
-
-	}
-
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
+	PhysicsSystem() = default;
 
 	void update(float dt)
 	{
-		for (auto& entity : entity_manager.getEntities())
+		for (auto& entity : EntityManager::get().getEntities())
 		{
-			if (component_manager.transform.contains(entity) && component_manager.physics.contains(entity))
+			if (ComponentManager::get().transform.contains(entity) && ComponentManager::get().physics.contains(entity))
 			{
-				auto& ts = component_manager.transform.at(entity);
-				auto& ph = component_manager.physics.at(entity);
+				auto& ts = ComponentManager::get().transform.at(entity);
+				auto& ph = ComponentManager::get().physics.at(entity);
 
 				//Add gravity
 				float gravity = 1400.f;
@@ -115,12 +107,7 @@ struct Collider
 class CollisionSystem
 {
 public:
-	CollisionSystem(ComponentManager& component_manager, const EntityManager& entity_manager)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-	{
-
-	}
+	CollisionSystem() = default;
 
 	void addCollider(const glm::vec2& position, const glm::vec2& size, ColliderType type)
 	{
@@ -129,12 +116,12 @@ public:
 
 	void update(float dt)
 	{
-		for (auto& entity : entity_manager.getEntities())
+		for (auto& entity : EntityManager::get().getEntities())
 		{
-			if (component_manager.transform.contains(entity) && component_manager.physics.contains(entity))
+			if (ComponentManager::get().transform.contains(entity) && ComponentManager::get().physics.contains(entity))
 			{
-				auto& ts = component_manager.transform.at(entity);
-				auto& ph = component_manager.physics.at(entity);
+				auto& ts = ComponentManager::get().transform.at(entity);
+				auto& ph = ComponentManager::get().physics.at(entity);
 
 				ph.is_ground = false;
 
@@ -233,47 +220,34 @@ private:
 
 		return true;
 	}
-
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
-
-
 };
 
 struct InputSystem
 {
-	InputSystem(ComponentManager& component_manager, const EntityManager& entity_manager)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-	{
-
-	}
-
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
+	InputSystem() = default;
 
 	void update(const graphics::Renderer& screen, float dt)
 	{
 		//Calculate global mouse position
 		glm::vec2 mouse_global_position = getMouseGlobalPosition(screen);
 
-		for (auto& entity : entity_manager.getEntities())
+		for (auto& entity : EntityManager::get().getEntities())
 		{
-			if (component_manager.player.contains(entity))
+			if (ComponentManager::get().player.contains(entity))
 			{
-				auto& p = component_manager.player.at(entity);
+				auto& p = ComponentManager::get().player.at(entity);
 
 				// Jump
-				if (component_manager.jump.contains(entity))
+				if (ComponentManager::get().jump.contains(entity))
 				{
-					auto& j = component_manager.jump.at(entity);
+					auto& j = ComponentManager::get().jump.at(entity);
 					j.jump_ready = InputManager::isKey(SDLK_U);
 				}
 
 				//Mining
-				if (component_manager.mine_intent.contains(entity))
+				if (ComponentManager::get().mine_intent.contains(entity))
 				{
-					auto& mi = component_manager.mine_intent.at(entity);
+					auto& mi = ComponentManager::get().mine_intent.at(entity);
 					//mi.active = InputManager::getMouseState().left == MouseButtonState::HELD;
 
 					if (InputManager::getMouseState().left == MouseButtonState::DOWN)
@@ -281,7 +255,7 @@ struct InputSystem
 						mi.active = true;
 						mi.start_mouse_position = mouse_global_position;
 					}
-					if (InputManager::getMouseState().left == MouseButtonState::RELEASED || component_manager.mine_objects_finished.contains(entity))
+					if (InputManager::getMouseState().left == MouseButtonState::RELEASED || ComponentManager::get().mine_objects_finished.contains(entity))
 					{
 						mi.active = false;
 					}
@@ -290,24 +264,24 @@ struct InputSystem
 				}
 
 				//Block placement
-				if (component_manager.place_intent.contains(entity))
+				if (ComponentManager::get().place_intent.contains(entity))
 				{
-					auto& pi = component_manager.place_intent.at(entity);
+					auto& pi = ComponentManager::get().place_intent.at(entity);
 					pi.active = InputManager::getMouseState().right == MouseButtonState::HELD;
 					pi.target_global_position = mouse_global_position;
 				}
 
 				//Horizontal movement
-				if (component_manager.physics.contains(entity))
+				if (ComponentManager::get().physics.contains(entity))
 				{
-					auto& ph = component_manager.physics.at(entity);
+					auto& ph = ComponentManager::get().physics.at(entity);
 					if (InputManager::isKey(SDLK_H))
 					{
 						ph.velocity.x -= ph.acceleration.x * dt;
 						ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
 
 						//Flip
-						if (component_manager.renderable.contains(entity)) component_manager.renderable.at(entity).flip_mode = SDL_FLIP_HORIZONTAL;
+						if (ComponentManager::get().renderable.contains(entity)) ComponentManager::get().renderable.at(entity).flip_mode = SDL_FLIP_HORIZONTAL;
 					}
 					if (InputManager::isKey(SDLK_K))
 					{
@@ -315,7 +289,7 @@ struct InputSystem
 						ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
 
 						//Flip
-						if (component_manager.renderable.contains(entity)) component_manager.renderable.at(entity).flip_mode = SDL_FLIP_NONE;
+						if (ComponentManager::get().renderable.contains(entity))ComponentManager::get().renderable.at(entity).flip_mode = SDL_FLIP_NONE;
 					}
 					if (!InputManager::isKey(SDLK_K) && !InputManager::isKey(SDLK_H))
 					{
@@ -342,24 +316,16 @@ private:
 
 struct JumpSystem
 {
-	JumpSystem(ComponentManager& component_manager, const EntityManager& entity_manager)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-	{
-
-	}
-
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
+	JumpSystem() = default;
 
 	void update(float dt)
 	{
-		for (auto& entity : entity_manager.getEntities())
+		for (auto& entity : EntityManager::get().getEntities())
 		{
-			if (component_manager.physics.contains(entity) && component_manager.jump.contains(entity))
+			if (ComponentManager::get().physics.contains(entity) && ComponentManager::get().jump.contains(entity))
 			{
-				auto& ph = component_manager.physics.at(entity);
-				auto& j = component_manager.jump.at(entity);
+				auto& ph = ComponentManager::get().physics.at(entity);
+				auto& j = ComponentManager::get().jump.at(entity);
 
 				if (j.jump_ready && ph.is_ground)
 				{
@@ -375,10 +341,8 @@ struct JumpSystem
 class MiningTilesSystem
 {
 public:
-	MiningTilesSystem(ComponentManager& component_manager, const EntityManager& entity_manager, World& world, float tile_width, float tile_height)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-		, tile_width(tile_width)
+	MiningTilesSystem(World& world, float tile_width, float tile_height)
+		: tile_width(tile_width)
 		, tile_height(tile_height)
 		, world(world)
 	{
@@ -387,25 +351,26 @@ public:
 
 	void update(float dt)
 	{
-		for (const auto& entity : entity_manager.getEntities())
+		for (const auto& entity : EntityManager::get().getEntities())
 		{
-			if (!component_manager.transform.contains(entity) ||
-				!component_manager.mine_intent.contains(entity) ||
-				component_manager.mine_objects_state.contains(entity))
+			if (!ComponentManager::get().transform.contains(entity) ||
+				!ComponentManager::get().mine_intent.contains(entity) ||
+				ComponentManager::get().mine_objects_state.contains(entity))
 				continue;
 
 			tiles_covered.clear();
 
-			auto& mi = component_manager.mine_intent.at(entity);
-			auto& ts = component_manager.transform.at(entity);
+			auto& mi = ComponentManager::get().mine_intent.at(entity);
+			auto& ts = ComponentManager::get().transform.at(entity);
 
 			float mining_speed;
 			float mining_radius;
 			float mining_size;
-			if (component_manager.pickaxe.contains(entity))
+
+			if (ComponentManager::get().equipment.contains(entity) && ComponentManager::get().equipment.at(entity).pickaxe)
 			{
-				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item->id);
+				const auto& pickaxe_component = ComponentManager::get().equipment.at(entity).pickaxe;
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component->id);
 				const auto& pickaxe_data = item_properties.pickaxe_data;
 
 				mining_speed = pickaxe_data->speed;
@@ -451,20 +416,20 @@ public:
 
 	void renderOutline(graphics::Renderer& screen)
 	{
-		for (const auto& entity : entity_manager.getEntities())
+		for (const auto& entity : EntityManager::get().getEntities())
 		{
-			if (!component_manager.transform.contains(entity) ||
-				component_manager.mine_objects_state.contains(entity) ||
-				!component_manager.mine_intent.contains(entity))
+			if (!ComponentManager::get().transform.contains(entity) ||
+				ComponentManager::get().mine_objects_state.contains(entity) ||
+				!ComponentManager::get().mine_intent.contains(entity))
 				continue;
 
-			auto& ts = component_manager.transform.at(entity);
+			auto& ts = ComponentManager::get().transform.at(entity);
 
 			float mining_radius;
-			if (component_manager.pickaxe.contains(entity))
+			if (ComponentManager::get().equipment.contains(entity) && ComponentManager::get().equipment.at(entity).pickaxe)
 			{
-				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item->id);
+				const auto& pickaxe_component = ComponentManager::get().equipment.at(entity).pickaxe;
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component->id);
 				const auto& pickaxe_data = item_properties.pickaxe_data;
 
 				mining_radius = pickaxe_data->radius;
@@ -494,9 +459,6 @@ public:
 	}
 
 private:
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
-
 	World& world;
 
 	float tile_width = 1.f;
@@ -508,10 +470,8 @@ private:
 class PlaceSystem
 {
 public:
-	PlaceSystem(ComponentManager& component_manager, const EntityManager& entity_manager, World& world, float tile_width, float tile_height)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-		, tile_width(tile_width)
+	PlaceSystem(World& world, float tile_width, float tile_height)
+		: tile_width(tile_width)
 		, tile_height(tile_height)
 		, world(world)
 	{
@@ -519,7 +479,8 @@ public:
 
 	void update(float dt)
 	{
-		for (const auto& entity : entity_manager.getEntities())
+		auto& component_manager = ComponentManager::get();
+		for (const auto& entity : EntityManager::get().getEntities())
 		{
 			if (component_manager.transform.contains(entity) && component_manager.place_ability.contains(entity) && component_manager.place_intent.contains(entity))
 			{
@@ -557,8 +518,6 @@ public:
 	}
 
 private:
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
 	World& world;
 	float tile_width = 1.f;
 	float tile_height = 1.f;
@@ -567,10 +526,8 @@ private:
 class MiningObjectsSystem
 {
 public:
-	MiningObjectsSystem(ComponentManager& component_manager, const EntityManager& entity_manager, World& world, float tile_width, float tile_height)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-		, tile_width(tile_width)
+	MiningObjectsSystem(World& world, float tile_width, float tile_height)
+		: tile_width(tile_width)
 		, tile_height(tile_height)
 		, world(world)
 	{
@@ -579,7 +536,8 @@ public:
 
 	void update(float dt)
 	{
-		for (auto& entity : entity_manager.getEntities())
+		auto& component_manager = ComponentManager::get();
+		for (auto& entity : EntityManager::get().getEntities())
 		{
 			//Check if required components exist
 			if (!component_manager.transform.contains(entity) ||
@@ -592,10 +550,10 @@ public:
 			float mining_speed;
 			float mining_radius;
 			float mining_size;
-			if (component_manager.pickaxe.contains(entity))
+			if (ComponentManager::get().equipment.contains(entity) && ComponentManager::get().equipment.at(entity).pickaxe)
 			{
-				const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item->id);
+				const auto& pickaxe_component = ComponentManager::get().equipment.at(entity).pickaxe;
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component->id);
 				const auto& pickaxe_data = item_properties.pickaxe_data;
 
 				mining_speed = pickaxe_data->speed;
@@ -681,7 +639,8 @@ public:
 
 	void render(graphics::Renderer& screen)
 	{
-		for (auto& entity : entity_manager.getEntities())
+		auto& component_manager = ComponentManager::get();
+		for (auto& entity : EntityManager::get().getEntities())
 		{
 			if (component_manager.mine_intent.contains(entity) && component_manager.transform.contains(entity) &&  component_manager.mine_intent.contains(entity))
 			{
@@ -691,10 +650,10 @@ public:
 				float mining_speed;
 				float mining_radius;
 				float mining_size;
-				if (component_manager.pickaxe.contains(entity))
+				if (ComponentManager::get().equipment.contains(entity) && ComponentManager::get().equipment.at(entity).pickaxe)
 				{
-					const auto& pickaxe_component = component_manager.pickaxe.at(entity);
-					const auto& item_properties = ItemManager::get().getProperties(pickaxe_component.item->id);
+					const auto& pickaxe_component = ComponentManager::get().equipment.at(entity).pickaxe;
+					const auto& item_properties = ItemManager::get().getProperties(pickaxe_component->id);
 					const auto& pickaxe_data = item_properties.pickaxe_data;
 
 					mining_speed = pickaxe_data->speed;
@@ -743,10 +702,6 @@ public:
 		}
 	}
 private:
-
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
-
 	World& world;
 
 	float tile_width = 1.f;
@@ -756,9 +711,8 @@ private:
 class ItemUsageSystem
 {
 public:
-	ItemUsageSystem(ComponentManager& component_manager, Entity& target_entity)
-		: component_manager(component_manager)
-		, target_entity(target_entity)
+	ItemUsageSystem(Entity& target_entity)
+		: target_entity(target_entity)
 	{
 	}
 
@@ -766,42 +720,73 @@ public:
 	{
 		if (item_properties.heal_data)
 		{
-			auto& health_component = component_manager.health[target_entity];
+			auto& health_component = ComponentManager::get().health[target_entity];
 			health_component.current_health = std::min(health_component.max_health, health_component.current_health + item_properties.heal_data->amount);
 		}
 	}
 
 	void equipItem(Item* item)
 	{
+		auto& component_manager = ComponentManager::get();
 		const auto& item_properties = ItemManager::get().getProperties(item->id);
 
-		if (component_manager.pickaxe.contains(target_entity))
+		if (component_manager.equipment.contains(target_entity))
 		{
-			component_manager.pickaxe.at(target_entity).item->equipped = false;
-		}
+			auto& equipment_component = component_manager.equipment.at(target_entity);
 
-		if (item_properties.pickaxe_data)
-		{
-			component_manager.pickaxe[target_entity] = Pickaxe{ item };
-		}
+			// Pickaxe
+			if (item_properties.pickaxe_data)
+			{
+				if (equipment_component.pickaxe)
+					component_manager.equipment.at(target_entity).pickaxe->equipped = false;
 
-		item->equipped = true;
+				equipment_component.pickaxe = item;
+				item->equipped = true;
+				return;
+			}
+
+			// Melee weapon
+			if (item_properties.melee_weapon_data)
+			{
+				if (equipment_component.weapons.size() < equipment_component.max_weapon)
+				{
+					component_manager.equipment.at(target_entity).weapons.push_back(item);
+					item->equipped = true;
+					return;
+				}
+			}
+		}
 	}
 
 	void unequip(Item* item)
 	{
 		const auto& item_properties = ItemManager::get().getProperties(item->id);
+		auto& component_manager = ComponentManager::get();
 
-		if (item_properties.pickaxe_data)
+		if (component_manager.equipment.contains(target_entity))
 		{
-			component_manager.pickaxe.erase(target_entity);
-		}
+			auto& equipment_component = component_manager.equipment.at(target_entity);
 
-		item->equipped = false;
+			// Pickaxe
+			if (item_properties.pickaxe_data)
+			{
+				equipment_component.pickaxe = nullptr;
+				item->equipped = false;
+				return;
+			}
+
+			// Melee weapon
+			if (item_properties.melee_weapon_data)
+			{
+				auto& weapon_array = component_manager.equipment.at(target_entity).weapons;
+				weapon_array.erase(std::ranges::remove(weapon_array, item).begin(), weapon_array.end());
+				item->equipped = false;
+				return;
+			}
+		}
 	}
 
 private:
-	ComponentManager& component_manager;
 	Entity& target_entity;
 };
 
@@ -809,15 +794,12 @@ private:
 class ButtonSystem
 {
 public:
-	ButtonSystem(ComponentManager& component_manager, const EntityManager& entity_manager)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-	{
-	}
+	ButtonSystem() = default;
 
 	void update()
 	{
-		for (const auto& entity : entity_manager.getEntities())
+		auto& component_manager = ComponentManager::get();
+		for (const auto& entity : EntityManager::get().getEntities())
 		{
 			if (component_manager.transform.contains(entity) && component_manager.button.contains(entity))
 			{
@@ -894,6 +876,7 @@ public:
 private:
 	void press(Entity button)
 	{
+		auto& component_manager = ComponentManager::get();
 		if (component_manager.craft_button.contains(button))
 		{
 			const auto& craft_component = component_manager.craft_button.at(button);
@@ -904,24 +887,18 @@ private:
 			}
 		}
 	}
-
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
 };
 
 
 class CraftSystem
 {
 public:
-	CraftSystem(ComponentManager& component_manager, const EntityManager& entity_manager)
-		: component_manager(component_manager)
-		, entity_manager(entity_manager)
-	{
-	}
+	CraftSystem() = default;
 
 	void update(Entity target_entity)
 	{
-		for (const auto& entity : entity_manager.getEntities())
+		auto& component_manager = ComponentManager::get();
+		for (const auto& entity : EntityManager::get().getEntities())
 		{
 			if (!component_manager.craft_item.contains(entity) || !component_manager.has_inventory.contains(target_entity)) continue;
 
@@ -953,8 +930,4 @@ public:
 			}
 		}
 	}
-
-private:
-	ComponentManager& component_manager;
-	const EntityManager& entity_manager;
 };

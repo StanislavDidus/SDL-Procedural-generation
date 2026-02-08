@@ -28,98 +28,41 @@ namespace
 
 Game::Game(graphics::Renderer& screen)
 	: screen(screen)
-	//, background(screen, Surface{ "assets/Sprites/bg1.png" }, {320.f, 180.f})
-	//, player(screen, Surface{ "assets/Sprites/player.png" }, { 16.f, 32.f }, SDL_SCALEMODE_NEAREST)
-	//, tilemap(world, tileset, 960.f, 540.f, 75.f, 100.f)
-	/*, health_bar({ 0.f, screen.getWindowSize().y - 50.f, }, {250.f, 50.f}, component_manager.health[player].current_health, 100.f, Color::RED)*/
-	//, mapRange(0.f, 1.f, 0.f, 0.f)
 {
 	std::cout << "Game was created" << std::endl;
 
-	screen.setView({ 0.f, 0.f });
-
-
-	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
-
 	ResourceManager::get().loadXml("data/assets.xml", screen);
-
-	text = std::make_unique<Text>(ResourceManager::get().getFont("Main"), screen, "Player");
-		
-	initNoiseSettings();
-	initMapRanges();
-
 	ItemManager::get().loadXml("data/items.xml");
-
 	TileManager::get().loadXml("data/tiles.xml");
-
 	CraftingManager::get().loadXml("data/crafts.xml");
-
-	
 	ObjectManager::get().loadXml("data/objects.xml");
 
-
+	initNoiseSettings();
+	initMapRanges();
 	initGenerationData();
 	initBiomes();
 
-
+	text = std::make_unique<Text>(ResourceManager::get().getFont("Main"), screen, "Player");
 	world = std::make_shared<World>(generation_data, collision_system, 500, 200, 20.f, 20.f);
 
 	initUserInterface();
 	initSystems();
 	
 	initPlayer();
-	craft_view = std::make_unique<CraftView>(player, entity_manager, component_manager, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
-	
+	item_usage_system = std::make_shared<ItemUsageSystem>(player);
+	craft_view = std::make_unique<CraftView>(player, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
+	inventory_view->setTargetEntity(player);
 
 	world->generateWorld(0);
 
-	//tilemap = std::make_unique<TileMap>(*world, tileset, object_spritesheet, collision_system, 20.f, 20.f);
-
-	auto& inventory = component_manager.has_inventory[player].inventory;
+	//Give basic items to the player
+	auto& inventory = ComponentManager::get().has_inventory[player].inventory;
 	inventory->addItem(ItemManager::get().getItemID("Apple"), 15);
 	inventory->addItem(ItemManager::get().getItemID("Banana"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Cactus"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Cactus"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
-
-	inventory_view->setInventory(inventory.get());
-
-	SpriteSheet spritesheet_test = SpriteSheet{screen, Surface{"assets/Sprites/tileset.png"}, {16.f, 16.f}, SDL_SCALEMODE_NEAREST};
-	//inventory.removeItem(1);
-
-	//Test tinyxml2
-	//object_manager->loadXML("data/objects.xml");
-	/*tinyxml2::XMLDocument doc;
-	doc.LoadFile("data/objects.xml");
-
-	auto object = doc.FirstChildElement("objectListing")->FirstChildElement("object");
-
-	auto id1 = object->Attribute("id");
-	std::cout << id1 << std::endl;
-
-	auto id2 = object->NextSiblingElement()->Attribute("id");
-	std::cout << id2 << std::endl;*/
-
-	//Add ui
-
-	/*Entity button = *entity_manager.createEntity();
-
-	component_manager.transform[button] = Transform
-	{
-		{400.f, 400.f },
-		{ 50.f, 50.f }
-	};
-
-	component_manager.button[button] = Button
-	{
-
-	};
-
-	component_manager.craft_button[button] = CraftButton
-	{
-		CraftingManager::get().getRecipeID("Common_Pickaxe")
-	};*/
 }
 
 Game::~Game()
@@ -129,19 +72,20 @@ Game::~Game()
 
 void Game::initSystems()
 {
-	physics_system = std::make_unique<PhysicsSystem>(component_manager, entity_manager);
-	input_system = std::make_unique<InputSystem>(component_manager, entity_manager);
-	collision_system = std::make_shared<CollisionSystem>(component_manager, entity_manager);
-	jump_system = std::make_unique<JumpSystem>(component_manager, entity_manager);
-	mining_tiles_system = std::make_unique<MiningTilesSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
-	mining_objects_system = std::make_unique<MiningObjectsSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
-	place_system = std::make_unique<PlaceSystem>(component_manager, entity_manager, *world, 20.f, 20.f);
-	item_usage_system = std::make_shared<ItemUsageSystem>(component_manager, player);
-	button_system = std::make_unique<ButtonSystem>(component_manager, entity_manager);
-	craft_system = std::make_unique<CraftSystem>(component_manager, entity_manager);
-	render_ui_system = std::make_unique<RenderUISystem>(component_manager, entity_manager, ui_settings);
-	item_description_system = std::make_unique<ItemDescriptionSystem>(component_manager, entity_manager, ResourceManager::get().getFont("Main"), inventory_view, ui_settings);
-	render_system = std::make_unique<RenderSystem>(component_manager, entity_manager);
+	physics_system = std::make_unique<PhysicsSystem>();
+	input_system = std::make_unique<InputSystem>();
+	collision_system = std::make_shared<CollisionSystem>();
+	jump_system = std::make_unique<JumpSystem>();
+	mining_tiles_system = std::make_unique<MiningTilesSystem>(*world, 20.f, 20.f);
+	mining_objects_system = std::make_unique<MiningObjectsSystem>(*world, 20.f, 20.f);
+	place_system = std::make_unique<PlaceSystem>(*world, 20.f, 20.f);
+	item_usage_system = std::make_shared<ItemUsageSystem>(player);
+	button_system = std::make_unique<ButtonSystem>();
+	craft_system = std::make_unique<CraftSystem>();
+	render_crafting_ui_system = std::make_unique<RenderCraftingUISystem>(ui_settings);
+	item_description_system = std::make_unique<ItemDescriptionSystem>(ResourceManager::get().getFont("Main"), inventory_view, ui_settings);
+	render_system = std::make_unique<RenderSystem>();
+	render_weapon_menu_system = std::make_unique<RenderWeaponMenuSystem>(ui_settings);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -276,7 +220,9 @@ void Game::initBiomes()
 
 void Game::initPlayer()
 {
-	player = entity_manager.createEntity().value();
+	auto& component_manager = ComponentManager::get();
+
+	player = EntityManager::get().createEntity().value();
 
 	component_manager.transform[player] = Transform{
 	glm::vec2{400.f, -500.f},
@@ -357,6 +303,11 @@ void Game::initPlayer()
 	};
 
 
+	component_manager.equipment[player] = Equipment
+	{
+		2 // Number of weapons the player can equip
+	};
+
 	//Add all recipes that do not require blueprints
 	for (size_t i = 0; i < CraftingManager::get().size(); ++i)
 	{
@@ -372,33 +323,26 @@ void Game::initPlayer()
 
 void Game::initUserInterface()
 {
+	auto& component_manager = ComponentManager::get();
+
 	interface.addFillBar({ 0.f, screen.getWindowSize().y - 50.f, }, { 250.f, 50.f }, component_manager.health[player].current_health, 100.f, Color::RED);
 
 	//interface.addInventoryView(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
 
-	inventory_view = std::make_shared<InventoryView>(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, glm::vec2{0.f, 0.f}, ui_settings);
+	inventory_view = std::make_shared<InventoryView>(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), 3, 5, glm::vec2{0.f, 0.f}, ui_settings);
 }
 
 void Game::update(float dt)
 {
-	
-
 	//Update
 	updateInput(dt);
 
 	screen.setZoom(zoom);
 	screen.setView(view_position);
 
-	//Check mouse state
+	auto& component_manager = ComponentManager::get();
+
 	const auto& mouse = InputManager::getMouseState();
-
-	//interface.update();
-
-	ImGui_ImplSDLRenderer3_NewFrame();
-	ImGui_ImplSDL3_NewFrame();
-	ImGui::NewFrame();
-
-	updateImGui(dt);
 
 	input_system->update(screen, dt);
 	jump_system->update(dt);
@@ -423,6 +367,12 @@ void Game::update(float dt)
 	updateTilemapTarget();
 	
 	//Render
+	ImGui_ImplSDLRenderer3_NewFrame();
+	ImGui_ImplSDL3_NewFrame();
+	ImGui::NewFrame();
+
+	updateImGui(dt);
+
 	const auto& window_size = screen.getWindowSize();
 
 	collision_system->collisions.clear();
@@ -434,15 +384,17 @@ void Game::update(float dt)
 	mining_tiles_system->renderOutline(screen);
 
 	mining_objects_system->render(screen);
-	//interface.render(screen);
-	inventory_view->render(screen);
 
+	//Print "Player" text
 	const auto& player_pos = component_manager.transform[player].position;
 	const auto& player_size = component_manager.transform[player].size;
 	printText(screen, *text, player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
 
-	render_ui_system->render(screen, player);
+	//UI
+	inventory_view->render(screen);
+	render_crafting_ui_system->render(screen, player);
 	item_description_system->render(screen, player);
+	render_weapon_menu_system->render(screen, player);
 	
 	//Set window base size to properly render imgui without scaling
 	SDL_SetRenderLogicalPresentation(screen.get(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
@@ -451,17 +403,6 @@ void Game::update(float dt)
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.get());
 
 	SDL_SetRenderLogicalPresentation(screen.get(), window_size.x, window_size.y, SDL_LOGICAL_PRESENTATION_LETTERBOX);
-
-}
-
-void Game::resizeSprites()
-{
-	/*const auto& window_size = screen.getWindowSize();
-	float related_width = window_size.x / BaseWidthScreen;
-	float related_height = window_size.y / BaseHeightScreen;*/
-
-	//component_manager.transform[player].size = { related_width * PlayerWidth, related_height * PlayerHeight };
-	//tilemap.setTileSize(related_width * TileWidth, related_height * TileHeight);
 }
 
 void Game::updateTilemapTarget()
@@ -469,7 +410,7 @@ void Game::updateTilemapTarget()
 	if (lock_camera)
 	{
 		//Set target on player
-		const auto& player_transform = component_manager.transform[player];
+		const auto& player_transform = ComponentManager::get().transform[player];
 		const auto& player_position = player_transform.position;
 		const auto& player_size = player_transform.size;
 		world_target = { player_position.x + player_size.x / 2.f, player_position.y + player_size.y / 2.f };
@@ -537,7 +478,7 @@ void Game::updateInput(float dt)
 	//Add items
 	if (InputManager::isKeyDown(SDLK_G))
 	{
-		component_manager.has_inventory[player].inventory->addItem(1,1);
+		ComponentManager::get().has_inventory[player].inventory->addItem(1,1);
 	}
 
 	//Change the mining radius
@@ -557,6 +498,8 @@ void Game::updateInput(float dt)
 
 void Game::updateImGui(float dt)
 {
+	auto& component_manager = ComponentManager::get();
+
 	ImGui::Begin("Window");
 
 	if (ImGui::CollapsingHeader("Player"))

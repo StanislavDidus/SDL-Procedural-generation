@@ -21,7 +21,8 @@
 #include "Surface.hpp"
 #include "ECS/ItemDescriptionSystem.hpp"
 #include "ECS/RenderSystem.hpp"
-#include "ECS/RenderUISystem.hpp"
+#include "ECS/RenderCraftingUISystem.hpp"
+#include "ECS/RenderWeaponMenuSystem.hpp"
 #include "UI/UISettings.hpp"
 
 class Game
@@ -31,10 +32,6 @@ public:
 	virtual ~Game();
 
 	void update(float dt);
-
-	void resizeSprites();
-	
-	glm::vec2 view_position = {0.f, 0.f};
 private:
 	void initSystems();
 	void initGenerationData();
@@ -52,6 +49,8 @@ private:
 
 	bool lock_camera = true;
 
+	glm::vec2 view_position = { 0.f, 0.f };
+
 	float min_zoom = 0.5f;
 	float max_zoom = 2.f;
 	float zoom = 1.f;
@@ -59,11 +58,6 @@ private:
 	float camera_move_speed = 1500.f;
 
 	graphics::Renderer& screen;
-	//SpriteSheet background;
-	//SpriteSheet player;
-	//SpriteSheet tileset;
-	//SpriteSheet items_spritesheet;
-	//std::unique_ptr<SpriteSheet> object_spritesheet;
 
 	std::unique_ptr<TileMap> tilemap;
 
@@ -72,9 +66,6 @@ private:
 
 	float tilemap_raws = 10.f;
 	float tilemap_columns = 10.f;
-
-	EntityManager entity_manager;
-	ComponentManager component_manager;
 
 	//Systems
 	std::unique_ptr<PhysicsSystem> physics_system;
@@ -87,7 +78,8 @@ private:
 	std::shared_ptr<ItemUsageSystem> item_usage_system;
 	std::unique_ptr<ButtonSystem> button_system;
 	std::unique_ptr<CraftSystem> craft_system;
-	std::unique_ptr<RenderUISystem> render_ui_system;
+	std::unique_ptr<RenderCraftingUISystem> render_crafting_ui_system;
+	std::unique_ptr<RenderWeaponMenuSystem> render_weapon_menu_system;
 	std::unique_ptr<ItemDescriptionSystem> item_description_system;
 	std::unique_ptr<RenderSystem> render_system;
 
@@ -100,12 +92,6 @@ private:
 	
 
 	Entity player;
-
-
-	/*Item apple;
-	Item banana;
-	Item heal_potion;
-	Item regeneration_potion;*/
 
 	UserInterface interface;
 

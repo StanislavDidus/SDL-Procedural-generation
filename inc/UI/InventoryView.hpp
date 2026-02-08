@@ -11,6 +11,12 @@
 #include "Button.hpp"
 #include "Text.hpp"
 #include "UISettings.hpp"
+#include "ECS/Entity.hpp"
+
+namespace tinyxml2
+{
+	struct Entity;
+}
 
 /// <summary>
 /// Class that draws the inventory contents and lets the user manipulate it by using or dragging items.
@@ -18,7 +24,7 @@
 class InventoryView : public UIElement
 {
 public:
-	InventoryView(const graphics::Font* font, const graphics::SpriteSheet& item_sprites, Inventory* inventory, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings);
+	InventoryView(const graphics::Font* font, const graphics::SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings);
 	~InventoryView() override = default;
 
 	/// <summary>
@@ -48,7 +54,7 @@ public:
 
 	std::optional<Item>getItem(int slot) const;
 
-	void setInventory(Inventory* inventory);
+	void setTargetEntity(Entity entity);
 
 	void update() override;
 
@@ -85,8 +91,6 @@ private:
 
 	void drawItem(graphics::Renderer& screen, const Item& item, const glm::vec2& position, int index);
 
-	Inventory* inventory;
-
 	int rows;
 	int columns;
 
@@ -102,4 +106,7 @@ private:
 	const graphics::Font* font;
 	std::vector<std::unique_ptr<graphics::Text>> slot_text;
 	const graphics::SpriteSheet& item_sprites;
+
+	Inventory* inventory;
+	Entity target_entity;
 };
