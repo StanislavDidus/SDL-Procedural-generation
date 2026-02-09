@@ -1,5 +1,6 @@
 #pragma once
 #include "Inventory.hpp"
+#include "SpriteAnimation.hpp"
 
 namespace Components
 {
@@ -12,6 +13,7 @@ namespace Components
 
 	struct Renderable
 	{
+		//graphics::Sprite sprite;
 		graphics::Sprite sprite;
 		SDL_FlipMode flip_mode = SDL_FLIP_NONE;
 	};
@@ -40,7 +42,7 @@ namespace Components
 		bool active;
 	};
 
-	struct MineTilesAbility
+	/*struct MineTilesAbility
 	{
 		float radius;
 		float speed;
@@ -51,6 +53,13 @@ namespace Components
 	{
 		float radius;
 		float speed;
+	};*/
+
+	struct MiningAbility
+	{
+		float speed;
+		float radius;
+		int size;
 	};
 
 	struct MineObjectsState
@@ -143,20 +152,25 @@ namespace Components
 		std::vector<size_t> recipes_acquired;
 	};
 
-	/*struct Weapons
-	{
-		std::vector<Item*> items;
-	};
-
-	struct Pickaxe
-	{
-		Item* item;
-	};*/
-
 	struct Equipment
 	{
 		int max_weapon = 0;
 		std::vector<Item*> weapons;
+
 		Item* pickaxe;
+		int current_mine_size;
+	};
+
+	struct Animation
+	{
+		
+	};
+
+	struct CharacterAnimation
+	{
+		std::shared_ptr<graphics::SpriteAnimation> idle_animation;
+		std::shared_ptr<graphics::SpriteAnimation> running_animation;
+		std::shared_ptr<graphics::SpriteAnimation> jump_animation;
+		std::shared_ptr<graphics::SpriteAnimation> fall_animation;
 	};
 } //namespace Components

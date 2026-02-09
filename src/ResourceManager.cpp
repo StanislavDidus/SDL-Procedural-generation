@@ -96,9 +96,9 @@ const Font* ResourceManager::getFont(const std::string& name) const
 	return fonts.at(name).get();
 }
 
-const SpriteSheet& ResourceManager::getSpriteSheet(const std::string& name) const
+std::shared_ptr<SpriteSheet> ResourceManager::getSpriteSheet(const std::string& name) const
 {
-	return *spritesheets.at(name);
+	return spritesheets.at(name);
 }
 
 void ResourceManager::addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path, const glm::vec2& size,

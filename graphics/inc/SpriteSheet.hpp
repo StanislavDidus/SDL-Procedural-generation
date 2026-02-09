@@ -25,7 +25,7 @@ namespace graphics
 		SpriteSheet& operator=(const SpriteSheet& other) = delete;
 		SpriteSheet& operator=(SpriteSheet&& other) noexcept = delete;
 
-		const Sprite& operator[](int index) const { return sprites[index]; };
+		const Sprite& operator[](size_t index) const { return sprites[index]; };
 	private:
 		Texture loadTexture(graphics::Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode);
 

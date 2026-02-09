@@ -83,4 +83,10 @@
         <spriteIndex>0</spriteIndex>
         <action>EQUIP</action>
     </item>
+    <item id="Bow">
+        <canStack>false</canStack>
+        <spriteIndex>14</spriteIndex>
+        <action>EQUIP</action>
+         <MeleeWeaponData damage="5" cooldown="0.75" radius="100" />
+    </item>
 </itemListing>

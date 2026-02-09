@@ -34,4 +34,11 @@
         <requiredItems>
         </requiredItems>
     </craft>
+     <craft id="Bow">
+        <requiredBlueprint>false</requiredBlueprint>
+        <requiredItems>
+            <item ref="Wood" amount="3" />
+            <item ref="Rope" amount="1" />
+        </requiredItems>
+    </craft>
 </craftListing>

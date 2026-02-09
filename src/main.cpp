@@ -72,6 +72,9 @@ int main()
             case SDL_EVENT_KEY_UP:
                 input_manager.buttonUp(event.key.key);
                 break;
+            case SDL_EVENT_MOUSE_WHEEL:
+                input_manager.setMouseWheel({ event.wheel.x, event.wheel.y });
+            	break;
             }
         }
 

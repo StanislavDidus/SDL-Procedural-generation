@@ -19,7 +19,7 @@ public:
 	}
 
 	std::optional<Entity> createEntity();
-	void destroyEntity(Entity entity);
+	void destroyEntity(Entity id);
 
 	const std::vector<Entity>& getEntities() const;
 private:

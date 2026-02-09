@@ -247,7 +247,7 @@ void InventoryView::drawItem(graphics::Renderer& screen, const Item& item, const
 	if (item.equipped)
 	{
 		//screen.drawRectangle(position.x, position.y, ui_settings.inventory_slot_width, ui_settings.inventory_slot_height, RenderType::FILL, Color::TRANSPARENT_GREEN, IGNORE_VIEW_ZOOM);
-		drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("icons")[0], position.x, position.y, ui_settings.inventory_slot_width, ui_settings.inventory_slot_height, IGNORE_VIEW_ZOOM);
+		drawScaledSprite(screen, (*ResourceManager::get().getSpriteSheet("icons"))[0], position.x, position.y, ui_settings.inventory_slot_width, ui_settings.inventory_slot_height, IGNORE_VIEW_ZOOM);
 	}
 
 	auto& text = slot_text[index];

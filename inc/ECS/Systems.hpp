@@ -376,6 +376,7 @@ public:
 				mining_speed = pickaxe_data->speed;
 				mining_radius = pickaxe_data->radius;
 				mining_size = pickaxe_data->size;
+				//mining_size = ComponentManager::get().equipment.at(entity).current_mine_size;
 			}
 			else
 			{
@@ -742,6 +743,7 @@ public:
 
 				equipment_component.pickaxe = item;
 				item->equipped = true;
+				equipment_component.current_mine_size = item_properties.pickaxe_data->size;
 				return;
 			}
 

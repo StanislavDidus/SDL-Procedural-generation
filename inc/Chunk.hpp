@@ -8,10 +8,10 @@
 
 struct Chunk
 {
-	Chunk(const graphics::SpriteSheet& tileset, const SDL_FRect& rect, int rows, int columns);
+	Chunk(const SDL_FRect& rect, const glm::ivec2& grid_position);
 	~Chunk() = default;
 	
 	SDL_FRect rect;
-	Grid<Tile> tilemap;
+	glm::ivec2 grid_position;
 	std::vector<Object> objects;
 };

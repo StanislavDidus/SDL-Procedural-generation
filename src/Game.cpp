@@ -47,7 +47,13 @@ Game::Game(graphics::Renderer& screen)
 
 	initUserInterface();
 	initSystems();
-	
+
+	//Set player idle animation
+	idle_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 5.0f, std::vector<int>{0, 1, 2});
+	running_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 5.0f, std::vector<int>{3, 4, 5, 6});
+	jump_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 20.0f, std::vector<int>{7});
+	fall_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 20.0f, std::vector<int>{8});
+
 	initPlayer();
 	item_usage_system = std::make_shared<ItemUsageSystem>(player);
 	craft_view = std::make_unique<CraftView>(player, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
@@ -61,7 +67,9 @@ Game::Game(graphics::Renderer& screen)
 	inventory->addItem(ItemManager::get().getItemID("Banana"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Cactus"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Cactus"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Wood"), 20);
+	inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
+	inventory->addItem(ItemManager::get().getItemID("Gold"), 10);
 	inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
 }
 
@@ -231,7 +239,7 @@ void Game::initPlayer()
 
 	component_manager.renderable[player] = Renderable
 	{
-		ResourceManager::get().getSpriteSheet("player")[0]
+		(*ResourceManager::get().getSpriteSheet("player"))[0]
 	};
 
 	component_manager.physics[player] = Physics{
@@ -308,6 +316,14 @@ void Game::initPlayer()
 		2 // Number of weapons the player can equip
 	};
 
+	component_manager.character_animations[player] = CharacterAnimation
+	{
+		idle_animation,
+		running_animation,
+		jump_animation,
+		fall_animation
+	};
+
 	//Add all recipes that do not require blueprints
 	for (size_t i = 0; i < CraftingManager::get().size(); ++i)
 	{
@@ -329,7 +345,7 @@ void Game::initUserInterface()
 
 	//interface.addInventoryView(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
 
-	inventory_view = std::make_shared<InventoryView>(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), 3, 5, glm::vec2{0.f, 0.f}, ui_settings);
+	inventory_view = std::make_shared<InventoryView>(ResourceManager::get().getFont("Main"), (*ResourceManager::get().getSpriteSheet("items")), 3, 5, glm::vec2{0.f, 0.f}, ui_settings);
 }
 
 void Game::update(float dt)
@@ -365,6 +381,8 @@ void Game::update(float dt)
 	inventory_view->update();
 
 	updateTilemapTarget();
+
+	render_system->update(dt);
 	
 	//Render
 	ImGui_ImplSDLRenderer3_NewFrame();
@@ -505,7 +523,7 @@ void Game::updateImGui(float dt)
 	if (ImGui::CollapsingHeader("Player"))
 	{
 		ImGui::Text("Tiles");
-		if (component_manager.mine_tiles_ability.contains(player))
+		/*if (component_manager.mine_tiles_ability.contains(player))
 		{
 			ImGui::SliderFloat("mining speed", &component_manager.mine_tiles_ability[player].speed, 0.f, 1000.f);
 			ImGui::SliderFloat("mining radius", &component_manager.mine_tiles_ability[player].radius, 0.f, 500.f);
@@ -524,7 +542,7 @@ void Game::updateImGui(float dt)
 		else
 		{
 			ImGui::Text("*Component is missing*");
-		}
+		}*/
 		
 	}
 

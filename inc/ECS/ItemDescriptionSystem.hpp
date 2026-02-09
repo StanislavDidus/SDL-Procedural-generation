@@ -181,7 +181,7 @@ private:
 
 			graphics::Color text_color = item_number_entity_has >= required_item_number ? graphics::Color{ 0,255,0,255 } : graphics::Color{ 255,0,0,255 };
 
-			drawSpriteWithText(screen, item_number_string, ResourceManager::get().getSpriteSheet("items")[sprite_index], x, new_y, text_color);
+			drawSpriteWithText(screen, item_number_string, (*ResourceManager::get().getSpriteSheet("items"))[sprite_index], x, new_y, text_color);
 			
 			++i;
 		}

@@ -21,7 +21,7 @@ public:
 	void loadXml(const std::filesystem::path& path, graphics::Renderer& screen);
 
 	const graphics::Font* getFont(const std::string& name) const;
-	const graphics::SpriteSheet& getSpriteSheet(const std::string& name) const;
+	std::shared_ptr<graphics::SpriteSheet> getSpriteSheet(const std::string& name) const;
 
 private:
 	ResourceManager() = default;
@@ -31,7 +31,7 @@ private:
 
 	void addFont(const std::string& name, const std::filesystem::path& path, int size);
 
-	std::unordered_map<std::string, std::unique_ptr<graphics::SpriteSheet>> spritesheets;
+	std::unordered_map<std::string, std::shared_ptr<graphics::SpriteSheet>> spritesheets;
 	std::unordered_map<std::string, std::unique_ptr<graphics::Font>> fonts;
 	//std::unordered_map<std::string, size_t> nameToIndex; ///< Gives user an index to the place where the spritesheet with the given name lies in a vector
 	//size_t spritesheets_counter = 0;

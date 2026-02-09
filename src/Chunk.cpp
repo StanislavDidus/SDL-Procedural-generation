@@ -2,7 +2,7 @@
 
 using namespace graphics;
 
-Chunk::Chunk(const SpriteSheet& tileset, const SDL_FRect& rect, int rows, int columns) : rect(rect), tilemap(rows, columns)
+Chunk::Chunk(const SDL_FRect& rect, const glm::ivec2& grid_position) : rect(rect), grid_position(grid_position)
 {
 
 }

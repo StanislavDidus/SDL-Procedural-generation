@@ -25,6 +25,8 @@
 #include "ECS/RenderWeaponMenuSystem.hpp"
 #include "UI/UISettings.hpp"
 
+#include "SpriteAnimation.hpp"
+
 class Game
 {
 public:
@@ -99,4 +101,9 @@ private:
 
 	//Text
 	std::unique_ptr<graphics::Text> text;
+
+	std::shared_ptr<graphics::SpriteAnimation> idle_animation;
+	std::shared_ptr<graphics::SpriteAnimation> running_animation;
+	std::shared_ptr<graphics::SpriteAnimation> jump_animation;
+	std::shared_ptr<graphics::SpriteAnimation> fall_animation;
 };

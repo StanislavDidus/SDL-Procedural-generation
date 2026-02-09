@@ -18,6 +18,7 @@ struct MouseState
 	glm::vec2 position;
 	MouseButtonState left;
 	MouseButtonState right;
+	glm::vec2 wheel;
 };
 
 class InputManager
@@ -34,11 +35,13 @@ public:
 	void buttonUp(SDL_Keycode key);
 	void buttonPressed(SDL_Keycode key);
 	void setMouseState(const glm::vec2& position, bool left_down, bool right_down);
+	void setMouseWheel(const glm::vec2& wheel);
 
 	void update();
 	
 private:
 	static MouseState mouse_state;
+
 	std::bitset<256> keys;
 	static std::bitset<256> pressed;
 	static std::bitset<256> held;

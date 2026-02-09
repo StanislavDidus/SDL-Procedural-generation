@@ -44,13 +44,22 @@
             <path>assets/Sprites/player.png</path>
             <scaleMode>NEAREST</scaleMode>
              <rectListing>
-                <rect x="0" y="111" w="16" h="17" />
-                <rect x="0" y="143" w="16" h="17" />
+                <rect x="0" y="111" w="16" h="17" /> <!--Idle-->
+                <rect x="16" y="111" w="16" h="17" />
+                <rect x="32" y="111" w="16" h="17" />
+                <rect x="0" y="143" w="16" h="17" /> <!--Run-->
                 <rect x="16" y="143" w="16" h="17" />
                 <rect x="32" y="143" w="16" h="17" />
                 <rect x="48" y="143" w="16" h="17" />
+                <rect x="0" y="174" w="16" h="18" /> <!--Jump-->
+                <rect x="16" y="176" w="16" h="16" /> <!--Fall-->
 
             </rectListing>
+        </sprite>
+        <sprite id="tile_break_anim">
+            <path>assets/Sprites/tile_break_anim.png</path>
+            <scaleMode>NEAREST</scaleMode>
+            <size x="16" y="16" />
         </sprite>
     </spriteListing>
     <fontListing>

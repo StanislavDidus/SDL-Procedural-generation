@@ -73,6 +73,11 @@ void InputManager::setMouseState(const glm::vec2& position, bool left_down, bool
 	}
 }
 
+void InputManager::setMouseWheel(const glm::vec2& wheel)
+{
+	mouse_state.wheel = wheel;
+}
+
 void InputManager::update()
 {
 	pressed = keys & ~held;

@@ -92,11 +92,13 @@ void World::render(graphics::Renderer& screen) const
 	{
 		if (SDL_HasRectIntersectionFloat(&camera_rect, &chunk.rect))
 		{
-			for (int x = 0; x < chunk.tilemap.getColumns(); ++x)
+			for (int x = 0; x < chunk_width_tiles; ++x)
 			{
-				for (int y = 0; y < chunk.tilemap.getRows(); ++y)
+				for (int y = 0; y < chunk_height_tiles; ++y)
 				{
-					auto& tile = chunk.tilemap(x, y);
+					//auto& tile = chunk.tilemap(x, y);
+					auto& tile = world_map(chunk.rect.x / tile_width_world + x, chunk.rect.y / tile_height_world + y);
+					const auto& tile_properties = getTileProperties(tile.id);
 
 					SDL_FRect tile_rect;
 					tile_rect.x = chunk.rect.x + x * 20.f;
@@ -106,11 +108,37 @@ void World::render(graphics::Renderer& screen) const
 
 					if (SDL_HasRectIntersectionFloat(&camera_rect, &tile_rect))
 					{
-
 						int sprite_index = getTileProperties(tile.id).sprites_index;
 						int is_solid = getTileProperties(tile.id).is_solid;
 
-						graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("tiles")[sprite_index], tile_rect.x, tile_rect.y, 20.f, 20.f);
+						//if (tile.current_durability == tile_properties.max_durability)
+						graphics::drawScaledSprite(screen, (*ResourceManager::get().getSpriteSheet("tiles"))[sprite_index], tile_rect.x, tile_rect.y, 20.f, 20.f);
+
+						//Render break animation on top
+
+						
+
+						float durability_percentage = tile.current_durability / tile_properties.max_durability;
+
+						
+
+						const auto& break_sprite = *ResourceManager::get().getSpriteSheet("tile_break_anim");
+						if (durability_percentage < 0.10f)
+						{
+							graphics::drawScaledSprite(screen, break_sprite[3], tile_rect.x, tile_rect.y, 20.f, 20.f);
+						}
+						else if (durability_percentage < 0.25f)
+						{
+							graphics::drawScaledSprite(screen, break_sprite[2], tile_rect.x, tile_rect.y, 20.f, 20.f);
+						}
+						else if (durability_percentage < 0.50f)
+						{
+							graphics::drawScaledSprite(screen, break_sprite[1], tile_rect.x, tile_rect.y, 20.f, 20.f);
+						}
+						else if (durability_percentage < 0.75f)
+						{
+							graphics::drawScaledSprite(screen, break_sprite[0], tile_rect.x, tile_rect.y, 20.f, 20.f);
+						}
 
 						//Add collisions
 						if (auto s = collision_system.lock())
@@ -133,7 +161,7 @@ void World::render(graphics::Renderer& screen) const
 				if (SDL_HasRectIntersectionFloat(&camera_rect, &object.rect))
 				{
 					int sprite_index = ObjectManager::get().getProperties(object.properties_id).sprite_index;
-					graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("objects")[sprite_index], object.rect.x, object.rect.y, object.rect.w, object.rect.h);
+					graphics::drawScaledSprite(screen, (*ResourceManager::get().getSpriteSheet("objects"))[sprite_index], object.rect.x, object.rect.y, object.rect.w, object.rect.h);
 				}
 			}
 		}
@@ -209,7 +237,7 @@ Object* World::getObjectOnPosition(const glm::vec2& mouse_global_position)
 	if (chunk_x_index < 0 || chunk_x_index >= world_width_chunks ||
 		chunk_y_index < 0 || chunk_y_index >= world_height_chunks) return nullptr;
 
-	auto& chunk = chunks.at(static_cast<size_t>(static_cast<float>(chunk_y_index) + static_cast<float>(chunk_x_index) * world_height_chunks));
+	auto& chunk = chunks[static_cast<size_t>(static_cast<float>(chunk_y_index) + static_cast<float>(chunk_x_index) * world_height_chunks)];
 
 	SDL_FRect mouse_rect = { mouse_global_position.x, mouse_global_position.y, 1.f, 1.f };
 
@@ -291,14 +319,14 @@ const TileProperties& World::getTileProperties(int id) const
 
 void World::rebuildChunks()
 {
-	for (const auto& dirt_tile : dirt_tiles)
+	/*for (const auto& dirt_tile : dirt_tiles)
 	{
 		auto& chunk = tilePositionToChunk(dirt_tile.position);
 		auto tile_local_position = getTileLocalPosition(dirt_tile.position);
 		chunk.tilemap(tile_local_position.x, tile_local_position.y).id = dirt_tile.id;
 	}
 
-	dirt_tiles.clear();
+	dirt_tiles.clear();*/
 }
 
 void World::updateTiles()
@@ -370,9 +398,9 @@ void World::splitGrid(const Grid<Tile>& grid, const std::vector<Object>& objects
 	//Fill chunks with empty tiles
 	for (int i = 0; i < world_width_chunks * world_height_chunks; ++i)
 	{
-		chunks.emplace_back(ResourceManager::get().getSpriteSheet("tiles"), SDL_FRect{}, chunk_height, chunk_width);
+		chunks.emplace_back(SDL_FRect{}, glm::ivec2{});
 	}
-
+	/*
 	//Divide tiles between all chunks
 	for (int x = 0; x < width; ++x)
 	{
@@ -387,7 +415,7 @@ void World::splitGrid(const Grid<Tile>& grid, const std::vector<Object>& objects
 			auto& chunk = chunks[chunk_y + chunk_x * world_height_chunks];
 			chunk.tilemap(tile_local_x, tile_local_y) = grid(x, y);
 		}
-	}
+	}*/
 
 	//Precalculate the rect of each chunk
 	for (int i = 0; auto& chunk : chunks)
@@ -400,6 +428,9 @@ void World::splitGrid(const Grid<Tile>& grid, const std::vector<Object>& objects
 		rect.y = chunk_y * chunk_height * tile_height_world;
 		rect.w = chunk_width * tile_width_world;
 		rect.h = chunk_height * tile_height_world;
+
+		chunk.grid_position.x = chunk_x;
+		chunk.grid_position.y = chunk_y;
 
 		++i;
 	}

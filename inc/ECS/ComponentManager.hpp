@@ -28,6 +28,7 @@ public:
 	std::unordered_map<Entity, Physics> physics;
 	std::unordered_map<Entity, Jump> jump;
 	std::unordered_map<Entity, Renderable> renderable;
+	std::unordered_map<Entity, CharacterAnimation> character_animations;
 	std::unordered_map<Entity, Player> player; 
 	std::unordered_map<Entity, Health> health;
 	std::unordered_map<Entity, CraftItem> craft_item;
@@ -43,8 +44,9 @@ public:
 
 	std::unordered_map<Entity, CraftButton> craft_button;
 
-	std::unordered_map<Entity, MineTilesAbility> mine_tiles_ability;
-	std::unordered_map<Entity, MineObjectsAbility> mine_objects_ability;
+	//std::unordered_map<Entity, MineTilesAbility> mine_tiles_ability;
+	//std::unordered_map<Entity, MineObjectsAbility> mine_objects_ability;
+	std::unordered_map<Entity, MiningAbility> mining_ability;
 	std::unordered_map<Entity, MineObjectsState> mine_objects_state;
 	std::unordered_map<Entity, MineObjectsStarted> mine_objects_started;
 	std::unordered_map<Entity, MineObjectsFinished> mine_objects_finished;
