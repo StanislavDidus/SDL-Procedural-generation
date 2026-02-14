@@ -41,8 +41,8 @@ World::World
 )
 	: generation_data(generation_data)
 	, world_map(height_tiles, width_tiles)
-	, width_tiles(width_tiles)
-	, height_tiles(height_tiles)
+	, world_width_tiles(width_tiles)
+	, world_height_tiles(height_tiles)
 	, collision_system(collision_system)
 	, tile_width_world(tile_width_world)
 	, tile_height_world(tile_height_world)
@@ -52,6 +52,21 @@ World::World
 
 }
 
+const Grid<Tile>& World::getGrid() const
+{
+	return world_map;
+}
+
+glm::ivec2 World::getWorldSizeTiles() const
+{
+	return { world_width_tiles, world_height_tiles };
+}
+
+glm::vec2 World::getTileSize() const
+{
+	return { tile_width_world, tile_height_world };
+}
+
 void World::setCollisionSystem(std::shared_ptr<CollisionSystem> collision_system)
 {
 	this->collision_system = collision_system;
@@ -59,27 +74,8 @@ void World::setCollisionSystem(std::shared_ptr<CollisionSystem> collision_system
 
 void World::update(const graphics::Renderer& screen, float dt, const glm::vec2& target)
 {
-	const auto& window_size = screen.getWindowSize();
-	const auto& view_position = screen.getView();
-	auto zoom = screen.getZoom();
-
-	float halfW = (window_size.x * 0.5f) / zoom;
-	float halfH = (window_size.y * 0.5f) / zoom;
-
-	float left_world = target.x - halfW;
-	float right_world = target.x + halfW;
-	int begin_x = static_cast<int>(std::floor(left_world / 20.f));
-	int end_x = static_cast<int>(std::ceil(right_world / 20.f));
-
-	float up_world = target.y - halfH;
-	float down_world = target.y + halfH;
-	int begin_y = static_cast<int>(std::floor(up_world / 20.f));
-	int end_y = static_cast<int>(std::ceil(down_world / 20.f));
-
-	camera_rect.x = left_world;
-	camera_rect.y = up_world;
-	camera_rect.w = right_world - left_world;
-	camera_rect.h = down_world - up_world;
+	SDL_FRect rect = graphics::getCameraRectFromTarget(screen, target);
+	camera_rect = rect;
 }
 
 void World::render(graphics::Renderer& screen) const
@@ -108,20 +104,14 @@ void World::render(graphics::Renderer& screen) const
 
 					if (SDL_HasRectIntersectionFloat(&camera_rect, &tile_rect))
 					{
-						int sprite_index = getTileProperties(tile.id).sprites_index;
+						int sprite_index = getTileProperties(tile.id).sprite_index;
 						int is_solid = getTileProperties(tile.id).is_solid;
 
 						//if (tile.current_durability == tile_properties.max_durability)
 						graphics::drawScaledSprite(screen, (*ResourceManager::get().getSpriteSheet("tiles"))[sprite_index], tile_rect.x, tile_rect.y, 20.f, 20.f);
 
 						//Render break animation on top
-
-						
-
 						float durability_percentage = tile.current_durability / tile_properties.max_durability;
-
-						
-
 						const auto& break_sprite = *ResourceManager::get().getSpriteSheet("tile_break_anim");
 						if (durability_percentage < 0.10f)
 						{
@@ -170,7 +160,7 @@ void World::render(graphics::Renderer& screen) const
 
 void World::placeTile(int tile_x, int tile_y, size_t tile_id)
 {
-	if (tile_x < 0 || tile_x > width_tiles - 1 | tile_y < 0 || tile_y > height_tiles - 1) return;
+	if (tile_x < 0 || tile_x > world_width_tiles - 1 | tile_y < 0 || tile_y > world_height_tiles - 1) return;
 
 	auto& tile = world_map(tile_x, tile_y);
 	auto& tile_manager = TileManager::get();
@@ -187,7 +177,7 @@ void World::placeTile(int tile_x, int tile_y, size_t tile_id)
 			int new_x = tile_x + i;
 			int new_y = tile_y + j;
 
-			if (new_x < 0 || new_x >= width_tiles || new_y < 0 || new_y >= height_tiles) continue;
+			if (new_x < 0 || new_x >= world_width_tiles || new_y < 0 || new_y >= world_height_tiles) continue;
 
 			auto& tile_temp = world_map(new_x, new_y);
 			auto& properties_temp = tile_manager.getProperties(tile_temp.id);
@@ -210,7 +200,7 @@ void World::placeTile(int tile_x, int tile_y, size_t tile_id)
 
 void World::damageTile(int tile_x, int tile_y, float damage)
 {
-	if (tile_x < 0 || tile_x > width_tiles - 1 | tile_y < 0 || tile_y > height_tiles - 1) return;
+	if (tile_x < 0 || tile_x > world_width_tiles - 1 | tile_y < 0 || tile_y > world_height_tiles - 1) return;
 
 	auto& tile = world_map(tile_x, tile_y);
 
@@ -273,8 +263,8 @@ std::optional<int> World::damageObject(const glm::vec2& mouse_global_position, f
 	int chunk_x_index = static_cast<int>(std::floor(mouse_global_position.x / (chunk_width_tiles * 20.f)));
 	int chunk_y_index = static_cast<int>(std::floor(mouse_global_position.y / (chunk_height_tiles * 20.f)));
 
-	int height_chunks = height_tiles / chunk_height_tiles;
-	int width_chunks = width_tiles / chunk_width_tiles;
+	int height_chunks = world_height_tiles / chunk_height_tiles;
+	int width_chunks = world_width_tiles / chunk_width_tiles;
 
 	if (chunk_x_index < 0 || chunk_x_index >= width_chunks ||
 		chunk_y_index < 0 || chunk_y_index >= height_chunks) return std::nullopt;
@@ -317,18 +307,6 @@ const TileProperties& World::getTileProperties(int id) const
 	return TileManager::get().getProperties(id);
 }
 
-void World::rebuildChunks()
-{
-	/*for (const auto& dirt_tile : dirt_tiles)
-	{
-		auto& chunk = tilePositionToChunk(dirt_tile.position);
-		auto tile_local_position = getTileLocalPosition(dirt_tile.position);
-		chunk.tilemap(tile_local_position.x, tile_local_position.y).id = dirt_tile.id;
-	}
-
-	dirt_tiles.clear();*/
-}
-
 void World::updateTiles()
 {
 	for (auto& chunk : chunks)
@@ -368,8 +346,8 @@ void World::generateWorld(std::optional<int> seed)
 
 	initSeeds(seed);
 
-	//tiles.resize(width_tiles * height_tiles);
-	//chunks.resize(width_tiles / chunk_width_tiles * height_tiles / chunk_height_tiles);
+	//tiles.resize(world_width_tiles * world_height_tiles);
+	//chunks.resize(world_width_tiles / chunk_width_tiles * world_height_tiles / chunk_height_tiles);
 
 	generateBase();
 	addGrass();
@@ -510,7 +488,7 @@ uint32_t World::getNewSeed(uint32_t master_seed)
 void World::generateBase()
 {
 	float scale = generation_data.scale;
-	for (int x = 0; x < width_tiles; x++)
+	for (int x = 0; x < world_width_tiles; x++)
 	{
 		float position_x = static_cast<float>(x);
 		int tile_x = (x % chunk_width_tiles + chunk_width_tiles) % chunk_width_tiles;
@@ -521,7 +499,7 @@ void World::generateBase()
 
 		float new_change = generation_data.maps[MapRangeType::PV_CHANGE].getValue(peaks_and_valleys);
 
-		for (int y = 0; y < height_tiles; y++)
+		for (int y = 0; y < world_height_tiles; y++)
 		{
 			float position_y = static_cast<float>(y);
 
@@ -553,10 +531,10 @@ void World::generateBase()
 void World::addGrass()
 {
 	float scale = generation_data.scale;
-	for (int x = 0; x < width_tiles; x++)
+	for (int x = 0; x < world_width_tiles; x++)
 	{
 		bool was_air = false;
-		for (int y = 0; y < height_tiles; y++)
+		for (int y = 0; y < world_height_tiles; y++)
 		{
 			auto& tile = world_map(x, y);
 			bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
@@ -580,7 +558,7 @@ void World::addGrass()
 void World::addDirt()
 {
 	float scale = generation_data.scale;
-	for (int x = 0; x < width_tiles; x++)
+	for (int x = 0; x < world_width_tiles; x++)
 	{
 		bool found_surface = false;
 		int surface_y = 0;
@@ -589,7 +567,7 @@ void World::addDirt()
 		//float dirt_noise = ValueNoise::noise1D(static_cast<float>(x) * scale * 0.2f, seeds[2]) * 1.f;
 		int dirt_level = static_cast<int>(dirt_noise * 5.f) + 5;
 
-		for (int y = 0; y < height_tiles; y++)
+		for (int y = 0; y < world_height_tiles; y++)
 		{
 			auto& tile = world_map(x, y);
 			TileType type = TileManager::get().getProperties(tile.id).type;
@@ -618,9 +596,9 @@ void World::addDirt()
 void World::addCaves()
 {
 	float scale = generation_data.scale;
-	for (int x = 0; x < width_tiles; x++)
+	for (int x = 0; x < world_width_tiles; x++)
 	{
-		for (int y = 0; y < height_tiles; y++)
+		for (int y = 0; y < world_height_tiles; y++)
 		{
 			auto& tile = world_map(x, y);
 			bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
@@ -643,9 +621,9 @@ void World::addCaves()
 void World::addWater()
 {
 	float scale = generation_data.scale;
-	for (int x = 0; x < width_tiles; x++)
+	for (int x = 0; x < world_width_tiles; x++)
 	{
-		for (int y = 0; y < height_tiles; y++)
+		for (int y = 0; y < world_height_tiles; y++)
 		{
 			auto& tile = world_map(x, y);
 			bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
@@ -661,9 +639,9 @@ void World::addWater()
 void World::addBiomes()
 {
 	float scale = generation_data.scale;
-	for (int x = 0; x < width_tiles; x++)
+	for (int x = 0; x < world_width_tiles; x++)
 	{
-		for (int y = 0; y < height_tiles; y++)
+		for (int y = 0; y < world_height_tiles; y++)
 		{
 			float position_x = static_cast<float>(x);
 			float position_y = static_cast<float>(y);
@@ -735,10 +713,10 @@ void World::addBiomes()
 void World::addObjects(std::vector<Object>& objects)
 {
 	float scale = generation_data.scale;
-	for (int x = 0; x < width_tiles; x++)
+	for (int x = 0; x < world_width_tiles; x++)
 	{
 		float position_x = static_cast<float>(x);
-		for (int y = 0; y < height_tiles; y++)
+		for (int y = 0; y < world_height_tiles; y++)
 		{
 			float position_y = static_cast<float>(y);
 
@@ -788,7 +766,7 @@ void World::addObjects(std::vector<Object>& objects)
 						int new_x = x + i;
 						int new_y = y - j;
 
-						if (new_x < 0 || new_x >= width_tiles || new_y < 0 || new_y >= height_tiles)
+						if (new_x < 0 || new_x >= world_width_tiles || new_y < 0 || new_y >= world_height_tiles)
 						{
 							is_space_free = false;
 							break;
@@ -858,9 +836,4 @@ void World::addObjects(std::vector<Object>& objects)
 			}
 		}
 	}
-}
-
-void World::applyChanges()
-{
-
 }

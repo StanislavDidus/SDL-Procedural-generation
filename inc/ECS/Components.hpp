@@ -21,12 +21,12 @@ namespace Components
 	struct Physics
 	{
 		bool can_move_horizontal = true;
-		glm::vec2 velocity;
-		glm::vec2 acceleration;
-		glm::vec2 max_velocity;
-		float decelaration;
-		bool is_ground;
-		float step;
+		glm::vec2 velocity{};
+		glm::vec2 acceleration{};
+		glm::vec2 max_velocity{};
+		float decelaration{};
+		bool is_ground = false;
+		float step = 20.f;
 	};
 
 	struct Jump
@@ -157,8 +157,7 @@ namespace Components
 		int max_weapon = 0;
 		std::vector<Item*> weapons;
 
-		Item* pickaxe;
-		int current_mine_size;
+		Item* pickaxe = nullptr;
 	};
 
 	struct Animation
@@ -172,5 +171,10 @@ namespace Components
 		std::shared_ptr<graphics::SpriteAnimation> running_animation;
 		std::shared_ptr<graphics::SpriteAnimation> jump_animation;
 		std::shared_ptr<graphics::SpriteAnimation> fall_animation;
+	};
+
+	struct EnemyAI
+	{
+		
 	};
 } //namespace Components

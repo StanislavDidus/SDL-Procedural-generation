@@ -38,6 +38,8 @@ set(SOURCE_FILES
     "src/Manager.cpp"
     #"src/UI/Button.cpp"
     "src/ResourceManager.cpp"
+    "src/EnemyManager.cpp"
+    "src/EnemySpawnSystem.cpp"
     )
 
 set(HEADER_FILES
@@ -82,6 +84,9 @@ set(HEADER_FILES
     "inc/ECS/RenderSystem.hpp"
     "inc/UI/UISettings.hpp"
     "inc/ECS/RenderWeaponMenuSystem.hpp"
+    "inc/EnemyManager.hpp"
+    "inc/EnemySpawnSystem.hpp"
+    "inc/ECS/EnemyAISystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

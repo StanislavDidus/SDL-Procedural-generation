@@ -28,6 +28,9 @@ public:
 	{
 		return columns;
 	}
+
+	template<typename Self>
+	auto&& data(this Self&& self);
 	
 	const T& operator()(int x, int y) const
 	{
@@ -44,3 +47,10 @@ private:
 	int rows;
 	int columns;
 };
+
+template <typename T>
+template <typename Self>
+auto&& Grid<T>::data(this Self&& self)
+{
+	return self.array;
+}

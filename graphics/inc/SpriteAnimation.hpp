@@ -13,7 +13,7 @@ namespace graphics
 		SpriteAnimation(std::shared_ptr<SpriteSheet> sprite_sheet, float frame_rate, const std::vector<int>& frames);
 
 		void update(float dt);
-		const Sprite& get();
+		const Sprite& get() const;
 	private:
 		std::shared_ptr<SpriteSheet> sprite_sheet;
 		float frame_rate;

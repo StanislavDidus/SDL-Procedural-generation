@@ -5,6 +5,10 @@
 #include <memory>
 #include <array>
 #include <optional>
+#include <UI/Button.hpp>
+#include <UI/Button.hpp>
+#include <UI/Button.hpp>
+#include <UI/Button.hpp>
 
 #include "Biomes.hpp"
 #include "ValueNoise.hpp"
@@ -36,13 +40,17 @@ public:
 	);
 	~World() = default;
 
+	//Getters
+	const Grid<Tile>& getGrid() const;
+	glm::ivec2 getWorldSizeTiles() const; ///< Returns world's size in tiles.
+	glm::vec2 getTileSize() const;
+
 	//Setters
 	void setCollisionSystem(std::shared_ptr<CollisionSystem> collision_system);
 
 	void update(const graphics::Renderer& screen, float dt, const glm::vec2& target);
 	void render(graphics::Renderer& screen) const;
 
-	void rebuildChunks();
 
 	void placeTile(int x, int tile_y, size_t tile_id);
 	void damageTile(int tile_x, int tile_y, float damage);
@@ -70,7 +78,6 @@ private:
 	void addWater();
 	void addBiomes();
 	void addObjects(std::vector<Object>& objects);
-	void applyChanges();
 
 	std::optional<ObjectProperties> getProperties(int id) const;
 	const TileProperties& getTileProperties(int id) const;
@@ -100,6 +107,6 @@ private:
 	float world_width_chunks;
 	float world_height_chunks;
 
-	int width_tiles;
-	int height_tiles;
+	int world_width_tiles;
+	int world_height_tiles;
 };

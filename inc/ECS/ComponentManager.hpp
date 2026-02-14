@@ -33,6 +33,7 @@ public:
 	std::unordered_map<Entity, Health> health;
 	std::unordered_map<Entity, CraftItem> craft_item;
 	std::unordered_map<Entity, CraftingAbility> crafting_ability;
+	std::unordered_map<Entity, EnemyAI> enemy_ai;
 	
 	//Button control
 	std::unordered_map<Entity, Components::Button> button;

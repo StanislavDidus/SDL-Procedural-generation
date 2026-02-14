@@ -9,6 +9,37 @@
 
 namespace graphics
 {
+	inline SDL_FRect getCameraRectFromTarget(const Renderer& renderer, const glm::vec2 target) noexcept
+	{
+		const auto& window_size = renderer.getWindowSize();
+		const auto& view_position = renderer.getView();
+		auto zoom = renderer.getZoom();
+
+		float halfW = (window_size.x * 0.5f) / zoom;
+		float halfH = (window_size.y * 0.5f) / zoom;
+
+		//
+		//glm::vec2 mid_view_position = view_position + static_cast<glm::vec2>(window_size) * 0.5f;
+		//
+
+		float left_world = target.x - halfW;
+		float right_world = target.x + halfW;
+		int begin_x = static_cast<int>(std::floor(left_world / 20.f));
+		int end_x = static_cast<int>(std::ceil(right_world / 20.f));
+
+		float up_world = target.y - halfH;
+		float down_world = target.y + halfH;
+		int begin_y = static_cast<int>(std::floor(up_world / 20.f));
+		int end_y = static_cast<int>(std::ceil(down_world / 20.f));
+
+		SDL_FRect camera_rect;
+		camera_rect.x = left_world;
+		camera_rect.y = up_world;
+		camera_rect.w = right_world - left_world;
+		camera_rect.h = down_world - up_world;
+		return camera_rect;
+	}
+
 	inline void zoomRect(const Renderer& renderer, SDL_FRect& rect) noexcept
 	{
 		const glm::vec2 mid_screen{
@@ -62,13 +93,24 @@ namespace graphics
 		const auto& view_position = renderer.getView();
 		float zoom = renderer.getZoom();
 
+		const glm::vec2 mid_screen{
+			static_cast<float>(renderer.getWindowSize().x) / 2.f,
+			static_cast<float>(renderer.getWindowSize().y) / 2.f
+		};
+
 		setColor(renderer, color);
 
 		float x_ = x - view_position.x;
 		float y_ = y - view_position.y;
 
+		x_ -= mid_screen.x;
+		y_ -= mid_screen.y;
+
 		x_ *= zoom;
 		y_ *= zoom;
+
+		x_ += mid_screen.x;
+		y_ += mid_screen.y;
 
 		SDL_RenderPoint(renderer.get(), x_, y_);
 	}
@@ -96,6 +138,49 @@ namespace graphics
 		y2_ *= zoom;
 
 		SDL_RenderLine(renderer.get(), x1_, y1_, x2_, y2_);
+	}
+
+	inline void drawCircle(Renderer& renderer, int centre_x, int centre_y, int radius, const Color& color, bool ignore_view_zoom = false)
+	{
+		drawCircle(renderer, static_cast<float>(centre_x), static_cast<float>(centre_y), static_cast<float>(radius), color, ignore_view_zoom);
+	}
+
+	// Code : https://stackoverflow.com/questions/38334081/how-to-draw-circles-arcs-and-vector-graphics-in-sdl
+	inline void drawCircle(Renderer& renderer, float centre_x, float centre_y, float radius, const Color& color, bool ignore_view_zoom = false)
+	{
+		const float diameter = radius * 2.0f;
+		float x = radius - 1.0f;
+		float y = 0.0f;
+		float tx = 1.0f;
+		float ty = 1.0f;
+		float error = (tx - diameter);
+
+		while (x >= y)
+		{
+			drawPoint(renderer, centre_x + x, centre_y - y, color);
+			drawPoint(renderer, centre_x + x, centre_y + y, color);
+			drawPoint(renderer, centre_x - x, centre_y - y, color);
+			drawPoint(renderer, centre_x - x, centre_y + y, color);
+			drawPoint(renderer, centre_x + y, centre_y - x, color);
+			drawPoint(renderer, centre_x + y, centre_y + x, color);
+			drawPoint(renderer, centre_x - y, centre_y - x, color);
+			drawPoint(renderer, centre_x - y, centre_y + x, color);
+
+			if (error <= 0.0f)
+			{
+				y += 1.0f;
+				error += ty;
+				ty += 2.0f;
+			}
+
+			if (error > 0.0f)
+			{
+				x -= 1.0f;
+				tx += 2.0f;
+				error += (tx - diameter);
+			}
+		}
+		
 	}
 
 	inline void drawRectangle(Renderer& renderer, int x, int y, int w, int h, RenderType render_type, const Color& color, bool ignore_view_zoom = false)

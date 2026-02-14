@@ -98,9 +98,9 @@ public:
 
 	
 private:
-	std::vector<int> free_slots;
 	std::optional<int> findFreeSlot();
 
+	std::vector<int> free_slots;
 	std::shared_ptr<ItemUsageSystem> item_usage_system;
 	std::vector<std::unique_ptr<Item>> items;
 

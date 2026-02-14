@@ -32,9 +32,9 @@ struct GenerationData
 	std::unordered_map<NoiseType, NoiseSettings> noise_settings;
 	std::unordered_map<MapRangeType, MapRange> maps;
 
-	float scale;
+	float scale = 0.1f;
 	float y_base = 0.f;
 	float cave_y_base = 0.f;
 	float sea_y_base = 0.f;
-	float density_threshold;
+	float density_threshold = 0.5f;;
 };

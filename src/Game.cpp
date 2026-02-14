@@ -13,6 +13,7 @@
 
 #include <algorithm>
 
+#include "EnemyManager.hpp"
 #include "tinyxml2.h"
 
 
@@ -36,6 +37,7 @@ Game::Game(graphics::Renderer& screen)
 	TileManager::get().loadXml("data/tiles.xml");
 	CraftingManager::get().loadXml("data/crafts.xml");
 	ObjectManager::get().loadXml("data/objects.xml");
+	EnemyManager::get().loadXml("data/enemies.xml");
 
 	initNoiseSettings();
 	initMapRanges();
@@ -60,6 +62,9 @@ Game::Game(graphics::Renderer& screen)
 	inventory_view->setTargetEntity(player);
 
 	world->generateWorld(0);
+
+	//1100.0f and 1400.0f
+	enemy_spawn_system = std::make_unique<EnemySpawnSystem>(*world, SpawnRadius{1100.0f, 1400.0f});
 
 	//Give basic items to the player
 	auto& inventory = ComponentManager::get().has_inventory[player].inventory;
@@ -94,6 +99,7 @@ void Game::initSystems()
 	item_description_system = std::make_unique<ItemDescriptionSystem>(ResourceManager::get().getFont("Main"), inventory_view, ui_settings);
 	render_system = std::make_unique<RenderSystem>();
 	render_weapon_menu_system = std::make_unique<RenderWeaponMenuSystem>(ui_settings);
+	enemy_ai_system = std::make_unique<EnemyAISystem>();
 
 	world->setCollisionSystem(collision_system);
 }
@@ -281,6 +287,13 @@ void Game::initPlayer()
 		200.f,
 	};*/
 
+	component_manager.mining_ability[player] = MiningAbility
+	{
+		BASE_MINING_SPEED,
+		BASE_MINING_RADIUS,
+		BASE_MINING_SIZE
+	};
+
 	component_manager.place_ability[player] = PlaceAbility
 	{
 		200.f,
@@ -366,6 +379,7 @@ void Game::update(float dt)
 	collision_system->update(dt);
 	button_system->update();
 	craft_system->update(player);
+	enemy_ai_system->update(dt, player);
 
 	if (!inventory_view->isMouseCoveringInventory() || component_manager.mine_objects_state.contains(player))
 	{
@@ -376,7 +390,6 @@ void Game::update(float dt)
 
 	world->update(screen, dt, world_target);
 	world->updateTiles();
-	world->rebuildChunks();
 
 	inventory_view->update();
 
@@ -413,6 +426,9 @@ void Game::update(float dt)
 	render_crafting_ui_system->render(screen, player);
 	item_description_system->render(screen, player);
 	render_weapon_menu_system->render(screen, player);
+
+	//Update enemy spawn system
+	enemy_spawn_system->update(dt, player_pos + player_size * 0.5f, screen);
 	
 	//Set window base size to properly render imgui without scaling
 	SDL_SetRenderLogicalPresentation(screen.get(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);

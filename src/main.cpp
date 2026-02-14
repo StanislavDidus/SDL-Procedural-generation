@@ -21,7 +21,7 @@ constexpr int WINDOW_HEIGHT = 540;
 using namespace graphics;
 
 int main()
-{
+ {
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
         std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << std::endl;

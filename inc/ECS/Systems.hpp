@@ -355,35 +355,19 @@ public:
 		{
 			if (!ComponentManager::get().transform.contains(entity) ||
 				!ComponentManager::get().mine_intent.contains(entity) ||
-				ComponentManager::get().mine_objects_state.contains(entity))
+				ComponentManager::get().mine_objects_state.contains(entity) ||
+				!ComponentManager::get().mining_ability.contains(entity))
 				continue;
 
 			tiles_covered.clear();
 
 			auto& mi = ComponentManager::get().mine_intent.at(entity);
 			auto& ts = ComponentManager::get().transform.at(entity);
+			const auto& mining_ability_component = ComponentManager::get().mining_ability.at(entity);
 
-			float mining_speed;
-			float mining_radius;
-			float mining_size;
-
-			if (ComponentManager::get().equipment.contains(entity) && ComponentManager::get().equipment.at(entity).pickaxe)
-			{
-				const auto& pickaxe_component = ComponentManager::get().equipment.at(entity).pickaxe;
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component->id);
-				const auto& pickaxe_data = item_properties.pickaxe_data;
-
-				mining_speed = pickaxe_data->speed;
-				mining_radius = pickaxe_data->radius;
-				mining_size = pickaxe_data->size;
-				//mining_size = ComponentManager::get().equipment.at(entity).current_mine_size;
-			}
-			else
-			{
-				mining_speed = BASE_MINING_SPEED;
-				mining_radius = BASE_MINING_RADIUS;
-				mining_size = BASE_MINING_SIZE;
-			}
+			float mining_speed = mining_ability_component.speed;
+			float mining_radius = mining_ability_component.radius;
+			float mining_size = mining_ability_component.size;
 
 			const auto& mid_position = ts.position + ts.size * 0.5f;
 
@@ -421,24 +405,15 @@ public:
 		{
 			if (!ComponentManager::get().transform.contains(entity) ||
 				ComponentManager::get().mine_objects_state.contains(entity) ||
-				!ComponentManager::get().mine_intent.contains(entity))
+				//TODO: remove mine_intent
+				!ComponentManager::get().mine_intent.contains(entity) ||
+				!ComponentManager::get().mining_ability.contains(entity))
 				continue;
 
 			auto& ts = ComponentManager::get().transform.at(entity);
+			const auto& mining_ability_component = ComponentManager::get().mining_ability.at(entity);
 
-			float mining_radius;
-			if (ComponentManager::get().equipment.contains(entity) && ComponentManager::get().equipment.at(entity).pickaxe)
-			{
-				const auto& pickaxe_component = ComponentManager::get().equipment.at(entity).pickaxe;
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component->id);
-				const auto& pickaxe_data = item_properties.pickaxe_data;
-
-				mining_radius = pickaxe_data->radius;
-			}
-			else
-			{
-				mining_radius = BASE_MINING_RADIUS;
-			}
+			float mining_radius = mining_ability_component.radius;
 
 			const auto& player_mid_position = ts.position + ts.size * 0.5f;
 
@@ -483,7 +458,9 @@ public:
 		auto& component_manager = ComponentManager::get();
 		for (const auto& entity : EntityManager::get().getEntities())
 		{
-			if (component_manager.transform.contains(entity) && component_manager.place_ability.contains(entity) && component_manager.place_intent.contains(entity))
+			if (component_manager.transform.contains(entity) && 
+				component_manager.place_ability.contains(entity) &&
+				component_manager.place_intent.contains(entity))
 			{
 				auto& pi = component_manager.place_intent.at(entity);
 				auto& pl = component_manager.place_ability.at(entity);
@@ -542,32 +519,17 @@ public:
 		{
 			//Check if required components exist
 			if (!component_manager.transform.contains(entity) ||
-				!component_manager.mine_intent.contains(entity))
+				!component_manager.mine_intent.contains(entity) ||
+				!component_manager.mining_ability.contains(entity))
 				continue;
 
 			auto& ts = component_manager.transform.at(entity);
 			auto& mi = component_manager.mine_intent.at(entity);
+			const auto& mining_ability_component = component_manager.mining_ability.at(entity);
 
-			float mining_speed;
-			float mining_radius;
-			float mining_size;
-			if (ComponentManager::get().equipment.contains(entity) && ComponentManager::get().equipment.at(entity).pickaxe)
-			{
-				const auto& pickaxe_component = ComponentManager::get().equipment.at(entity).pickaxe;
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component->id);
-				const auto& pickaxe_data = item_properties.pickaxe_data;
-
-				mining_speed = pickaxe_data->speed;
-				mining_radius = pickaxe_data->radius;
-				mining_size = pickaxe_data->size;
-			}
-			else
-			{
-				mining_speed = BASE_MINING_SPEED;
-				mining_radius = BASE_MINING_RADIUS;
-				mining_size = BASE_MINING_SIZE;
-			}
-			
+			float mining_speed = mining_ability_component.speed;
+			float mining_radius = mining_ability_component.radius;
+			float mining_size = mining_ability_component.size;
 
 			const auto& mid_position = ts.position + ts.size * 0.5f;
 			float distance = glm::distance(mid_position, mi.start_mouse_position);
@@ -743,7 +705,16 @@ public:
 
 				equipment_component.pickaxe = item;
 				item->equipped = true;
-				equipment_component.current_mine_size = item_properties.pickaxe_data->size;
+
+				// Set mining properties (speed, radius, size)
+				if (component_manager.mining_ability.contains(target_entity))
+				{
+					auto& mining_ability = component_manager.mining_ability.at(target_entity);
+					mining_ability.speed = item_properties.pickaxe_data->speed;
+					mining_ability.radius = item_properties.pickaxe_data->radius;
+					mining_ability.size = item_properties.pickaxe_data->size;
+				}
+
 				return;
 			}
 
@@ -774,6 +745,16 @@ public:
 			{
 				equipment_component.pickaxe = nullptr;
 				item->equipped = false;
+
+				// Set mining properties (speed, radius, size)
+				if (component_manager.mining_ability.contains(target_entity))
+				{
+					auto& mining_ability = component_manager.mining_ability.at(target_entity);
+					mining_ability.speed = BASE_MINING_SPEED;
+					mining_ability.radius = BASE_MINING_RADIUS;
+					mining_ability.size = BASE_MINING_SIZE;
+				}
+
 				return;
 			}
 

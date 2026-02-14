@@ -26,6 +26,8 @@
 #include "UI/UISettings.hpp"
 
 #include "SpriteAnimation.hpp"
+#include "EnemySpawnSystem.hpp"
+#include "ECS/EnemyAISystem.hpp"
 
 class Game
 {
@@ -84,6 +86,7 @@ private:
 	std::unique_ptr<RenderWeaponMenuSystem> render_weapon_menu_system;
 	std::unique_ptr<ItemDescriptionSystem> item_description_system;
 	std::unique_ptr<RenderSystem> render_system;
+	std::unique_ptr<EnemyAISystem> enemy_ai_system;
 
 	//UI
 	std::unique_ptr<CraftView> craft_view;
@@ -91,6 +94,9 @@ private:
 	UISettings ui_settings;
 
 	float ui_scale = 1.0f;
+
+	//Enemies
+	std::unique_ptr<EnemySpawnSystem> enemy_spawn_system;
 	
 
 	Entity player;

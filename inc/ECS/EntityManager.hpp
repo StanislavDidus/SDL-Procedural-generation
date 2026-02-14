@@ -6,7 +6,7 @@
 
 #include "ECS/Entity.hpp"
 
-constexpr uint32_t MAXENTITIES = 10000;
+constexpr uint32_t MAX_ENTITIES = 10000;
 
 class EntityManager
 {

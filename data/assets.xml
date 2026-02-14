@@ -61,6 +61,13 @@
             <scaleMode>NEAREST</scaleMode>
             <size x="16" y="16" />
         </sprite>
+        <sprite id="enemies">
+            <path>assets/Sprites/entities.png</path>
+            <scaleMode>NEAREST</scaleMode>
+            <rectListing>
+                <rect x="0" y="0" w="16" h="32" />
+            </rectListing>
+        </sprite>
     </spriteListing>
     <fontListing>
         <font id="Main">

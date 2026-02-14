@@ -1,7 +1,7 @@
 #include "Tile.hpp"
 
-TileProperties::TileProperties(int sprites_index, TileType type, bool is_solid, float max_durability)
-	: sprites_index(sprites_index)
+TileProperties::TileProperties(int sprite_index, TileType type, bool is_solid, float max_durability)
+	: sprite_index(sprite_index)
 	, type(type)
 	, is_solid(is_solid)
 	, max_durability(max_durability)

@@ -1,7 +1,8 @@
 #include "SpriteAnimation.hpp"
 
+using namespace graphics;
 
-graphics::SpriteAnimation::SpriteAnimation(std::shared_ptr<SpriteSheet> sprite_sheet, float frame_rate, const std::vector<int>& frames)
+SpriteAnimation::SpriteAnimation(std::shared_ptr<SpriteSheet> sprite_sheet, float frame_rate, const std::vector<int>& frames)
 	: sprite_sheet(sprite_sheet)
 	, frame_rate(frame_rate)
 	, frames(frames)
@@ -10,12 +11,12 @@ graphics::SpriteAnimation::SpriteAnimation(std::shared_ptr<SpriteSheet> sprite_s
 
 }
 
-void graphics::SpriteAnimation::update(float dt)
+void SpriteAnimation::update(float dt)
 {
 	timer += dt;
 }
 
-const graphics::Sprite& graphics::SpriteAnimation::get()
+const Sprite& SpriteAnimation::get() const
 {
 	size_t frame = static_cast<size_t>(timer * frame_rate);
 	size_t sprite_index = frame % frames.size();

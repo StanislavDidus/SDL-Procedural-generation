@@ -10,7 +10,7 @@ Window::Window(const char* title, int width, int height, SDL_WindowFlags flags) 
 	std::cout << "Window was created" << std::endl;
 
 	SDL_RaiseWindow(window);
-	SDL_SetWindowAlwaysOnTop(window, true);
+	//SDL_SetWindowAlwaysOnTop(window, true);
 }
 
 Window::~Window()

@@ -2,7 +2,7 @@
 
 EntityManager::EntityManager()
 {
-	for (int i = 0; i < MAXENTITIES; i++)
+	for (int i = 0; i < MAX_ENTITIES; i++)
 	{
 		ids.push_back(i);
 	}

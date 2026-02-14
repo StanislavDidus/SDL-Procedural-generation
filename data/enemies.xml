@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<enemyListing>
+    <enemy id="Snowman">
+        <size x="2" y="4" />
+        <spriteIndex>0</spriteIndex>
+        <isAggressive>true</isAggressive>
+        <maxHealth>100</maxHealth>
+        <aiEfficiency>1</aiEfficiency>
+        <spawnChanceWeight>1</spawnChanceWeight>
+        <itemDrop>
+            <item ref="Apple" dropChance="0.5" dropQuantityMin="1" dropQuantityMax="1" />
+        </itemDrop>
+        <spawnTiles>
+            <tile ref="Grass"/>
+            <tile ref="Snow_Grass"/>
+            <tile ref="Sand"/>
+        </spawnTiles>
+    </enemy>
+</enemyListing>

@@ -13,9 +13,9 @@ enum class TileType
 
 struct TileProperties
 {
-	TileProperties(int sprites_index, TileType type, bool is_solid, float max_durability);
+	TileProperties(int sprite_index, TileType type, bool is_solid, float max_durability);
 
-	int sprites_index;
+	int sprite_index;
 	TileType type;
 	bool is_solid;
 	float max_durability;
