@@ -35,7 +35,7 @@ static bool isRectInsideFloat(const SDL_FRect& a, const SDL_FRect& b)
 World::World
 (
 	const GenerationData& generation_data,
-	std::shared_ptr<CollisionSystem> collision_system,
+	std::shared_ptr<TileCollisionSystem> collision_system,
 	int width_tiles, int height_tiles,
 	float tile_width_world, float tile_height_world
 )
@@ -67,7 +67,7 @@ glm::vec2 World::getTileSize() const
 	return { tile_width_world, tile_height_world };
 }
 
-void World::setCollisionSystem(std::shared_ptr<CollisionSystem> collision_system)
+void World::setCollisionSystem(std::shared_ptr<TileCollisionSystem> collision_system)
 {
 	this->collision_system = collision_system;
 }
@@ -133,7 +133,7 @@ void World::render(graphics::Renderer& screen) const
 						//Add collisions
 						if (auto s = collision_system.lock())
 						{
-							if (is_solid) s->collisions.emplace_back(glm::ivec2{ static_cast<int>(tile_rect.x), static_cast<int>(tile_rect.y) }, glm::ivec2{ 20.f, 20.f });
+							//if (is_solid) s->collisions.emplace_back(glm::ivec2{ static_cast<int>(tile_rect.x), static_cast<int>(tile_rect.y) }, glm::ivec2{ 20.f, 20.f });
 						}
 					}
 				}

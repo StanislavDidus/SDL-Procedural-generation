@@ -21,7 +21,7 @@ struct MeleeWeaponData
 {
 	float damage;
 	float cooldown;
-	float radius;
+	float radius;	
 };
 
 struct ItemComponent
@@ -70,6 +70,8 @@ struct Item
 	size_t id;
 	int stack_number;
 	bool equipped = false;
+
+	float cooldown_timer = 0.0f;
 
 	bool operator==(const Item& other) const { return this->id == other.id; }
 };

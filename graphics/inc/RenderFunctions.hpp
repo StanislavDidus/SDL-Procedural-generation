@@ -4,6 +4,7 @@
 
 #include "Renderer.hpp"
 #include "Color.hpp"
+#include "ColorModGuard.hpp"
 #include "Sprite.hpp"
 #include "Text.hpp"
 
@@ -69,6 +70,11 @@ namespace graphics
 	inline void setColor(Renderer& renderer, const Color& color)
 	{
 		SDL_SetRenderDrawColor(renderer.get(), color.r, color.g, color.b, color.a);
+	}
+
+	inline void setTextureColor(SDL_Texture* texture, const Color& color)
+	{
+		SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
 	}
 
 	inline void clear(Renderer& renderer, const Color& color)
@@ -240,6 +246,7 @@ namespace graphics
 
 		zoomRect(renderer, dst);
 
+		ColorModGuard colorModGuard{ sprite.getTexture(), sprite.getColor() };
 		SDL_RenderTexture(renderer.get(), sprite.getTexture().get(), &src, &dst);
 	}
 
@@ -269,6 +276,7 @@ namespace graphics
 			zoomRect(renderer, dst);
 		}
 
+		ColorModGuard colorModGuard{ sprite.getTexture(), sprite.getColor() };
 		SDL_RenderTexture(renderer.get(), sprite.getTexture().get(), &src, &dst);
 	}
 
@@ -292,6 +300,7 @@ namespace graphics
 
 		zoomRect(renderer, dst);
 
+		ColorModGuard colorModGuard{ sprite.getTexture(), sprite.getColor() };
 		SDL_RenderTextureRotated(renderer.get(), sprite.getTexture().get(), &src, &dst, angle, nullptr, flip_mode);
 	}
 

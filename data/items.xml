@@ -55,7 +55,7 @@
         <canStack>false</canStack>
         <spriteIndex>9</spriteIndex>
         <action>EQUIP</action>
-        <MeleeWeaponData damage="10" cooldown="0.5" radius="50" />
+        <MeleeWeaponData damage="40" cooldown="1.5" radius="150" />
     </item>
     <item id="Grass">
         <canStack>true</canStack>
@@ -87,6 +87,6 @@
         <canStack>false</canStack>
         <spriteIndex>14</spriteIndex>
         <action>EQUIP</action>
-         <MeleeWeaponData damage="5" cooldown="0.75" radius="100" />
+         <MeleeWeaponData damage="20" cooldown="1" radius="350" />
     </item>
 </itemListing>

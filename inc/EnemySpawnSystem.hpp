@@ -19,8 +19,10 @@ class EnemySpawnSystem
 public:
 	EnemySpawnSystem(const World& world, const SpawnRadius& spawn_radius);
 
-	void update(float dt, const glm::vec2& target_position, graphics::Renderer& screen); //TODO: Remove Renderer(used for debug purposes).
+	//Getters
+	const std::vector<Entity>& getEnemies() const; 
 
+	void update(float dt, const glm::vec2& target_position, graphics::Renderer& screen); //TODO: Remove Renderer(used for debug purposes).
 private:
 	static std::optional<Entity> createEntity(size_t id);
 	static void destroyEnemy(Entity enemy);
@@ -36,7 +38,7 @@ private:
 	float time = 0.0f;
 
 	float spawn_time = 5.f;
-	int max_enemies = 3;
+	int max_enemies = 1;
 	int enemies_to_spawn = 1;
 	float enemy_despawn_distance = 3000.0f;
 };

@@ -63,9 +63,6 @@ Game::Game(graphics::Renderer& screen)
 
 	world->generateWorld(0);
 
-	//1100.0f and 1400.0f
-	enemy_spawn_system = std::make_unique<EnemySpawnSystem>(*world, SpawnRadius{1100.0f, 1400.0f});
-
 	//Give basic items to the player
 	auto& inventory = ComponentManager::get().has_inventory[player].inventory;
 	inventory->addItem(ItemManager::get().getItemID("Apple"), 15);
@@ -76,6 +73,9 @@ Game::Game(graphics::Renderer& screen)
 	inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
 	inventory->addItem(ItemManager::get().getItemID("Gold"), 10);
 	inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
+
+	auto& sp = (*ResourceManager::get().getSpriteSheet("enemies"))[0];
+	sp.setColor(Color::RED);
 }
 
 Game::~Game()
@@ -87,7 +87,7 @@ void Game::initSystems()
 {
 	physics_system = std::make_unique<PhysicsSystem>();
 	input_system = std::make_unique<InputSystem>();
-	collision_system = std::make_shared<CollisionSystem>();
+	collision_system = std::make_shared<TileCollisionSystem>(world);
 	jump_system = std::make_unique<JumpSystem>();
 	mining_tiles_system = std::make_unique<MiningTilesSystem>(*world, 20.f, 20.f);
 	mining_objects_system = std::make_unique<MiningObjectsSystem>(*world, 20.f, 20.f);
@@ -100,6 +100,8 @@ void Game::initSystems()
 	render_system = std::make_unique<RenderSystem>();
 	render_weapon_menu_system = std::make_unique<RenderWeaponMenuSystem>(ui_settings);
 	enemy_ai_system = std::make_unique<EnemyAISystem>();
+	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(*world, SpawnRadius{ 1100.0f, 1400.0f });
+	player_combo_system = std::make_unique<PlayerComboSystem>(enemy_spawn_system);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -380,6 +382,7 @@ void Game::update(float dt)
 	button_system->update();
 	craft_system->update(player);
 	enemy_ai_system->update(dt, player);
+	player_combo_system->update(dt, player);
 
 	if (!inventory_view->isMouseCoveringInventory() || component_manager.mine_objects_state.contains(player))
 	{
@@ -406,7 +409,7 @@ void Game::update(float dt)
 
 	const auto& window_size = screen.getWindowSize();
 
-	collision_system->collisions.clear();
+	//collision_system->collisions.clear();
 
 	world->render(screen);
 
@@ -419,7 +422,7 @@ void Game::update(float dt)
 	//Print "Player" text
 	const auto& player_pos = component_manager.transform[player].position;
 	const auto& player_size = component_manager.transform[player].size;
-	printText(screen, *text, player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
+	//printText(screen, *text, player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
 
 	//UI
 	inventory_view->render(screen);

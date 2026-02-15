@@ -14,6 +14,11 @@ EnemySpawnSystem::EnemySpawnSystem(const World& world, const SpawnRadius& spawn_
 {
 }
 
+const std::vector<Entity>& EnemySpawnSystem::getEnemies() const
+{
+	return enemies;
+}
+
 void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphics::Renderer& screen)
 {
 	time += dt;
@@ -33,18 +38,35 @@ void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphi
 		spawnEnemies(target_position, enemies_to_spawn);
 	}
 
-	// Remove enemies that are far away
-	auto begin = std::ranges::remove_if(enemies, [this, target_position](Entity enemy)
-		{
-			const auto& transform_component = ComponentManager::get().transform.at(enemy);
-			float distance = glm::distance(target_position, transform_component.position);
-			bool destroy = distance > enemy_despawn_distance;
-			if (destroy) destroyEnemy(enemy);
-			return destroy;
+	{
+		// Remove enemies that are far away
+		auto begin = std::ranges::remove_if(enemies, [this, target_position](Entity enemy)
+			{
+				const auto& transform_component = ComponentManager::get().transform.at(enemy);
+				float distance = glm::distance(target_position, transform_component.position);
+				bool destroy = distance > enemy_despawn_distance;
+				if (destroy) destroyEnemy(enemy);
+				return destroy;
 
-		}).begin();
+			}).begin();
 
-	enemies.erase(begin, enemies.end());
+		enemies.erase(begin, enemies.end());
+	}
+
+	{
+		// Remove enemies that have less than 0 health points
+		auto begin = std::ranges::remove_if(enemies, [this, target_position](Entity enemy)
+			{
+				const auto& health_component = ComponentManager::get().health.at(enemy);
+				bool destroy = health_component.current_health <= 0.0f;
+				if (destroy) destroyEnemy(enemy);
+				return destroy;
+
+			}).begin();
+
+		enemies.erase(begin, enemies.end());
+	}
+
 
 #ifdef DEBUG_SPAWN_RADIUS
 	graphics::drawCircle(screen, target_position.x, target_position.y, spawn_radius.spawn_minimum_radius, graphics::Color::GREEN);
@@ -72,15 +94,28 @@ std::optional<Entity> EnemySpawnSystem::createEntity(size_t id)
 	{
 		true,
 		{},
-		{1500.0f, 0.f},
-		{200.0, 200.0f},
+		{1000.0f, 0.f},
+		{75.0, 200.0f},
 		5.0f,
 		false,
 		20.0f
 	};
 
+	component_manager.jump[*entity] = Jump
+	{
+		425.0f
+	};
+
+	component_manager.health[*entity] = Health
+	{
+		100.0f,
+		100.0f
+	};
+
 	component_manager.enemy_ai[*entity] = EnemyAI
 	{
+		0.0f,
+		2.0f
 
 	};
 	

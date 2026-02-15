@@ -9,6 +9,7 @@ set(GRAPHICS_SOURCE_FILES
     "src/Text.cpp"
     "src/ViewportGuard.cpp"
     "src/SpriteAnimation.cpp"
+    "src/ColorModGuard.cpp"
     )
 
 set(GRAPHICS_HEADER_FILES
@@ -23,6 +24,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/ViewportGuard.hpp"
     "inc/RenderFunctions.hpp"
     "inc/SpriteAnimation.hpp"
+    "inc/ColorModGuard.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})

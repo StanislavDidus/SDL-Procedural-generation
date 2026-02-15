@@ -28,6 +28,7 @@
 #include "SpriteAnimation.hpp"
 #include "EnemySpawnSystem.hpp"
 #include "ECS/EnemyAISystem.hpp"
+#include "ECS/PlayerComboSystem.hpp"
 
 class Game
 {
@@ -74,7 +75,7 @@ private:
 	//Systems
 	std::unique_ptr<PhysicsSystem> physics_system;
 	std::unique_ptr<InputSystem> input_system;
-	std::shared_ptr<CollisionSystem> collision_system;
+	std::shared_ptr<TileCollisionSystem> collision_system;
 	std::unique_ptr<JumpSystem> jump_system;
 	std::unique_ptr<MiningTilesSystem> mining_tiles_system;
 	std::unique_ptr<MiningObjectsSystem> mining_objects_system;
@@ -96,7 +97,8 @@ private:
 	float ui_scale = 1.0f;
 
 	//Enemies
-	std::unique_ptr<EnemySpawnSystem> enemy_spawn_system;
+	std::shared_ptr<EnemySpawnSystem> enemy_spawn_system;
+	std::unique_ptr<PlayerComboSystem> player_combo_system;
 	
 
 	Entity player;

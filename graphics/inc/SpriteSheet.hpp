@@ -25,11 +25,17 @@ namespace graphics
 		SpriteSheet& operator=(const SpriteSheet& other) = delete;
 		SpriteSheet& operator=(SpriteSheet&& other) noexcept = delete;
 
-		const Sprite& operator[](size_t index) const { return sprites[index]; };
+		template<typename Self>
+		auto&& operator[](this Self&& self, size_t index);
 	private:
 		Texture loadTexture(graphics::Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode);
 
 		std::vector<Sprite> sprites;
 	};
 
+	template <typename Self>
+	auto&& SpriteSheet::operator[](this Self&& self, size_t index)
+	{
+		return self.sprites[index];
+	}
 } // namespace graphics

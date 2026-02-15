@@ -65,6 +65,13 @@ static bool AABB(const Transform& a, const Transform& b)
 		a.position.y <= b.position.y + b.size.y &&
 		a.position.y + a.size.y >= b.position.y;
 }
+static bool AABB(const SDL_FRect& a, const SDL_FRect& b)
+{
+	return a.x <= b.x + b.w &&
+		a.x + a.w >= b.x &&
+		a.y <= b.y + b.h &&
+		a.y + a.h >= b.y;
+}
 
 struct PhysicsSystem
 {
@@ -104,18 +111,14 @@ struct Collider
 	glm::vec2 size;
 };
 
-class CollisionSystem
+class TileCollisionSystem
 {
 public:
-	CollisionSystem() = default;
-
-	void addCollider(const glm::vec2& position, const glm::vec2& size, ColliderType type)
-	{
-		//collisions.emplace_back(type, position, size);
-	}
+	TileCollisionSystem(std::shared_ptr<World> world) : world(std::move(world)) {}
 
 	void update(float dt)
 	{
+		const auto& grid = world->getGrid();
 		for (auto& entity : EntityManager::get().getEntities())
 		{
 			if (ComponentManager::get().transform.contains(entity) && ComponentManager::get().physics.contains(entity))
@@ -125,99 +128,153 @@ public:
 
 				ph.is_ground = false;
 
-				checkCollisions(ts, ph);
+				int grid_local_x = static_cast<int>(ts.position.x / 20.0f);
+				int grid_local_y = static_cast<int>(ts.position.y / 20.0f);
+
+				for (int i = -load_size; i < load_size; ++i)
+				{
+					for (int j = -load_size; j < load_size; ++j)
+					{
+						int new_x = grid_local_x + i;
+						int new_y = grid_local_y + j;
+						
+						if (new_x < 0 || new_x >= grid.getColumns() || new_y < 0 || new_y >= grid.getRows()) continue;
+
+						const auto& tile = grid(new_x, new_y);
+						const auto& properties = TileManager::get().getProperties(tile.id);
+
+						if (properties.is_solid)
+						{
+							SDL_FRect rect;
+							rect.x = new_x * 20.0f;
+							rect.y = new_y * 20.0f;
+							rect.w = 20.0f;
+							rect.h = 20.0f;
+
+							resolveCollision(ts, ph, rect);
+						}
+						
+					}
+				}
 			}
 		}
 	}
 
-	std::vector<Transform> collisions;
+	//std::vector<Transform> collisions;
 private:
-	void checkCollisions(Transform& ts, Physics& ph)
+	int load_size = 5;
+	std::shared_ptr<World> world;
+
+	void resolveCollision(Transform& ts, Physics& ph, const SDL_FRect& collider_rect) const
 	{
-		for (const auto& collision : collisions)
+		SDL_FRect rect = {ts.position.x, ts.position.y, ts.size.x, ts.size.y};
+		if (AABB(rect, collider_rect))
 		{
-			if (AABB(ts, collision))
+			glm::vec2 p_min = { ts.position.x, ts.position.y };
+			glm::vec2 p_max = { ts.position.x + ts.size.x, ts.position.y + ts.size.y };
+
+			glm::vec2 c_min = { collider_rect.x, collider_rect.y };
+			glm::vec2 c_max = { collider_rect.x + collider_rect.w, collider_rect.y + collider_rect.h };
+
+			float x_overlap = glm::min(p_max.x, c_max.x) - glm::max(p_min.x, c_min.x);
+			float y_overlap = glm::min(p_max.y, c_max.y) - glm::max(p_min.y, c_min.y);
+
+			glm::vec2 normal = { 0.f, 0.f };
+
+			//Chec x collision first
+			if (x_overlap < y_overlap)
 			{
-				glm::vec2 p_min = { ts.position.x, ts.position.y };
-				glm::vec2 p_max = { ts.position.x + ts.size.x, ts.position.y + ts.size.y };
-
-				glm::vec2 c_min = { collision.position.x, collision.position.y };
-				glm::vec2 c_max = { collision.position.x + collision.size.x, collision.position.y + collision.size.y };
-
-				float x_overlap = glm::min(p_max.x, c_max.x) - glm::max(p_min.x, c_min.x);
-				float y_overlap = glm::min(p_max.y, c_max.y) - glm::max(p_min.y, c_min.y);
-
-				glm::vec2 normal = { 0.f, 0.f };
-
-				//Chec x collision first
-				if (x_overlap < y_overlap)
+				//If collider is on the right side
+				if (p_min.x < c_min.x)
 				{
-					//If collider is on the right side
-					if (p_min.x < c_min.x)
-					{
-						Transform step = { {ts.position.x + ts.size.x, ts.position.y + ts.size.y - ph.step}, {ph.step, ph.step} };
+					SDL_FRect step = { ts.position.x + ts.size.x, ts.position.y + ts.size.y - ph.step, ph.step, ph.step };
 
-						if (isSpaceAbove(step, ts.size.y) && ph.velocity.x > 0.f)
-						{
-							ts.position.y -= ph.step;
-							ts.position.x += 1.f;
-						}
-						else
-						{
-							normal.x = -1.f;
-							ph.velocity.x = 0.f;
-						}
+					if (isSpaceAbove(step, ts.size.y) && ph.velocity.x > 0.f)
+					{
+						ts.position.y -= ph.step;
+						ts.position.x += 1.f;
 					}
-					//If collider is on the left side
 					else
 					{
-						Transform step = { {ts.position.x - ph.step, ts.position.y + ts.size.y - ph.step}, {ph.step, ph.step} };
-
-						if (isSpaceAbove(step, ts.size.y) && ph.velocity.x < 0.f)
-						{
-							ts.position.y -= ph.step;
-							ts.position.x -= 1.f;
-						}
-						else
-						{
-							normal.x = 1.f;
-							ph.velocity.x = 0.f;
-						}
+						normal.x = -1.f;
+						ph.velocity.x = 0.f;
 					}
 				}
-				//Check y collision
+				//If collider is on the left side
 				else
 				{
-					if (p_min.y < c_min.y)
+					SDL_FRect step = { ts.position.x - ph.step, ts.position.y + ts.size.y - ph.step, ph.step, ph.step };
+
+					if (isSpaceAbove(step, ts.size.y) && ph.velocity.x < 0.f)
 					{
-						normal.y = -1.f;
-						ph.is_ground = true;
+						ts.position.y -= ph.step;
+						ts.position.x -= 1.f;
 					}
 					else
 					{
-						normal.y = 1.f;
+						normal.x = 1.f;
+						ph.velocity.x = 0.f;
 					}
-					ph.velocity.y = 0.f;
 				}
-
-				//Resolve
-				ts.position += glm::vec2{ x_overlap * normal.x, y_overlap * normal.y };
 			}
+			//Check y collision
+			else
+			{
+				if (p_min.y < c_min.y)
+				{
+					normal.y = -1.f;
+					ph.is_ground = true;
+				}
+				else
+				{
+					normal.y = 1.f;
+				}
+				ph.velocity.y = 0.f;
+			}
+
+			//Resolve
+			ts.position += glm::vec2{ x_overlap * normal.x, y_overlap * normal.y };
 		}
+		
 	}
 
-	bool isSpaceAbove(const Transform& step, float height)
+	bool isSpaceAbove(const SDL_FRect& step, float height) const
 	{
-		Transform above = { {step.position.x + 1.f, step.position.y - height + 1.f}, {step.size.x - 2.f, height - 2.f} };
+		const auto& grid = world->getGrid();
+		Transform above = { {step.x + 1.f, step.y - height + 1.f}, {step.w - 2.f, height - 2.f} };
+		SDL_FRect above_rect = { step.x + 1.f, step.y - height + 1.f, step.w - 2.f, height - 2.f };
 
-		for (auto& collision : collisions)
+		int grid_local_x = static_cast<int>(above.position.x / 20.0f);
+		int grid_local_y = static_cast<int>(above.position.y / 20.0f);
+
+		for (int i = -load_size; i < load_size; ++i)
 		{
-			if (AABB(above, collision))
+			for (int j = -load_size; j < load_size; ++j)
 			{
-				return false;
+				int new_x = grid_local_x + i;
+				int new_y = grid_local_y + j;
+
+				if (new_x < 0 || new_x >= grid.getColumns() || new_y < 0 || new_y >= grid.getRows()) continue;
+
+				const auto& tile = grid(new_x, new_y);
+				const auto& properties = TileManager::get().getProperties(tile.id);
+
+				if (properties.is_solid)
+				{
+					SDL_FRect rect;
+					rect.x = new_x * 20.0f;
+					rect.y = new_y * 20.0f;
+					rect.w = 20.0f;
+					rect.h = 20.0f;
+
+					if (AABB(rect, above_rect))
+					{
+						return false;
+					}
+				}
+
 			}
 		}
-
 		return true;
 	}
 };

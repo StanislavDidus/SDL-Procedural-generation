@@ -175,6 +175,8 @@ namespace Components
 
 	struct EnemyAI
 	{
-		
+		float position_update_timer;
+		float position_update_time;
+		glm::vec2 last_position;
 	};
 } //namespace Components

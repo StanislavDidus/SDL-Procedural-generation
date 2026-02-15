@@ -87,6 +87,7 @@ set(HEADER_FILES
     "inc/EnemyManager.hpp"
     "inc/EnemySpawnSystem.hpp"
     "inc/ECS/EnemyAISystem.hpp"
+    "inc/ECS/PlayerComboSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

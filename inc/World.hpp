@@ -20,7 +20,7 @@
 #include "GenerationData.hpp"
 #include "RenderFunctions.hpp"
 
-class CollisionSystem;
+class TileCollisionSystem;
 
 struct TileChange
 {
@@ -34,7 +34,7 @@ class World
 public:
 	World(
 		const GenerationData& generation_data,
-		std::shared_ptr<CollisionSystem> collision_system,
+		std::shared_ptr<TileCollisionSystem> collision_system,
 		int width_tiles, int height_tiles,
 		float tile_width_world, float tile_height_world
 	);
@@ -46,7 +46,7 @@ public:
 	glm::vec2 getTileSize() const;
 
 	//Setters
-	void setCollisionSystem(std::shared_ptr<CollisionSystem> collision_system);
+	void setCollisionSystem(std::shared_ptr<TileCollisionSystem> collision_system);
 
 	void update(const graphics::Renderer& screen, float dt, const glm::vec2& target);
 	void render(graphics::Renderer& screen) const;
@@ -86,7 +86,7 @@ private:
 	SDL_FRect camera_rect;
 
 	//Objects
-	std::weak_ptr<CollisionSystem> collision_system;
+	std::weak_ptr<TileCollisionSystem> collision_system;
 	int next_object_id = 0;
 
 	size_t seeds_count = 0;
