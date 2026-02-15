@@ -27,6 +27,8 @@
 
 #include "SpriteAnimation.hpp"
 #include "EnemySpawnSystem.hpp"
+#include "ECS/ApplyDamageSystem.hpp"
+#include "ECS/DisplayHitMarksSystem.hpp"
 #include "ECS/EnemyAISystem.hpp"
 #include "ECS/PlayerComboSystem.hpp"
 
@@ -88,7 +90,8 @@ private:
 	std::unique_ptr<ItemDescriptionSystem> item_description_system;
 	std::unique_ptr<RenderSystem> render_system;
 	std::unique_ptr<EnemyAISystem> enemy_ai_system;
-
+	std::unique_ptr<ApplyDamageSystem> apply_damage_system;
+	std::unique_ptr<DisplayHitMarksSystem> display_hit_marks_system;
 	//UI
 	std::unique_ptr<CraftView> craft_view;
 	std::shared_ptr<InventoryView> inventory_view;

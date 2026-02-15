@@ -88,6 +88,9 @@ set(HEADER_FILES
     "inc/EnemySpawnSystem.hpp"
     "inc/ECS/EnemyAISystem.hpp"
     "inc/ECS/PlayerComboSystem.hpp"
+    "inc/ECS/ApplyDamageSystem.hpp"
+    "inc/ECS/DisplayHitMarksSystem.hpp"
+    "inc/ECS/RenderWeaponCircle.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

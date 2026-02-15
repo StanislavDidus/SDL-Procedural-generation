@@ -65,11 +65,13 @@ public:
 
 					if (component_manager.health.contains(enemy))
 					{
-						auto& enemy_health = component_manager.health.at(enemy);
+						auto& enemy_health = component_manager.health.at(enemy); 
 
-						enemy_health.current_health -= damage;
+						/*enemy_health.current_health -= damage;*/
 
-						std::cout << "Deal damage" << std::endl;
+						component_manager.damaged[enemy].emplace_back(damage);
+
+						//std::cout << "Deal damage" << std::endl;
 					}
 				}
 			}

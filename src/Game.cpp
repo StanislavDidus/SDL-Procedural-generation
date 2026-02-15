@@ -73,9 +73,6 @@ Game::Game(graphics::Renderer& screen)
 	inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
 	inventory->addItem(ItemManager::get().getItemID("Gold"), 10);
 	inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
-
-	auto& sp = (*ResourceManager::get().getSpriteSheet("enemies"))[0];
-	sp.setColor(Color::RED);
 }
 
 Game::~Game()
@@ -102,6 +99,8 @@ void Game::initSystems()
 	enemy_ai_system = std::make_unique<EnemyAISystem>();
 	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(*world, SpawnRadius{ 1100.0f, 1400.0f });
 	player_combo_system = std::make_unique<PlayerComboSystem>(enemy_spawn_system);
+	apply_damage_system = std::make_unique<ApplyDamageSystem>();
+	display_hit_marks_system = std::make_unique<DisplayHitMarksSystem>();
 
 	world->setCollisionSystem(collision_system);
 }
@@ -383,6 +382,8 @@ void Game::update(float dt)
 	craft_system->update(player);
 	enemy_ai_system->update(dt, player);
 	player_combo_system->update(dt, player);
+	apply_damage_system->update(dt);
+	display_hit_marks_system->update(dt);
 
 	if (!inventory_view->isMouseCoveringInventory() || component_manager.mine_objects_state.contains(player))
 	{
@@ -656,11 +657,5 @@ void Game::updateImGui(float dt)
 			ImGui::SliderFloat("Amplitude##Moisture", &world->moisture_settings.amplitude, 0.0001f, 2.f);
 		}*/
 	}
-
 	ImGui::End();
-}
-
-void Game::renderWorld()
-{
-	
 }

@@ -16,6 +16,7 @@ namespace Components
 		//graphics::Sprite sprite;
 		graphics::Sprite sprite;
 		SDL_FlipMode flip_mode = SDL_FLIP_NONE;
+		graphics::Color color = graphics::Color::WHITE;
 	};
 
 	struct Physics
@@ -106,6 +107,21 @@ namespace Components
 		std::shared_ptr<Inventory> inventory;
 	};
 
+	struct UseItem
+	{
+		size_t item_id;
+	};
+
+	struct EquipItem
+	{
+		size_t item_id;
+	};
+
+	struct UnequipItem
+	{
+		size_t item_id;
+	};
+	
 	struct Button
 	{
 
@@ -178,5 +194,17 @@ namespace Components
 		float position_update_timer;
 		float position_update_time;
 		glm::vec2 last_position;
+	};
+
+	struct Damaged
+	{
+		float value = 0.0f;
+	};
+
+	struct HitMark
+	{
+		float time = 0.5f;
+		float timer = 0.0f;
+		bool active = false;
 	};
 } //namespace Components

@@ -34,7 +34,9 @@ public:
 	std::unordered_map<Entity, CraftItem> craft_item;
 	std::unordered_map<Entity, CraftingAbility> crafting_ability;
 	std::unordered_map<Entity, EnemyAI> enemy_ai;
-	
+	std::unordered_map<Entity, std::vector<Damaged>> damaged;
+	std::unordered_map<Entity, HitMark> hit_mark;
+
 	//Button control
 	std::unordered_map<Entity, Components::Button> button;
 	std::unordered_map<Entity, ButtonEntered> button_entered;

@@ -246,7 +246,6 @@ namespace graphics
 
 		zoomRect(renderer, dst);
 
-		ColorModGuard colorModGuard{ sprite.getTexture(), sprite.getColor() };
 		SDL_RenderTexture(renderer.get(), sprite.getTexture().get(), &src, &dst);
 	}
 
@@ -267,7 +266,7 @@ namespace graphics
 		dst.y = y;
 		dst.w = width;
 		dst.h = height;
-
+		
 		if (!ignore_view_zoom)
 		{
 			dst.x -= view_position.x;
@@ -276,7 +275,6 @@ namespace graphics
 			zoomRect(renderer, dst);
 		}
 
-		ColorModGuard colorModGuard{ sprite.getTexture(), sprite.getColor() };
 		SDL_RenderTexture(renderer.get(), sprite.getTexture().get(), &src, &dst);
 	}
 
@@ -300,7 +298,6 @@ namespace graphics
 
 		zoomRect(renderer, dst);
 
-		ColorModGuard colorModGuard{ sprite.getTexture(), sprite.getColor() };
 		SDL_RenderTextureRotated(renderer.get(), sprite.getTexture().get(), &src, &dst, angle, nullptr, flip_mode);
 	}
 

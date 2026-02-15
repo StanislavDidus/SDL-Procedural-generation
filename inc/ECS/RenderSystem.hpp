@@ -60,6 +60,8 @@ public:
 
 			const auto& position = transform_component.position;
 			const auto& size = transform_component.size;
+			
+			graphics::ColorModGuard colorModGuard{renderable_component.sprite.getTexture(), renderable_component.color};
 
 			graphics::drawRotatedSprite(screen, renderable_component.sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component.flip_mode);
 		}
