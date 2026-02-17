@@ -462,7 +462,6 @@ public:
 		{
 			if (!ComponentManager::get().transform.contains(entity) ||
 				ComponentManager::get().mine_objects_state.contains(entity) ||
-				//TODO: remove mine_intent
 				!ComponentManager::get().mine_intent.contains(entity) ||
 				!ComponentManager::get().mining_ability.contains(entity))
 				continue;
@@ -734,6 +733,96 @@ public:
 	ItemUsageSystem(Entity& target_entity)
 		: target_entity(target_entity)
 	{
+	}
+
+	void update()
+	{
+		auto& component_manager = ComponentManager::get();
+		if (component_manager.equipment.contains(target_entity))
+		{
+			auto& equipment_component = component_manager.equipment.at(target_entity);
+
+			if (component_manager.use_item.contains(target_entity))
+			{
+				const auto& use_item_component = component_manager.use_item.at(target_entity);
+				const auto& item_properties = ItemManager::get().getProperties(use_item_component.item_id);
+
+				if (item_properties.heal_data)
+				{
+					auto& health_component = ComponentManager::get().health[target_entity];
+					health_component.current_health = std::min(health_component.max_health, health_component.current_health + item_properties.heal_data->amount);
+				}
+
+				component_manager.use_item.erase(target_entity);
+			}
+			if (component_manager.equip_item.contains(target_entity))
+			{
+				const auto& equip_item_component = component_manager.equip_item.at(target_entity);
+				const auto& item_properties = ItemManager::get().getProperties(equip_item_component.item->id);
+
+				if (item_properties.pickaxe_data)
+				{
+					if (equipment_component.pickaxe)
+						component_manager.equipment.at(target_entity).pickaxe->equipped = false;
+
+					equipment_component.pickaxe = equip_item_component.item;
+					equip_item_component.item->equipped = true;
+
+					// Set mining properties (speed, radius, size)
+					if (component_manager.mining_ability.contains(target_entity))
+					{
+						auto& mining_ability = component_manager.mining_ability.at(target_entity);
+						mining_ability.speed = item_properties.pickaxe_data->speed;
+						mining_ability.radius = item_properties.pickaxe_data->radius;
+						mining_ability.size = item_properties.pickaxe_data->size;
+					}
+				}
+
+				// Melee weapon
+				if (item_properties.melee_weapon_data)
+				{
+					if (equipment_component.weapons.size() < equipment_component.max_weapon)
+					{
+						component_manager.equipment.at(target_entity).weapons.push_back(equip_item_component.item);
+						equip_item_component.item->equipped = true;
+					}
+				}
+
+				component_manager.equip_item.erase(target_entity);
+			}	
+
+			if (component_manager.unequip_item.contains(target_entity))
+			{
+				auto& unequip_item_component = component_manager.unequip_item.at(target_entity);
+				const auto& item_properties = ItemManager::get().getProperties(unequip_item_component.item->id);
+				auto* item = unequip_item_component.item;
+				
+				if (item_properties.pickaxe_data)
+				{
+					equipment_component.pickaxe = nullptr;
+					item->equipped = false;
+
+					// Set mining properties (speed, radius, size)
+					if (component_manager.mining_ability.contains(target_entity))
+					{
+						auto& mining_ability = component_manager.mining_ability.at(target_entity);
+						mining_ability.speed = BASE_MINING_SPEED;
+						mining_ability.radius = BASE_MINING_RADIUS;
+						mining_ability.size = BASE_MINING_SIZE;
+					}
+				}
+
+				// Melee weapon
+				if (item_properties.melee_weapon_data)
+				{
+					auto& weapon_array = component_manager.equipment.at(target_entity).weapons;
+					weapon_array.erase(std::ranges::remove(weapon_array, item).begin(), weapon_array.end());
+					item->equipped = false;
+				}
+
+				component_manager.unequip_item.erase(target_entity);
+			}
+		}
 	}
 
 	void useItem(const ItemProperties& item_properties)

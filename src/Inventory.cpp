@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <iostream>
 
-Inventory::Inventory(std::shared_ptr<ItemUsageSystem> item_usage_system, int size) 
-	: item_usage_system(item_usage_system), size(size)
+Inventory::Inventory(int size) 
+	:  size(size)
 {
 	//Fill items and free slots
 	items.resize(size);
@@ -15,11 +15,11 @@ Inventory::Inventory(std::shared_ptr<ItemUsageSystem> item_usage_system, int siz
 	}
 }
 
-void Inventory::useItem(int slot)
+void Inventory::useItem(int slot, Entity target_entity)
 {
 	auto& item = items[slot];
 
-	if (!item || !item_usage_system) return;
+	if (!item) return;
 	
 	const auto& item_properties = ItemManager::get().getProperties(item->id);
 
@@ -27,8 +27,7 @@ void Inventory::useItem(int slot)
 	{
 	case ItemAction::USE:
 	{
-		item_usage_system->useItem(ItemManager::get().getProperties((item->id)));
-
+		ComponentManager::get().use_item[target_entity] = UseItem{ item->id };
 		item->stack_number--;
 
 		if (item->stack_number <= 0)
@@ -42,11 +41,11 @@ void Inventory::useItem(int slot)
 	case ItemAction::EQUIP:
 		if (!item->equipped)
 		{
-			item_usage_system->equipItem(item.get());
+			ComponentManager::get().equip_item[target_entity] = EquipItem{ item.get() };
 		}
 		else if (item->equipped)
 		{
-			item_usage_system->unequip(item.get());
+			ComponentManager::get().unequip_item[target_entity] = UnequipItem{ item .get()};
 		}
 		break;
 	case ItemAction::NONE:
@@ -79,7 +78,7 @@ void Inventory::addItem(size_t id, int number)
 void Inventory::removeItemAtSlot(size_t slot)
 {
 	//Remove the item and free the slot
-	if (slot > 0 && slot < items.size())
+	if (slot >= 0 && slot < items.size())
 	{
 		items[slot].reset();
 
@@ -230,11 +229,6 @@ void Inventory::printContent() const
 		}
 		++i;
 	}*/
-}
-
-std::shared_ptr<ItemUsageSystem> Inventory::getItemUsageSystem() const
-{
-	return item_usage_system;
 }
 
 std::optional<int> Inventory::findFreeSlot()

@@ -114,12 +114,17 @@ namespace Components
 
 	struct EquipItem
 	{
-		size_t item_id;
+		Item* item;
 	};
 
 	struct UnequipItem
 	{
-		size_t item_id;
+		Item* item;
+	};
+
+	struct DropItem
+	{
+		Item item;
 	};
 	
 	struct Button

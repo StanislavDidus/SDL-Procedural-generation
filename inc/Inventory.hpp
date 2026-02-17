@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "ItemManager.hpp"
+#include "ECS/Entity.hpp"
 
 class ItemUsageSystem;
 
@@ -21,7 +22,6 @@ class Inventory
 {
 public:
 	Inventory(
-		std::shared_ptr<ItemUsageSystem> item_usage_system, 
 		int size = 0
 	);
 
@@ -29,7 +29,7 @@ public:
 	/// Use item using specified <b>ItemUsageSystem</b>.
 	/// </summary>
 	/// <param name="slot">Slot where the item you want to use is placed(starting from 0).</param>
-	void useItem(int slot);
+	void useItem(int slot, Entity target_entity);
 
 	/// <summary>
 	/// Adds a certain number of items in any free slot.
@@ -92,16 +92,10 @@ public:
 	const std::vector<std::unique_ptr<Item>>& getItems() const;
 
 	void printContent() const;
-
-	//Getters
-	std::shared_ptr<ItemUsageSystem> getItemUsageSystem() const;
-
-	
 private:
 	std::optional<int> findFreeSlot();
 
 	std::vector<int> free_slots;
-	std::shared_ptr<ItemUsageSystem> item_usage_system;
 	std::vector<std::unique_ptr<Item>> items;
 
 	int size;

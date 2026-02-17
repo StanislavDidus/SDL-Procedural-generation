@@ -7,8 +7,6 @@
 #include "SpriteSheet.hpp"
 #include "Font.hpp"
 
-// TODO: Use smart pointers to store SpriteSheets in dynamic arrays or maps.
-
 class ResourceManager
 {
 public:

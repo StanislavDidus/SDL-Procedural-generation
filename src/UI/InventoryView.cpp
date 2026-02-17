@@ -16,8 +16,15 @@ constexpr float RESOURCE_ICON_HEIGHT = 50.f;
 
 using namespace graphics;
 
-InventoryView::InventoryView(const Font* font, const SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings)
-	: UIElement(position, { ui_settings.inventory_slot_width * columns , ui_settings.inventory_slot_height * rows }), font(font), item_sprites(item_sprites), rows(rows), columns(columns), ui_settings(ui_settings)
+InventoryView::InventoryView(const Font* font, const SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings, Entity target_entity)
+	: UIElement(position, { ui_settings.inventory_slot_width * columns
+		, ui_settings.inventory_slot_height * rows })
+		, font(font)
+		, item_sprites(item_sprites)
+		, rows(rows)	
+		, columns(columns)
+		, ui_settings(ui_settings)
+		, target_entity(target_entity)
 {
 }
 
@@ -59,7 +66,7 @@ void InventoryView::isUsing()
 	const auto& mouse = InputManager::getMouseState();
 	if (covered_slot && !dragged_slot && mouse.right == MouseButtonState::RELEASED && inventory)
 	{
-		inventory->useItem(*covered_slot);
+		inventory->useItem(*covered_slot, target_entity);
 	}
 }
 
@@ -115,8 +122,11 @@ void InventoryView::isMovingItems()
 			dragged_slot = std::nullopt;
 		}
 	}
-	else if (dragged_slot && mouse.left == MouseButtonState::RELEASED)
+	else if (dragged_slot && !covered_slot && mouse.left == MouseButtonState::RELEASED && inventory)
 	{
+		//Drop item
+		ComponentManager::get().drop_item[target_entity] = DropItem{ *getItem(*dragged_slot)};
+		inventory->removeItemAtSlot(*dragged_slot);
 		dragged_slot = std::nullopt;
 	}
 }

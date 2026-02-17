@@ -58,8 +58,12 @@ public:
 	std::unordered_map<Entity, PlaceAbility> place_ability;
 	std::unordered_map<Entity, PlaceIntent> place_intent;
 	std::unordered_map<Entity, HasInventory> has_inventory;
+	std::unordered_map<Entity, UseItem> use_item;
+	std::unordered_map<Entity, EquipItem> equip_item;
+	std::unordered_map<Entity, UnequipItem> unequip_item;
+	std::unordered_map<Entity, DropItem> drop_item;
 
-	//std::unordered_map<Entity, Weapons> weapons;
+	//std::unordered_map<Entity, Weapons> circle_slots;
 	//std::unordered_map<Entity, Pickaxe> pickaxe;
 	std::unordered_map<Entity, Equipment> equipment;
 

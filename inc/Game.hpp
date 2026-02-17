@@ -31,6 +31,7 @@
 #include "ECS/DisplayHitMarksSystem.hpp"
 #include "ECS/EnemyAISystem.hpp"
 #include "ECS/PlayerComboSystem.hpp"
+#include "ECS/RenderWeaponCircle.hpp"
 
 class Game
 {
@@ -92,6 +93,7 @@ private:
 	std::unique_ptr<EnemyAISystem> enemy_ai_system;
 	std::unique_ptr<ApplyDamageSystem> apply_damage_system;
 	std::unique_ptr<DisplayHitMarksSystem> display_hit_marks_system;
+	std::unique_ptr<RenderWeaponCircle> render_weapon_circle_system;
 	//UI
 	std::unique_ptr<CraftView> craft_view;
 	std::shared_ptr<InventoryView> inventory_view;

@@ -58,6 +58,7 @@ Game::Game(graphics::Renderer& screen)
 
 	initPlayer();
 	item_usage_system = std::make_shared<ItemUsageSystem>(player);
+	render_weapon_circle_system = std::make_unique<RenderWeaponCircle>(player);
 	craft_view = std::make_unique<CraftView>(player, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
 	inventory_view->setTargetEntity(player);
 
@@ -310,7 +311,7 @@ void Game::initPlayer()
 
 	component_manager.has_inventory[player] = HasInventory
 	{
-		std::make_shared<Inventory>(item_usage_system, 15)
+		std::make_shared<Inventory>(15)
 	};
 
 	component_manager.health[player] = Health
@@ -327,7 +328,7 @@ void Game::initPlayer()
 
 	component_manager.equipment[player] = Equipment
 	{
-		2 // Number of weapons the player can equip
+		2 // Number of weapon slots the player can equip
 	};
 
 	component_manager.character_animations[player] = CharacterAnimation
@@ -359,7 +360,7 @@ void Game::initUserInterface()
 
 	//interface.addInventoryView(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
 
-	inventory_view = std::make_shared<InventoryView>(ResourceManager::get().getFont("Main"), (*ResourceManager::get().getSpriteSheet("items")), 3, 5, glm::vec2{0.f, 0.f}, ui_settings);
+	inventory_view = std::make_shared<InventoryView>(ResourceManager::get().getFont("Main"), (*ResourceManager::get().getSpriteSheet("items")), 3, 5, glm::vec2{0.f, 0.f}, ui_settings, player);
 }
 
 void Game::update(float dt)
@@ -384,6 +385,12 @@ void Game::update(float dt)
 	player_combo_system->update(dt, player);
 	apply_damage_system->update(dt);
 	display_hit_marks_system->update(dt);
+	render_weapon_circle_system->update(dt);
+	item_usage_system->update();
+	
+	const auto& player_pos = component_manager.transform[player].position;
+	const auto& player_size = component_manager.transform[player].size;
+	enemy_spawn_system->update(dt, player_pos + player_size * 0.5f, screen);
 
 	if (!inventory_view->isMouseCoveringInventory() || component_manager.mine_objects_state.contains(player))
 	{
@@ -420,19 +427,13 @@ void Game::update(float dt)
 
 	mining_objects_system->render(screen);
 
-	//Print "Player" text
-	const auto& player_pos = component_manager.transform[player].position;
-	const auto& player_size = component_manager.transform[player].size;
-	//printText(screen, *text, player_pos.x, player_pos.y - 30.f, player_size.x, 30.f);
+	render_weapon_circle_system->render(screen);
 
 	//UI
 	inventory_view->render(screen);
 	render_crafting_ui_system->render(screen, player);
 	item_description_system->render(screen, player);
 	render_weapon_menu_system->render(screen, player);
-
-	//Update enemy spawn system
-	enemy_spawn_system->update(dt, player_pos + player_size * 0.5f, screen);
 	
 	//Set window base size to properly render imgui without scaling
 	SDL_SetRenderLogicalPresentation(screen.get(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);

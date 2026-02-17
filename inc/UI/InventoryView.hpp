@@ -24,7 +24,7 @@ namespace tinyxml2
 class InventoryView : public UIElement
 {
 public:
-	InventoryView(const graphics::Font* font, const graphics::SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings);
+	InventoryView(const graphics::Font* font, const graphics::SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings, Entity target_entity);
 	~InventoryView() override = default;
 
 	/// <summary>
