@@ -102,6 +102,7 @@ void Game::initSystems()
 	player_combo_system = std::make_unique<PlayerComboSystem>(enemy_spawn_system);
 	apply_damage_system = std::make_unique<ApplyDamageSystem>();
 	display_hit_marks_system = std::make_unique<DisplayHitMarksSystem>();
+	drop_item_system = std::make_unique<DropItemSystem>();
 
 	world->setCollisionSystem(collision_system);
 }
@@ -387,6 +388,7 @@ void Game::update(float dt)
 	display_hit_marks_system->update(dt);
 	render_weapon_circle_system->update(dt);
 	item_usage_system->update();
+	drop_item_system->update();
 	
 	const auto& player_pos = component_manager.transform[player].position;
 	const auto& player_size = component_manager.transform[player].size;

@@ -29,6 +29,7 @@
 #include "EnemySpawnSystem.hpp"
 #include "ECS/ApplyDamageSystem.hpp"
 #include "ECS/DisplayHitMarksSystem.hpp"
+#include "ECS/DropItemSystem.hpp"
 #include "ECS/EnemyAISystem.hpp"
 #include "ECS/PlayerComboSystem.hpp"
 #include "ECS/RenderWeaponCircle.hpp"
@@ -94,6 +95,7 @@ private:
 	std::unique_ptr<ApplyDamageSystem> apply_damage_system;
 	std::unique_ptr<DisplayHitMarksSystem> display_hit_marks_system;
 	std::unique_ptr<RenderWeaponCircle> render_weapon_circle_system;
+	std::unique_ptr<DropItemSystem> drop_item_system;
 	//UI
 	std::unique_ptr<CraftView> craft_view;
 	std::shared_ptr<InventoryView> inventory_view;

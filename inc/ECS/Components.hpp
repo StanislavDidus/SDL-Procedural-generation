@@ -122,7 +122,14 @@ namespace Components
 		Item* item;
 	};
 
+	// Entity is going to drop an item
 	struct DropItem
+	{
+		Item item;
+	};
+
+	// Dropped item that exists in the world
+	struct DroppedItem
 	{
 		Item item;
 	};

@@ -91,6 +91,7 @@ set(HEADER_FILES
     "inc/ECS/ApplyDamageSystem.hpp"
     "inc/ECS/DisplayHitMarksSystem.hpp"
     "inc/ECS/RenderWeaponCircle.hpp"
+    "inc/ECS/DropItemSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
