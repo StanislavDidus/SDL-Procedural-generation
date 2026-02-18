@@ -98,6 +98,10 @@ std::optional<Entity> EnemySpawnSystem::createEntity(size_t id)
 		{75.0, 200.0f},
 		5.0f,
 		false,
+	};
+
+	component_manager.physic_step[*entity] = PhysicStep
+	{
 		20.0f
 	};
 
@@ -126,12 +130,7 @@ void EnemySpawnSystem::destroyEnemy(Entity enemy)
 {
 	auto& component_manager = ComponentManager::get();
 
-	//Clear all components
-	component_manager.transform.erase(enemy);
-	component_manager.renderable.erase(enemy);
-
-	//Free entity
-	EntityManager::get().destroyEntity(enemy);
+	removeEntity(enemy);
 }
 
 void EnemySpawnSystem::spawnEnemies(const glm::vec2& target_position, int number)

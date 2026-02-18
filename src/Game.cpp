@@ -258,7 +258,11 @@ void Game::initPlayer()
 	glm::vec2{250.f, 200.f,},
 	5.f,
 	false,
-	20.f
+	};
+
+	component_manager.physic_step[player] = PhysicStep
+	{
+		20.0f
 	};
 
 	component_manager.jump[player] = Jump{
@@ -388,7 +392,7 @@ void Game::update(float dt)
 	display_hit_marks_system->update(dt);
 	render_weapon_circle_system->update(dt);
 	item_usage_system->update();
-	drop_item_system->update();
+	drop_item_system->update(dt);
 	
 	const auto& player_pos = component_manager.transform[player].position;
 	const auto& player_size = component_manager.transform[player].size;

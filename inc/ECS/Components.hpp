@@ -27,7 +27,12 @@ namespace Components
 		glm::vec2 max_velocity{};
 		float decelaration{};
 		bool is_ground = false;
-		float step = 20.f;
+	};
+
+	// Makes entities make a step when colliding with short walls
+	struct PhysicStep
+	{
+		float max_step_height = 20.0f; ///< The maximum height of the wall that can trigger a step
 	};
 
 	struct Jump
@@ -112,12 +117,25 @@ namespace Components
 		size_t item_id;
 	};
 
+	// Notify that entity tries to equip an item
 	struct EquipItem
 	{
 		Item* item;
 	};
 
 	struct UnequipItem
+	{
+		Item* item;
+	};
+
+	// Notify that item was equipped
+	struct ItemEquipped
+	{
+		Item* item;
+	};
+
+	// Notify that item was unequipped
+	struct ItemUnequipped
 	{
 		Item* item;
 	};
@@ -132,6 +150,8 @@ namespace Components
 	struct DroppedItem
 	{
 		Item item;
+		bool can_be_collected = false;
+		float timer = 0.0f; // Can be collected after some time
 	};
 	
 	struct Button

@@ -93,6 +93,7 @@ struct PhysicsSystem
 				ts.position.y += ph.velocity.y * dt;
 
 				if (ph.can_move_horizontal) ts.position.x += ph.velocity.x * dt;
+
 			}
 		}
 	}
@@ -151,7 +152,7 @@ public:
 							rect.w = 20.0f;
 							rect.h = 20.0f;
 
-							resolveCollision(ts, ph, rect);
+							resolveCollision(entity, ts, ph, rect);
 						}
 						
 					}
@@ -165,8 +166,9 @@ private:
 	int load_size = 5;
 	std::shared_ptr<World> world;
 
-	void resolveCollision(Transform& ts, Physics& ph, const SDL_FRect& collider_rect) const
+	void resolveCollision(Entity entity, Transform& ts, Physics& ph, const SDL_FRect& collider_rect) const
 	{
+		auto& component_manager = ComponentManager::get();
 		SDL_FRect rect = {ts.position.x, ts.position.y, ts.size.x, ts.size.y};
 		if (AABB(rect, collider_rect))
 		{
@@ -187,28 +189,47 @@ private:
 				//If collider is on the right side
 				if (p_min.x < c_min.x)
 				{
-					SDL_FRect step = { ts.position.x + ts.size.x, ts.position.y + ts.size.y - ph.step, ph.step, ph.step };
-
-					if (isSpaceAbove(step, ts.size.y) && ph.velocity.x > 0.f)
+					if (component_manager.physic_step.contains(entity))
 					{
-						ts.position.y -= ph.step;
-						ts.position.x += 1.f;
+						const auto& step_component = component_manager.physic_step.at(entity);
+						SDL_FRect step = { ts.position.x + ts.size.x, ts.position.y + ts.size.y - step_component.max_step_height, step_component.max_step_height, step_component.max_step_height };
+
+						if (isSpaceAbove(step, ts.size.y) && ph.velocity.x > 0.f)
+						{
+							ts.position.y -= step_component.max_step_height;
+							ts.position.x += 1.f;
+						}
+						else
+						{
+							normal.x = -1.f;
+							ph.velocity.x = 0.f;
+						}
 					}
 					else
 					{
 						normal.x = -1.f;
 						ph.velocity.x = 0.f;
+						
 					}
 				}
 				//If collider is on the left side
 				else
 				{
-					SDL_FRect step = { ts.position.x - ph.step, ts.position.y + ts.size.y - ph.step, ph.step, ph.step };
-
-					if (isSpaceAbove(step, ts.size.y) && ph.velocity.x < 0.f)
+					if (component_manager.physic_step.contains(entity))
 					{
-						ts.position.y -= ph.step;
-						ts.position.x -= 1.f;
+						const auto& step_component = component_manager.physic_step.at(entity);
+						SDL_FRect step = { ts.position.x - step_component.max_step_height, ts.position.y + ts.size.y - step_component.max_step_height, step_component.max_step_height, step_component.max_step_height};
+
+						if (isSpaceAbove(step, ts.size.y) && ph.velocity.x < 0.f)
+						{
+							ts.position.y -= step_component.max_step_height;
+							ts.position.x -= 1.f;
+						}
+						else
+						{
+							normal.x = 1.0f;
+							ph.velocity.x = 0.0f;
+						}
 					}
 					else
 					{
@@ -727,6 +748,9 @@ private:
 	float tile_height = 1.f;
 };
 
+//TODO: Make sure that the item cannot be equipped if maximum capacity is reached
+//Do it before this system, so that EquipItem Component is right of other systems as well
+//Note: I just need to send another event ex. ItemEquipped(Item) to notify my WeaponCircleSystem works correctly
 class ItemUsageSystem
 {
 public:
@@ -738,6 +762,17 @@ public:
 	void update()
 	{
 		auto& component_manager = ComponentManager::get();
+
+		//Remove Item Equip/Unequip components after one frame
+		if (component_manager.item_equipped.contains(target_entity))
+		{
+			component_manager.item_equipped.erase(target_entity);
+		}
+		if (component_manager.item_unequipped.contains(target_entity))
+		{
+			component_manager.item_unequipped.erase(target_entity);
+		}
+
 		if (component_manager.equipment.contains(target_entity))
 		{
 			auto& equipment_component = component_manager.equipment.at(target_entity);
@@ -766,7 +801,8 @@ public:
 						component_manager.equipment.at(target_entity).pickaxe->equipped = false;
 
 					equipment_component.pickaxe = equip_item_component.item;
-					equip_item_component.item->equipped = true;
+					equip_item_component.item->equipped = true;	
+					component_manager.item_equipped[target_entity] = ItemEquipped{ equip_item_component.item };
 
 					// Set mining properties (speed, radius, size)
 					if (component_manager.mining_ability.contains(target_entity))
@@ -776,6 +812,7 @@ public:
 						mining_ability.radius = item_properties.pickaxe_data->radius;
 						mining_ability.size = item_properties.pickaxe_data->size;
 					}
+
 				}
 
 				// Melee weapon
@@ -785,8 +822,10 @@ public:
 					{
 						component_manager.equipment.at(target_entity).weapons.push_back(equip_item_component.item);
 						equip_item_component.item->equipped = true;
+						component_manager.item_equipped[target_entity] = ItemEquipped{ equip_item_component.item };
 					}
 				}
+
 
 				component_manager.equip_item.erase(target_entity);
 			}	
@@ -820,6 +859,7 @@ public:
 					item->equipped = false;
 				}
 
+				component_manager.item_unequipped[target_entity] = ItemUnequipped{ unequip_item_component.item };
 				component_manager.unequip_item.erase(target_entity);
 			}
 		}

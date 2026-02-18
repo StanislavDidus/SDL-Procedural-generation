@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "EntityManager.hpp"
 #include "ECS/Entity.hpp"
 #include "Sprite.hpp"
 #include "glm/vec2.hpp"
@@ -26,6 +27,7 @@ public:
 
 	std::unordered_map<Entity, Transform> transform;
 	std::unordered_map<Entity, Physics> physics;
+	std::unordered_map<Entity, PhysicStep> physic_step;
 	std::unordered_map<Entity, Jump> jump;
 	std::unordered_map<Entity, Renderable> renderable;
 	std::unordered_map<Entity, CharacterAnimation> character_animations;
@@ -61,7 +63,10 @@ public:
 	std::unordered_map<Entity, UseItem> use_item;
 	std::unordered_map<Entity, EquipItem> equip_item;
 	std::unordered_map<Entity, UnequipItem> unequip_item;
+	std::unordered_map<Entity, ItemEquipped> item_equipped;
+	std::unordered_map<Entity, ItemUnequipped> item_unequipped;
 	std::unordered_map<Entity, DropItem> drop_item;
+	std::unordered_map<Entity, DroppedItem> dropped_item;
 
 	//std::unordered_map<Entity, Weapons> circle_slots;
 	//std::unordered_map<Entity, Pickaxe> pickaxe;
@@ -70,3 +75,49 @@ public:
 private:
 	ComponentManager() = default;
 };
+
+// Removes entity from the ECS entirely (cleans all components and frees the id from EntityManager)
+static void removeEntity(Entity entity)
+{
+	auto& component_manager = ComponentManager::get();
+	auto& entity_manager = EntityManager::get();
+
+	component_manager.transform.erase(entity);
+	component_manager.physics.erase(entity);
+	component_manager.physic_step.erase(entity);
+	component_manager.jump.erase(entity);
+	component_manager.renderable.erase(entity);
+	component_manager.character_animations.erase(entity);
+	component_manager.player.erase(entity);
+	component_manager.health.erase(entity);
+	component_manager.craft_item.erase(entity);
+	component_manager.crafting_ability.erase(entity);
+	component_manager.enemy_ai.erase(entity);
+	component_manager.damaged.erase(entity);
+	component_manager.hit_mark.erase(entity);
+	component_manager.button.erase(entity);
+	component_manager.button_entered.erase(entity);
+	component_manager.button_covered.erase(entity);
+	component_manager.button_exit.erase(entity);
+	component_manager.button_held.erase(entity);
+	component_manager.button_released.erase(entity);
+	component_manager.craft_button.erase(entity);
+	component_manager.mining_ability.erase(entity);
+	component_manager.mine_objects_state.erase(entity);
+	component_manager.mine_objects_started.erase(entity);
+	component_manager.mine_objects_finished.erase(entity);
+	component_manager.mine_intent.erase(entity);
+	component_manager.place_ability.erase(entity);
+	component_manager.place_intent.erase(entity);
+	component_manager.has_inventory.erase(entity);
+	component_manager.use_item.erase(entity);
+	component_manager.equip_item.erase(entity);
+	component_manager.unequip_item.erase(entity);
+	component_manager.item_equipped.erase(entity);
+	component_manager.item_unequipped.erase(entity);
+	component_manager.drop_item.erase(entity);
+	component_manager.dropped_item.erase(entity);
+	component_manager.equipment.erase(entity);
+
+	entity_manager.destroyEntity(entity);
+}

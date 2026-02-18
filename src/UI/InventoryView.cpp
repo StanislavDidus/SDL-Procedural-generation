@@ -125,9 +125,17 @@ void InventoryView::isMovingItems()
 	else if (dragged_slot && !covered_slot && mouse.left == MouseButtonState::RELEASED && inventory)
 	{
 		//Drop item
-		ComponentManager::get().drop_item[target_entity] = DropItem{ *getItem(*dragged_slot)};
-		inventory->removeItemAtSlot(*dragged_slot);
-		dragged_slot = std::nullopt;
+		const auto& item = *getItem(*dragged_slot);
+		if (!item.equipped)
+		{
+			ComponentManager::get().drop_item[target_entity] = DropItem{ item };
+			inventory->removeItemAtSlot(*dragged_slot);
+			dragged_slot = std::nullopt;
+		}
+		else
+		{
+			dragged_slot = std::nullopt;
+		}
 	}
 }
 

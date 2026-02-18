@@ -5,7 +5,7 @@
 
 struct CircleWeapon
 {
-	Item* item;
+	const Item* item;
 	float distance;
 	float current_angle;
 	bool flip = false;
@@ -43,10 +43,10 @@ public:
 		const auto& player_equipment_component = component_manager.equipment.at(target_entity);
 
 		// Add new circle_slots to the "Circle"
-		if (component_manager.equip_item.contains(target_entity))
+		if (component_manager.item_equipped.contains(target_entity))
 		{
-			const auto& player_equip_component = component_manager.equip_item.at(target_entity);
-			const auto& item_properties = ItemManager::get().getProperties(player_equip_component.item->id);
+			const auto& item_equipped_component = component_manager.item_equipped.at(target_entity);
+			const auto& item_properties = ItemManager::get().getProperties(item_equipped_component.item->id);
 			
 			// Store the last weapon capacity of the player
 			// Reconstruct circle weapon slots if values are not the same
@@ -56,27 +56,28 @@ public:
 			}
 			last_weapon_capacity = player_equipment_component.max_weapon;
 
+			// If item is not a pickaxe
 			if (!item_properties.pickaxe_data)
 			{
 				auto free_circle_slot = std::ranges::find_if(circle_slots, [](const CircleWeapon& cw) {return cw.item == nullptr; });
 				if (free_circle_slot != circle_slots.end())
 				{
 					auto& slot = *free_circle_slot;
-					slot.item = player_equip_component.item;
+					slot.item = item_equipped_component.item;
 				}
 			}
 		}
 		
 		// Unequip item
-		if (component_manager.unequip_item.contains(target_entity))
+		if (component_manager.item_unequipped.contains(target_entity))
 		{
 			/*circle_slots.erase(std::ranges::remove_if(circle_slots,))*/
-			const auto& unequip_item_component = component_manager.unequip_item.at(target_entity);
+			const auto& item_unequipped_component = component_manager.item_unequipped.at(target_entity);
 			//circle_slots.erase(std::ranges::remove_if(circle_slots, [unequip_item_component](const CircleWeapon& display_weapon) {return display_weapon.item == unequip_item_component.item; }).begin(), circle_slots.end());
 
 			for (auto& slot : circle_slots)
 			{
-				if (slot.item == unequip_item_component.item) slot.item = nullptr;
+				if (slot.item == item_unequipped_component.item) slot.item = nullptr;
 			}
 		}
 		
