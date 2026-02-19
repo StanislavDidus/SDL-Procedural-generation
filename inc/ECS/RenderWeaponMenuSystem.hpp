@@ -8,17 +8,16 @@
 class RenderWeaponMenuSystem
 {
 public:
-	RenderWeaponMenuSystem(const UISettings& ui_setting) : ui_settings(ui_setting) {}
+	RenderWeaponMenuSystem(entt::registry& registry, const UISettings& ui_setting) : registry{ registry }, ui_settings(ui_setting) {}
 
 	void render(graphics::Renderer& screen, Entity target_entity)
 	{
-		const auto& component_manager = ComponentManager::get();
 		const auto& window_size = screen.getWindowSize();
-		if (!component_manager.equipment.contains(target_entity)) return;
+		if (!registry.all_of<Components::Equipment>(target_entity)) return;
 
 		const auto& ui = ui_settings;
 		
-		const auto& equipment_component = component_manager.equipment.at(target_entity);
+		auto& equipment_component = registry.get<Components::Equipment>(target_entity);
 
 		int number_of_weapons = equipment_component.max_weapon; 
 
@@ -53,5 +52,6 @@ public:
 		}
 	}
 private:
+	entt::registry& registry;
 	const UISettings& ui_settings;
 };

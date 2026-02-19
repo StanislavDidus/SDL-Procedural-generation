@@ -6,33 +6,30 @@
 class DisplayHitMarksSystem
 {
 public:
-	DisplayHitMarksSystem() = default;
+	DisplayHitMarksSystem(entt::registry& registry) : registry{registry} {}
 	~DisplayHitMarksSystem() = default;
 
 	void update(float dt) const
 	{
-		auto& component_manager = ComponentManager::get();
 
-		for (const auto& entity : EntityManager::get().getEntities())
+		auto view = registry.view<Components::HitMark, Components::Renderable>();
+		for (auto [entity, hit_mark_component, renderable_component] : view.each())
 		{
-			if (component_manager.hit_mark.contains(entity) && component_manager.renderable.contains(entity))
+			if (!hit_mark_component.active)
+			{	
+				hit_mark_component.active = true;
+				renderable_component.color = graphics::Color::RED;
+			}
+
+			hit_mark_component.timer += dt;
+
+			if (hit_mark_component.timer >= hit_mark_component.time)
 			{
-				auto& renderable_component = component_manager.renderable.at(entity);
-				auto& hit_mark_component = component_manager.hit_mark.at(entity);
-
-				if (!hit_mark_component.active)
-				{	
-					hit_mark_component.active = true;
-					renderable_component.color = graphics::Color::RED;
-				}
-
-				hit_mark_component.timer += dt;
-
-				if (hit_mark_component.timer >= hit_mark_component.time)
-				{
-					renderable_component.color = graphics::Color::WHITE;
-				}
+				renderable_component.color = graphics::Color::WHITE;
 			}
 		}
 	}
+
+private:
+	entt::registry& registry;
 };

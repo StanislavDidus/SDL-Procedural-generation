@@ -319,7 +319,7 @@ struct InputSystem
 			// Jump
 			if (registry.all_of<Components::Jump>(entity))
 			{
-				auto& j =
+				auto& j = registry.get<Components::Jump>(entity);
 				j.jump_ready = InputManager::isKey(SDLK_U);
 			}
 
@@ -370,7 +370,7 @@ struct InputSystem
 
 					//Flip
 					if (registry.all_of<Components::Renderable>(entity))
-						registry.get<Components::Renderable>(entity).flip_mode = SDL_FLIP_HORIZONTAL;
+						registry.get<Components::Renderable>(entity).flip_mode = SDL_FLIP_NONE;
 				}
 				if (!InputManager::isKey(SDLK_K) && !InputManager::isKey(SDLK_H))
 				{
@@ -523,7 +523,6 @@ public:
 	{
 		auto view = registry.view<Components::Transform, Components::PlaceAbility, Components::PlaceIntent>();
 		for (auto [entity, ts, pl, pi] : view.each())
-		for (const auto& entity : EntityManager::get().getEntities())
 		{
 			pl.placing_timer += dt;
 
@@ -934,22 +933,22 @@ public:
 				//If cursor is on the button now but wasn't last frame - ENTER
 				if (is_covered && !was_covered)
 				{
-					registry.emplace<Components::ButtonEntered>(entity);
+					registry.emplace_or_replace<Components::ButtonEntered>(entity);
 				}
 				//If cursor is on the button and was last frame - STAY/COVERED
 				else if (is_covered && was_covered)
 				{
-					registry.emplace<Components::ButtonCovered>(entity);
+					registry.emplace_or_replace<Components::ButtonCovered>(entity);
 
 					if (mouse_left_state == MouseButtonState::DOWN)
 					{
-						registry.emplace<Components::ButtonHeld>(entity);
+						registry.emplace_or_replace<Components::ButtonHeld>(entity);
 					}
 				}
 				//If cursor is not on the mouse but was last frame - EXIT
 				else if (!is_covered && was_covered)
 				{
-					registry.emplace<Components::ButtonExit>(entity);
+					registry.emplace_or_replace<Components::ButtonExit>(entity);
 				}
 			}
 			//If button is being held
@@ -972,7 +971,7 @@ public:
 
 			if (is_covered && !was_covered)
 			{
-				registry.emplace<Components::ButtonCovered>(entity);
+				registry.emplace_or_replace<Components::ButtonCovered>(entity);
 			}
 			else if (!is_covered && was_covered)
 			{

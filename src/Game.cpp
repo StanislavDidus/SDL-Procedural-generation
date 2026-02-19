@@ -57,9 +57,9 @@ Game::Game(graphics::Renderer& screen)
 	fall_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 20.0f, std::vector<int>{8});
 
 	initPlayer();
-	item_usage_system = std::make_shared<ItemUsageSystem>(player);
-	render_weapon_circle_system = std::make_unique<RenderWeaponCircle>(player);
-	craft_view = std::make_unique<CraftView>(player, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
+	item_usage_system = std::make_shared<ItemUsageSystem>(registry, player);
+	render_weapon_circle_system = std::make_unique<RenderWeaponCircle>(registry, player);
+	craft_view = std::make_unique<CraftView>(registry, player, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
 	inventory_view->setTargetEntity(player);
 
 	world->generateWorld(0);
@@ -83,27 +83,27 @@ Game::~Game()
 
 void Game::initSystems()
 {
-	physics_system = std::make_unique<PhysicsSystem>();
-	input_system = std::make_unique<InputSystem>();
-	collision_system = std::make_shared<TileCollisionSystem>(world);
-	jump_system = std::make_unique<JumpSystem>();
-	mining_tiles_system = std::make_unique<MiningTilesSystem>(*world, 20.f, 20.f);
-	mining_objects_system = std::make_unique<MiningObjectsSystem>(*world, 20.f, 20.f);
-	place_system = std::make_unique<PlaceSystem>(*world, 20.f, 20.f);
-	item_usage_system = std::make_shared<ItemUsageSystem>(player);
-	button_system = std::make_unique<ButtonSystem>();
-	craft_system = std::make_unique<CraftSystem>();
-	render_crafting_ui_system = std::make_unique<RenderCraftingUISystem>(ui_settings);
-	item_description_system = std::make_unique<ItemDescriptionSystem>(ResourceManager::get().getFont("Main"), inventory_view, ui_settings);
-	render_system = std::make_unique<RenderSystem>();
-	render_weapon_menu_system = std::make_unique<RenderWeaponMenuSystem>(ui_settings);
-	enemy_ai_system = std::make_unique<EnemyAISystem>();
-	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(*world, SpawnRadius{ 1100.0f, 1400.0f });
-	player_combo_system = std::make_unique<PlayerComboSystem>(enemy_spawn_system);
-	apply_damage_system = std::make_unique<ApplyDamageSystem>();
-	display_hit_marks_system = std::make_unique<DisplayHitMarksSystem>();
-	drop_item_system = std::make_unique<DropItemSystem>();
-	inventory_manage_system = std::make_unique<InventoryManageSystem>();
+	physics_system = std::make_unique<PhysicsSystem>(registry);
+	input_system = std::make_unique<InputSystem>(registry);
+	collision_system = std::make_shared<TileCollisionSystem>(registry, world);
+	jump_system = std::make_unique<JumpSystem>(registry);
+	mining_tiles_system = std::make_unique<MiningTilesSystem>(registry, *world, 20.f, 20.f);
+	mining_objects_system = std::make_unique<MiningObjectsSystem>(registry, *world, 20.f, 20.f);
+	place_system = std::make_unique<PlaceSystem>(registry, *world, 20.f, 20.f);
+	item_usage_system = std::make_shared<ItemUsageSystem>(registry, player);
+	button_system = std::make_unique<ButtonSystem>(registry);
+	craft_system = std::make_unique<CraftSystem>(registry);
+	render_crafting_ui_system = std::make_unique<RenderCraftingUISystem>(registry, ui_settings);
+	item_description_system = std::make_unique<ItemDescriptionSystem>(registry, ResourceManager::get().getFont("Main"), inventory_view, ui_settings);
+	render_system = std::make_unique<RenderSystem>(registry);
+	render_weapon_menu_system = std::make_unique<RenderWeaponMenuSystem>(registry, ui_settings);
+	enemy_ai_system = std::make_unique<EnemyAISystem>(registry);
+	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(registry, *world, SpawnRadius{ 1100.0f, 1400.0f });
+	player_combo_system = std::make_unique<PlayerComboSystem>(registry, enemy_spawn_system);
+	apply_damage_system = std::make_unique<ApplyDamageSystem>(registry);
+	display_hit_marks_system = std::make_unique<DisplayHitMarksSystem>(registry);
+	drop_item_system = std::make_unique<DropItemSystem>(registry);
+	inventory_manage_system = std::make_unique<InventoryManageSystem>(registry);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -252,7 +252,7 @@ void Game::initPlayer()
 	physics.can_move_horizontal = true;
 	physics.velocity = glm::vec2{ 0.0f };
 	physics.acceleration = glm::vec2{ 1500.0f, 0.0f };
-	physics.acceleration = glm::vec2{ 250.0f, 200.0f };
+	physics.max_velocity = glm::vec2{ 250.0f, 200.0f };
 	physics.decelaration = 5.0f;
 
 	auto& physics_step = registry.emplace<Components::PhysicStep>(player);
@@ -310,13 +310,16 @@ void Game::initPlayer()
 
 void Game::initUserInterface()
 {
-	auto player_health = registry.get<Components::Health>(player);
+	if (registry.all_of<Components::Health>(player))
+	{
+		auto player_health = registry.get<Components::Health>(player);
 
-	interface.addFillBar({ 0.f, screen.getWindowSize().y - 50.f, }, { 250.f, 50.f }, player_health.current_health, 100.f, Color::RED);
+		interface.addFillBar({ 0.f, screen.getWindowSize().y - 50.f, }, { 250.f, 50.f }, player_health.current_health, 100.f, Color::RED);
+	}
 
 	//interface.addInventoryView(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
 
-	inventory_view = std::make_shared<InventoryView>(ResourceManager::get().getFont("Main"), (*ResourceManager::get().getSpriteSheet("items")), 3, 5, glm::vec2{0.f, 0.f}, ui_settings, player);
+	inventory_view = std::make_shared<InventoryView>(registry, ResourceManager::get().getFont("Main"), (*ResourceManager::get().getSpriteSheet("items")), 3, 5, glm::vec2{0.f, 0.f}, ui_settings, player);
 }
 
 void Game::update(float dt)
@@ -349,7 +352,7 @@ void Game::update(float dt)
 	const auto& player_size = player_transform.size;
 	enemy_spawn_system->update(dt, player_pos + player_size * 0.5f, screen);
 
-	if (!inventory_view->isMouseCoveringInventory() || registry.all_of<Components::MineObjectsState>(player))
+	if (!inventory_view->isMouseCoveringInventory() || !registry.all_of<Components::MineObjectsState>(player))
 	{
 		mining_tiles_system->update(dt);
 		place_system->update(dt);

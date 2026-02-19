@@ -16,7 +16,7 @@ constexpr float RESOURCE_ICON_HEIGHT = 50.f;
 
 using namespace graphics;
 
-InventoryView::InventoryView(const Font* font, const SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings, Entity target_entity)
+InventoryView::InventoryView(entt::registry& registry, const Font* font, const SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings, Entity target_entity)
 	: UIElement(position, { ui_settings.inventory_slot_width * columns
 		, ui_settings.inventory_slot_height * rows })
 		, font(font)
@@ -25,6 +25,7 @@ InventoryView::InventoryView(const Font* font, const SpriteSheet& item_sprites, 
 		, columns(columns)
 		, ui_settings(ui_settings)
 		, target_entity(target_entity)
+		, registry{registry}
 {
 }
 
@@ -66,7 +67,7 @@ void InventoryView::isUsing()
 	const auto& mouse = InputManager::getMouseState();
 	if (covered_slot && !dragged_slot && mouse.right == MouseButtonState::RELEASED && inventory)
 	{
-		inventory->useItem(*covered_slot, target_entity);
+		inventory->useItem(*covered_slot, target_entity, registry);
 	}
 }
 
@@ -129,7 +130,7 @@ void InventoryView::isMovingItems()
 		if (!item.equipped)
 		{
 			// Drop item if it is moved outside the inventory area
-			ComponentManager::get().drop_item[target_entity] = DropItem{ item };
+			registry.emplace<Components::DropItem>(target_entity, item);
 			inventory->removeItemAtSlot(*dragged_slot);
 			dragged_slot = std::nullopt;
 		}
@@ -181,9 +182,9 @@ void InventoryView::setTargetEntity(Entity entity)
 {
 	target_entity = entity;
 
-	if (ComponentManager::get().has_inventory.contains(target_entity))
+	if (registry.all_of<Components::HasInventory>(target_entity))
 	{
-		inventory = ComponentManager::get().has_inventory.at(target_entity).inventory.get();
+		inventory = registry.get<Components::HasInventory>(target_entity).inventory.get();
 		slot_text.resize(inventory->getItems().size());
 	}
 }

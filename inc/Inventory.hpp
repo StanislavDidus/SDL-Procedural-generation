@@ -29,7 +29,7 @@ public:
 	/// Use item using specified <b>ItemUsageSystem</b>.
 	/// </summary>
 	/// <param name="slot">Slot where the item you want to use is placed(starting from 0).</param>
-	void useItem(int slot, Entity target_entity);
+	void useItem(int slot, Entity target_entity, entt::registry& registry);
 
 	//TODO: If I type addItem() with stack that is bigger than 1 with an item that cannot be stacked they WILL be put in one slot.
 	/// <summary>

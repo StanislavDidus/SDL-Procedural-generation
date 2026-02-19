@@ -15,7 +15,7 @@ Inventory::Inventory(int size)
 	}
 }
 
-void Inventory::useItem(int slot, Entity target_entity)
+void Inventory::useItem(int slot, Entity target_entity, entt::registry& registry)
 {
 	auto& item = items[slot];
 
@@ -27,7 +27,7 @@ void Inventory::useItem(int slot, Entity target_entity)
 	{
 	case ItemAction::USE:
 	{
-		ComponentManager::get().use_item[target_entity] = UseItem{ item->id };
+		registry.emplace<Components::UseItem>(target_entity, item->id);
 		item->stack_number--;
 
 		if (item->stack_number <= 0)
@@ -41,11 +41,11 @@ void Inventory::useItem(int slot, Entity target_entity)
 	case ItemAction::EQUIP:
 		if (!item->equipped)
 		{
-			ComponentManager::get().equip_item[target_entity] = EquipItem{ item.get() };
+			registry.emplace<Components::EquipItem>(target_entity, item.get());
 		}
 		else if (item->equipped)
 		{
-			ComponentManager::get().unequip_item[target_entity] = UnequipItem{ item .get()};
+			registry.emplace<Components::UnequipItem>(target_entity, item.get());
 		}
 		break;
 	case ItemAction::NONE:

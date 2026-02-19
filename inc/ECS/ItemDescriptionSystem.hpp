@@ -14,10 +14,11 @@
 class ItemDescriptionSystem
 {
 public:
-	ItemDescriptionSystem(const graphics::Font* font, std::shared_ptr<InventoryView> inventory_view, const UISettings& ui_settings)
+	ItemDescriptionSystem(entt::registry& registry, const graphics::Font* font, std::shared_ptr<InventoryView> inventory_view, const UISettings& ui_settings)
 		: font(font)
 		, inventory_view(inventory_view)
 		, ui_settings(ui_settings)
+		, registry{registry}
 	{
 
 	}
@@ -44,8 +45,6 @@ public:
 
 	void render(graphics::Renderer& screen, Entity target_entity) const
 	{
-		auto& component_manager = ComponentManager::get();
-
 		if (auto inventory_view_s = inventory_view.lock())
 		{
 			auto covered_slot = inventory_view_s->getCoveredSlotIndex();
@@ -87,48 +86,43 @@ public:
 			//Otherwise check if mouse is on any of the crafting recipes
 			else
 			{
-				for (const auto& entity : EntityManager::get().getEntities())
+				auto view = registry.view<Components::Transform, Components::ButtonCovered, Components::CraftButton, Components::HasInventory>();
+				for (auto [entity, transform_component, craft_button_component, inventory_component] : view.each())
 				{
-					if (!component_manager.transform.contains(entity) || !component_manager.button_covered.contains(entity) || !component_manager.craft_button.contains(entity) || !component_manager.has_inventory.contains(target_entity)) continue;
-					{
-						const auto& transform_component = component_manager.transform.at(entity);
-						const auto& craft_button_component = component_manager.craft_button.at(entity);
-						const auto& mouse_position = InputManager::getMouseState().position;
-						const auto& inventory = component_manager.has_inventory.at(target_entity).inventory;
+					const auto& mouse_position = InputManager::getMouseState().position;
+					const auto& inventory = inventory_component.inventory;
+					if (!craft_button_component.is_available) continue;
 
-						if (!craft_button_component.is_available) continue;
+					const auto& recipe = CraftingManager::get().getRecipe(craft_button_component.recipe_id);
+					size_t item_id = recipe.item_id;
+					const auto& item_properties = ItemManager::get().getItem(item_id);
+					
 
-						const auto& recipe = CraftingManager::get().getRecipe(craft_button_component.recipe_id);
-						size_t item_id = recipe.item_id;
-						const auto& item_properties = ItemManager::get().getItem(item_id);
-						
+					glm::vec2 button_centre = transform_component.position + transform_component.size * 0.5f;
+					float x = button_centre.x - ui_settings.item_description_label_width * 0.5f;
+					float y = transform_component.position.y + transform_component.size.y;
 
-						glm::vec2 button_centre = transform_component.position + transform_component.size * 0.5f;
-						float x = button_centre.x - ui_settings.item_description_label_width * 0.5f;
-						float y = transform_component.position.y + transform_component.size.y;
+					
+					int required_craft_items = recipe.required_items.size();
 
-						
-						int required_craft_items = recipe.required_items.size();
+					//Count how many properties an item has
+					int number_item_properties = 0;
+					countProperties(item_properties, number_item_properties);
 
-						//Count how many properties an item has
-						int number_item_properties = 0;
-						countProperties(item_properties, number_item_properties);
+					const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
 
-						const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
+					//Clamp the position to a screen
+					x = std::max(0.f, x);
+					y = std::max(0.f, y);
 
-						//Clamp the position to a screen
-						x = std::max(0.f, x);
-						y = std::max(0.f, y);
+					x = std::min(x, window_size.x - ui_settings.item_description_label_width);
+					y = std::min(y, window_size.y - (ui_settings.item_description_label_height + number_item_properties * ui_settings.item_description_icon_height));
 
-						x = std::min(x, window_size.x - ui_settings.item_description_label_width);
-						y = std::min(y, window_size.y - (ui_settings.item_description_label_height + number_item_properties * ui_settings.item_description_icon_height));
+					renderDescriptionLabel(screen, x, y, item_id, std::max(number_item_properties, required_craft_items));
 
-						renderDescriptionLabel(screen, x, y, item_id, std::max(number_item_properties, required_craft_items));
+					renderItemRecipe(screen, x, y, recipe.required_items, *inventory);
 
-						renderItemRecipe(screen, x, y, recipe.required_items, *inventory);
-
-						renderItemComponents(screen, x + ui_settings.item_description_icon_width * 2.f + ui_settings.item_description_components_offset_x, y + ui_settings.item_description_label_height, item_properties);
-					}
+					renderItemComponents(screen, x + ui_settings.item_description_icon_width * 2.f + ui_settings.item_description_components_offset_x, y + ui_settings.item_description_label_height, item_properties);
 				}
 			}
 
@@ -267,4 +261,6 @@ private:
 	const UISettings& ui_settings;
 
 	std::vector<std::unique_ptr<graphics::Text>> texts;
+
+	entt::registry& registry;
 };
