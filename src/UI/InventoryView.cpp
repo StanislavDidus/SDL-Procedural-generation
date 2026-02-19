@@ -128,6 +128,7 @@ void InventoryView::isMovingItems()
 		const auto& item = *getItem(*dragged_slot);
 		if (!item.equipped)
 		{
+			// Drop item if it is moved outside the inventory area
 			ComponentManager::get().drop_item[target_entity] = DropItem{ item };
 			inventory->removeItemAtSlot(*dragged_slot);
 			dragged_slot = std::nullopt;

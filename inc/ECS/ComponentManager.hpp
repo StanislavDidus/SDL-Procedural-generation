@@ -60,6 +60,7 @@ public:
 	std::unordered_map<Entity, PlaceAbility> place_ability;
 	std::unordered_map<Entity, PlaceIntent> place_intent;
 	std::unordered_map<Entity, HasInventory> has_inventory;
+	std::unordered_map<Entity, AddItem> add_item;
 	std::unordered_map<Entity, UseItem> use_item;
 	std::unordered_map<Entity, EquipItem> equip_item;
 	std::unordered_map<Entity, UnequipItem> unequip_item;
@@ -110,6 +111,7 @@ static void removeEntity(Entity entity)
 	component_manager.place_ability.erase(entity);
 	component_manager.place_intent.erase(entity);
 	component_manager.has_inventory.erase(entity);
+	component_manager.add_item.erase(entity);
 	component_manager.use_item.erase(entity);
 	component_manager.equip_item.erase(entity);
 	component_manager.unequip_item.erase(entity);

@@ -53,7 +53,12 @@ void Inventory::useItem(int slot, Entity target_entity)
 	}
 }
 
-void Inventory::addItem(size_t id, int number)
+bool Inventory::addItem(const Item& item)
+{
+	return addItem(item.id, item.stack_number);
+}
+
+bool Inventory::addItem(size_t id, int number)
 {
 	for (auto& item : items)
 	{
@@ -63,7 +68,7 @@ void Inventory::addItem(size_t id, int number)
 			if (item->id == id && ItemManager::get().getProperties(id).can_stack)
 			{
 				item->stack_number += number;
-				return;
+				return true;
 			}
 		}
 	}
@@ -72,7 +77,10 @@ void Inventory::addItem(size_t id, int number)
 	if (!free_slots.empty())
 	{
 		if(auto free_slot = findFreeSlot()) items[*free_slot] = std::make_unique<Item>(id, number);
+		return true;
 	}
+
+	return false;
 }
 
 void Inventory::removeItemAtSlot(size_t slot)
@@ -205,6 +213,11 @@ int Inventory::countItem(size_t item_id) const
 	}
 
 	return number;
+}
+
+bool Inventory::full() const
+{
+	return free_slots.empty();
 }
 
 const std::vector<std::unique_ptr<Item>>& Inventory::getItems() const

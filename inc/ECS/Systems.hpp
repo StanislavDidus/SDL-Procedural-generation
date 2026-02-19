@@ -19,13 +19,14 @@ constexpr float BASE_MINING_SPEED = 100.0f;
 constexpr float BASE_MINING_RADIUS = 100.0f;
 constexpr int BASE_MINING_SIZE = 2;
 
+//TODO: Change AddItem in ComponentManager to store vector of components in order to add multiple items in one frame
 /// <summary>
-/// Static function that takes an item and randomly decides whether add the item to the given inventory.
+/// Static function that takes an item and randomly decides whether add the item to the given entity.
 /// Quantities are also generated randomly based on the variables defined in <b>RandomizedItem</b> class.
 /// </summary>
-/// <param name="inventory">Takes an inventory where an item will be added.</param>
+/// <param name="entity">Takes an entity that will get an item.</param>
 /// <param name="item">Item that is being added to the inventory</param>
-static void addRandomizedItem(Inventory& inventory, const RandomizedItem& item)
+static void addRandomizedItem(Entity entity, const RandomizedItem& item)
 {
 	if (item.drop_chance == 0.0f) return;
 
@@ -34,7 +35,10 @@ static void addRandomizedItem(Inventory& inventory, const RandomizedItem& item)
 
 	if (drop_rand <= item.drop_chance)
 	{
+		/*
 		inventory.addItem(item.item_id, quantities_rand);
+	*/
+		ComponentManager::get().add_item[entity] = AddItem{ Item{item.item_id, quantities_rand} };
 	}
 }
 
@@ -93,6 +97,11 @@ struct PhysicsSystem
 				ts.position.y += ph.velocity.y * dt;
 
 				if (ph.can_move_horizontal) ts.position.x += ph.velocity.x * dt;
+
+				if (ph.is_ground)
+				{
+					ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
+				}
 
 			}
 		}
@@ -371,7 +380,7 @@ struct InputSystem
 					}
 					if (!InputManager::isKey(SDLK_K) && !InputManager::isKey(SDLK_H))
 					{
-						ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
+						/*ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;*/
 					}
 
 				}
@@ -667,7 +676,7 @@ public:
 						const auto& items = ObjectManager::get().getProperties(*destroyed_object_id).drop;
 						for (const auto& item : items)
 						{
-							addRandomizedItem(*component_manager.has_inventory.at(entity).inventory, item);
+							addRandomizedItem(entity, item);
 						}
 
 					}
@@ -748,7 +757,6 @@ private:
 	float tile_height = 1.f;
 };
 
-//TODO: Make sure that the item cannot be equipped if maximum capacity is reached
 //Do it before this system, so that EquipItem Component is right of other systems as well
 //Note: I just need to send another event ex. ItemEquipped(Item) to notify my WeaponCircleSystem works correctly
 class ItemUsageSystem
@@ -1069,6 +1077,8 @@ public:
 		auto& component_manager = ComponentManager::get();
 		for (const auto& entity : EntityManager::get().getEntities())
 		{
+			//NOTE: CraftItem is a component that is attached to a CraftButton when user tries to craft an item.
+			//And the entity we have to give an item is our target_entity
 			if (!component_manager.craft_item.contains(entity) || !component_manager.has_inventory.contains(target_entity)) continue;
 
 			auto& inventory_component = component_manager.has_inventory.at(target_entity);
@@ -1090,7 +1100,11 @@ public:
 
 			if (can_craft)
 			{
+				/*
 				inventory->addItem(recipe.item_id, 1);
+				*/
+
+				component_manager.add_item[target_entity] = AddItem{ Item{recipe.item_id, 1} };
 				
 				for (const auto& required_craft_item : recipe.required_items)
 				{

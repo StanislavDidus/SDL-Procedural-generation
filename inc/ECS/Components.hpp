@@ -112,6 +112,11 @@ namespace Components
 		std::shared_ptr<Inventory> inventory;
 	};
 
+	struct AddItem
+	{
+		Item item;
+	};
+
 	struct UseItem
 	{
 		size_t item_id;

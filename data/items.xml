@@ -47,7 +47,7 @@
         <action>NONE</action>
     </item>
     <item id="Rope">
-        <canStack>true</canStack>
+        <canStack>false</canStack>
         <spriteIndex>8</spriteIndex>
         <action>NONE</action>
     </item>

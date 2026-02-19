@@ -31,12 +31,15 @@ public:
 	/// <param name="slot">Slot where the item you want to use is placed(starting from 0).</param>
 	void useItem(int slot, Entity target_entity);
 
+	//TODO: If I type addItem() with stack that is bigger than 1 with an item that cannot be stacked they WILL be put in one slot.
 	/// <summary>
-	/// Adds a certain number of items in any free slot.
+	/// Adds a certain number of items in any free slot. Drops an item if no free place is found.
 	/// </summary>
 	/// <param name="id">ID of the item.</param>
-	/// <param name="number">Quantity.</param>
-	void addItem(size_t id, int number);
+	/// <param name="number">Quantity.</param> 
+	bool addItem(size_t id, int number);
+	// Function overloading for addItem(size_t id, int number);
+	bool addItem(const Item& item);
 
 	/// <summary>
 	/// Clears the given item slot and makes it empty.
@@ -84,6 +87,12 @@ public:
 	/// <param name="item_id">ID of an item you look for.</param>
 	/// <returns>The number of items in the inventory.</returns>
 	int countItem(size_t item_id) const;
+	
+	/// <summary>
+	/// Checks if an inventory has at least one free slot.
+	/// </summary>
+	/// <returns>Return true if there is at least one free slot.</returns>
+	bool full() const;
 
 	/// <summary>
 	/// Returns all inventory slots.

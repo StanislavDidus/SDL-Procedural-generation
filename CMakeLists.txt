@@ -92,6 +92,7 @@ set(HEADER_FILES
     "inc/ECS/DisplayHitMarksSystem.hpp"
     "inc/ECS/RenderWeaponCircle.hpp"
     "inc/ECS/DropItemSystem.hpp"
+    "inc/ECS/InventoryManageSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
