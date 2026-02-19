@@ -8,9 +8,10 @@
 #include "glm/gtc/random.hpp"
 #include "Debug.hpp"
 
-EnemySpawnSystem::EnemySpawnSystem(const World& world, const SpawnRadius& spawn_radius)
+EnemySpawnSystem::EnemySpawnSystem(entt::registry& registry, const World& world, const SpawnRadius& spawn_radius)
 	: world(world)
 	, spawn_radius(spawn_radius)
+	, registry(registry)
 {
 }
 
@@ -42,7 +43,7 @@ void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphi
 		// Remove enemies that are far away
 		auto begin = std::ranges::remove_if(enemies, [this, target_position](Entity enemy)
 			{
-				const auto& transform_component = ComponentManager::get().transform.at(enemy);
+				const auto& transform_component = registry.get<Components::Transform>(enemy);
 				float distance = glm::distance(target_position, transform_component.position);
 				bool destroy = distance > enemy_despawn_distance;
 				if (destroy) destroyEnemy(enemy);
@@ -57,7 +58,7 @@ void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphi
 		// Remove enemies that have less than 0 health points
 		auto begin = std::ranges::remove_if(enemies, [this, target_position](Entity enemy)
 			{
-				const auto& health_component = ComponentManager::get().health.at(enemy);
+				const auto& health_component = registry.get<Components::Health>(enemy);
 				bool destroy = health_component.current_health <= 0.0f;
 				if (destroy) destroyEnemy(enemy);
 				return destroy;
@@ -75,62 +76,40 @@ void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphi
 #endif
 }
 
-std::optional<Entity> EnemySpawnSystem::createEntity(size_t id)
+Entity EnemySpawnSystem::createEntity(size_t id) const
 {
-	auto entity = EntityManager::get().createEntity();
-
-	if (!entity) return std::nullopt;
+	auto entity = registry.create();
 
 	const auto& enemy_data = EnemyManager::get().getEnemyData(id);
 
-	auto& component_manager = ComponentManager::get();
+	auto& renderable = registry.emplace<Components::Renderable>(entity);
+	renderable.sprite = (*ResourceManager::get().getSpriteSheet("enemies"))[enemy_data.sprite_index];
 
-	component_manager.renderable[*entity] = Renderable
-	{
-		(*ResourceManager::get().getSpriteSheet("enemies"))[enemy_data.sprite_index]
-	};
+	auto& physics = registry.emplace<Components::Physics>(entity);
+	physics.can_move_horizontal = true;
+	physics.acceleration = glm::vec2{ 1000.0f, 0.0f };
+	physics.max_velocity = glm::vec2{ 75.0f, 200.0f, };
+	physics.decelaration = 5.0f;
 
-	component_manager.physics[*entity] = Physics
-	{
-		true,
-		{},
-		{1000.0f, 0.f},
-		{75.0, 200.0f},
-		5.0f,
-		false,
-	};
+	auto& physic_step = registry.emplace<Components::PhysicStep>(entity);
+	physic_step.max_step_height = 20.0f;
 
-	component_manager.physic_step[*entity] = PhysicStep
-	{
-		20.0f
-	};
+	auto& jump = registry.emplace<Components::Jump>(entity);
+	jump.jump_force = 425.0f;
 
-	component_manager.jump[*entity] = Jump
-	{
-		425.0f
-	};
+	auto& health = registry.emplace<Components::Health>(entity);
+	health.max_health = 100.0f;
+	health.current_health = 100.0f;
 
-	component_manager.health[*entity] = Health
-	{
-		100.0f,
-		100.0f
-	};
-
-	component_manager.enemy_ai[*entity] = EnemyAI
-	{
-		0.0f,
-		2.0f
-
-	};
+	auto& enemy_ai = registry.emplace<Components::EnemyAI>(entity);
+	enemy_ai.position_update_time = 2.0f;
 	
 	return entity;
 }
 
-void EnemySpawnSystem::destroyEnemy(Entity enemy)
+void EnemySpawnSystem::destroyEnemy(Entity enemy) const
 {
-	auto& component_manager = ComponentManager::get();
-
-	removeEntity(enemy);
+	registry.destroy(enemy);
 }
 
 void EnemySpawnSystem::spawnEnemies(const glm::vec2& target_position, int number)
@@ -241,19 +220,12 @@ void EnemySpawnSystem::spawnEnemies(const glm::vec2& target_position, int number
 
 				auto enemy = createEntity(spawn_info.id);
 
-				if (!enemy)
-				{
-					break;
-				}
-
 				const auto& enemy_size = spawn_info.size;
-				ComponentManager::get().transform[*enemy] = Transform
-				{
-					{tile_size.x * position.x, tile_size.y * position.y},
-					{tile_size.x * enemy_size.x, tile_size.y * enemy_size.y}
-				};
+				auto& ts = registry.emplace<Components::Transform>(enemy);
+				ts.position = { tile_size.x * position.x, tile_size.y * position.y };
+				ts.size = { tile_size.x * enemy_size.x, tile_size.y * enemy_size.y };
 
-				enemies.push_back(*enemy);
+				enemies.push_back(enemy);
 
 				break;
 			}

@@ -9,11 +9,12 @@
 #include "CraftingManager.hpp"
 #include "ECS/EntityManager.hpp"
 #include "ECS/ComponentManager.hpp"
+#include <entt/entt.hpp>
 
 class CraftView : public UIElement
 {
 public:
-	CraftView(Entity target_entity, int rows, int columns, float slot_size, const glm::vec2& position);
+	CraftView(entt::registry& registry, Entity target_entity, int rows, int columns, float slot_size, const glm::vec2& position);
 
 	void update() override;
 	void render(graphics::Renderer& screen) override;
@@ -24,4 +25,5 @@ private:
 	float slot_size;
 
 	Entity target_entity;
+	entt::registry& registry;
 };	

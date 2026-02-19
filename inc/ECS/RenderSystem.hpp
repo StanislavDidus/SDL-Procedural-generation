@@ -7,19 +7,13 @@
 class RenderSystem
 {
 public:
-	RenderSystem() = default;
+	RenderSystem(entt::registry& registry) : registry{registry} {}
 
 	void update(float dt) const
 	{
-		auto& component_manager = ComponentManager::get();
-		for (const auto& entity : EntityManager::get().getEntities())
+		auto view = registry.view<Components::Physics, Components::Renderable, Components::CharacterAnimation>();
+		for (auto [entity, physics_component, renderable_component, character_animations_component] : view.each())
 		{
-			if (!component_manager.physics.contains(entity) || !component_manager.renderable.contains(entity) || !component_manager.character_animations.contains(entity)) continue;
-			
-			const auto& physics_component = component_manager.physics.at(entity);
-			auto& renderable_component = component_manager.renderable.at(entity);
-			const auto& character_animations_component = component_manager.character_animations.at(entity);
-
 			//First check of jumping and falling
 			if (!physics_component.is_ground && physics_component.velocity.y < 100.0f)
 			{
@@ -50,14 +44,9 @@ public:
 
 	void render(graphics::Renderer& screen) const
 	{
-		auto& component_manager = ComponentManager::get();
-		for (const auto& entity : EntityManager::get().getEntities())
+		auto view = registry.view<Components::Transform, Components::Renderable>();
+		for (auto [view, transform_component, renderable_component] : view.each())
 		{
-			if (!component_manager.transform.contains(entity) || !component_manager.renderable.contains(entity)) continue;
-
-			const auto& transform_component = component_manager.transform.at(entity);
-			const auto& renderable_component = component_manager.renderable.at(entity);
-
 			const auto& position = transform_component.position;
 			const auto& size = transform_component.size;
 			
@@ -66,4 +55,7 @@ public:
 			graphics::drawRotatedSprite(screen, renderable_component.sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component.flip_mode);
 		}
 	}
+
+private:
+	entt::registry& registry;
 };

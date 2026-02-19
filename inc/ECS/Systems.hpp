@@ -26,7 +26,7 @@ constexpr int BASE_MINING_SIZE = 2;
 /// </summary>
 /// <param name="entity">Takes an entity that will get an item.</param>
 /// <param name="item">Item that is being added to the inventory</param>
-static void addRandomizedItem(Entity entity, const RandomizedItem& item)
+static void addRandomizedItem(entt::entity entity, const RandomizedItem& item, entt::registry& registry)
 {
 	if (item.drop_chance == 0.0f) return;
 
@@ -38,7 +38,10 @@ static void addRandomizedItem(Entity entity, const RandomizedItem& item)
 		/*
 		inventory.addItem(item.item_id, quantities_rand);
 	*/
+		/*
 		ComponentManager::get().add_item[entity] = AddItem{ Item{item.item_id, quantities_rand} };
+		auto& add_item = registry.get<Components::AddI
+	*/
 	}
 }
 
@@ -62,7 +65,7 @@ static bool isMouseIntersection(const glm::vec2& mouse_position, const SDL_FRect
 /// <param name="a"></param>
 /// <param name="b"></param>
 /// <returns></returns>
-static bool AABB(const Transform& a, const Transform& b)
+static bool AABB(const Components::Transform& a, const Components::Transform& b)
 {
 	return a.position.x <= b.position.x + b.size.x &&
 		a.position.x + a.size.x >= b.position.x &&
@@ -79,33 +82,30 @@ static bool AABB(const SDL_FRect& a, const SDL_FRect& b)
 
 struct PhysicsSystem
 {
-	PhysicsSystem() = default;
+	PhysicsSystem(entt::registry& registry) : registry{registry} {}
 
 	void update(float dt)
 	{
-		for (auto& entity : EntityManager::get().getEntities())
+		auto view = registry.view<Components::Transform, Components::Physics>();
+		for (auto [entity, ts, ph] : view.each())
 		{
-			if (ComponentManager::get().transform.contains(entity) && ComponentManager::get().physics.contains(entity))
+			//Add gravity
+			float gravity = 1400.f;
+			ph.velocity.y += gravity * dt;
+
+			ts.position.y += ph.velocity.y * dt;
+
+			if (ph.can_move_horizontal) ts.position.x += ph.velocity.x * dt;
+
+			if (ph.is_ground)
 			{
-				auto& ts = ComponentManager::get().transform.at(entity);
-				auto& ph = ComponentManager::get().physics.at(entity);
-
-				//Add gravity
-				float gravity = 1400.f;
-				ph.velocity.y += gravity * dt;
-
-				ts.position.y += ph.velocity.y * dt;
-
-				if (ph.can_move_horizontal) ts.position.x += ph.velocity.x * dt;
-
-				if (ph.is_ground)
-				{
-					ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
-				}
-
+				ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
 			}
 		}
 	}
+
+private:
+	entt::registry& registry;
 };
 
 enum class ColliderType
@@ -124,47 +124,42 @@ struct Collider
 class TileCollisionSystem
 {
 public:
-	TileCollisionSystem(std::shared_ptr<World> world) : world(std::move(world)) {}
+	TileCollisionSystem(entt::registry& registry, std::shared_ptr<World> world) : registry{ registry }, world(std::move(world)) {}
 
 	void update(float dt)
 	{
 		const auto& grid = world->getGrid();
-		for (auto& entity : EntityManager::get().getEntities())
+		auto view = registry.view<Components::Transform, Components::Physics>();
+		for (auto [entity, ts, ph] : view.each())
 		{
-			if (ComponentManager::get().transform.contains(entity) && ComponentManager::get().physics.contains(entity))
+			ph.is_ground = false;
+
+			int grid_local_x = static_cast<int>(ts.position.x / 20.0f);
+			int grid_local_y = static_cast<int>(ts.position.y / 20.0f);
+
+			for (int i = -load_size; i < load_size; ++i)
 			{
-				auto& ts = ComponentManager::get().transform.at(entity);
-				auto& ph = ComponentManager::get().physics.at(entity);
-
-				ph.is_ground = false;
-
-				int grid_local_x = static_cast<int>(ts.position.x / 20.0f);
-				int grid_local_y = static_cast<int>(ts.position.y / 20.0f);
-
-				for (int i = -load_size; i < load_size; ++i)
+				for (int j = -load_size; j < load_size; ++j)
 				{
-					for (int j = -load_size; j < load_size; ++j)
+					int new_x = grid_local_x + i;
+					int new_y = grid_local_y + j;
+					
+					if (new_x < 0 || new_x >= grid.getColumns() || new_y < 0 || new_y >= grid.getRows()) continue;
+
+					const auto& tile = grid(new_x, new_y);
+					const auto& properties = TileManager::get().getProperties(tile.id);
+
+					if (properties.is_solid)
 					{
-						int new_x = grid_local_x + i;
-						int new_y = grid_local_y + j;
-						
-						if (new_x < 0 || new_x >= grid.getColumns() || new_y < 0 || new_y >= grid.getRows()) continue;
+						SDL_FRect rect;
+						rect.x = new_x * 20.0f;
+						rect.y = new_y * 20.0f;
+						rect.w = 20.0f;
+						rect.h = 20.0f;
 
-						const auto& tile = grid(new_x, new_y);
-						const auto& properties = TileManager::get().getProperties(tile.id);
-
-						if (properties.is_solid)
-						{
-							SDL_FRect rect;
-							rect.x = new_x * 20.0f;
-							rect.y = new_y * 20.0f;
-							rect.w = 20.0f;
-							rect.h = 20.0f;
-
-							resolveCollision(entity, ts, ph, rect);
-						}
-						
+						resolveCollision(entity, ts, ph, rect);
 					}
+					
 				}
 			}
 		}
@@ -172,12 +167,12 @@ public:
 
 	//std::vector<Transform> collisions;
 private:
+	entt::registry& registry;
 	int load_size = 5;
 	std::shared_ptr<World> world;
 
-	void resolveCollision(Entity entity, Transform& ts, Physics& ph, const SDL_FRect& collider_rect) const
+	void resolveCollision(Entity entity, Components::Transform& ts, Components::Physics& ph, const SDL_FRect& collider_rect) const
 	{
-		auto& component_manager = ComponentManager::get();
 		SDL_FRect rect = {ts.position.x, ts.position.y, ts.size.x, ts.size.y};
 		if (AABB(rect, collider_rect))
 		{
@@ -198,9 +193,9 @@ private:
 				//If collider is on the right side
 				if (p_min.x < c_min.x)
 				{
-					if (component_manager.physic_step.contains(entity))
+					if (registry.all_of<Components::PhysicStep>(entity))
 					{
-						const auto& step_component = component_manager.physic_step.at(entity);
+						const auto& step_component = registry.get<Components::PhysicStep>(entity);
 						SDL_FRect step = { ts.position.x + ts.size.x, ts.position.y + ts.size.y - step_component.max_step_height, step_component.max_step_height, step_component.max_step_height };
 
 						if (isSpaceAbove(step, ts.size.y) && ph.velocity.x > 0.f)
@@ -224,12 +219,11 @@ private:
 				//If collider is on the left side
 				else
 				{
-					if (component_manager.physic_step.contains(entity))
+					if (registry.all_of<Components::PhysicStep>(entity))
 					{
-						const auto& step_component = component_manager.physic_step.at(entity);
+						const auto& step_component = registry.get<Components::PhysicStep>(entity);
 						SDL_FRect step = { ts.position.x - step_component.max_step_height, ts.position.y + ts.size.y - step_component.max_step_height, step_component.max_step_height, step_component.max_step_height};
-
-						if (isSpaceAbove(step, ts.size.y) && ph.velocity.x < 0.f)
+						if (isSpaceAbove(step, ts.size.y) && ph.velocity.x > 0.f)
 						{
 							ts.position.y -= step_component.max_step_height;
 							ts.position.x -= 1.f;
@@ -271,7 +265,7 @@ private:
 	bool isSpaceAbove(const SDL_FRect& step, float height) const
 	{
 		const auto& grid = world->getGrid();
-		Transform above = { {step.x + 1.f, step.y - height + 1.f}, {step.w - 2.f, height - 2.f} };
+		Components::Transform above = { {step.x + 1.f, step.y - height + 1.f}, {step.w - 2.f, height - 2.f} };
 		SDL_FRect above_rect = { step.x + 1.f, step.y - height + 1.f, step.w - 2.f, height - 2.f };
 
 		int grid_local_x = static_cast<int>(above.position.x / 20.0f);
@@ -311,84 +305,85 @@ private:
 
 struct InputSystem
 {
-	InputSystem() = default;
+	InputSystem(entt::registry& registry) : registry{registry} {}
 
 	void update(const graphics::Renderer& screen, float dt)
 	{
 		//Calculate global mouse position
 		glm::vec2 mouse_global_position = getMouseGlobalPosition(screen);
+		
+		auto view = registry.view<Components::Player>();
 
-		for (auto& entity : EntityManager::get().getEntities())
+		for (auto [entity] : view.each())	
 		{
-			if (ComponentManager::get().player.contains(entity))
+			// Jump
+			if (registry.all_of<Components::Jump>(entity))
 			{
-				auto& p = ComponentManager::get().player.at(entity);
+				auto& j =
+				j.jump_ready = InputManager::isKey(SDLK_U);
+			}
 
-				// Jump
-				if (ComponentManager::get().jump.contains(entity))
+			//Mining
+			if (registry.all_of<Components::MineIntent>(entity))
+			{
+				auto& mi = registry.get<Components::MineIntent>(entity);
+				//mi.active = InputManager::getMouseState().left == MouseButtonState::HELD;
+
+				if (InputManager::getMouseState().left == MouseButtonState::DOWN)
 				{
-					auto& j = ComponentManager::get().jump.at(entity);
-					j.jump_ready = InputManager::isKey(SDLK_U);
+					mi.active = true;
+					mi.start_mouse_position = mouse_global_position;
+				}
+				if (InputManager::getMouseState().left == MouseButtonState::RELEASED || registry.all_of<Components::MineObjectsFinished>(entity))
+				{
+					mi.active = false;
 				}
 
-				//Mining
-				if (ComponentManager::get().mine_intent.contains(entity))
+				mi.current_mouse_position = mouse_global_position;
+			}
+
+			//Block placement
+			if (registry.all_of<Components::PlaceIntent>(entity))
+			{
+				auto& pi = registry.get<Components::PlaceIntent>(entity);
+				pi.active = InputManager::getMouseState().right == MouseButtonState::HELD;
+				pi.target_global_position = mouse_global_position;
+			}
+
+			//Horizontal movement
+			if (registry.all_of<Components::Physics>(entity))
+			{
+				auto& ph = registry.get<Components::Physics>(entity);
+				if (InputManager::isKey(SDLK_H))
 				{
-					auto& mi = ComponentManager::get().mine_intent.at(entity);
-					//mi.active = InputManager::getMouseState().left == MouseButtonState::HELD;
+					ph.velocity.x -= ph.acceleration.x * dt;
+					ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
 
-					if (InputManager::getMouseState().left == MouseButtonState::DOWN)
-					{
-						mi.active = true;
-						mi.start_mouse_position = mouse_global_position;
-					}
-					if (InputManager::getMouseState().left == MouseButtonState::RELEASED || ComponentManager::get().mine_objects_finished.contains(entity))
-					{
-						mi.active = false;
-					}
+					//Flip
+					if (registry.all_of<Components::Renderable>(entity))
+						registry.get<Components::Renderable>(entity).flip_mode = SDL_FLIP_HORIZONTAL;
+				}
+				if (InputManager::isKey(SDLK_K))
+				{
+					ph.velocity.x += ph.acceleration.x * dt;
+					ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
 
-					mi.current_mouse_position = mouse_global_position;
+					//Flip
+					if (registry.all_of<Components::Renderable>(entity))
+						registry.get<Components::Renderable>(entity).flip_mode = SDL_FLIP_HORIZONTAL;
+				}
+				if (!InputManager::isKey(SDLK_K) && !InputManager::isKey(SDLK_H))
+				{
+					/*ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;*/
 				}
 
-				//Block placement
-				if (ComponentManager::get().place_intent.contains(entity))
-				{
-					auto& pi = ComponentManager::get().place_intent.at(entity);
-					pi.active = InputManager::getMouseState().right == MouseButtonState::HELD;
-					pi.target_global_position = mouse_global_position;
-				}
-
-				//Horizontal movement
-				if (ComponentManager::get().physics.contains(entity))
-				{
-					auto& ph = ComponentManager::get().physics.at(entity);
-					if (InputManager::isKey(SDLK_H))
-					{
-						ph.velocity.x -= ph.acceleration.x * dt;
-						ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
-
-						//Flip
-						if (ComponentManager::get().renderable.contains(entity)) ComponentManager::get().renderable.at(entity).flip_mode = SDL_FLIP_HORIZONTAL;
-					}
-					if (InputManager::isKey(SDLK_K))
-					{
-						ph.velocity.x += ph.acceleration.x * dt;
-						ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
-
-						//Flip
-						if (ComponentManager::get().renderable.contains(entity))ComponentManager::get().renderable.at(entity).flip_mode = SDL_FLIP_NONE;
-					}
-					if (!InputManager::isKey(SDLK_K) && !InputManager::isKey(SDLK_H))
-					{
-						/*ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;*/
-					}
-
-				}
 			}
 		}
 	}
 
 private:
+	entt::registry& registry;
+
 	glm::vec2 getMouseGlobalPosition(const graphics::Renderer& screen)
 	{
 		const auto& view_position = screen.getView();
@@ -403,54 +398,44 @@ private:
 
 struct JumpSystem
 {
-	JumpSystem() = default;
+	JumpSystem(entt::registry& registry) : registry(registry) {}
 
 	void update(float dt)
 	{
-		for (auto& entity : EntityManager::get().getEntities())
+		auto view = registry.view<Components::Physics, Components::Jump>();
+		for (auto [entity, ph, j] : view.each())
 		{
-			if (ComponentManager::get().physics.contains(entity) && ComponentManager::get().jump.contains(entity))
+			if (j.jump_ready && ph.is_ground)
 			{
-				auto& ph = ComponentManager::get().physics.at(entity);
-				auto& j = ComponentManager::get().jump.at(entity);
-
-				if (j.jump_ready && ph.is_ground)
-				{
-					ph.velocity.y -= j.jump_force;
-					j.jump_ready = false;
-					ph.is_ground = false;
-				}
+				ph.velocity.y -= j.jump_force;
+				j.jump_ready = false;
+				ph.is_ground = false;
 			}
 		}
 	}
+
+private:
+	entt::registry& registry;
 };
 
 class MiningTilesSystem
 {
 public:
-	MiningTilesSystem(World& world, float tile_width, float tile_height)
+	MiningTilesSystem(entt::registry& registry, World& world, float tile_width, float tile_height)
 		: tile_width(tile_width)
 		, tile_height(tile_height)
 		, world(world)
+		, registry(registry)
 	{
 
 	}
 
 	void update(float dt)
 	{
-		for (const auto& entity : EntityManager::get().getEntities())
+		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MineObjectsState, Components::MiningAbility>();
+		for (auto [entity, ts, mi, mining_ability_component] : view.each())
 		{
-			if (!ComponentManager::get().transform.contains(entity) ||
-				!ComponentManager::get().mine_intent.contains(entity) ||
-				ComponentManager::get().mine_objects_state.contains(entity) ||
-				!ComponentManager::get().mining_ability.contains(entity))
-				continue;
-
 			tiles_covered.clear();
-
-			auto& mi = ComponentManager::get().mine_intent.at(entity);
-			auto& ts = ComponentManager::get().transform.at(entity);
-			const auto& mining_ability_component = ComponentManager::get().mining_ability.at(entity);
 
 			float mining_speed = mining_ability_component.speed;
 			float mining_radius = mining_ability_component.radius;
@@ -488,17 +473,9 @@ public:
 
 	void renderOutline(graphics::Renderer& screen)
 	{
-		for (const auto& entity : EntityManager::get().getEntities())
+		auto view = registry.view<Components::Transform, Components::MineObjectsState, Components::MineIntent, Components::MiningAbility>();
+		for (auto [entity, ts, mi, mining_ability_component] : view.each())
 		{
-			if (!ComponentManager::get().transform.contains(entity) ||
-				ComponentManager::get().mine_objects_state.contains(entity) ||
-				!ComponentManager::get().mine_intent.contains(entity) ||
-				!ComponentManager::get().mining_ability.contains(entity))
-				continue;
-
-			auto& ts = ComponentManager::get().transform.at(entity);
-			const auto& mining_ability_component = ComponentManager::get().mining_ability.at(entity);
-
 			float mining_radius = mining_ability_component.radius;
 
 			const auto& player_mid_position = ts.position + ts.size * 0.5f;
@@ -521,6 +498,8 @@ public:
 	}
 
 private:
+	entt::registry& registry;
+
 	World& world;
 
 	float tile_width = 1.f;
@@ -532,56 +511,48 @@ private:
 class PlaceSystem
 {
 public:
-	PlaceSystem(World& world, float tile_width, float tile_height)
+	PlaceSystem(entt::registry& registry, World& world, float tile_width, float tile_height)
 		: tile_width(tile_width)
 		, tile_height(tile_height)
 		, world(world)
+		, registry(registry)
 	{
 	}
 
 	void update(float dt)
 	{
-		auto& component_manager = ComponentManager::get();
+		auto view = registry.view<Components::Transform, Components::PlaceAbility, Components::PlaceIntent>();
+		for (auto [entity, ts, pl, pi] : view.each())
 		for (const auto& entity : EntityManager::get().getEntities())
 		{
-			if (component_manager.transform.contains(entity) && 
-				component_manager.place_ability.contains(entity) &&
-				component_manager.place_intent.contains(entity))
-			{
-				auto& pi = component_manager.place_intent.at(entity);
-				auto& pl = component_manager.place_ability.at(entity);
+			pl.placing_timer += dt;
 
-				pl.placing_timer += dt;
+			if (!pi.active || pl.placing_timer < pl.placing_time) continue;
 
-				if (!pi.active || pl.placing_timer < pl.placing_time) continue;
+			pl.placing_timer = 0.f;
 
-				pl.placing_timer = 0.f;
+			glm::vec2 mid_position = ts.position + ts.size * 0.5f;
+			const auto& mouse_global_position = pi.target_global_position;
 
-				auto& ts = component_manager.transform.at(entity);
+			float distance = glm::distance(mid_position, mouse_global_position);
 
-				glm::vec2 mid_position = ts.position + ts.size * 0.5f;
-				const auto& mouse_global_position = pi.target_global_position;
+			if (distance > pl.radius) continue;
+			if (world.getObjectOnPosition(mouse_global_position)) continue;
 
-				float distance = glm::distance(mid_position, mouse_global_position);
+			//Prevents from placing blocks on the player 
+			float min_distance = glm::distance(mid_position, ts.position);
+			if (distance < min_distance) continue;
 
-				if (distance > pl.radius) continue;
-				if (world.getObjectOnPosition(mouse_global_position)) continue;
+			int tile_x = static_cast<int>(std::floor((mouse_global_position.x) / tile_width));
+			int tile_y = static_cast<int>(std::floor((mouse_global_position.y) / tile_height));
 
-				//Prevents from placing blocks on the player 
-				float min_distance = glm::distance(mid_position, ts.position);
-				if (distance < min_distance) continue;
-
-				int tile_x = static_cast<int>(std::floor((mouse_global_position.x) / tile_width));
-				int tile_y = static_cast<int>(std::floor((mouse_global_position.y) / tile_height));
-
-				//TODO Temporary placed 0 instead of a tile id
-				world.placeTile(tile_x, tile_y, 0);
-
-			}
+			//TODO Temporary placed 0 instead of a tile id
+			world.placeTile(tile_x, tile_y, 0);
 		}
 	}
 
 private:
+	entt::registry& registry;
 	World& world;
 	float tile_width = 1.f;
 	float tile_height = 1.f;
@@ -590,29 +561,20 @@ private:
 class MiningObjectsSystem
 {
 public:
-	MiningObjectsSystem(World& world, float tile_width, float tile_height)
+	MiningObjectsSystem(entt::registry& registry, World& world, float tile_width, float tile_height)
 		: tile_width(tile_width)
 		, tile_height(tile_height)
 		, world(world)
+		, registry(registry)
 	{
 
 	}
 
 	void update(float dt)
 	{
-		auto& component_manager = ComponentManager::get();
-		for (auto& entity : EntityManager::get().getEntities())
+		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
+		for (auto [entity, ts, mi, mining_ability_component] : view.each())
 		{
-			//Check if required components exist
-			if (!component_manager.transform.contains(entity) ||
-				!component_manager.mine_intent.contains(entity) ||
-				!component_manager.mining_ability.contains(entity))
-				continue;
-
-			auto& ts = component_manager.transform.at(entity);
-			auto& mi = component_manager.mine_intent.at(entity);
-			const auto& mining_ability_component = component_manager.mining_ability.at(entity);
-
 			float mining_speed = mining_ability_component.speed;
 			float mining_radius = mining_ability_component.radius;
 			float mining_size = mining_ability_component.size;
@@ -622,30 +584,22 @@ public:
 			bool is_mining = world.getObjectOnPosition(mi.start_mouse_position) && distance < mining_radius && mi.active;
 
 			//Remove start-finish marks
-			if (component_manager.mine_objects_started.contains(entity))
-			{
-				component_manager.mine_objects_started.erase(entity);
-			}
-			if (component_manager.mine_objects_finished.contains(entity))
-			{
-				component_manager.mine_objects_finished.erase(entity);
-			}
+			registry.remove<Components::MineObjectsStarted>(entity);
+			registry.remove<Components::MineObjectsFinished>(entity);
 
 			//Entity was not mining 
-			if (!component_manager.mine_objects_state.contains(entity))
+			if (!registry.all_of<Components::MineObjectsState>(entity))
 			{
 				if (is_mining)
 				{
 					//Do something at the start
-					component_manager.mine_objects_state[entity] = MineObjectsState{};
-					component_manager.mine_objects_started[entity] = MineObjectsStarted{};
+					registry.emplace<Components::MineObjectsState>(entity);
+					registry.emplace<Components::MineObjectsStarted>(entity);
 					//std::cout << "Mining_Objects_Started" << std::endl;
 
 					//If entity has physics component - limit horizontal movement
-					if (component_manager.physics.contains(entity))
-					{
-						component_manager.physics.at(entity).can_move_horizontal = false;
-					}
+					if (registry.all_of<Components::Physics>(entity))
+						registry.get<Components::Physics>(entity).can_move_horizontal = false;
 
 				}
 			}
@@ -654,29 +608,27 @@ public:
 			{
 				if (!is_mining)
 				{
-					component_manager.mine_objects_state.erase(entity);
-					component_manager.mine_objects_finished[entity] = MineObjectsFinished{};
+					registry.erase<Components::MineObjectsState>(entity);
+					registry.emplace<Components::MineObjectsFinished>(entity);
 
 					//Do something at the end
 					//std::cout << "Mining_Objects_Ended" << std::endl;
 
 					//If entity has physics component - return horizontal movement
-					if (component_manager.physics.contains(entity))
-					{
-						component_manager.physics.at(entity).can_move_horizontal = true;
-					}
+					if (registry.all_of<Components::Physics>(entity))
+						registry.get<Components::Physics>(entity).can_move_horizontal = true;
 				}
 				else
 				{
 					auto destroyed_object_id = world.damageObject(mi.start_mouse_position, mining_speed * dt);
 
 					//If object was successfully destroyed - add items to the entity's inventory
-					if (destroyed_object_id && component_manager.has_inventory.contains(entity))
+					if (destroyed_object_id && registry.all_of<Components::HasInventory>(entity))
 					{
 						const auto& items = ObjectManager::get().getProperties(*destroyed_object_id).drop;
 						for (const auto& item : items)
 						{
-							addRandomizedItem(entity, item);
+							addRandomizedItem(entity, item, registry);
 						}
 
 					}
@@ -688,69 +640,64 @@ public:
 
 	void render(graphics::Renderer& screen)
 	{
-		auto& component_manager = ComponentManager::get();
-		for (auto& entity : EntityManager::get().getEntities())
+		auto view = registry.view<Components::Transform, Components::MineIntent>();
+		for (auto [entity, ts, mi] : view.each())
 		{
-			if (component_manager.mine_intent.contains(entity) && component_manager.transform.contains(entity) &&  component_manager.mine_intent.contains(entity))
+			float mining_speed;
+			float mining_radius;
+			float mining_size;
+			if (registry.all_of<Components::Equipment>(entity) && registry.get<Components::Equipment>(entity).pickaxe)
 			{
-				auto& ts = component_manager.transform.at(entity);
-				auto& mi = component_manager.mine_intent.at(entity);
+				auto* pickaxe_component = registry.get<Components::Equipment>(entity).pickaxe;
+				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component->id);
+				const auto& pickaxe_data = item_properties.pickaxe_data;
 
-				float mining_speed;
-				float mining_radius;
-				float mining_size;
-				if (ComponentManager::get().equipment.contains(entity) && ComponentManager::get().equipment.at(entity).pickaxe)
+				mining_speed = pickaxe_data->speed;
+				mining_radius = pickaxe_data->radius;
+				mining_size = pickaxe_data->size;
+			}
+			else
+			{
+				mining_speed = BASE_MINING_SPEED;
+				mining_radius = BASE_MINING_RADIUS;
+				mining_size = BASE_MINING_SIZE;
+			}
+
+			if (registry.all_of<Components::MineObjectsState>(entity))
+			{
+				auto object = world.getObjectOnPosition(mi.start_mouse_position);
+
+				if (object)
 				{
-					const auto& pickaxe_component = ComponentManager::get().equipment.at(entity).pickaxe;
-					const auto& item_properties = ItemManager::get().getProperties(pickaxe_component->id);
-					const auto& pickaxe_data = item_properties.pickaxe_data;
-
-					mining_speed = pickaxe_data->speed;
-					mining_radius = pickaxe_data->radius;
-					mining_size = pickaxe_data->size;
+					const auto& object_rect = object->rect;
+					graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::YELLOW);
 				}
-				else
-				{
-					mining_speed = BASE_MINING_SPEED;
-					mining_radius = BASE_MINING_RADIUS;
-					mining_size = BASE_MINING_SIZE;
-				}
+			}
+			else
+			{
+				auto object = world.getObjectOnPosition(mi.current_mouse_position);
 
-				if (component_manager.mine_objects_state.contains(entity))
+				if (object)
 				{
-					auto object = world.getObjectOnPosition(mi.start_mouse_position);
+					const auto& mid_position = ts.position + ts.size * 0.5f;
+					float distance = glm::distance(mid_position, mi.current_mouse_position);
+					const auto& object_rect = object->rect;
 
-					if (object)
+					if (distance < mining_radius)
 					{
-						const auto& object_rect = object->rect;
-						graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::YELLOW);
+
+						graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::BLUE);
 					}
-				}
-				else
-				{
-					auto object = world.getObjectOnPosition(mi.current_mouse_position);
-
-					if (object)
+					else
 					{
-						const auto& mid_position = ts.position + ts.size * 0.5f;
-						float distance = glm::distance(mid_position, mi.current_mouse_position);
-						const auto& object_rect = object->rect;
-
-						if (distance < mining_radius)
-						{
-
-							graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::BLUE);
-						}
-						else
-						{
-							graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::RED);
-						}
+						graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::RED);
 					}
 				}
 			}
 		}
 	}
 private:
+	entt::registry& registry;
 	World& world;
 
 	float tile_width = 1.f;
@@ -762,60 +709,54 @@ private:
 class ItemUsageSystem
 {
 public:
-	ItemUsageSystem(Entity& target_entity)
+	ItemUsageSystem(entt::registry& registry, Entity& target_entity)
 		: target_entity(target_entity)
+		, registry(registry)
 	{
 	}
 
 	void update()
 	{
-		auto& component_manager = ComponentManager::get();
-
 		//Remove Item Equip/Unequip components after one frame
-		if (component_manager.item_equipped.contains(target_entity))
-		{
-			component_manager.item_equipped.erase(target_entity);
-		}
-		if (component_manager.item_unequipped.contains(target_entity))
-		{
-			component_manager.item_unequipped.erase(target_entity);
-		}
+		registry.remove<Components::ItemEquipped>(target_entity);
+		registry.remove<Components::ItemUnequipped>(target_entity);
 
-		if (component_manager.equipment.contains(target_entity))
+		if (registry.all_of<Components::Equipment>(target_entity))
 		{
-			auto& equipment_component = component_manager.equipment.at(target_entity);
+			auto& equipment_component = registry.get<Components::Equipment>(target_entity);
 
-			if (component_manager.use_item.contains(target_entity))
+			if (registry.all_of<Components::UseItem>(target_entity))
 			{
-				const auto& use_item_component = component_manager.use_item.at(target_entity);
+				auto& use_item_component = registry.get<Components::UseItem>(target_entity);
 				const auto& item_properties = ItemManager::get().getProperties(use_item_component.item_id);
 
 				if (item_properties.heal_data)
 				{
-					auto& health_component = ComponentManager::get().health[target_entity];
+					auto& health_component = registry.get<Components::Health>(target_entity);
 					health_component.current_health = std::min(health_component.max_health, health_component.current_health + item_properties.heal_data->amount);
 				}
 
-				component_manager.use_item.erase(target_entity);
+				registry.erase<Components::UseItem>(target_entity);
 			}
-			if (component_manager.equip_item.contains(target_entity))
+			if (registry.all_of<Components::EquipItem>(target_entity))
 			{
-				const auto& equip_item_component = component_manager.equip_item.at(target_entity);
+				auto& equip_item_component = registry.get<Components::EquipItem>(target_entity);
 				const auto& item_properties = ItemManager::get().getProperties(equip_item_component.item->id);
 
 				if (item_properties.pickaxe_data)
 				{
 					if (equipment_component.pickaxe)
-						component_manager.equipment.at(target_entity).pickaxe->equipped = false;
+						registry.get<Components::Equipment>(target_entity).pickaxe->equipped = false;
 
 					equipment_component.pickaxe = equip_item_component.item;
 					equip_item_component.item->equipped = true;	
-					component_manager.item_equipped[target_entity] = ItemEquipped{ equip_item_component.item };
+
+					registry.emplace<Components::ItemEquipped>(target_entity, equip_item_component.item);
 
 					// Set mining properties (speed, radius, size)
-					if (component_manager.mining_ability.contains(target_entity))
+					if (registry.all_of<Components::MiningAbility>(target_entity))
 					{
-						auto& mining_ability = component_manager.mining_ability.at(target_entity);
+						auto& mining_ability = registry.get<Components::MiningAbility>(target_entity);
 						mining_ability.speed = item_properties.pickaxe_data->speed;
 						mining_ability.radius = item_properties.pickaxe_data->radius;
 						mining_ability.size = item_properties.pickaxe_data->size;
@@ -828,19 +769,19 @@ public:
 				{
 					if (equipment_component.weapons.size() < equipment_component.max_weapon)
 					{
-						component_manager.equipment.at(target_entity).weapons.push_back(equip_item_component.item);
+						registry.get<Components::Equipment>(target_entity).weapons.emplace_back(equip_item_component.item);
 						equip_item_component.item->equipped = true;
-						component_manager.item_equipped[target_entity] = ItemEquipped{ equip_item_component.item };
+						registry.emplace<Components::ItemEquipped>(target_entity, equip_item_component.item);
 					}
 				}
 
 
-				component_manager.equip_item.erase(target_entity);
+				registry.erase<Components::EquipItem>(target_entity);
 			}	
 
-			if (component_manager.unequip_item.contains(target_entity))
+			if (registry.all_of<Components::UnequipItem>(target_entity))
 			{
-				auto& unequip_item_component = component_manager.unequip_item.at(target_entity);
+				auto& unequip_item_component = registry.get<Components::UnequipItem>(target_entity);
 				const auto& item_properties = ItemManager::get().getProperties(unequip_item_component.item->id);
 				auto* item = unequip_item_component.item;
 				
@@ -850,9 +791,9 @@ public:
 					item->equipped = false;
 
 					// Set mining properties (speed, radius, size)
-					if (component_manager.mining_ability.contains(target_entity))
+					if (registry.all_of<Components::MiningAbility>(target_entity))
 					{
-						auto& mining_ability = component_manager.mining_ability.at(target_entity);
+						auto& mining_ability = registry.get<Components::MiningAbility>(target_entity);
 						mining_ability.speed = BASE_MINING_SPEED;
 						mining_ability.radius = BASE_MINING_RADIUS;
 						mining_ability.size = BASE_MINING_SIZE;
@@ -862,13 +803,13 @@ public:
 				// Melee weapon
 				if (item_properties.melee_weapon_data)
 				{
-					auto& weapon_array = component_manager.equipment.at(target_entity).weapons;
+					auto& weapon_array = registry.get<Components::Equipment>(target_entity).weapons;
 					weapon_array.erase(std::ranges::remove(weapon_array, item).begin(), weapon_array.end());
 					item->equipped = false;
 				}
 
-				component_manager.item_unequipped[target_entity] = ItemUnequipped{ unequip_item_component.item };
-				component_manager.unequip_item.erase(target_entity);
+				registry.emplace<Components::ItemUnequipped>(target_entity, unequip_item_component.item);
+				registry.erase<Components::UnequipItem>(target_entity);
 			}
 		}
 	}
@@ -877,33 +818,32 @@ public:
 	{
 		if (item_properties.heal_data)
 		{
-			auto& health_component = ComponentManager::get().health[target_entity];
+			auto& health_component = registry.get<Components::Health>(target_entity);
 			health_component.current_health = std::min(health_component.max_health, health_component.current_health + item_properties.heal_data->amount);
 		}
 	}
 
 	void equipItem(Item* item)
 	{
-		auto& component_manager = ComponentManager::get();
 		const auto& item_properties = ItemManager::get().getProperties(item->id);
 
-		if (component_manager.equipment.contains(target_entity))
+		if (registry.all_of<Components::Equipment>(target_entity))
 		{
-			auto& equipment_component = component_manager.equipment.at(target_entity);
+			auto& equipment_component = registry.get<Components::Equipment>(target_entity);
 
 			// Pickaxe
 			if (item_properties.pickaxe_data)
 			{
 				if (equipment_component.pickaxe)
-					component_manager.equipment.at(target_entity).pickaxe->equipped = false;
+					registry.get<Components::Equipment>(target_entity).pickaxe->equipped = false;
 
 				equipment_component.pickaxe = item;
 				item->equipped = true;
 
 				// Set mining properties (speed, radius, size)
-				if (component_manager.mining_ability.contains(target_entity))
+				if (registry.all_of<Components::MiningAbility>(target_entity))
 				{
-					auto& mining_ability = component_manager.mining_ability.at(target_entity);
+					auto& mining_ability = registry.get<Components::MiningAbility>(target_entity);
 					mining_ability.speed = item_properties.pickaxe_data->speed;
 					mining_ability.radius = item_properties.pickaxe_data->radius;
 					mining_ability.size = item_properties.pickaxe_data->size;
@@ -917,7 +857,7 @@ public:
 			{
 				if (equipment_component.weapons.size() < equipment_component.max_weapon)
 				{
-					component_manager.equipment.at(target_entity).weapons.push_back(item);
+					registry.get<Components::Equipment>(target_entity).weapons.emplace_back(item);
 					item->equipped = true;
 					return;
 				}
@@ -928,11 +868,10 @@ public:
 	void unequip(Item* item)
 	{
 		const auto& item_properties = ItemManager::get().getProperties(item->id);
-		auto& component_manager = ComponentManager::get();
 
-		if (component_manager.equipment.contains(target_entity))
+		if (registry.all_of<Components::Equipment>(target_entity))
 		{
-			auto& equipment_component = component_manager.equipment.at(target_entity);
+			auto& equipment_component = registry.get<Components::Equipment>(target_entity);
 
 			// Pickaxe
 			if (item_properties.pickaxe_data)
@@ -941,9 +880,9 @@ public:
 				item->equipped = false;
 
 				// Set mining properties (speed, radius, size)
-				if (component_manager.mining_ability.contains(target_entity))
+				if (registry.all_of<Components::MiningAbility>(target_entity))
 				{
-					auto& mining_ability = component_manager.mining_ability.at(target_entity);
+					auto& mining_ability = registry.get<Components::MiningAbility>(target_entity);
 					mining_ability.speed = BASE_MINING_SPEED;
 					mining_ability.radius = BASE_MINING_RADIUS;
 					mining_ability.size = BASE_MINING_SIZE;
@@ -955,7 +894,7 @@ public:
 			// Melee weapon
 			if (item_properties.melee_weapon_data)
 			{
-				auto& weapon_array = component_manager.equipment.at(target_entity).weapons;
+				auto& weapon_array = registry.get<Components::Equipment>(target_entity).weapons;
 				weapon_array.erase(std::ranges::remove(weapon_array, item).begin(), weapon_array.end());
 				item->equipped = false;
 				return;
@@ -964,6 +903,7 @@ public:
 	}
 
 private:
+	entt::registry& registry;
 	Entity& target_entity;
 };
 
@@ -971,96 +911,88 @@ private:
 class ButtonSystem
 {
 public:
-	ButtonSystem() = default;
+	ButtonSystem(entt::registry& registry) : registry{registry} {}
 
 	void update()
 	{
-		auto& component_manager = ComponentManager::get();
-		for (const auto& entity : EntityManager::get().getEntities())
+		auto view = registry.view<Components::Transform, Components::Button>();
+		for (auto [entity, ts] : view.each())
 		{
-			if (component_manager.transform.contains(entity) && component_manager.button.contains(entity))
+			//Remove CraftItem components from the last frame
+			registry.remove<Components::CraftItem>(entity);
+
+			const auto& mouse_state = InputManager::getMouseState();
+			const auto& mouse_position = mouse_state.position;
+			const auto& mouse_left_state = mouse_state.left;
+
+			bool is_covered = isMouseIntersection(mouse_position, SDL_FRect{ ts.position.x, ts.position.y, ts.size.x, ts.size.y });
+			bool was_covered = registry.all_of<Components::ButtonCovered>(entity);
+
+			//If button is not being held right now
+			if (!registry.all_of<Components::ButtonHeld>(entity))
 			{
-				//Remove CraftItem components from the last frame
-				if (component_manager.craft_item.contains(entity))
-				{
-					component_manager.craft_item.erase(entity);
-				}
-
-				const auto& ts = component_manager.transform.at(entity);
-				auto& bt = component_manager.button.at(entity);
-
-				const auto& mouse_state = InputManager::getMouseState();
-				const auto& mouse_position = mouse_state.position;
-				const auto& mouse_left_state = mouse_state.left;
-
-				bool is_covered = isMouseIntersection(mouse_position, SDL_FRect{ ts.position.x, ts.position.y, ts.size.x, ts.size.y });
-				bool was_covered = component_manager.button_covered.contains(entity);
-
-				//If button is not being held right now
-				if (!component_manager.button_held.contains(entity))
-				{
-					//If cursor is on the button now but wasn't last frame - ENTER
-					if (is_covered && !was_covered)
-					{
-						component_manager.button_entered[entity] = ButtonEntered{};
-					}
-					//If cursor is on the button and was last frame - STAY/COVERED
-					else if (is_covered && was_covered)
-					{
-						component_manager.button_covered[entity] = ButtonCovered{};
-
-						if (mouse_left_state == MouseButtonState::DOWN)
-						{
-							component_manager.button_held[entity] = ButtonHeld{};
-						}
-					}
-					//If cursor is not on the mouse but was last frame - EXIT
-					else if (!is_covered && was_covered)
-					{
-						component_manager.button_exit[entity] = ButtonExit{};
-					}
-				}
-				//If button is being held
-				else
-				{
-					//If cursor is no longer on the button - Remove ButtonHeld component
-					if (!is_covered)
-					{
-						component_manager.button_held.erase(entity);
-					}
-					//Or if left mouse button was released - Remove ButtonHeld component and call a function assigned to the button
-					else if (mouse_left_state == MouseButtonState::RELEASED)
-					{
-						component_manager.button_held.erase(entity);
-
-						//Do func()
-						press(entity);
-					}
-				}
-
+				//If cursor is on the button now but wasn't last frame - ENTER
 				if (is_covered && !was_covered)
 				{
-					component_manager.button_covered[entity] = ButtonCovered{};
+					registry.emplace<Components::ButtonEntered>(entity);
 				}
+				//If cursor is on the button and was last frame - STAY/COVERED
+				else if (is_covered && was_covered)
+				{
+					registry.emplace<Components::ButtonCovered>(entity);
+
+					if (mouse_left_state == MouseButtonState::DOWN)
+					{
+						registry.emplace<Components::ButtonHeld>(entity);
+					}
+				}
+				//If cursor is not on the mouse but was last frame - EXIT
 				else if (!is_covered && was_covered)
 				{
-					component_manager.button_covered.erase(entity);
+					registry.emplace<Components::ButtonExit>(entity);
 				}
+			}
+			//If button is being held
+			else
+			{
+				//If cursor is no longer on the button - Remove ButtonHeld component
+				if (!is_covered)
+				{
+					registry.erase<Components::ButtonHeld>(entity);
+				}
+				//Or if left mouse button was released - Remove ButtonHeld component and call a function assigned to the button
+				else if (mouse_left_state == MouseButtonState::RELEASED)
+				{
+					registry.erase<Components::ButtonHeld>(entity);
+
+					//Do func()
+					press(entity);
+				}
+			}
+
+			if (is_covered && !was_covered)
+			{
+				registry.emplace<Components::ButtonCovered>(entity);
+			}
+			else if (!is_covered && was_covered)
+			{
+				registry.erase<Components::ButtonCovered>(entity);
 			}
 		}
 	}
 
 private:
+	entt::registry& registry;
+
 	void press(Entity button)
 	{
-		auto& component_manager = ComponentManager::get();
-		if (component_manager.craft_button.contains(button))
+		if (registry.all_of<Components::CraftButton>(button))
 		{
-			const auto& craft_component = component_manager.craft_button.at(button);
+			auto& craft_component = registry.get<Components::CraftButton>(button);
 
 			if (craft_component.is_available)
 			{
-				component_manager.craft_item[button] = CraftItem{ craft_component.recipe_id };
+				registry.emplace<Components::CraftItem>(button, craft_component.recipe_id);
 			}
 		}
 	}
@@ -1070,19 +1002,18 @@ private:
 class CraftSystem
 {
 public:
-	CraftSystem() = default;
+	CraftSystem(entt::registry& registry) : registry{registry} {}
 
 	void update(Entity target_entity)
 	{
-		auto& component_manager = ComponentManager::get();
-		for (const auto& entity : EntityManager::get().getEntities())
+		if (!registry.all_of<Components::HasInventory>(target_entity)) return;
+
+		auto& inventory_component = registry.get<Components::HasInventory>(target_entity);
+		auto view = registry.view<Components::CraftItem>();
+		for (auto [entity, craft_item_component] : view.each())
 		{
 			//NOTE: CraftItem is a component that is attached to a CraftButton when user tries to craft an item.
 			//And the entity we have to give an item is our target_entity
-			if (!component_manager.craft_item.contains(entity) || !component_manager.has_inventory.contains(target_entity)) continue;
-
-			auto& inventory_component = component_manager.has_inventory.at(target_entity);
-			auto& craft_item_component = component_manager.craft_item.at(entity);
 
 			auto& inventory = inventory_component.inventory;
 
@@ -1104,7 +1035,7 @@ public:
 				inventory->addItem(recipe.item_id, 1);
 				*/
 
-				component_manager.add_item[target_entity] = AddItem{ Item{recipe.item_id, 1} };
+				registry.emplace<Components::AddItem>(target_entity, recipe.item_id, 1);
 				
 				for (const auto& required_craft_item : recipe.required_items)
 				{
@@ -1113,4 +1044,7 @@ public:
 			}
 		}
 	}
+	
+private:
+	entt::registry& registry;
 };

@@ -1,5 +1,6 @@
 #pragma once
 
 #include <cstdint>
+#include <entt/entt.hpp>
 
-using Entity = uint32_t;
+using Entity = entt::entity;

@@ -65,7 +65,7 @@ Game::Game(graphics::Renderer& screen)
 	world->generateWorld(0);
 
 	//Give basic items to the player
-	auto& inventory = ComponentManager::get().has_inventory[player].inventory;
+	auto& inventory = registry.get<Components::HasInventory>(player).inventory;
 	inventory->addItem(ItemManager::get().getItemID("Apple"), 15);
 	inventory->addItem(ItemManager::get().getItemID("Banana"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 1);
@@ -238,112 +238,61 @@ void Game::initBiomes()
 
 void Game::initPlayer()
 {
-	auto& component_manager = ComponentManager::get();
 
-	player = EntityManager::get().createEntity().value();
+	player = registry.create();
 
-	component_manager.transform[player] = Transform{
-	glm::vec2{400.f, -500.f},
-	glm::vec2{35.f, 40.f}
-	};
+	auto& ts = registry.emplace<Components::Transform>(player);
+	ts.position = glm::vec2{ 400.0f, -500.f };
+	ts.size = glm::vec2{ 35.0f, 40.0f };
 
-	component_manager.renderable[player] = Renderable
-	{
-		(*ResourceManager::get().getSpriteSheet("player"))[0]
-	};
+	auto& renderable = registry.emplace<Components::Renderable>(player);
+	renderable.sprite = (*ResourceManager::get().getSpriteSheet("player"))[0];
 
-	component_manager.physics[player] = Physics{
-		true,
-	glm::vec2{0.f, 0.f},
-	glm::vec2{1500.f, 0.f},
-	glm::vec2{250.f, 200.f,},
-	5.f,
-	false,
-	};
+	auto& physics = registry.emplace<Components::Physics>(player);
+	physics.can_move_horizontal = true;
+	physics.velocity = glm::vec2{ 0.0f };
+	physics.acceleration = glm::vec2{ 1500.0f, 0.0f };
+	physics.acceleration = glm::vec2{ 250.0f, 200.0f };
+	physics.decelaration = 5.0f;
 
-	component_manager.physic_step[player] = PhysicStep
-	{
-		20.0f
-	};
+	auto& physics_step = registry.emplace<Components::PhysicStep>(player);
+	physics_step.max_step_height = 20.0f;
 
-	component_manager.jump[player] = Jump{
-		475.f,
-		false
-	};
+	auto& jump = registry.emplace<Components::Jump>(player);
+	jump.jump_force = 475.0f;
 
-	component_manager.player[player] = Player{
+	registry.emplace<Components::Player>(player);
 
-	};
+	auto& mine_intent = registry.emplace<Components::MineIntent>(player);
+	
+	auto& mining_ability = registry.emplace<Components::MiningAbility>(player);
+	mining_ability.speed = BASE_MINING_SPEED;
+	mining_ability.radius = BASE_MINING_RADIUS;
+	mining_ability.size = BASE_MINING_SIZE;
 
-	component_manager.mine_intent[player] = MineIntent
-	{
-		glm::vec2{},
-		glm::vec2{},
-		false
-	};
+	auto& place_ability = registry.emplace<Components::PlaceAbility>(player);
+	place_ability.radius = 200.0f;
+	place_ability.placing_time = 0.3f;
+	place_ability.placing_timer = 0.0f;
 
-	/*component_manager.mine_tiles_ability[player] = MineTilesAbility
-	{
-		150.f,
-		200.f,
-		5
-	};
+	auto& place_intent = registry.emplace<Components::PlaceIntent>(player);
 
-	component_manager.mine_objects_ability[player] = MineObjectsAbility
-	{
-		150.f,
-		200.f,
-	};*/
+	auto& has_inventory = registry.emplace<Components::HasInventory>(player);
+	has_inventory.inventory = std::make_shared<Inventory>(15);
 
-	component_manager.mining_ability[player] = MiningAbility
-	{
-		BASE_MINING_SPEED,
-		BASE_MINING_RADIUS,
-		BASE_MINING_SIZE
-	};
+	auto& health = registry.emplace<Components::Health>(player);
+	health.max_health = 100.0f;
+	health.current_health = 50.0f;
 
-	component_manager.place_ability[player] = PlaceAbility
-	{
-		200.f,
-		0.3f,
-		0.0f
-	};
+	registry.emplace<Components::CraftingAbility>(player);
 
-	component_manager.place_intent[player] = PlaceIntent
-	{
-		glm::vec2{},
-		false
-	};
+	registry.emplace<Components::Equipment>(player, 2);
 
-	component_manager.has_inventory[player] = HasInventory
-	{
-		std::make_shared<Inventory>(15)
-	};
-
-	component_manager.health[player] = Health
-	{
-		100.f,
-		50.f
-	};
-
-	component_manager.crafting_ability[player] = CraftingAbility
-	{
-		
-	};
-
-
-	component_manager.equipment[player] = Equipment
-	{
-		2 // Number of weapon slots the player can equip
-	};
-
-	component_manager.character_animations[player] = CharacterAnimation
-	{
-		idle_animation,
-		running_animation,
-		jump_animation,
-		fall_animation
-	};
+	auto& animation = registry.emplace<Components::CharacterAnimation>(player);
+	animation.idle_animation = idle_animation;
+	animation.running_animation = running_animation;
+	animation.jump_animation = jump_animation;
+	animation.fall_animation = fall_animation;
 
 	//Add all recipes that do not require blueprints
 	for (size_t i = 0; i < CraftingManager::get().size(); ++i)
@@ -352,7 +301,8 @@ void Game::initPlayer()
 
 		if (!recipe.is_blueprint_required)
 		{
-			component_manager.crafting_ability[player].recipes_acquired.push_back(i);
+			auto& craft_abl = registry.get<Components::CraftingAbility>(player);
+			craft_abl.recipes_acquired.emplace_back(i);
 		}
 	}
 
@@ -360,9 +310,9 @@ void Game::initPlayer()
 
 void Game::initUserInterface()
 {
-	auto& component_manager = ComponentManager::get();
+	auto player_health = registry.get<Components::Health>(player);
 
-	interface.addFillBar({ 0.f, screen.getWindowSize().y - 50.f, }, { 250.f, 50.f }, component_manager.health[player].current_health, 100.f, Color::RED);
+	interface.addFillBar({ 0.f, screen.getWindowSize().y - 50.f, }, { 250.f, 50.f }, player_health.current_health, 100.f, Color::RED);
 
 	//interface.addInventoryView(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});
 
@@ -376,8 +326,6 @@ void Game::update(float dt)
 
 	screen.setZoom(zoom);
 	screen.setView(view_position);
-
-	auto& component_manager = ComponentManager::get();
 
 	const auto& mouse = InputManager::getMouseState();
 
@@ -396,11 +344,12 @@ void Game::update(float dt)
 	drop_item_system->update(dt);
 	inventory_manage_system->update();
 	
-	const auto& player_pos = component_manager.transform[player].position;
-	const auto& player_size = component_manager.transform[player].size;
+	const auto& player_transform = registry.get<Components::Transform>(player);
+	const auto& player_pos = player_transform.position;
+	const auto& player_size = player_transform.size;
 	enemy_spawn_system->update(dt, player_pos + player_size * 0.5f, screen);
 
-	if (!inventory_view->isMouseCoveringInventory() || component_manager.mine_objects_state.contains(player))
+	if (!inventory_view->isMouseCoveringInventory() || registry.all_of<Components::MineObjectsState>(player))
 	{
 		mining_tiles_system->update(dt);
 		place_system->update(dt);
@@ -457,7 +406,7 @@ void Game::updateTilemapTarget()
 	if (lock_camera)
 	{
 		//Set target on player
-		const auto& player_transform = ComponentManager::get().transform[player];
+		const auto& player_transform = registry.get<Components::Transform>(player);
 		const auto& player_position = player_transform.position;
 		const auto& player_size = player_transform.size;
 		world_target = { player_position.x + player_size.x / 2.f, player_position.y + player_size.y / 2.f };
@@ -525,7 +474,7 @@ void Game::updateInput(float dt)
 	//Add items
 	if (InputManager::isKeyDown(SDLK_G))
 	{
-		ComponentManager::get().has_inventory[player].inventory->addItem(1,1);
+		registry.get<Components::HasInventory>(player).inventory->addItem(1, 1);
 	}
 
 	//Change the mining radius
@@ -545,8 +494,6 @@ void Game::updateInput(float dt)
 
 void Game::updateImGui(float dt)
 {
-	auto& component_manager = ComponentManager::get();
-
 	ImGui::Begin("Window");
 
 	if (ImGui::CollapsingHeader("Player"))

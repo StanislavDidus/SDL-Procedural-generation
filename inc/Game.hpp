@@ -77,6 +77,8 @@ private:
 	float tilemap_raws = 10.f;
 	float tilemap_columns = 10.f;
 
+	entt::registry registry;
+
 	//Systems
 	std::unique_ptr<PhysicsSystem> physics_system;
 	std::unique_ptr<InputSystem> input_system;
@@ -98,6 +100,7 @@ private:
 	std::unique_ptr<RenderWeaponCircle> render_weapon_circle_system;
 	std::unique_ptr<DropItemSystem> drop_item_system;
 	std::unique_ptr<InventoryManageSystem> inventory_manage_system;
+
 	//UI
 	std::unique_ptr<CraftView> craft_view;
 	std::shared_ptr<InventoryView> inventory_view;

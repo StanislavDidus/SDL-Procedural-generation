@@ -7,6 +7,7 @@
 
 #include "World.hpp"
 #include "ECS/Entity.hpp"
+#include <entt/entt.hpp>
 
 struct SpawnRadius
 {
@@ -17,15 +18,15 @@ struct SpawnRadius
 class EnemySpawnSystem
 {
 public:
-	EnemySpawnSystem(const World& world, const SpawnRadius& spawn_radius);
+	EnemySpawnSystem(entt::registry& registry, const World& world, const SpawnRadius& spawn_radius);
 
 	//Getters
 	const std::vector<Entity>& getEnemies() const; 
 
 	void update(float dt, const glm::vec2& target_position, graphics::Renderer& screen); //TODO: Remove Renderer(used for debug purposes).
 private:
-	static std::optional<Entity> createEntity(size_t id);
-	static void destroyEnemy(Entity enemy);
+	Entity createEntity(size_t id) const;
+	void destroyEnemy(Entity enemy) const;
 	
 	void spawnEnemies(const glm::vec2& target_position, int number);
 
@@ -41,4 +42,7 @@ private:
 	int max_enemies = 1;
 	int enemies_to_spawn = 1;
 	float enemy_despawn_distance = 3000.0f;
+
+	entt::registry& registry;
+
 };
