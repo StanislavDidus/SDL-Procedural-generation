@@ -15,6 +15,8 @@
 
 #include "InputManager.hpp"
 
+#include <entt/entt.hpp>
+
 constexpr int WINDOW_WIDTH = 960;
 constexpr int WINDOW_HEIGHT = 540;
 
@@ -103,7 +105,7 @@ int main()
         const std::chrono::duration<double> elapsed_seconds{ finish - start };
         dt = static_cast<float>(elapsed_seconds.count());
     }
-    
+
     //Destroy imgui
     ImGui_ImplSDL3_Shutdown();
     ImGui_ImplSDLRenderer3_Shutdown();

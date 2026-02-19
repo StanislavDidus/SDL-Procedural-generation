@@ -8,6 +8,8 @@ add_subdirectory(SDL_ttf EXCLUDE_FROM_ALL)
 add_subdirectory(glm EXCLUDE_FROM_ALL)
 #tinyxml2
 add_subdirectory(tinyxml2 EXCLUDE_FROM_ALL)
+#entt
+add_subdirectory(entt EXCLUDE_FROM_ALL)
 
 #ImGui
 add_library(imgui
@@ -45,6 +47,7 @@ set ( ALL_LIBS
     SDL_uclibc
     SDL3_test
     SDL3_ttf-static
+    EnTT
 )
 
 set_targets_folder("${ALL_LIBS}" "externals")

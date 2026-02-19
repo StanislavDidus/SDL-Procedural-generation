@@ -116,6 +116,7 @@ target_link_libraries(
     noise
     imgui
     tinyxml2
+    EnTT::EnTT
 )
 
 target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_23)
