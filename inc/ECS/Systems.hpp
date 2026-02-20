@@ -35,13 +35,8 @@ static void addRandomizedItem(entt::entity entity, const RandomizedItem& item, e
 
 	if (drop_rand <= item.drop_chance)
 	{
-		/*
-		inventory.addItem(item.item_id, quantities_rand);
-	*/
-		/*
-		ComponentManager::get().add_item[entity] = AddItem{ Item{item.item_id, quantities_rand} };
-		auto& add_item = registry.get<Components::AddI
-	*/
+		auto item_entity = registry.create();
+		registry.emplace_or_replace<Components::AddItem>(item_entity, entity, Item{ item.item_id, quantities_rand });
 	}
 }
 
@@ -223,7 +218,7 @@ private:
 					{
 						const auto& step_component = registry.get<Components::PhysicStep>(entity);
 						SDL_FRect step = { ts.position.x - step_component.max_step_height, ts.position.y + ts.size.y - step_component.max_step_height, step_component.max_step_height, step_component.max_step_height};
-						if (isSpaceAbove(step, ts.size.y) && ph.velocity.x > 0.f)
+						if (isSpaceAbove(step, ts.size.y) && ph.velocity.x < 0.f)
 						{
 							ts.position.y -= step_component.max_step_height;
 							ts.position.x -= 1.f;
@@ -432,9 +427,11 @@ public:
 
 	void update(float dt)
 	{
-		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MineObjectsState, Components::MiningAbility>();
+		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
 		for (auto [entity, ts, mi, mining_ability_component] : view.each())
 		{
+			if (registry.all_of<Components::MineObjectsState>(entity)) continue;
+
 			tiles_covered.clear();
 
 			float mining_speed = mining_ability_component.speed;
@@ -473,9 +470,10 @@ public:
 
 	void renderOutline(graphics::Renderer& screen)
 	{
-		auto view = registry.view<Components::Transform, Components::MineObjectsState, Components::MineIntent, Components::MiningAbility>();
+		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
 		for (auto [entity, ts, mi, mining_ability_component] : view.each())
 		{
+			if (registry.all_of<Components::MineObjectsState>(entity)) continue;
 			float mining_radius = mining_ability_component.radius;
 
 			const auto& player_mid_position = ts.position + ts.size * 0.5f;
@@ -1034,7 +1032,8 @@ public:
 				inventory->addItem(recipe.item_id, 1);
 				*/
 
-				registry.emplace<Components::AddItem>(target_entity, recipe.item_id, 1);
+				auto item_entity = registry.create();
+				registry.emplace<Components::AddItem>(item_entity, target_entity, Item{ recipe.item_id, 1 });
 				
 				for (const auto& required_craft_item : recipe.required_items)
 				{

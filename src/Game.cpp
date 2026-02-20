@@ -352,7 +352,7 @@ void Game::update(float dt)
 	const auto& player_size = player_transform.size;
 	enemy_spawn_system->update(dt, player_pos + player_size * 0.5f, screen);
 
-	if (!inventory_view->isMouseCoveringInventory() || !registry.all_of<Components::MineObjectsState>(player))
+	if (!inventory_view->isMouseCoveringInventory() || registry.all_of<Components::MineObjectsState>(player))
 	{
 		mining_tiles_system->update(dt);
 		place_system->update(dt);

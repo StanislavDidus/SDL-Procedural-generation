@@ -27,15 +27,28 @@ public:
 
 	void update(float dt)
 	{
+		// Drop item if entity intends to 
 		std::vector<DroppedItemData> dropped_item_datas;
-		auto view = registry.view<Components::Transform, Components::DropItem, Components::Renderable>();
-		for (auto [entity, transform_component, drop_item_component, renderable_component] : view.each())
+		auto view = registry.view<Components::DropItem>();
+		std::vector<Entity> to_destroy;
+		to_destroy.reserve(view.size());
+		for (auto [entity, drop_item_component] : view.each())
 		{
-			// Drop item if entity intends to 
-			const auto& item_properties = ItemManager::get().getProperties(drop_item_component.item.id);
+			if (registry.all_of<Components::Transform, Components::Renderable>(drop_item_component.target))
+			{
+				const auto& transform_component = registry.get<Components::Transform>(drop_item_component.target);
+				const auto& renderable_component = registry.get<Components::Renderable>(drop_item_component.target);
 
-			dropped_item_datas.emplace_back(transform_component.position, item_properties.sprite_index, drop_item_component.item, renderable_component.flip_mode == SDL_FLIP_HORIZONTAL);
-			registry.erase<Components::DropItem>(entity);
+				const auto& item_properties = ItemManager::get().getProperties(drop_item_component.item.id);
+
+				dropped_item_datas.emplace_back(transform_component.position, item_properties.sprite_index, drop_item_component.item, renderable_component.flip_mode == SDL_FLIP_HORIZONTAL);
+				to_destroy.emplace_back(entity);
+			}
+		}
+
+		for (const auto& entity : to_destroy)
+		{
+			registry.destroy(entity);
 		}
 
 		// Create all dropped item entities
@@ -88,19 +101,20 @@ public:
 
 				if (distance < 100.0f && inventory_component.inventory->full() == false)
 				{
-					/*
-					inventory_component.inventory->addItem(dropped_item_component.item.id, dropped_item_component.item.stack_number);
-					*/
-					registry.emplace<Components::AddItem>(entity_, dropped_item_component.item);
+					auto item_entity = registry.create();
+					registry.emplace<Components::PickUpItem>(item_entity, entity_, entity, dropped_item_component.item);
 					dropped_items_to_delete.emplace_back(entity);
+					break;
 				}
 			}
 		}
 
+		/*
 		for (const auto& entity : dropped_items_to_delete)
 		{
 			registry.destroy(entity);
 		}
+	*/
 	}
 
 private:

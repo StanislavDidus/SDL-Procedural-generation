@@ -67,10 +67,8 @@ public:
 						{
 							auto& enemy_health = registry.get<Components::Health>(enemy);
 
-						//TODO: FIX DAMAGED COMPONENT	
-							/*
-							component_manager.damaged[enemy].emplace_back(damage);
-						*/
+							auto damage_entity = registry.create();
+							registry.emplace<Components::Damage>(damage_entity, enemy, damage);
 						}
 					}
 				}

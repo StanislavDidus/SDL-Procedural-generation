@@ -130,7 +130,8 @@ void InventoryView::isMovingItems()
 		if (!item.equipped)
 		{
 			// Drop item if it is moved outside the inventory area
-			registry.emplace<Components::DropItem>(target_entity, item);
+			auto drop_item = registry.create();
+			registry.emplace<Components::DropItem>(drop_item, target_entity, item);
 			inventory->removeItemAtSlot(*dragged_slot);
 			dragged_slot = std::nullopt;
 		}

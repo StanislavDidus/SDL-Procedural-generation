@@ -5,6 +5,11 @@
 #include <memory>
 #include <optional>
 
+struct ArmorData
+{
+	
+};
+
 struct HealData
 {
 	float amount;

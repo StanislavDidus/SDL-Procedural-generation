@@ -114,6 +114,14 @@ namespace Components
 
 	struct AddItem
 	{
+		Entity target;
+		Item item;
+	};
+
+	struct PickUpItem
+	{
+		Entity target;
+		Entity source;
 		Item item;
 	};
 
@@ -148,6 +156,7 @@ namespace Components
 	// Entity is going to drop an item
 	struct DropItem
 	{
+		Entity target;
 		Item item;
 	};
 
@@ -207,9 +216,14 @@ namespace Components
 
 	struct Equipment
 	{
+		Item* helmet;
+		Item* armor;
+		Item* shoes;
+		Item* amulet;
+		std::vector<Item*> accessories;
+
 		int max_weapon = 0;
 		std::vector<Item*> weapons;
-
 		Item* pickaxe = nullptr;
 	};
 
@@ -233,9 +247,10 @@ namespace Components
 		glm::vec2 last_position;
 	};
 
-	struct Damaged
+	struct Damage
 	{
-		float value = 0.0f;
+		Entity target;
+		float value;
 	};
 
 	struct HitMark

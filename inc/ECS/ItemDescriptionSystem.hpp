@@ -86,11 +86,13 @@ public:
 			//Otherwise check if mouse is on any of the crafting recipes
 			else
 			{
-				auto view = registry.view<Components::Transform, Components::ButtonCovered, Components::CraftButton, Components::HasInventory>();
-				for (auto [entity, transform_component, craft_button_component, inventory_component] : view.each())
+				auto view = registry.view<Components::Transform, Components::ButtonCovered, Components::CraftButton>();
+				for (auto [entity, transform_component, craft_button_component] : view.each())
 				{
+					if (!registry.all_of<Components::HasInventory>(target_entity)) continue;
+
 					const auto& mouse_position = InputManager::getMouseState().position;
-					const auto& inventory = inventory_component.inventory;
+					const auto& inventory = registry.get<Components::HasInventory>(target_entity).inventory;
 					if (!craft_button_component.is_available) continue;
 
 					const auto& recipe = CraftingManager::get().getRecipe(craft_button_component.recipe_id);

@@ -8,23 +8,59 @@ public:
 
 	void update()
 	{
-		auto view = registry.view<Components::HasInventory, Components::AddItem>();
-		for (auto [entity, inventory_component, add_item_component] : view.each())
+		auto view = registry.view<Components::AddItem>();
+		std::vector<Entity> to_destroy;
+		to_destroy.reserve(view.size());
+		for (auto [entity, add_item_component] : view.each())
 		{
+			const auto& target = add_item_component.target;
 			const auto& item = add_item_component.item;
 			
 			//if (inventory_component.inventory->full()) continue;
-
-			bool result = inventory_component.inventory->addItem(item.id, item.stack_number);
-
-			// If adding an item to the inventory failed
-			// We drop it
-			if (result == false)
+			if (registry.all_of<Components::HasInventory>(target))
 			{
-				registry.emplace<Components::DropItem>(entity, item);
+				auto& inventory_component = registry.get<Components::HasInventory>(target);
+				bool result = inventory_component.inventory->addItem(item.id, item.stack_number);
+				to_destroy.emplace_back(entity);
+				
+				// If adding an item to the inventory failed
+				// We drop it
+				if (result == false)
+				{
+					auto drop_entity = registry.create();
+					registry.emplace<Components::DropItem>(drop_entity, target, item);
+				}
 			}
+		}
 
-			registry.erase<Components::AddItem>(entity);
+		auto view2 = registry.view<Components::PickUpItem>();
+		for (auto [entity, pickup_component] : view2.each())
+		{
+			const auto& target = pickup_component.target;
+			const auto& source = pickup_component.source;
+			const auto& item = pickup_component.item;
+			
+			//if (inventory_component.inventory->full()) continue;
+			if (registry.all_of<Components::HasInventory>(target))
+			{
+				auto& inventory_component = registry.get<Components::HasInventory>(target);
+				bool result = inventory_component.inventory->addItem(item.id, item.stack_number);
+				to_destroy.emplace_back(entity);
+				
+				if (result)
+				{
+					registry.destroy(source);
+				}
+				else if (!result)
+				{
+					registry.erase<Components::PickUpItem>(entity);
+				}
+			}
+		}
+
+		for (const auto& entity : to_destroy)
+		{
+			registry.destroy(entity);
 		}
 	}
 

@@ -12,24 +12,22 @@ public:
 
 	void update(float dt)
 	{
-		auto view = registry.view<Components::Damaged, Components::Health>();
-		for (auto [entity, damaged_components, health_component] : view.each());
+		std::vector<Entity> to_destroy;
+		auto view = registry.view<Components::Damage>();
+		to_destroy.reserve(view.size());
+		for (auto [entity, damage_component] : view.each())
 		{
-			/*
-			bool damage_taken = false;
-			for (const auto& damage : damaged_components)
+			if (registry.all_of<Components::Health>(damage_component.target))
 			{
-				health_component.current_health -= damage.value;
-				damage_taken = true;
+				registry.get<Components::Health>(damage_component.target).current_health -= damage_component.value;
+				registry.emplace_or_replace<Components::HitMark>(damage_component.target, 0.1f, 0.0f, false);
+				to_destroy.emplace_back(entity);
 			}
+		}
 
-			if (damage_taken)
-			{
-				component_manager.hit_mark[entity] = HitMark{0.1f, 0.0f, false};	
-			}
-
-			damaged_components.clear();
-	*/
+		for (const auto& entity : to_destroy)
+		{
+			registry.destroy(entity);
 		}
 	}
 
