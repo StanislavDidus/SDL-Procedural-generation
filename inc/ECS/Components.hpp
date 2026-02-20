@@ -216,11 +216,13 @@ namespace Components
 
 	struct Equipment
 	{
+		/*
 		Item* helmet;
 		Item* armor;
 		Item* shoes;
 		Item* amulet;
 		std::vector<Item*> accessories;
+		*/
 
 		int max_weapon = 0;
 		std::vector<Item*> weapons;
