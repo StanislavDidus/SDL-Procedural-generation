@@ -2,6 +2,13 @@
 #include "Inventory.hpp"
 #include "SpriteAnimation.hpp"
 
+enum class ItemAction
+{
+	NONE,
+	EQUIP,
+	USE,
+};
+
 namespace Components
 {
 
@@ -115,14 +122,14 @@ namespace Components
 	struct AddItem
 	{
 		Entity target;
-		Item item;
+		Entity item;
 	};
 
 	struct PickUpItem
 	{
 		Entity target;
 		Entity source;
-		Item item;
+		Entity item;
 	};
 
 	struct UseItem
@@ -133,37 +140,37 @@ namespace Components
 	// Notify that entity tries to equip an item
 	struct EquipItem
 	{
-		Item* item;
+		Entity item;
 	};
 
 	struct UnequipItem
 	{
-		Item* item;
+		Entity item;
 	};
 
 	// Notify that item was equipped
 	struct ItemEquipped
 	{
-		Item* item;
+		Entity item;
 	};
 
 	// Notify that item was unequipped
 	struct ItemUnequipped
 	{
-		Item* item;
+		Entity item;
 	};
 
 	// Entity is going to drop an item
 	struct DropItem
 	{
 		Entity target;
-		Item item;
+		Entity item;
 	};
 
 	// Dropped item that exists in the world
 	struct DroppedItem
 	{
-		Item item;
+		Entity item;
 		bool can_be_collected = false;
 		float timer = 0.0f; // Can be collected after some time
 	};
@@ -225,8 +232,8 @@ namespace Components
 		*/
 
 		int max_weapon = 0;
-		std::vector<Item*> weapons;
-		Item* pickaxe = nullptr;
+		std::vector<Entity> weapons;
+		std::optional<Entity> pickaxe = std::nullopt;
 	};
 
 	struct Animation
@@ -261,4 +268,64 @@ namespace Components
 		float timer = 0.0f;
 		bool active = false;
 	};
+
+
+	namespace InventoryItems
+	{
+		//STATIC information about an item
+		struct ItemProperties
+		{
+			size_t id;
+			bool can_stack;
+			int sprite_index;
+			std::string name;
+			ItemAction action = ItemAction::NONE;
+
+			bool operator==(const ItemProperties& rhs) const { return this->id == rhs.id; }
+		};
+
+		//DYNAMIC information ek. stack size and is or is not equipped
+		struct Item
+		{
+			//size_t id;
+			int stack_number = 1;
+			bool equipped = false;
+			float cooldown_timer = 0.0f;
+			//bool operator==(const Item& other) const { return this->id == other.id; }
+		};
+
+		struct UsableItem
+		{
+			
+		};
+
+		struct HealComponent
+		{
+			float value;
+		};
+
+		struct PickaxeComponent
+		{
+			float speed;
+			float radius;
+			int size;
+		};
+
+		struct WeaponComponent
+		{
+			float damage;
+			float cooldown;
+			float radius;
+		};
+
+		struct ArmorComponent
+		{
+			
+		};
+
+		struct AccessoryComponent
+		{
+			
+		};
+	} // namespace InventoryItems
 } //namespace Components

@@ -37,12 +37,6 @@ struct ItemComponent
 	int number_properties = 0;
 };
 
-enum class ItemAction
-{
-	NONE,
-	EQUIP,
-	USE,
-};
 
 template<typename T>
 static T* getItemComponent(const std::vector<std::unique_ptr<ItemComponent>>& components)
@@ -55,31 +49,6 @@ static T* getItemComponent(const std::vector<std::unique_ptr<ItemComponent>>& co
 	return it != components.end() ? static_cast<T*>(it->get()) : nullptr;
 }
 
-struct ItemProperties
-{
-	/*ItemProperties(bool can_stack, int sprite_index, const std::string& name, ItemAction action, std::optional<HealData> heal_data, std::optional<PickaxeData> pickaxe_data, std::optional<MeleeWeaponData> melee_weapon_data);*/
-
-	bool can_stack;
-	int sprite_index;
-	std::string name;
-
-	ItemAction action = ItemAction::NONE;
-
-	std::optional<HealData> heal_data;
-	std::optional<PickaxeData> pickaxe_data;
-	std::optional<MeleeWeaponData> melee_weapon_data;
-};
-
-struct Item
-{
-	size_t id;
-	int stack_number;
-	bool equipped = false;
-
-	float cooldown_timer = 0.0f;
-
-	bool operator==(const Item& other) const { return this->id == other.id; }
-};
 
 enum class Effect
 {

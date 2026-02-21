@@ -173,7 +173,7 @@ glm::vec2 InventoryView::getSlotSize() const
 	return glm::vec2{ ui_settings.inventory_slot_width, ui_settings.inventory_slot_height };
 }
 
-std::optional<Item> InventoryView::getItem(int slot) const
+std::optional<Entity> InventoryView::getItem(int slot) const
 {
 	if (const auto& val = inventory->getItems()[slot]) return *val;
 	return std::nullopt;
@@ -254,7 +254,7 @@ void InventoryView::render(graphics::Renderer& screen)
 }
 
 
-void InventoryView::drawItem(graphics::Renderer& screen, const Item& item, const glm::vec2& position, int index)
+void InventoryView::drawItem(graphics::Renderer& screen, Entity item, const glm::vec2& position, int index)
 {
 	if (!inventory) return;
 

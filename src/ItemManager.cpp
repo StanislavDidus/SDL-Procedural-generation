@@ -1,5 +1,6 @@
 #include "ItemManager.hpp"
 #include "tinyxml2.h"
+#include "ECS/EnttCopyComponents.hpp"
 
 inline int attributeCount(const tinyxml2::XMLElement* e)
 {
@@ -9,7 +10,7 @@ inline int attributeCount(const tinyxml2::XMLElement* e)
 	return count;
 }
 
-void ItemManager::loadXml(const std::filesystem::path& path)
+void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path& path)
 {
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile(path.string().c_str());
@@ -44,58 +45,65 @@ void ItemManager::loadXml(const std::filesystem::path& path)
 			action = ItemAction::NONE;
 		}
 
-		std::optional<HealData> heal_data;
-		std::optional<PickaxeData> pickaxe_data;
-		std::optional<MeleeWeaponData> melee_weapon_data;
+		auto item = registerItem(registry, { items_counter, can_stack, sprite_index, item_name, action});
 
-		const auto& heal_data_node = item_node->FirstChildElement("HealData");
-		if (heal_data_node)
+		const auto& components_node = item_node->FirstChildElement("components");
+		for (auto* component_node = components_node->FirstChildElement(); component_node != nullptr; component_node = component_node->NextSiblingElement())
 		{
-			heal_data = HealData{heal_data_node->FloatText()};
+			const char* component_name = components_node->Attribute("id");
+			if (strcmp(component_name, "HealthComponent") == 0)
+			{
+				float value = components_node->FloatText();
+				Components::InventoryItems::HealComponent heal_component{ value };
+				registry.emplace_or_replace<Components::InventoryItems::HealComponent>(item, heal_component);
+			}
+			else if (strcmp(component_name, "PickaxeComponent") == 0)
+			{
+				float speed = components_node->FloatAttribute("speed");
+				float radius = components_node->FloatAttribute("radius");
+				int size = components_node->IntAttribute("size");
+				Components::InventoryItems::PickaxeComponent pickaxe_component{ speed, radius, size };
+				registry.emplace_or_replace<Components::InventoryItems::PickaxeComponent>(item, pickaxe_component);
+			}
+			else if (strcmp(component_name, "WeaponComponent") == 0)
+			{
+				float damage = components_node->FloatAttribute("damage");
+				float cooldown = components_node->FloatAttribute("cooldown");
+				float radius = components_node->FloatAttribute("radius");
+				Components::InventoryItems::WeaponComponent weapon_component{ damage, cooldown, radius };
+				registry.emplace_or_replace<Components::InventoryItems::WeaponComponent>(item, weapon_component);
+			}
 		}
-
-		const auto& pickaxe_data_node = item_node->FirstChildElement("PickaxeData");
-		if (pickaxe_data_node)
-		{
-			float speed = pickaxe_data_node->FloatAttribute("speed");
-			float radius = pickaxe_data_node->FloatAttribute("radius");
-			int size = pickaxe_data_node->IntAttribute("size");
-			pickaxe_data = PickaxeData{ speed, radius, size };
-		}
-
-		const auto& melee_weapon_data_node = item_node->FirstChildElement("MeleeWeaponData");
-		if (melee_weapon_data_node)
-		{
-			float damage = melee_weapon_data_node->FloatAttribute("damage");
-			float cooldown = melee_weapon_data_node->FloatAttribute("cooldown");
-			float radius = melee_weapon_data_node->FloatAttribute("radius");
-			melee_weapon_data = MeleeWeaponData{ damage, cooldown, radius};
-		}
-
-		//Register item
-		ItemProperties item_properties {can_stack, sprite_index, item_name, action, heal_data, pickaxe_data, melee_weapon_data};
-		size_t item_id = registerItemProperties(item_properties);
-		itemNameToID[item_name] = item_id;
 	}
 }
 
-const ItemProperties& ItemManager::getItem(size_t ID) const
-{
-	return items.at(ID);
-}
 
 size_t ItemManager::getItemID(const std::string& item_name) const
 {
 	return itemNameToID.at(item_name);
 }
 
-const ItemProperties& ItemManager::getProperties(int ID) const
+Entity ItemManager::createItem(entt::registry& registry, size_t id, int stack_number) const
 {
-	return items[ID];
+	const auto& item_origin = items[id];
+	auto new_item = registry.create();
+
+	copyComponents(registry, item_origin, new_item);
+
+	registry.get<Components::InventoryItems::Item>(new_item).stack_number = stack_number;
+
+	return new_item;
 }
 
-size_t ItemManager::registerItemProperties(const ItemProperties& properties)
+Entity ItemManager::registerItem(entt::registry& registry,
+                                 const Components::InventoryItems::ItemProperties& properties)
 {
-	items.push_back(properties);
-	return items_counter++;
+	auto entity = registry.create();
+	registry.emplace<Components::InventoryItems::ItemProperties>(entity, properties);
+	registry.emplace<Components::InventoryItems::Item>(entity, Components::InventoryItems::Item{});
+	items.push_back(entity);
+	itemNameToID[properties.name] = items_counter;
+	items_counter++;
+	return entity;
 }
+

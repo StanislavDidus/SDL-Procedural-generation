@@ -52,7 +52,7 @@ public:
 	/// <returns>World slot size.</returns>
 	glm::vec2 getSlotSize() const;
 
-	std::optional<Item>getItem(int slot) const;
+	std::optional<Entity>getItem(int slot) const;
 
 	void setTargetEntity(Entity entity);
 
@@ -89,7 +89,7 @@ private:
 	/// </summary>
 	void isMovingItems();
 
-	void drawItem(graphics::Renderer& screen, const Item& item, const glm::vec2& position, int index);
+	void drawItem(graphics::Renderer& screen, Entity item, const glm::vec2& position, int index);
 
 	int rows;
 	int columns;

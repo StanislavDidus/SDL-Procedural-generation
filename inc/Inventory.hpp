@@ -22,6 +22,7 @@ class Inventory
 {
 public:
 	Inventory(
+		entt::registry& registry,
 		int size = 0
 	);
 
@@ -37,9 +38,9 @@ public:
 	/// </summary>
 	/// <param name="id">ID of the item.</param>
 	/// <param name="number">Quantity.</param> 
-	bool addItem(size_t id, int number);
+	bool addItem(size_t id, int number = 1);
 	// Function overloading for addItem(size_t id, int number);
-	bool addItem(const Item& item);
+	bool addItem(Entity item_);
 
 	/// <summary>
 	/// Clears the given item slot and makes it empty.
@@ -73,13 +74,13 @@ public:
 	/// </summary>
 	/// <param name="item">Item you need to find.</param>
 	/// <returns>True if item is found.</returns>
-	bool hasItem(const Item& item) const;
+	bool hasItem(Entity item) const;
 
 	/// <summary>
 	/// Removes given number of items (Removes them even if they are in different slots).
 	/// </summary>
 	/// <param name="item">Item you want to delete and the number.</param>
-	void removeItem(const Item& item);
+	void removeItem(Entity item);
 
 	/// <summary>
 	/// Returns the number of items of the specified ID that the inventory contains.
@@ -98,14 +99,15 @@ public:
 	/// Returns all inventory slots.
 	/// </summary>
 	/// <returns></returns>
-	const std::vector<std::unique_ptr<Item>>& getItems() const;
+	const std::vector<std::optional<Entity>>& getItems() const;
 
 	void printContent() const;
 private:
+	entt::registry& registry;
 	std::optional<int> findFreeSlot();
 
 	std::vector<int> free_slots;
-	std::vector<std::unique_ptr<Item>> items;
+	std::vector<std::optional<Entity>> items;
 
 	int size;
 };

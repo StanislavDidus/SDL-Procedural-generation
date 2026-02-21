@@ -5,6 +5,9 @@
         <canStack>true</canStack>
         <spriteIndex>0</spriteIndex>
         <action>USE</action>
+        <components>
+            <component id="HealthComponent">100</component>
+        </components>
         <HealData>10</HealData>
     </item>
     <item id="Banana">

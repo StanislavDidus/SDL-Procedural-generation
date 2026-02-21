@@ -1,10 +1,15 @@
 #include "Inventory.hpp"
 #include "ECS/Systems.hpp"
 #include <algorithm>
+#include <commctrl.h>
 #include <iostream>
 
-Inventory::Inventory(int size) 
-	:  size(size)
+using namespace Components;
+using namespace Components::InventoryItems;
+
+Inventory::Inventory(entt::registry& registry, int size) 
+	: registry{ registry }
+	, size(size)
 {
 	//Fill items and free slots
 	items.resize(size);
@@ -21,16 +26,17 @@ void Inventory::useItem(int slot, Entity target_entity, entt::registry& registry
 
 	if (!item) return;
 	
-	const auto& item_properties = ItemManager::get().getProperties(item->id);
+	const auto& item_properties = registry.get<ItemProperties>(*item);
+	auto& item_info = registry.get<Item>(*item);
 
 	switch (item_properties.action)
 	{
 	case ItemAction::USE:
 	{
-		registry.emplace<Components::UseItem>(target_entity, item->id);
-		item->stack_number--;
+		registry.emplace<Components::UseItem>(target_entity, item_properties.id);
+		item_info.stack_number--;
 
-		if (item->stack_number <= 0)
+		if (item_info.stack_number <= 0)
 		{
 			items[slot].reset();
 
@@ -39,13 +45,13 @@ void Inventory::useItem(int slot, Entity target_entity, entt::registry& registry
 	}
 		break;
 	case ItemAction::EQUIP:
-		if (!item->equipped)
+		if (!item_info.equipped)
 		{
-			registry.emplace<Components::EquipItem>(target_entity, item.get());
+			registry.emplace<Components::EquipItem>(target_entity, *item);
 		}
-		else if (item->equipped)
+		else if (!item_info.equipped)
 		{
-			registry.emplace<Components::UnequipItem>(target_entity, item.get());
+			registry.emplace<Components::UnequipItem>(target_entity, *item);
 		}
 		break;
 	case ItemAction::NONE:
@@ -53,21 +59,26 @@ void Inventory::useItem(int slot, Entity target_entity, entt::registry& registry
 	}
 }
 
-bool Inventory::addItem(const Item& item)
+bool Inventory::addItem(size_t id, int number)
 {
-	return addItem(item.id, item.stack_number);
+	auto item = ItemManager::get().createItem(registry, id, number);
+	return addItem(item);
 }
 
-bool Inventory::addItem(size_t id, int number)
+bool Inventory::addItem(Entity item_)
 {
 	for (auto& item : items)
 	{
 		if (item)
 		{
 			//Stack two items if they are the same and can stack
-			if (item->id == id && ItemManager::get().getProperties(id).can_stack)
+			const auto& item_properties = registry.get<Components::InventoryItems::ItemProperties>(*item);
+			const auto& item_properties2 = registry.get<Components::InventoryItems::ItemProperties>(item_);
+			if (item_properties.name == item_properties2.name && item_properties.can_stack)
 			{
-				item->stack_number += number;
+				auto& item_component = registry.get<Components::InventoryItems::Item>(*item);
+				const auto& item_component2 = registry.get<Components::InventoryItems::Item>(item_);
+				item_component.stack_number += item_component2.stack_number;
 				return true;
 			}
 		}
@@ -76,7 +87,7 @@ bool Inventory::addItem(size_t id, int number)
 	//Otherwise put the item in an empty slot
 	if (!free_slots.empty())
 	{
-		if(auto free_slot = findFreeSlot()) items[*free_slot] = std::make_unique<Item>(id, number);
+		if (auto free_slot = findFreeSlot()) items[*free_slot] = item_;
 		return true;
 	}
 
@@ -98,21 +109,30 @@ void Inventory::splitItemTo(int item_slot, int split_slot)
 {
 	auto& item = items[item_slot];
 	auto& split = items[split_slot];
+	
+	const auto& item_properties = registry.get<ItemProperties>(*item);
+	auto& item_info = registry.get<Item>(*item);
 
-	if (item->stack_number > 1)
+	if (item_info.stack_number > 1)
 	{
+
 		//If items are the same move one item 
-		if (split && split->id == item->id)
+		if (split)
 		{
-			item->stack_number--;
-			split->stack_number++;
+			const auto& split_item_properties = registry.get<ItemProperties>(*split);
+			auto& split_item_info = registry.get<Item>(*item);
+			if (split_item_properties == item_properties)
+			{
+				item_info.stack_number -= 1;
+				split_item_info.stack_number += 1;
+			}
 		}
 		//If slot is empty, then copy item
 		else if (!split)
 		{
-			item->stack_number--;
+			item_info.stack_number -= 1;
 
-			split = std::make_unique<Item>(item->id, 1);
+			split = ItemManager::get().createItem(registry, item_properties.id, 1);
 
 			std::erase_if(free_slots, [split_slot](int x) { return x == split_slot; });
 		}
@@ -124,13 +144,17 @@ void Inventory::stackItems(int old_item, int new_item)
 	auto& item = items[old_item];
 	auto& item_new = items[new_item];
 
-	if (item && item_new && ItemManager::get().getProperties(item->id).can_stack)
+	if (item)
 	{
-		item_new->stack_number += item->stack_number;
-
-		items[old_item].reset();
-
-		free_slots.push_back(old_item);
+		const auto& item_properties = registry.get<ItemProperties>(*item);
+		if (item_properties.can_stack)
+		{
+			auto& item_new_info = registry.get<Item>(*item_new);
+			const auto& item_info = registry.get<Item>(*item);
+			item_new_info.stack_number += item_info.stack_number;
+			items[old_item] = std::nullopt;
+			free_slots.push_back(old_item);
+		}
 	}
 }
 
@@ -143,7 +167,7 @@ void Inventory::moveItem(int old_slot, int new_slot)
 	std::swap(items[old_slot], items[new_slot]);
 }
 
-bool Inventory::hasItem(const Item& item) const
+bool Inventory::hasItem(Entity item) const
 {
 	int number = 0;
 	for (const auto& i : items)
@@ -151,40 +175,47 @@ bool Inventory::hasItem(const Item& item) const
 		if (i)
 		{
 			//If items have the same id - increase the number by the number of items in stack
-			if (item == *i)
+			const auto& item_properties = registry.get<ItemProperties>(item);
+			const auto& count_item_properties = registry.get<ItemProperties>(*i);
+			if (item_properties == count_item_properties)
 			{
-				number += i->stack_number;
+				const auto& count_item_info = registry.get<Item>(*i);
+				number += count_item_info.stack_number;
 			}
 		}
 	}
 
 	//If number of items is bigger or equal than required - return true
-	return number >= item.stack_number;
+	const auto& item_info = registry.get<Item>(item);
+	return number >= item_info.stack_number;
 }
 
-void Inventory::removeItem(const Item& item)
+void Inventory::removeItem(Entity item)
 {
-	int target_number = item.stack_number;
+	const auto& target_item_info = registry.get<Item>(item);
+	int target_number = target_item_info.stack_number;
 	int number_destroyed = 0;
 	for (size_t i = 0; i < items.size(); i++)
 	{
 		auto& item_ = items[i];
 		if (item_)
 		{
+			const auto& target_item_properties = registry.get<ItemProperties>(item);
+			auto& item_info = registry.get<Item>(*item_);
 			if (item == *item_)
 			{
 				//If destroyed number is bigger than a target then we don't need to delete some resources
-				if ( number_destroyed + item_->stack_number > target_number)
+				if ( number_destroyed + item_info.stack_number > target_number)
 				{
-					number_destroyed += item_->stack_number;
+					number_destroyed += item_info.stack_number;
 
 					int number_to_save = number_destroyed - target_number;
 
-					item_->stack_number = number_to_save;
+					item_info.stack_number = number_to_save;
 				}
 				else
 				{
-					number_destroyed += item_->stack_number;
+					number_destroyed += item_info.stack_number;
 
 					removeItemAtSlot(i);
 				}
@@ -205,9 +236,11 @@ int Inventory::countItem(size_t item_id) const
 	{
 		if (item)
 		{
-			if (item->id == item_id)
+			const auto& item_properties = registry.get<ItemProperties>(*item);
+			if (item_properties.id == item_id)
 			{
-				number += item->stack_number;
+				const auto& item_info = registry.get<Item>(*item);
+				number += item_info.stack_number;
 			}
 		}
 	}
@@ -220,7 +253,7 @@ bool Inventory::full() const
 	return free_slots.empty();
 }
 
-const std::vector<std::unique_ptr<Item>>& Inventory::getItems() const
+const std::vector<std::optional<Entity>>& Inventory::getItems() const
 {
 	return items;
 }
