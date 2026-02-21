@@ -1,6 +1,7 @@
 #pragma once
-#include "Inventory.hpp"
 #include "SpriteAnimation.hpp"
+
+class Inventory;
 
 enum class ItemAction
 {
@@ -275,23 +276,20 @@ namespace Components
 		//STATIC information about an item
 		struct ItemProperties
 		{
-			size_t id;
 			bool can_stack;
 			int sprite_index;
 			std::string name;
 			ItemAction action = ItemAction::NONE;
-
-			bool operator==(const ItemProperties& rhs) const { return this->id == rhs.id; }
 		};
 
 		//DYNAMIC information ek. stack size and is or is not equipped
 		struct Item
 		{
-			//size_t id;
+			size_t id;
 			int stack_number = 1;
 			bool equipped = false;
 			float cooldown_timer = 0.0f;
-			//bool operator==(const Item& other) const { return this->id == other.id; }
+			bool operator==(const Item& other) const { return this->id == other.id; }
 		};
 
 		struct UsableItem
@@ -316,6 +314,7 @@ namespace Components
 			float damage;
 			float cooldown;
 			float radius;
+			float cooldown_timer = 0.0f;
 		};
 
 		struct ArmorComponent

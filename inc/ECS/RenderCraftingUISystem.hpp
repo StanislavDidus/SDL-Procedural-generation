@@ -50,8 +50,9 @@ public:
 				bool is_enough = true;
 				for (const auto& required_item : recipe.required_items)
 				{
-					int required_item_number = required_item.stack_number;
-					int item_number_entity_has = inventory->countItem(required_item.id);
+					const auto& item_info = registry.get<Components::InventoryItems::Item>(required_item);
+					int required_item_number = item_info.stack_number;
+					int item_number_entity_has = inventory->countItem(item_info.id);
 					bool is_enough_resources = item_number_entity_has >= required_item_number;
 
 					if (!is_enough_resources)

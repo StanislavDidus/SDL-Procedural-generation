@@ -36,7 +36,9 @@ static void addRandomizedItem(entt::entity entity, const RandomizedItem& item, e
 	if (drop_rand <= item.drop_chance)
 	{
 		auto item_entity = registry.create();
-		registry.emplace_or_replace<Components::AddItem>(item_entity, entity, Item{ item.item_id, quantities_rand });
+		//Create new entity(item)
+		auto crafted_item = ItemManager::get().createItem(registry, item.item_id, quantities_rand);
+		registry.emplace_or_replace<Components::AddItem>(item_entity, entity, crafted_item);
 	}
 }
 
@@ -645,13 +647,12 @@ public:
 			float mining_size;
 			if (registry.all_of<Components::Equipment>(entity) && registry.get<Components::Equipment>(entity).pickaxe)
 			{
-				auto* pickaxe_component = registry.get<Components::Equipment>(entity).pickaxe;
-				const auto& item_properties = ItemManager::get().getProperties(pickaxe_component->id);
-				const auto& pickaxe_data = item_properties.pickaxe_data;
-
-				mining_speed = pickaxe_data->speed;
-				mining_radius = pickaxe_data->radius;
-				mining_size = pickaxe_data->size;
+				auto& equipment_component = registry.get<Components::Equipment>(entity);
+				const auto& pickaxe_component = registry.get<Components::InventoryItems::PickaxeComponent>(*equipment_component.pickaxe);
+		
+				mining_speed = pickaxe_component.speed;
+				mining_radius = pickaxe_component.radius;
+				mining_size = pickaxe_component.size;
 			}
 			else
 			{
@@ -726,11 +727,13 @@ public:
 			{
 				auto& use_item_component = registry.get<Components::UseItem>(target_entity);
 				const auto& item_properties = ItemManager::get().getProperties(use_item_component.item_id);
+				const auto& item = ItemManager::get().getItem(use_item_component.item_id);
 
-				if (item_properties.heal_data)
+				if (registry.all_of<Components::InventoryItems::HealComponent>(item))
 				{
+					const auto& heal_component = registry.get<Components::InventoryItems::HealComponent>(item);
 					auto& health_component = registry.get<Components::Health>(target_entity);
-					health_component.current_health = std::min(health_component.max_health, health_component.current_health + item_properties.heal_data->amount);
+					health_component.current_health = std::min(health_component.max_health, health_component.current_health + heal_component.value);
 				}
 
 				registry.erase<Components::UseItem>(target_entity);
@@ -738,36 +741,39 @@ public:
 			if (registry.all_of<Components::EquipItem>(target_entity))
 			{
 				auto& equip_item_component = registry.get<Components::EquipItem>(target_entity);
-				const auto& item_properties = ItemManager::get().getProperties(equip_item_component.item->id);
 
-				if (item_properties.pickaxe_data)
+				if (registry.all_of<Components::InventoryItems::PickaxeComponent>(equip_item_component.item))
 				{
 					if (equipment_component.pickaxe)
-						registry.get<Components::Equipment>(target_entity).pickaxe->equipped = false;
+					{
+						registry.get<Components::InventoryItems::Item>(*equipment_component.pickaxe).equipped = false;
+					}
 
 					equipment_component.pickaxe = equip_item_component.item;
-					equip_item_component.item->equipped = true;	
+					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
+					item_info.equipped = true;
 
 					registry.emplace<Components::ItemEquipped>(target_entity, equip_item_component.item);
 
 					// Set mining properties (speed, radius, size)
 					if (registry.all_of<Components::MiningAbility>(target_entity))
 					{
+						const auto& pickaxe_component = registry.get<Components::InventoryItems::PickaxeComponent>(equip_item_component.item);
 						auto& mining_ability = registry.get<Components::MiningAbility>(target_entity);
-						mining_ability.speed = item_properties.pickaxe_data->speed;
-						mining_ability.radius = item_properties.pickaxe_data->radius;
-						mining_ability.size = item_properties.pickaxe_data->size;
+						mining_ability.speed = pickaxe_component.speed;
+						mining_ability.radius = pickaxe_component.radius;
+						mining_ability.size = pickaxe_component.size;
 					}
 
 				}
 
 				// Melee weapon
-				if (item_properties.melee_weapon_data)
+				if (registry.all_of<Components::InventoryItems::WeaponComponent>(equip_item_component.item))
 				{
 					if (equipment_component.weapons.size() < equipment_component.max_weapon)
 					{
 						registry.get<Components::Equipment>(target_entity).weapons.emplace_back(equip_item_component.item);
-						equip_item_component.item->equipped = true;
+						registry.get<Components::InventoryItems::Item>(equip_item_component.item).equipped = true;
 						registry.emplace<Components::ItemEquipped>(target_entity, equip_item_component.item);
 					}
 				}
@@ -779,13 +785,11 @@ public:
 			if (registry.all_of<Components::UnequipItem>(target_entity))
 			{
 				auto& unequip_item_component = registry.get<Components::UnequipItem>(target_entity);
-				const auto& item_properties = ItemManager::get().getProperties(unequip_item_component.item->id);
-				auto* item = unequip_item_component.item;
 				
-				if (item_properties.pickaxe_data)
+				if (registry.all_of<Components::InventoryItems::PickaxeComponent>(unequip_item_component.item))
 				{
-					equipment_component.pickaxe = nullptr;
-					item->equipped = false;
+					equipment_component.pickaxe = entt::null;
+					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
 
 					// Set mining properties (speed, radius, size)
 					if (registry.all_of<Components::MiningAbility>(target_entity))
@@ -798,11 +802,11 @@ public:
 				}
 
 				// Melee weapon
-				if (item_properties.melee_weapon_data)
+				if (registry.all_of<Components::InventoryItems::WeaponComponent>(unequip_item_component.item))
 				{
 					auto& weapon_array = registry.get<Components::Equipment>(target_entity).weapons;
-					weapon_array.erase(std::ranges::remove(weapon_array, item).begin(), weapon_array.end());
-					item->equipped = false;
+					weapon_array.erase(std::ranges::remove(weapon_array, unequip_item_component.item).begin(), weapon_array.end());
+					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
 				}
 
 				registry.emplace<Components::ItemUnequipped>(target_entity, unequip_item_component.item);
@@ -811,70 +815,72 @@ public:
 		}
 	}
 
-	void useItem(const ItemProperties& item_properties)
+	void useItem(Entity item)
 	{
-		if (item_properties.heal_data)
+		if (registry.all_of<Components::InventoryItems::HealComponent>(item))
 		{
 			auto& health_component = registry.get<Components::Health>(target_entity);
-			health_component.current_health = std::min(health_component.max_health, health_component.current_health + item_properties.heal_data->amount);
+			const auto& heal_component = registry.get<Components::InventoryItems::HealComponent>(item);
+			health_component.current_health = std::min(health_component.max_health, health_component.current_health + heal_component.value);
 		}
 	}
 
-	void equipItem(Item* item)
+	void equipItem(Entity item)
 	{
-		const auto& item_properties = ItemManager::get().getProperties(item->id);
+		const auto& item_properties = ItemManager::get().getProperties(registry, item);
 
 		if (registry.all_of<Components::Equipment>(target_entity))
 		{
 			auto& equipment_component = registry.get<Components::Equipment>(target_entity);
 
 			// Pickaxe
-			if (item_properties.pickaxe_data)
+			if (registry.all_of<Components::InventoryItems::PickaxeComponent>(item))
 			{
 				if (equipment_component.pickaxe)
-					registry.get<Components::Equipment>(target_entity).pickaxe->equipped = false;
+					registry.get<Components::InventoryItems::Item>(*equipment_component.pickaxe).equipped = false;
 
 				equipment_component.pickaxe = item;
-				item->equipped = true;
+				registry.get<Components::InventoryItems::Item>(item).equipped = true;
 
 				// Set mining properties (speed, radius, size)
 				if (registry.all_of<Components::MiningAbility>(target_entity))
 				{
+					const auto& pickaxe_component = registry.get<Components::InventoryItems::PickaxeComponent>(item);
 					auto& mining_ability = registry.get<Components::MiningAbility>(target_entity);
-					mining_ability.speed = item_properties.pickaxe_data->speed;
-					mining_ability.radius = item_properties.pickaxe_data->radius;
-					mining_ability.size = item_properties.pickaxe_data->size;
+					mining_ability.speed = pickaxe_component.speed;
+					mining_ability.radius = pickaxe_component.radius;
+					mining_ability.size = pickaxe_component.size;
 				}
 
 				return;
 			}
 
 			// Melee weapon
-			if (item_properties.melee_weapon_data)
+			if (registry.all_of<Components::InventoryItems::WeaponComponent>(item))
 			{
 				if (equipment_component.weapons.size() < equipment_component.max_weapon)
 				{
 					registry.get<Components::Equipment>(target_entity).weapons.emplace_back(item);
-					item->equipped = true;
+					registry.get<Components::InventoryItems::Item>(item).equipped = true;
 					return;
 				}
 			}
 		}
 	}
 
-	void unequip(Item* item)
+	void unequip(Entity item)
 	{
-		const auto& item_properties = ItemManager::get().getProperties(item->id);
+		const auto& item_properties = ItemManager::get().getProperties(registry, item);
 
 		if (registry.all_of<Components::Equipment>(target_entity))
 		{
 			auto& equipment_component = registry.get<Components::Equipment>(target_entity);
 
 			// Pickaxe
-			if (item_properties.pickaxe_data)
+			if (registry.all_of<Components::InventoryItems::PickaxeComponent>(item))
 			{
-				equipment_component.pickaxe = nullptr;
-				item->equipped = false;
+				equipment_component.pickaxe = entt::null;
+				registry.get<Components::InventoryItems::Item>(item).equipped = false;
 
 				// Set mining properties (speed, radius, size)
 				if (registry.all_of<Components::MiningAbility>(target_entity))
@@ -889,11 +895,11 @@ public:
 			}
 
 			// Melee weapon
-			if (item_properties.melee_weapon_data)
+			if (registry.all_of<Components::InventoryItems::WeaponComponent>(item))
 			{
 				auto& weapon_array = registry.get<Components::Equipment>(target_entity).weapons;
 				weapon_array.erase(std::ranges::remove(weapon_array, item).begin(), weapon_array.end());
-				item->equipped = false;
+				registry.get<Components::InventoryItems::Item>(item).equipped = true;
 				return;
 			}
 		}
@@ -1033,7 +1039,7 @@ public:
 				*/
 
 				auto item_entity = registry.create();
-				registry.emplace<Components::AddItem>(item_entity, target_entity, Item{ recipe.item_id, 1 });
+				registry.emplace<Components::AddItem>(item_entity, target_entity, ItemManager::get().createItem( registry,recipe.item_id, 1 ));
 				
 				for (const auto& required_craft_item : recipe.required_items)
 				{

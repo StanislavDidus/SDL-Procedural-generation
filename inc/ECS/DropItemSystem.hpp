@@ -12,7 +12,7 @@ struct DroppedItemData
 {
 	glm::vec2 position;
 	int sprite_index;
-	Item item;
+	Entity item;
 	bool flipped;
 };
 
@@ -39,7 +39,7 @@ public:
 				const auto& transform_component = registry.get<Components::Transform>(drop_item_component.target);
 				const auto& renderable_component = registry.get<Components::Renderable>(drop_item_component.target);
 
-				const auto& item_properties = ItemManager::get().getProperties(drop_item_component.item.id);
+				const auto& item_properties = ItemManager::get().getProperties(registry, drop_item_component.item);
 
 				dropped_item_datas.emplace_back(transform_component.position, item_properties.sprite_index, drop_item_component.item, renderable_component.flip_mode == SDL_FLIP_HORIZONTAL);
 				to_destroy.emplace_back(entity);

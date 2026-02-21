@@ -5,7 +5,7 @@
 
 struct CircleWeapon
 {
-	const Item* item;
+	Entity entity;
 	float distance;
 	float current_angle;
 	bool flip = false;
@@ -29,7 +29,7 @@ public:
 		float angle_between = 360.0f / equipment.max_weapon;
 		for (int i = 0; i < equipment.max_weapon; ++i)
 		{
-			circle_slots.emplace_back(nullptr, 35.0f, angle_between * i, false);
+			circle_slots.emplace_back(entt::null, 35.0f, angle_between * i, false);
 		}
 	}
 
@@ -44,7 +44,7 @@ public:
 		if (registry.all_of<Components::ItemEquipped>(target_entity))
 		{
 			const auto& item_equipped_component = registry.get<Components::ItemEquipped>(target_entity);
-			const auto& item_properties = ItemManager::get().getProperties(item_equipped_component.item->id);
+			const auto& item_properties = ItemManager::get().getProperties(registry, item_equipped_component.item);
 			
 			// Store the last weapon capacity of the player
 			// Reconstruct circle weapon slots if values are not the same
@@ -55,13 +55,13 @@ public:
 			last_weapon_capacity = player_equipment_component.max_weapon;
 
 			// If item is not a pickaxe
-			if (!item_properties.pickaxe_data)
+			if (registry.all_of<Components::InventoryItems::PickaxeComponent>(item_equipped_component.item))
 			{
-				auto free_circle_slot = std::ranges::find_if(circle_slots, [](const CircleWeapon& cw) {return cw.item == nullptr; });
+				auto free_circle_slot = std::ranges::find_if(circle_slots, [](const CircleWeapon& cw) {return cw.entity == entt::null; });
 				if (free_circle_slot != circle_slots.end())
 				{
 					auto& slot = *free_circle_slot;
-					slot.item = item_equipped_component.item;
+					slot.entity = item_equipped_component.item;
 				}
 			}
 		}
@@ -75,7 +75,7 @@ public:
 
 			for (auto& slot : circle_slots)
 			{
-				if (slot.item == item_unequipped_component.item) slot.item = nullptr;
+				if (slot.entity == item_unequipped_component.item) slot.entity = entt::null;
 			}
 		}
 		
@@ -98,7 +98,7 @@ public:
 
 			for (const auto& weapon : circle_slots)
 			{
-				if (!weapon.item) continue;
+				if (weapon.entity == entt::null) continue;
 				glm::vec2 player_centre_position = glm::vec2{ player_transform_position.position + player_transform_position.size * 0.5f };
 				float x = player_centre_position.x - WeaponSize * 0.5f;
 				float y = player_centre_position.y - weapon.distance;
@@ -114,7 +114,7 @@ public:
 					sin * relative_position.x + cos * relative_position.y + player_centre_position.y
 				};
 
-				const auto& item_properties = ItemManager::get().getProperties(weapon.item->id);
+				const auto& item_properties = ItemManager::get().getProperties(registry, weapon.entity);
 				int sprite_index = item_properties.sprite_index;
 
 				if (weapon.flip)

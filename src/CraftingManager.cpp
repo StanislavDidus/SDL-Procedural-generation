@@ -1,7 +1,7 @@
 #include "CraftingManager.hpp"
 #include "tinyxml2.h"
 
-void CraftingManager::loadXml(const std::filesystem::path& path)
+void CraftingManager::loadXml(entt::registry& registry, const std::filesystem::path& path)
 {
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile(path.string().c_str());
@@ -15,7 +15,7 @@ void CraftingManager::loadXml(const std::filesystem::path& path)
 
 		bool is_blueprint_required = craft_node->FirstChildElement("requiredBlueprint")->BoolText();
 
-		std::vector<Item> required_items;
+		std::vector<Entity> required_items;
 		const auto& required_items_node = craft_node->FirstChildElement("requiredItems");
 		for (auto* item_node = required_items_node->FirstChildElement("item"); item_node != nullptr; item_node = item_node->NextSiblingElement())
 		{
@@ -23,7 +23,7 @@ void CraftingManager::loadXml(const std::filesystem::path& path)
 			int item_amount = item_node->IntAttribute("amount");
 
 			size_t item_id = ItemManager::get().getItemID(item_name);
-			required_items.emplace_back( item_id, item_amount );
+			required_items.push_back(ItemManager::get().createItem(registry, item_id, item_amount));
 		}
 
 		CraftingRecipe recipe{ craft_item_id, required_items, is_blueprint_required };

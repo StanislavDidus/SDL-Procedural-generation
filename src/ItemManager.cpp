@@ -45,7 +45,7 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 			action = ItemAction::NONE;
 		}
 
-		auto item = registerItem(registry, { items_counter, can_stack, sprite_index, item_name, action});
+		auto item = registerItem(registry, { can_stack, sprite_index, item_name, action});
 
 		const auto& components_node = item_node->FirstChildElement("components");
 		for (auto* component_node = components_node->FirstChildElement(); component_node != nullptr; component_node = component_node->NextSiblingElement())
@@ -83,6 +83,21 @@ size_t ItemManager::getItemID(const std::string& item_name) const
 	return itemNameToID.at(item_name);
 }
 
+const Components::InventoryItems::ItemProperties& ItemManager::getProperties(int ID) const
+{
+	return item_properties[ID];
+}
+
+const Components::InventoryItems::ItemProperties& ItemManager::getProperties(entt::registry& registry, Entity item) const
+{
+	return registry.get<Components::InventoryItems::ItemProperties>(item);
+}
+
+Entity ItemManager::getItem(size_t ID) const
+{
+	return items[ID];
+}
+
 Entity ItemManager::createItem(entt::registry& registry, size_t id, int stack_number) const
 {
 	const auto& item_origin = items[id];
@@ -99,8 +114,9 @@ Entity ItemManager::registerItem(entt::registry& registry,
                                  const Components::InventoryItems::ItemProperties& properties)
 {
 	auto entity = registry.create();
-	registry.emplace<Components::InventoryItems::ItemProperties>(entity, properties);
-	registry.emplace<Components::InventoryItems::Item>(entity, Components::InventoryItems::Item{});
+	//registry.emplace<Components::InventoryItems::ItemProperties>(entity, properties);
+	registry.emplace<Components::InventoryItems::Item>(entity, Components::InventoryItems::Item{items_counter});
+	item_properties.push_back(properties);
 	items.push_back(entity);
 	itemNameToID[properties.name] = items_counter;
 	items_counter++;

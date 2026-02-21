@@ -20,7 +20,7 @@ public:
 			if (registry.all_of<Components::HasInventory>(target))
 			{
 				auto& inventory_component = registry.get<Components::HasInventory>(target);
-				bool result = inventory_component.inventory->addItem(item.id, item.stack_number);
+				bool result = inventory_component.inventory->addItem(item);
 				to_destroy.emplace_back(entity);
 				
 				// If adding an item to the inventory failed
@@ -44,7 +44,7 @@ public:
 			if (registry.all_of<Components::HasInventory>(target))
 			{
 				auto& inventory_component = registry.get<Components::HasInventory>(target);
-				bool result = inventory_component.inventory->addItem(item.id, item.stack_number);
+				bool result = inventory_component.inventory->addItem(item);
 				to_destroy.emplace_back(entity);
 				
 				if (result)

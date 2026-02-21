@@ -32,7 +32,7 @@ public:
 
 		for (const auto& weapon : equipment_component.weapons)
 		{
-			const auto& weapon_properties = ItemManager::get().getProperties(weapon->id);
+			const auto& weapon_properties = ItemManager::get().getProperties(registry, weapon);
 			int sprite_index = weapon_properties.sprite_index;
 			const auto& sprite = ResourceManager::get().getSpriteSheet("items");
 
@@ -45,7 +45,7 @@ public:
 		if (equipment_component.pickaxe)
 		{
 			const auto& pickaxe = equipment_component.pickaxe;
-			int sprite_index = ItemManager::get().getProperties(pickaxe->id).sprite_index;
+			int sprite_index = ItemManager::get().getProperties(registry, *pickaxe).sprite_index;
 			const auto& sprite = ResourceManager::get().getSpriteSheet("items");
 
 			graphics::drawScaledSprite(screen, (*sprite)[sprite_index], draw_x + ui.weapon_menu_slot_width * number_of_weapons, draw_y, ui.weapon_menu_slot_width, ui.weapon_menu_slot_height, graphics::IGNORE_VIEW_ZOOM);

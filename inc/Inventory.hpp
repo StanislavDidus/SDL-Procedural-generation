@@ -5,7 +5,6 @@
 #include <vector>
 #include <memory>
 
-#include "ItemManager.hpp"
 #include "ECS/Entity.hpp"
 
 class ItemUsageSystem;
@@ -95,7 +94,7 @@ public:
 	/// <returns>Return true if there is at least one free slot.</returns>
 	bool full() const;
 
-	/// <summary>
+	/// <summary>!
 	/// Returns all inventory slots.
 	/// </summary>
 	/// <returns></returns>

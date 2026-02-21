@@ -33,9 +33,9 @@ Game::Game(graphics::Renderer& screen)
 	std::cout << "Game was created" << std::endl;
 
 	ResourceManager::get().loadXml("data/assets.xml", screen);
-	ItemManager::get().loadXml("data/items.xml");
+	ItemManager::get().loadXml(registry, "data/items.xml");
 	TileManager::get().loadXml("data/tiles.xml");
-	CraftingManager::get().loadXml("data/crafts.xml");
+	CraftingManager::get().loadXml(registry, "data/crafts.xml");
 	ObjectManager::get().loadXml("data/objects.xml");
 	EnemyManager::get().loadXml("data/enemies.xml");
 
@@ -278,7 +278,7 @@ void Game::initPlayer()
 	auto& place_intent = registry.emplace<Components::PlaceIntent>(player);
 
 	auto& has_inventory = registry.emplace<Components::HasInventory>(player);
-	has_inventory.inventory = std::make_shared<Inventory>(15);
+	has_inventory.inventory = std::make_shared<Inventory>(registry, 15);
 
 	auto& health = registry.emplace<Components::Health>(player);
 	health.max_health = 100.0f;

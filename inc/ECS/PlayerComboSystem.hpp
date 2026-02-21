@@ -24,14 +24,12 @@ public:
 
 			for (auto& weapon : player_equipment_component.weapons)
 			{
-				if (!weapon) continue;
-				auto& weapon_properties = ItemManager::get().getProperties(weapon->id);
-				if (!weapon_properties.melee_weapon_data) continue;
+				auto& weapon_properties = registry.get<Components::InventoryItems::WeaponComponent>(weapon);
 
-				float damage = weapon_properties.melee_weapon_data->damage;
-				float radius = weapon_properties.melee_weapon_data->radius;
-				float cooldown = weapon_properties.melee_weapon_data->cooldown;
-				float& cooldown_timer = weapon->cooldown_timer;
+				float damage = weapon_properties.damage;
+				float radius = weapon_properties.radius;
+				float cooldown = weapon_properties.cooldown;
+				float& cooldown_timer = weapon_properties.cooldown_timer;
 				cooldown_timer += dt;
 
 				if (cooldown_timer >= cooldown)

@@ -6,6 +6,7 @@
 #include "ResourceManager.hpp"
 #include "ECS/ComponentManager.hpp"
 #include "glm/gtc/random.hpp"
+#include "ECS/Components.hpp"
 #include "Debug.hpp"
 
 EnemySpawnSystem::EnemySpawnSystem(entt::registry& registry, const World& world, const SpawnRadius& spawn_radius)

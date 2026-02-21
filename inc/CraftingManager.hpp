@@ -15,7 +15,7 @@ public:
 	}
 	
 
-	void loadXml(const std::filesystem::path& path); ///< Takes a <b>path</b> to the <b>XML</b> file and loads the contents of it
+	void loadXml(entt::registry& registry, const std::filesystem::path& path); ///< Takes a <b>path</b> to the <b>XML</b> file and loads the contents of it
 
 	//CraftingRecipe
 	size_t getRecipeID(const std::string& recipe_name) const;

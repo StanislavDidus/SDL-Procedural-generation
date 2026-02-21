@@ -11,6 +11,7 @@
 
 #include "ECS/Systems.hpp"
 #include "UI/UserInterface.hpp"
+#include "ECS/Components.hpp"
 #include "ItemManager.hpp"
 #include "ObjectManager.hpp"
 #include "GenerationData.hpp"

@@ -7,6 +7,7 @@
 #include "Surface.hpp"
 #include "RenderFunctions.hpp"
 #include "ECS/ComponentManager.hpp"
+#include "ItemManager.hpp"
 
 constexpr float LABEL_WIDTH = 250.f;
 constexpr float LABEL_HEIGHT = 25.f;
@@ -15,6 +16,7 @@ constexpr float RESOURCE_ICON_WIDTH = 50.f;
 constexpr float RESOURCE_ICON_HEIGHT = 50.f;
 
 using namespace graphics;
+using namespace Components::InventoryItems;
 
 InventoryView::InventoryView(entt::registry& registry, const Font* font, const SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings, Entity target_entity)
 	: UIElement(position, { ui_settings.inventory_slot_width * columns
@@ -112,7 +114,10 @@ void InventoryView::isMovingItems()
 		auto& dragged_item = inventory->getItems()[*dragged_slot];
 		auto& covered_item = inventory->getItems()[*covered_slot];
 
-		if (dragged_item && covered_item && dragged_item->id == covered_item->id && *dragged_slot != *covered_slot)
+		const auto& dragged_item_info = registry.get<Item>(*dragged_item);
+		const auto& covered_item_info = registry.get<Item>(*covered_item);
+
+		if (dragged_item && covered_item && dragged_item_info == covered_item_info && *dragged_slot != *covered_slot)
 		{
 			inventory->stackItems(*dragged_slot, *covered_slot);
 			dragged_slot = std::nullopt;
@@ -127,7 +132,8 @@ void InventoryView::isMovingItems()
 	{
 		//Drop item
 		const auto& item = *getItem(*dragged_slot);
-		if (!item.equipped)
+		const auto& item_info = registry.get<Item>(item);
+		if (!item_info.equipped)
 		{
 			// Drop item if it is moved outside the inventory area
 			auto drop_item = registry.create();
@@ -210,7 +216,7 @@ void InventoryView::render(graphics::Renderer& screen)
 		
 		const auto& item_manager = ItemManager::get();
 
-		const auto& item_properties = item_manager.getProperties(item->id);
+		const auto& item_properties = item_manager.getProperties(registry, *item);
 
 		//Draw static items in an inventory slot
 		if (item && i != dragged_slot)
@@ -259,13 +265,14 @@ void InventoryView::drawItem(graphics::Renderer& screen, Entity item, const glm:
 	if (!inventory) return;
 
 	const auto& item_manager = ItemManager::get();
-	const auto& item_properties = item_manager.getProperties(item.id);
+	const auto& item_properties = item_manager.getProperties(registry, item);
+	const auto& item_info = registry.get<Item>(item);
 
 	const auto& item_sprite = item_sprites[item_properties.sprite_index];
 
 	drawScaledSprite(screen, item_sprite, position.x, position.y, ui_settings.inventory_slot_width, ui_settings.inventory_slot_height, IGNORE_VIEW_ZOOM);
 
-	if (item.equipped)
+	if (item_info.equipped)
 	{
 		//screen.drawRectangle(position.x, position.y, ui_settings.inventory_slot_width, ui_settings.inventory_slot_height, RenderType::FILL, Color::TRANSPARENT_GREEN, IGNORE_VIEW_ZOOM);
 		drawScaledSprite(screen, (*ResourceManager::get().getSpriteSheet("icons"))[0], position.x, position.y, ui_settings.inventory_slot_width, ui_settings.inventory_slot_height, IGNORE_VIEW_ZOOM);
@@ -275,7 +282,7 @@ void InventoryView::drawItem(graphics::Renderer& screen, Entity item, const glm:
 
 	if (text)
 	{
-		std::string new_text = std::to_string(item.stack_number);
+		std::string new_text = std::to_string(item_info.stack_number);
 		if (text->getText() != new_text)
 		{
 			text->setText(new_text);
@@ -284,14 +291,14 @@ void InventoryView::drawItem(graphics::Renderer& screen, Entity item, const glm:
 	}
 	else
 	{
-		text = std::make_unique<Text>( font, screen, std::to_string(item.stack_number) );
+		text = std::make_unique<Text>( font, screen, std::to_string(item_info.stack_number) );
 	}
 
 	int x = index % columns;
 	int y = index / columns;
 
 	//Don't draw stack number if it is 1
-	if (item.stack_number > 1)
+	if (item_info.stack_number > 1)
 	{
 		printText
 		(
