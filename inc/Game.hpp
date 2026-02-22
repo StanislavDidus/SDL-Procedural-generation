@@ -56,7 +56,6 @@ private:
 	void updateInput(float dt);
 	void updateImGui(float dt);
 
-	void renderWorld();
 
 	bool lock_camera = true;
 
@@ -115,8 +114,6 @@ private:
 	
 
 	Entity player;
-
-	UserInterface interface;
 
 	GenerationData generation_data;
 

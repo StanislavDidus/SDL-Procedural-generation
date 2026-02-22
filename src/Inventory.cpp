@@ -1,7 +1,6 @@
 #include "Inventory.hpp"
 #include "ECS/Systems.hpp"
 #include <algorithm>
-#include <commctrl.h>
 #include <iostream>
 #include "ItemManager.hpp"
 
@@ -28,7 +27,7 @@ void Inventory::useItem(int slot, Entity target_entity, entt::registry& registry
 	if (!item) return;
 	
 	auto& item_info = registry.get<Item>(*item);
-	const auto& item_properties = ItemManager::get().getProperties(registry, target_entity);
+	const auto& item_properties = ItemManager::get().getProperties(registry, *item);
 
 	switch (item_properties.action)
 	{
@@ -50,7 +49,7 @@ void Inventory::useItem(int slot, Entity target_entity, entt::registry& registry
 		{
 			registry.emplace<Components::EquipItem>(target_entity, *item);
 		}
-		else if (!item_info.equipped)
+		else if (item_info.equipped)
 		{
 			registry.emplace<Components::UnequipItem>(target_entity, *item);
 		}

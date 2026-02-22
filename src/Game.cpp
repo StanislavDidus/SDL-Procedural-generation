@@ -1,3 +1,6 @@
+#define WIN32_LEAN_AND_MEAN  
+#include <windows.h>
+
 #include "Game.hpp"
 #include <algorithm>
 #include <iostream>
@@ -314,7 +317,6 @@ void Game::initUserInterface()
 	{
 		auto player_health = registry.get<Components::Health>(player);
 
-		interface.addFillBar({ 0.f, screen.getWindowSize().y - 50.f, }, { 250.f, 50.f }, player_health.current_health, 100.f, Color::RED);
 	}
 
 	//interface.addInventoryView(ResourceManager::get().getFont("Main"), ResourceManager::get().getSpriteSheet("items"), component_manager.has_inventory[player].inventory.get(), 3, 5, 50.f, {0.f, 0.f});

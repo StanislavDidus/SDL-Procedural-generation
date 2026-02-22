@@ -48,28 +48,29 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 		auto item = registerItem(registry, { can_stack, sprite_index, item_name, action});
 
 		const auto& components_node = item_node->FirstChildElement("components");
-		for (auto* component_node = components_node->FirstChildElement(); component_node != nullptr; component_node = component_node->NextSiblingElement())
+		if (!components_node) continue;
+		for (auto* component_node = components_node->FirstChildElement("component"); component_node != nullptr; component_node = component_node->NextSiblingElement())
 		{
-			const char* component_name = components_node->Attribute("id");
+			const char* component_name = component_node->Attribute("id");
 			if (strcmp(component_name, "HealthComponent") == 0)
 			{
-				float value = components_node->FloatText();
+				float value = component_node->FloatText();
 				Components::InventoryItems::HealComponent heal_component{ value };
 				registry.emplace_or_replace<Components::InventoryItems::HealComponent>(item, heal_component);
 			}
 			else if (strcmp(component_name, "PickaxeComponent") == 0)
 			{
-				float speed = components_node->FloatAttribute("speed");
-				float radius = components_node->FloatAttribute("radius");
-				int size = components_node->IntAttribute("size");
+				float speed = component_node->FloatAttribute("speed");
+				float radius = component_node->FloatAttribute("radius");
+				int size = component_node->IntAttribute("size");
 				Components::InventoryItems::PickaxeComponent pickaxe_component{ speed, radius, size };
 				registry.emplace_or_replace<Components::InventoryItems::PickaxeComponent>(item, pickaxe_component);
 			}
 			else if (strcmp(component_name, "WeaponComponent") == 0)
 			{
-				float damage = components_node->FloatAttribute("damage");
-				float cooldown = components_node->FloatAttribute("cooldown");
-				float radius = components_node->FloatAttribute("radius");
+				float damage = component_node->FloatAttribute("damage");
+				float cooldown = component_node->FloatAttribute("cooldown");
+				float radius = component_node->FloatAttribute("radius");
 				Components::InventoryItems::WeaponComponent weapon_component{ damage, cooldown, radius };
 				registry.emplace_or_replace<Components::InventoryItems::WeaponComponent>(item, weapon_component);
 			}
@@ -90,7 +91,8 @@ const Components::InventoryItems::ItemProperties& ItemManager::getProperties(int
 
 const Components::InventoryItems::ItemProperties& ItemManager::getProperties(entt::registry& registry, Entity item) const
 {
-	return registry.get<Components::InventoryItems::ItemProperties>(item);
+	const auto& item_info = registry.get<Components::InventoryItems::Item>(item);
+	return item_properties[item_info.id];
 }
 
 Entity ItemManager::getItem(size_t ID) const

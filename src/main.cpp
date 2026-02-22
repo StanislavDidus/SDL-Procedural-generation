@@ -1,3 +1,5 @@
+#define WIN32_LEAN_AND_MEAN     // optional but recommended — much faster, less bloat
+#include <windows.h>
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <SDL3/SDL_mouse.h>

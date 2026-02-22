@@ -114,18 +114,26 @@ void InventoryView::isMovingItems()
 		auto& dragged_item = inventory->getItems()[*dragged_slot];
 		auto& covered_item = inventory->getItems()[*covered_slot];
 
-		const auto& dragged_item_info = registry.get<Item>(*dragged_item);
-		const auto& covered_item_info = registry.get<Item>(*covered_item);
-
-		if (dragged_item && covered_item && dragged_item_info == covered_item_info && *dragged_slot != *covered_slot)
+		if (!dragged_item || !covered_item)
 		{
-			inventory->stackItems(*dragged_slot, *covered_slot);
+			inventory->moveItem(*dragged_slot, *covered_slot);
 			dragged_slot = std::nullopt;
 		}
 		else
 		{
-			inventory->moveItem(*dragged_slot, *covered_slot);
-			dragged_slot = std::nullopt;
+			const auto& dragged_item_info = registry.get<Item>(*dragged_item);
+			const auto& covered_item_info = registry.get<Item>(*covered_item);
+
+			if (dragged_item_info == covered_item_info && *dragged_slot != *covered_slot)
+			{
+				inventory->stackItems(*dragged_slot, *covered_slot);
+				dragged_slot = std::nullopt;
+			}
+			else
+			{
+				inventory->moveItem(*dragged_slot, *covered_slot);
+				dragged_slot = std::nullopt;
+			}
 		}
 	}
 	else if (dragged_slot && !covered_slot && mouse.left == MouseButtonState::RELEASED && inventory)

@@ -788,7 +788,7 @@ public:
 				
 				if (registry.all_of<Components::InventoryItems::PickaxeComponent>(unequip_item_component.item))
 				{
-					equipment_component.pickaxe = entt::null;
+					equipment_component.pickaxe = std::nullopt;
 					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
 
 					// Set mining properties (speed, radius, size)

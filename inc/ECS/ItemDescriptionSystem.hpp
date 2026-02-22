@@ -168,7 +168,7 @@ private:
 	{
 		for (int i = 0; const auto& required_item : recipe)
 		{
-			const auto& required_item_properties = registry.get<Components::InventoryItems::ItemProperties>(required_item);
+			const auto& required_item_properties = ItemManager::get().getProperties(registry, required_item);
 			const auto& required_item_info = registry.get<Components::InventoryItems::Item>(required_item);
 			int sprite_index = required_item_properties.sprite_index;
 			int required_item_number = required_item_info.stack_number;

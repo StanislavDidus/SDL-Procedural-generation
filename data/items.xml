@@ -42,7 +42,9 @@
         <canStack>false</canStack>
         <spriteIndex>6</spriteIndex>
         <action>EQUIP</action>
-        <PickaxeData speed="150" radius="150" size="3" />
+        <components>
+            <component id="PickaxeComponent" speed="150" radius="150" size="3" />
+        </components>
     </item>
     <item id="Cactus">
         <canStack>false</canStack>
@@ -58,7 +60,9 @@
         <canStack>false</canStack>
         <spriteIndex>9</spriteIndex>
         <action>EQUIP</action>
-        <MeleeWeaponData damage="40" cooldown="1.5" radius="150" />
+        <components>
+            <component id="WeaponComponent" damage="40" cooldown="1.5" radius="150" /> 
+        </components>
     </item>
     <item id="Grass">
         <canStack>true</canStack>
@@ -69,7 +73,9 @@
         <canStack>false</canStack>
         <spriteIndex>11</spriteIndex>
         <action>EQUIP</action>
-        <PickaxeData speed="225" radius="150" size="4" />
+        <components>
+            <component id="PickaxeComponent" speed="225" radius="150" size="4" />  
+        </components>
     </item>
     <item id="Gold">
         <canStack>true</canStack>
@@ -90,6 +96,8 @@
         <canStack>false</canStack>
         <spriteIndex>14</spriteIndex>
         <action>EQUIP</action>
-         <MeleeWeaponData damage="20" cooldown="1" radius="350" />
+        <components>
+            <component id="WeaponComponent" damage="20" cooldown="1" radius="350" /> 
+        </components>
     </item>
 </itemListing>
