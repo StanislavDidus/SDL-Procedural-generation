@@ -799,12 +799,42 @@ public:
 					}
 				}
 
+				//Helmet
+				if (registry.all_of<Components::InventoryItems::Helmet>(equip_item_component.item))
+				{
+					if (equipment_component.helmet != entt::null)
+					{
+						registry.get<Components::InventoryItems::Item>(equipment_component.helmet).equipped = false;
+						registry.emplace<Components::ItemUnequipped>(target_entity, equipment_component.helmet);
+					}
+
+					equipment_component.helmet = equip_item_component.item;
+					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
+					item_info.equipped = true;
+				}
+
+				//Armor
+				if (registry.all_of<Components::InventoryItems::Armor>(equip_item_component.item))
+				{
+					if (equipment_component.armor != entt::null)
+					{
+						registry.get<Components::InventoryItems::Item>(equipment_component.armor).equipped = false;
+						registry.emplace<Components::ItemUnequipped>(target_entity, equipment_component.armor);
+					}
+
+					equipment_component.armor = equip_item_component.item;
+					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
+					item_info.equipped = true;
+				}
+
 				//Boots
 				if (registry.all_of<Components::InventoryItems::Boots>(equip_item_component.item))
 				{
 					if (equipment_component.boots)
 					{
 						registry.get<Components::InventoryItems::Item>(*equipment_component.boots).equipped = false;
+						//Make sure that previous boots are properly unequipped
+						registry.emplace<Components::ItemUnequipped>(target_entity, *equipment_component.boots);
 					}
 
 					equipment_component.boots = equip_item_component.item;
@@ -841,6 +871,21 @@ public:
 				{
 					auto& weapon_array = registry.get<Components::Equipment>(target_entity).weapons;
 					weapon_array.erase(std::ranges::remove(weapon_array, unequip_item_component.item).begin(), weapon_array.end());
+					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+				}
+
+
+				//Helmet
+				if (registry.all_of<Components::InventoryItems::Helmet>(unequip_item_component.item))
+				{
+					equipment_component.helmet = entt::null;
+					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+				}
+
+				//Armor
+				if (registry.all_of<Components::InventoryItems::Armor>(unequip_item_component.item))
+				{
+					equipment_component.armor = entt::null;
 					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
 				}
 

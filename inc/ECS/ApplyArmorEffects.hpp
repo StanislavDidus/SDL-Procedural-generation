@@ -17,6 +17,7 @@ public:
 			if (registry.all_of<Components::Effects::DoubleJump>(item_equipped_component.item))
 			{
 				registry.emplace_or_replace<Components::Effects::DoubleJump>(entity);
+				double_jump_counter[entity]++;
 			}
 			//else if(registry.all_of<Components::Effects::Regeneration>(item)
 			// Do something
@@ -28,19 +29,23 @@ public:
 		// view<ItemEquipped, DoubleJump>();
 
 		//Unequip
-		//NOTE: It completely removes the component
-		// But what if there is a second item that grants the same effect
-		// Then it should not be removed
 		auto view_unequipped = registry.view<Components::ItemUnequipped>();
 		for (auto [entity, item_unequipped_component] : view_unequipped.each())
 		{
 			if (registry.all_of<Components::Effects::DoubleJump>(item_unequipped_component.item))
 			{
-				registry.remove<Components::Effects::DoubleJump>(entity);
+				if (double_jump_counter[entity] <= 1)
+				{
+					registry.remove<Components::Effects::DoubleJump>(entity);
+					std::cout << "Component deleted" << std::endl;
+				}
+				double_jump_counter[entity]--;
 			}
 		}
 	}
 
 private:
 	entt::registry& registry;
+
+	std::unordered_map<Entity, int> double_jump_counter;
 };

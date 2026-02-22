@@ -78,6 +78,14 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 			{
 				registry.emplace_or_replace<Components::InventoryItems::Boots>(item);
 			}
+			else if (strcmp(component_name, "Helmet") == 0)
+			{
+				registry.emplace_or_replace<Components::InventoryItems::Helmet>(item);
+			}
+			else if (strcmp(component_name, "Armor") == 0)
+			{
+				registry.emplace_or_replace<Components::InventoryItems::Armor>(item);
+			}
 			else if (strcmp(component_name, "DoubleJump") == 0)
 			{
 				registry.emplace_or_replace<Components::Effects::DoubleJump>(item);

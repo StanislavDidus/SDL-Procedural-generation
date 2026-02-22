@@ -236,6 +236,9 @@ namespace Components
 		int max_weapon = 0;
 		std::vector<Entity> weapons;
 		std::optional<Entity> pickaxe = std::nullopt;
+		//TODO: Change every optional<Entity> to entt::null
+		Entity helmet = entt::null;
+		Entity armor = entt::null;
 		std::optional<Entity> boots = std::nullopt;
 	};
 
@@ -327,6 +330,16 @@ namespace Components
 		};
 
 		struct ArmorComponent
+		{
+			
+		};
+
+		struct Helmet
+		{
+			
+		};
+
+		struct Armor
 		{
 			
 		};

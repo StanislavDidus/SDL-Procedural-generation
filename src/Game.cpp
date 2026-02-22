@@ -77,7 +77,11 @@ Game::Game(graphics::Renderer& screen)
 	inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
 	inventory->addItem(ItemManager::get().getItemID("Gold"), 10);
 	inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
-	inventory->addItem(ItemManager::get().getItemID("MagicBoots"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Magic_Boots"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Common_Boots"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Leather_Armor"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Leather_Helmet"), 1);
+
 }
 
 Game::~Game()

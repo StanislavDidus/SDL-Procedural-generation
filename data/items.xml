@@ -100,13 +100,38 @@
             <component id="WeaponComponent" damage="20" cooldown="1" radius="350" /> 
         </components>
     </item>
-    <item id="MagicBoots">
+    <item id="Magic_Boots">
         <canStack>false</canStack>
         <spriteIndex>15</spriteIndex>
         <action>EQUIP</action>
         <components>
             <component id="Boots" />
             <component id="DoubleJump" />
+        </components>
+    </item>
+    <item id="Common_Boots">
+        <canStack>false</canStack>
+        <spriteIndex>16</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="Boots" />
+        </components>
+    </item>
+    <item id="Leather_Armor">
+        <canStack>false</canStack>
+        <spriteIndex>18</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="Armor" />
+            <component id="Defense" value="10" />
+        </components>
+    </item>
+    <item id="Leather_Helmet">
+        <canStack>false</canStack>
+        <spriteIndex>17</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="Helmet" />
         </components>
     </item>
 </itemListing>
