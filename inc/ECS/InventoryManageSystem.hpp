@@ -62,6 +62,11 @@ public:
 		{
 			registry.destroy(entity);
 		}
+
+
+		//Print how many Items exist in the game at the moment
+		auto item_view = registry.view<Components::InventoryItems::Item>();
+		std::cout << item_view.size() << std::endl;
 	}
 
 private:
