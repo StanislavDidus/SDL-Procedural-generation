@@ -147,6 +147,7 @@ void InventoryView::isMovingItems()
 			auto drop_item = registry.create();
 			registry.emplace<Components::DropItem>(drop_item, target_entity, item);
 			inventory->removeItemAtSlot(*dragged_slot);
+
 			dragged_slot = std::nullopt;
 		}
 		else

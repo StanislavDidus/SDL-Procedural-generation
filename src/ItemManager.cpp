@@ -74,6 +74,14 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 				Components::InventoryItems::WeaponComponent weapon_component{ damage, cooldown, radius };
 				registry.emplace_or_replace<Components::InventoryItems::WeaponComponent>(item, weapon_component);
 			}
+			else if (strcmp(component_name, "Boots") == 0)
+			{
+				registry.emplace_or_replace<Components::InventoryItems::Boots>(item);
+			}
+			else if (strcmp(component_name, "DoubleJump") == 0)
+			{
+				registry.emplace_or_replace<Components::Effects::DoubleJump>(item);
+			}
 		}
 	}
 }

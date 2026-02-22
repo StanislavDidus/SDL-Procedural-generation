@@ -100,4 +100,13 @@
             <component id="WeaponComponent" damage="20" cooldown="1" radius="350" /> 
         </components>
     </item>
+    <item id="MagicBoots">
+        <canStack>false</canStack>
+        <spriteIndex>15</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="Boots" />
+            <component id="DoubleJump" />
+        </components>
+    </item>
 </itemListing>

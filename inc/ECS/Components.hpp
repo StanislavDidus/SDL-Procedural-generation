@@ -46,7 +46,8 @@ namespace Components
 	struct Jump
 	{
 		float jump_force;
-		bool jump_ready;
+		bool jump_pressed_this_frame;
+		bool jump_held;
 	};
 
 	struct MineIntent
@@ -235,6 +236,7 @@ namespace Components
 		int max_weapon = 0;
 		std::vector<Entity> weapons;
 		std::optional<Entity> pickaxe = std::nullopt;
+		std::optional<Entity> boots = std::nullopt;
 	};
 
 	struct Animation
@@ -270,6 +272,13 @@ namespace Components
 		bool active = false;
 	};
 
+	namespace Effects
+	{
+		struct DoubleJump
+		{
+			bool is_active = true;
+		};
+	} // namespace Effects
 
 	namespace InventoryItems
 	{
@@ -318,6 +327,11 @@ namespace Components
 		};
 
 		struct ArmorComponent
+		{
+			
+		};
+		
+		struct Boots
 		{
 			
 		};

@@ -35,6 +35,7 @@
 #include "ECS/InventoryManageSystem.hpp"
 #include "ECS/PlayerComboSystem.hpp"
 #include "ECS/RenderWeaponCircle.hpp"
+#include "ECS/ApplyArmorEffects.hpp"
 
 class Game
 {
@@ -100,6 +101,7 @@ private:
 	std::unique_ptr<RenderWeaponCircle> render_weapon_circle_system;
 	std::unique_ptr<DropItemSystem> drop_item_system;
 	std::unique_ptr<InventoryManageSystem> inventory_manage_system;
+	std::unique_ptr<ApplyArmorEffects> apply_armor_effects;
 
 	//UI
 	std::unique_ptr<CraftView> craft_view;

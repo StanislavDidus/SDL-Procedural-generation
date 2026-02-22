@@ -54,8 +54,8 @@ public:
 			}
 			last_weapon_capacity = player_equipment_component.max_weapon;
 
-			// If item is not a pickaxe
-			if (!registry.all_of<Components::InventoryItems::PickaxeComponent>(item_equipped_component.item))
+			// If item is a weapon
+			if (registry.all_of<Components::InventoryItems::WeaponComponent>(item_equipped_component.item))
 			{
 				auto free_circle_slot = std::ranges::find_if(circle_slots, [](const CircleWeapon& cw) {return cw.entity == entt::null; });
 				if (free_circle_slot != circle_slots.end())

@@ -42,10 +42,12 @@ public:
 	bool addItem(Entity item_);
 
 	/// <summary>
-	/// Clears the given item slot and makes it empty.
+	/// Doesn't destroy an item just clears the slot
 	/// </summary>
 	/// <param name="slot">Slot index.</param>
 	void removeItemAtSlot(size_t slot);
+	// Destroys an item and clears the slot
+	void eraseItemAtSlot(size_t slot);
 
 	/// <summary>
 	/// Takes 1 item from the first slot and moves it to the second.

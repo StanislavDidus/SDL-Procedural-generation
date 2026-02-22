@@ -94,10 +94,7 @@ struct PhysicsSystem
 
 			if (ph.can_move_horizontal) ts.position.x += ph.velocity.x * dt;
 
-			if (ph.is_ground)
-			{
-				ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
-			}
+			ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
 		}
 	}
 
@@ -317,7 +314,8 @@ struct InputSystem
 			if (registry.all_of<Components::Jump>(entity))
 			{
 				auto& j = registry.get<Components::Jump>(entity);
-				j.jump_ready = InputManager::isKey(SDLK_U);
+				j.jump_pressed_this_frame = InputManager::isKeyDown(SDLK_U);
+				j.jump_held = InputManager::isKey(SDLK_U);
 			}
 
 			//Mining
@@ -399,15 +397,40 @@ struct JumpSystem
 
 	void update(float dt)
 	{
-		auto view = registry.view<Components::Physics, Components::Jump>();
+		//Jump for common entities
+		auto view = registry.view<Components::Physics, Components::Jump>(entt::exclude<Components::Effects::DoubleJump>);
 		for (auto [entity, ph, j] : view.each())
 		{
-			if (j.jump_ready && ph.is_ground)
+			if (j.jump_held && ph.is_ground)
 			{
 				ph.velocity.y -= j.jump_force;
-				j.jump_ready = false;
+				j.jump_held = false;
 				ph.is_ground = false;
 			}
+		}
+
+		//Jump for entities that have double jump
+		auto view2 = registry.view<Components::Physics, Components::Jump, Components::Effects::DoubleJump>();
+		for (auto [entity, ph, j, dj] : view2.each())
+		{
+			if (j.jump_held && ph.is_ground)
+			{	
+				ph.velocity.y -= j.jump_force;
+				j.jump_held = false;
+				ph.is_ground = false;
+				std::cout << "Common Jump" << std::endl;
+			}
+			else if (j.jump_pressed_this_frame && dj.is_active)
+			{
+				ph.velocity.y = 0.0f;
+				ph.velocity.y -= j.jump_force;
+				j.jump_pressed_this_frame = false;
+				dj.is_active = false;
+				std::cout << "Double Jump" << std::endl;
+			}
+
+			//Reset double_jump if entity touches the ground
+			if (ph.is_ground) dj.is_active = true;
 		}
 	}
 
@@ -742,6 +765,7 @@ public:
 			{
 				auto& equip_item_component = registry.get<Components::EquipItem>(target_entity);
 
+				// Pickaxe 
 				if (registry.all_of<Components::InventoryItems::PickaxeComponent>(equip_item_component.item))
 				{
 					if (equipment_component.pickaxe)
@@ -752,8 +776,6 @@ public:
 					equipment_component.pickaxe = equip_item_component.item;
 					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
 					item_info.equipped = true;
-
-					registry.emplace<Components::ItemEquipped>(target_entity, equip_item_component.item);
 
 					// Set mining properties (speed, radius, size)
 					if (registry.all_of<Components::MiningAbility>(target_entity))
@@ -774,11 +796,24 @@ public:
 					{
 						registry.get<Components::Equipment>(target_entity).weapons.emplace_back(equip_item_component.item);
 						registry.get<Components::InventoryItems::Item>(equip_item_component.item).equipped = true;
-						registry.emplace<Components::ItemEquipped>(target_entity, equip_item_component.item);
 					}
 				}
 
+				//Boots
+				if (registry.all_of<Components::InventoryItems::Boots>(equip_item_component.item))
+				{
+					if (equipment_component.boots)
+					{
+						registry.get<Components::InventoryItems::Item>(*equipment_component.boots).equipped = false;
+					}
 
+					equipment_component.boots = equip_item_component.item;
+					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
+					item_info.equipped = true;
+				}
+
+
+				registry.emplace<Components::ItemEquipped>(target_entity, equip_item_component.item);
 				registry.erase<Components::EquipItem>(target_entity);
 			}	
 
@@ -806,6 +841,13 @@ public:
 				{
 					auto& weapon_array = registry.get<Components::Equipment>(target_entity).weapons;
 					weapon_array.erase(std::ranges::remove(weapon_array, unequip_item_component.item).begin(), weapon_array.end());
+					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+				}
+
+				//Boots
+				if (registry.all_of<Components::InventoryItems::Boots>(unequip_item_component.item))
+				{
+					equipment_component.boots = std::nullopt;
 					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
 				}
 

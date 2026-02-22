@@ -114,6 +114,4 @@ int main()
     ImGui_ImplSDL3_Shutdown();
     ImGui_ImplSDLRenderer3_Shutdown();
     ImGui::DestroyContext();
-
-    return 0;
 }

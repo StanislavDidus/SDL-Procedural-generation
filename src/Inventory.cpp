@@ -100,10 +100,18 @@ void Inventory::removeItemAtSlot(size_t slot)
 	//Remove the item and free the slot
 	if (slot >= 0 && slot < items.size())
 	{
-		//This function does not destroy an item, but should
-		//But if i delete an item now then i get bugs
-		//TODO: Fix later
-		//registry.destroy(*items[slot]);
+		items[slot] = std::nullopt;
+
+		free_slots.push_back(slot);
+	}
+}
+
+void Inventory::eraseItemAtSlot(size_t slot)
+{
+	//Remove the item and free the slot
+	if (slot >= 0 && slot < items.size())
+	{
+		registry.destroy(*items[slot]);
 		items[slot] = std::nullopt;
 
 		free_slots.push_back(slot);
@@ -220,7 +228,7 @@ void Inventory::removeItem(Entity item)
 				{
 					number_destroyed += item_info.stack_number;
 
-					removeItemAtSlot(i);
+					eraseItemAtSlot(i);
 				}
 
 				if (number_destroyed >= target_number)

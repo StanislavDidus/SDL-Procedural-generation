@@ -77,6 +77,7 @@ Game::Game(graphics::Renderer& screen)
 	inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
 	inventory->addItem(ItemManager::get().getItemID("Gold"), 10);
 	inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
+	inventory->addItem(ItemManager::get().getItemID("MagicBoots"), 1);
 }
 
 Game::~Game()
@@ -107,6 +108,7 @@ void Game::initSystems()
 	display_hit_marks_system = std::make_unique<DisplayHitMarksSystem>(registry);
 	drop_item_system = std::make_unique<DropItemSystem>(registry);
 	inventory_manage_system = std::make_unique<InventoryManageSystem>(registry);
+	apply_armor_effects = std::make_unique<ApplyArmorEffects>(registry);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -297,6 +299,9 @@ void Game::initPlayer()
 	animation.jump_animation = jump_animation;
 	animation.fall_animation = fall_animation;
 
+	//Add player a double jump
+	//registry.emplace<Components::Effects::DoubleJump>(player);
+
 	//Add all recipes that do not require blueprints
 	for (size_t i = 0; i < CraftingManager::get().size(); ++i)
 	{
@@ -348,6 +353,7 @@ void Game::update(float dt)
 	item_usage_system->update();
 	drop_item_system->update(dt);
 	inventory_manage_system->update();
+	apply_armor_effects->update();
 	
 	const auto& player_transform = registry.get<Components::Transform>(player);
 	const auto& player_pos = player_transform.position;

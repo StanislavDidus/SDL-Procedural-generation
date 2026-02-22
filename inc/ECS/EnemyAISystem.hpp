@@ -32,7 +32,7 @@ public:
 
 			if (ai_component.last_position == transform_component.position)
 			{
-				jump_component.jump_ready = true;
+				jump_component.jump_held = true;
 			}
 
 			//Update AI timer and last position
