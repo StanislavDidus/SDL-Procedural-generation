@@ -6,21 +6,24 @@
         <spriteIndex>0</spriteIndex>
         <action>USE</action>
         <components>
-            <component id="HealthComponent">100</component>
+            <component id="HealthComponent">10</component>
         </components>
-        <HealData>10</HealData>
     </item>
     <item id="Banana">
         <canStack>true</canStack>
         <spriteIndex>1</spriteIndex>
         <action>USE</action>
-        <HealData>5</HealData>
+        <components>
+            <component id="HealthComponent">5</component>
+        </components>
     </item>
     <item id="Heal_Potion">
         <canStack>true</canStack>
         <spriteIndex>2</spriteIndex>
         <action>USE</action>
-        <HealData>50</HealData>
+        <components>
+            <component id="HealthComponent">50</component>
+        </components>
     </item>
     <item id="Regeneration_Potion">
         <canStack>true</canStack>

@@ -102,6 +102,8 @@ Entity EnemySpawnSystem::createEntity(size_t id) const
 	health.max_health = 100.0f;
 	health.current_health = 100.0f;
 
+	registry.emplace<Components::CollideDamage>(entity, 10.0f);
+
 	auto& enemy_ai = registry.emplace<Components::EnemyAI>(entity);
 	enemy_ai.position_update_time = 2.0f;
 	

@@ -21,6 +21,7 @@ struct MouseState
 	glm::vec2 wheel;
 };
 
+// TODO: Change this InputManager to use Scancodes instead of KeyCodes
 class InputManager
 {
 public:

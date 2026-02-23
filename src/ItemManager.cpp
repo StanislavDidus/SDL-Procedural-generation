@@ -102,6 +102,7 @@ size_t ItemManager::getItemID(const std::string& item_name) const
 
 const Components::InventoryItems::ItemProperties& ItemManager::getProperties(int ID) const
 {
+	//return item_properties.data()[ID];
 	return item_properties[ID];
 }
 

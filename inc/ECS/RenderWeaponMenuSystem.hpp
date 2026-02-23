@@ -42,10 +42,10 @@ public:
 		}
 
 		graphics::drawRectangle(screen, draw_x + draw_width, draw_y, ui.weapon_menu_slot_width, draw_height, graphics::RenderType::FILL, graphics::Color::TRANSPARENT_GREEN, graphics::IGNORE_VIEW_ZOOM);
-		if (equipment_component.pickaxe)
+		if (equipment_component.pickaxe != entt::null)
 		{
 			const auto& pickaxe = equipment_component.pickaxe;
-			int sprite_index = ItemManager::get().getProperties(registry, *pickaxe).sprite_index;
+			int sprite_index = ItemManager::get().getProperties(registry, pickaxe).sprite_index;
 			const auto& sprite = ResourceManager::get().getSpriteSheet("items");
 
 			graphics::drawScaledSprite(screen, (*sprite)[sprite_index], draw_x + ui.weapon_menu_slot_width * number_of_weapons, draw_y, ui.weapon_menu_slot_width, ui.weapon_menu_slot_height, graphics::IGNORE_VIEW_ZOOM);

@@ -106,14 +106,19 @@ namespace Components
 	};
 
 	struct Player
-	{
-
+	{	
 	};
 
 	struct Health
 	{
 		float max_health;
 		float current_health;
+	};
+
+	struct Invincible
+	{
+		float time = 0.0f;
+		float timer = 0.0f;
 	};
 
 	struct HasInventory
@@ -235,11 +240,10 @@ namespace Components
 
 		int max_weapon = 0;
 		std::vector<Entity> weapons;
-		std::optional<Entity> pickaxe = std::nullopt;
-		//TODO: Change every optional<Entity> to entt::null
+		Entity pickaxe = entt::null;
 		Entity helmet = entt::null;
 		Entity armor = entt::null;
-		std::optional<Entity> boots = std::nullopt;
+		Entity boots = entt::null;
 	};
 
 	struct Animation
@@ -273,6 +277,18 @@ namespace Components
 		float time = 0.5f;
 		float timer = 0.0f;
 		bool active = false;
+	};
+
+	struct HealthBar
+	{
+		glm::vec2 position;
+		glm::vec2 size;
+		graphics::Color color;
+	};
+
+	struct CollideDamage
+	{
+		float damage;
 	};
 
 	namespace Effects

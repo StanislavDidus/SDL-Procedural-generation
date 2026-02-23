@@ -36,6 +36,9 @@
 #include "ECS/PlayerComboSystem.hpp"
 #include "ECS/RenderWeaponCircle.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
+#include "ECS/ManageInvincibleStatusSystem.hpp"
+#include "ECS/PlayerCollisionSystem.hpp"
+#include "ECS/RenderHealthBarSystem.hpp"
 
 class Game
 {
@@ -102,6 +105,9 @@ private:
 	std::unique_ptr<DropItemSystem> drop_item_system;
 	std::unique_ptr<InventoryManageSystem> inventory_manage_system;
 	std::unique_ptr<ApplyArmorEffects> apply_armor_effects;
+	std::unique_ptr<RenderHealthBarSystem> render_health_bar_system;
+	std::unique_ptr<PlayerCollisionSystem> player_collision_system;
+	std::unique_ptr<ManageInvincibleStatusSystem> manage_invincible_status_system;
 
 	//UI
 	std::unique_ptr<CraftView> craft_view;

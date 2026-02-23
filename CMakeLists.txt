@@ -95,6 +95,9 @@ set(HEADER_FILES
     "inc/ECS/InventoryManageSystem.hpp"
     "inc/ECS/EnttCopyComponents.hpp"
     "inc/ECS/ApplyArmorEffects.hpp"
+    "inc/ECS/RenderHealthBarSystem.hpp"
+    "inc/ECS/PlayerCollisionSystem.hpp"
+    "inc/ECS/ManageInvincibleStatusSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

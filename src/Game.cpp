@@ -106,13 +106,16 @@ void Game::initSystems()
 	render_system = std::make_unique<RenderSystem>(registry);
 	render_weapon_menu_system = std::make_unique<RenderWeaponMenuSystem>(registry, ui_settings);
 	enemy_ai_system = std::make_unique<EnemyAISystem>(registry);
-	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(registry, *world, SpawnRadius{ 1100.0f, 1400.0f });
+	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(registry, *world, SpawnRadius{ 0.0f, 3000.0f });
 	player_combo_system = std::make_unique<PlayerComboSystem>(registry, enemy_spawn_system);
 	apply_damage_system = std::make_unique<ApplyDamageSystem>(registry);
 	display_hit_marks_system = std::make_unique<DisplayHitMarksSystem>(registry);
 	drop_item_system = std::make_unique<DropItemSystem>(registry);
 	inventory_manage_system = std::make_unique<InventoryManageSystem>(registry);
 	apply_armor_effects = std::make_unique<ApplyArmorEffects>(registry);
+	render_health_bar_system = std::make_unique<RenderHealthBarSystem>(registry);
+	player_collision_system = std::make_unique<PlayerCollisionSystem>(registry);
+	manage_invincible_status_system = std::make_unique<ManageInvincibleStatusSystem>(registry);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -247,7 +250,7 @@ void Game::initBiomes()
 
 void Game::initPlayer()
 {
-
+	const auto& window_size = screen.getWindowSize();
 	player = registry.create();
 
 	auto& ts = registry.emplace<Components::Transform>(player);
@@ -291,7 +294,7 @@ void Game::initPlayer()
 
 	auto& health = registry.emplace<Components::Health>(player);
 	health.max_health = 100.0f;
-	health.current_health = 50.0f;
+	health.current_health = 100.0f;
 
 	registry.emplace<Components::CraftingAbility>(player);
 
@@ -302,6 +305,11 @@ void Game::initPlayer()
 	animation.running_animation = running_animation;
 	animation.jump_animation = jump_animation;
 	animation.fall_animation = fall_animation;
+
+	auto& health_bar = registry.emplace<Components::HealthBar>(player);
+	health_bar.position = glm::vec2{ 0.0f, static_cast<float>(window_size.y) - 70.0f };
+	health_bar.size = glm::vec2{ 250.0f, 70.0f };
+	health_bar.color = graphics::Color::RED;
 
 	//Add player a double jump
 	//registry.emplace<Components::Effects::DoubleJump>(player);
@@ -358,6 +366,8 @@ void Game::update(float dt)
 	drop_item_system->update(dt);
 	inventory_manage_system->update();
 	apply_armor_effects->update();
+	player_collision_system->update(player);
+	manage_invincible_status_system->update(dt);
 	
 	const auto& player_transform = registry.get<Components::Transform>(player);
 	const auto& player_pos = player_transform.position;
@@ -406,6 +416,7 @@ void Game::update(float dt)
 	render_crafting_ui_system->render(screen, player);
 	item_description_system->render(screen, player);
 	render_weapon_menu_system->render(screen, player);
+	render_health_bar_system->render(screen);
 	
 	//Set window base size to properly render imgui without scaling
 	SDL_SetRenderLogicalPresentation(screen.get(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
