@@ -11,6 +11,7 @@
 
 #include "InputManager.hpp"
 #include "ResourceManager.hpp"
+#include "BaseState.hpp"
 
 #include <random>
 
@@ -54,10 +55,7 @@ Game::Game(graphics::Renderer& screen)
 	initSystems();
 
 	//Set player idle animation
-	idle_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 5.0f, std::vector<int>{0, 1, 2});
-	running_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 5.0f, std::vector<int>{3, 4, 5, 6});
-	jump_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 20.0f, std::vector<int>{7});
-	fall_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 20.0f, std::vector<int>{8});
+	initPlayerAnimations();
 
 	initPlayer();
 	item_usage_system = std::make_shared<ItemUsageSystem>(registry, player);
@@ -106,7 +104,7 @@ void Game::initSystems()
 	render_system = std::make_unique<RenderSystem>(registry);
 	render_weapon_menu_system = std::make_unique<RenderWeaponMenuSystem>(registry, ui_settings);
 	enemy_ai_system = std::make_unique<EnemyAISystem>(registry);
-	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(registry, *world, SpawnRadius{ 0.0f, 3000.0f });
+	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(registry, *world, SpawnRadius{ 1500.0f,2000.0f });
 	player_combo_system = std::make_unique<PlayerComboSystem>(registry, enemy_spawn_system);
 	apply_damage_system = std::make_unique<ApplyDamageSystem>(registry);
 	display_hit_marks_system = std::make_unique<DisplayHitMarksSystem>(registry);
@@ -328,6 +326,14 @@ void Game::initPlayer()
 
 }
 
+void Game::initPlayerAnimations()
+{
+	idle_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 5.0f, std::vector<int>{0, 1, 2});
+	running_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 5.0f, std::vector<int>{3, 4, 5, 6});
+	jump_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 20.0f, std::vector<int>{7});
+	fall_animation = std::make_shared<SpriteAnimation>(ResourceManager::get().getSpriteSheet("player"), 20.0f, std::vector<int>{8});
+}
+
 void Game::initUserInterface()
 {
 	if (registry.all_of<Components::Health>(player))
@@ -341,9 +347,17 @@ void Game::initUserInterface()
 	inventory_view = std::make_shared<InventoryView>(registry, ResourceManager::get().getFont("Main"), (*ResourceManager::get().getSpriteSheet("items")), 3, 5, glm::vec2{0.f, 0.f}, ui_settings, player);
 }
 
-void Game::update(float dt)
+void Game::tick(float dt)
 {
 	//Update
+	update(dt);
+	
+	//Render
+	render();
+}
+
+void Game::update(float dt)
+{
 	updateInput(dt);
 
 	screen.setZoom(zoom);
@@ -389,26 +403,22 @@ void Game::update(float dt)
 	updateTilemapTarget();
 
 	render_system->update(dt);
-	
-	//Render
+
 	ImGui_ImplSDLRenderer3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
 
 	updateImGui(dt);
+}
 
+void Game::render() const
+{
 	const auto& window_size = screen.getWindowSize();
 
-	//collision_system->collisions.clear();
-
 	world->render(screen);
-
 	render_system->render(screen);
-
 	mining_tiles_system->renderOutline(screen);
-
 	mining_objects_system->render(screen);
-
 	render_weapon_circle_system->render(screen);
 
 	//UI
@@ -420,10 +430,8 @@ void Game::update(float dt)
 	
 	//Set window base size to properly render imgui without scaling
 	SDL_SetRenderLogicalPresentation(screen.get(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
-
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.get());
-
 	SDL_SetRenderLogicalPresentation(screen.get(), window_size.x, window_size.y, SDL_LOGICAL_PRESENTATION_LETTERBOX);
 }
 
@@ -500,7 +508,7 @@ void Game::updateInput(float dt)
 	//Add items
 	if (InputManager::isKeyDown(SDLK_G))
 	{
-		registry.get<Components::HasInventory>(player).inventory->addItem(1, 1);
+		//registry.get<Components::HasInventory>(player).inventory->addItem(1, 1);
 	}
 
 	//Change the mining radius
@@ -641,3 +649,4 @@ void Game::updateImGui(float dt)
 	}
 	ImGui::End();
 }
+

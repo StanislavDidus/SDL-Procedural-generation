@@ -269,6 +269,7 @@ namespace Components
 	struct Damage
 	{
 		Entity target;
+		Entity source;
 		float value;
 	};
 

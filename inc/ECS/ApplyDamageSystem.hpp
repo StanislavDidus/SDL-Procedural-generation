@@ -35,8 +35,27 @@ public:
 				registry.emplace_or_replace<Components::HitMark>(damage_component.target, 0.1f, 0.0f, false);
 				
 				// If target is a player, then we add invincibility to it after the hit
-				if (registry.all_of<Components::Player>(damage_component.target))
+				// Also the player gets pushed aside
+				if (registry.all_of<Components::Player, Components::Physics>(damage_component.target) && registry.all_of<Components::Transform>(damage_component.source))
+				{
+					const auto& player_transform_position = registry.get<Components::Transform>(damage_component.target);
+					const auto& enemy_transform_component = registry.get<Components::Transform>(damage_component.source);
+
+					glm::vec2 player_mid_position = player_transform_position.position + player_transform_position.size * 0.5f;
+					glm::vec2 enemy_mid_position = enemy_transform_component.position + enemy_transform_component.size * 0.5f;
+
+					auto& player_physics_component = registry.get<Components::Physics>(damage_component.target);
+
+					float direction = player_mid_position.x < enemy_mid_position.x ? -1.0f : 1.0f;
+					float push_force_x = 600.0f;
+					float push_force_y = -300.0f;
+					player_physics_component.velocity.x = push_force_x * direction;
+					player_physics_component.velocity.y = push_force_y;
+
 					registry.emplace<Components::Invincible>(damage_component.target, 3.0f, 0.0f);
+
+
+				}
 
 				// Destroy this entity
 				to_destroy.emplace_back(entity);

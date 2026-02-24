@@ -22,7 +22,7 @@ public:
 			if (AABB(player_transform, enemy_transform_component))
 			{
 				auto damage_entity = registry.create();
-				registry.emplace<Components::Damage>(damage_entity, player, collide_damage_component.damage);
+				registry.emplace<Components::Damage>(damage_entity, player, entity, collide_damage_component.damage);
 				std::cout << "Player damaged" << std::endl;
 			}
 		}

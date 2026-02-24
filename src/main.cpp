@@ -101,7 +101,7 @@ int main()
 
         input_manager.update();
 
-        game.update(dt);
+        game.tick(dt);
 
         update(renderer);
 

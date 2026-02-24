@@ -46,7 +46,7 @@ public:
 	explicit Game(graphics::Renderer& screen);
 	virtual ~Game();
 
-	void update(float dt);
+	void tick(float dt);
 private:
 	void initSystems();
 	void initGenerationData();
@@ -54,12 +54,15 @@ private:
 	void initMapRanges();
 	void initBiomes();
 	void initPlayer();
+	void initPlayerAnimations();
 	void initUserInterface();
 
 	void updateTilemapTarget();
 	void updateInput(float dt);
 	void updateImGui(float dt);
 
+	void update(float dt);
+	void render() const;
 
 	bool lock_camera = true;
 
@@ -78,7 +81,7 @@ private:
 	glm::vec2 world_target;
 	std::shared_ptr<World> world;
 
-	float tilemap_raws = 10.f;
+	float tilemap_rows = 10.f;
 	float tilemap_columns = 10.f;
 
 	entt::registry registry;

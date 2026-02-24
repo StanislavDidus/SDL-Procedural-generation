@@ -98,6 +98,8 @@ set(HEADER_FILES
     "inc/ECS/RenderHealthBarSystem.hpp"
     "inc/ECS/PlayerCollisionSystem.hpp"
     "inc/ECS/ManageInvincibleStatusSystem.hpp"
+    "inc/BaseState.hpp"
+    "inc/GameStates.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

@@ -66,7 +66,7 @@ public:
 							auto& enemy_health = registry.get<Components::Health>(enemy);
 
 							auto damage_entity = registry.create();
-							registry.emplace<Components::Damage>(damage_entity, enemy, damage);
+							registry.emplace<Components::Damage>(damage_entity, enemy, weapon, damage);
 						}
 					}
 				}
