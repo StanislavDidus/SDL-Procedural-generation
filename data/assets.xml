@@ -58,6 +58,7 @@
                 <rect x="48" y="143" w="16" h="17" />
                 <rect x="0" y="174" w="16" h="18" /> <!--Jump-->
                 <rect x="16" y="176" w="16" h="16" /> <!--Fall-->
+                <rect x="32" y="176" w="16" h="16" /> <!--Death-->
 
             </rectListing>
         </sprite>

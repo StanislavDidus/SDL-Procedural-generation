@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Components.hpp"
 #include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
 #include "RenderFunctions.hpp"
@@ -11,7 +12,7 @@ public:
 
 	void update(float dt) const
 	{
-		auto view = registry.view<Components::Physics, Components::Renderable, Components::CharacterAnimation>();
+		auto view = registry.view<Components::Physics, Components::Renderable, Components::CharacterAnimation>(entt::exclude<Components::Dead>);
 		for (auto [entity, physics_component, renderable_component, character_animations_component] : view.each())
 		{
 			//First check of jumping and falling

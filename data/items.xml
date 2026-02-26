@@ -137,4 +137,13 @@
             <component id="Helmet" />
         </components>
     </item>
+    <item id="Health_Amulet">
+        <canStack>false</canStack>
+        <spriteIndex>18</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="Accessory" />
+            <component id="Regeneration" />
+        </components>
+    </item>
 </itemListing>

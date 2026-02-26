@@ -52,7 +52,7 @@ public:
 					player_physics_component.velocity.x = push_force_x * direction;
 					player_physics_component.velocity.y = push_force_y;
 
-					registry.emplace<Components::Invincible>(damage_component.target, 3.0f, 0.0f);
+					registry.emplace<Components::Invincible>(damage_component.target, 0.5f, 0.0f);
 
 
 				}

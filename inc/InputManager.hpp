@@ -5,6 +5,8 @@
 
 #include <bitset>
 
+constexpr size_t BITSET_SIZE = 260;
+
 enum class MouseButtonState
 {
 	NONE,
@@ -43,9 +45,9 @@ public:
 private:
 	static MouseState mouse_state;
 
-	std::bitset<256> keys;
-	static std::bitset<256> pressed;
-	static std::bitset<256> held;
-	static std::bitset<256> released;
+	std::bitset<BITSET_SIZE> keys;
+	static std::bitset<BITSET_SIZE> pressed;
+	static std::bitset<BITSET_SIZE> held;
+	static std::bitset<BITSET_SIZE> released;
 };
 

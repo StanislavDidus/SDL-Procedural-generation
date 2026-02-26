@@ -20,8 +20,9 @@
 #include "EnemyManager.hpp"
 #include "tinyxml2.h"
 
-
+#include "ECS/DeathSystem.hpp"
 #include "RenderFunctions.hpp"
+#include "ECS/ChangeMiningSizeSystem.hpp"
 
 using namespace graphics;
 
@@ -64,6 +65,8 @@ Game::Game(graphics::Renderer& screen)
 	inventory_view->setTargetEntity(player);
 
 	world->generateWorld(0);
+
+	setState(GameState::PLAY);
 
 	//Give basic items to the player
 	auto& inventory = registry.get<Components::HasInventory>(player).inventory;
@@ -114,6 +117,8 @@ void Game::initSystems()
 	render_health_bar_system = std::make_unique<RenderHealthBarSystem>(registry);
 	player_collision_system = std::make_unique<PlayerCollisionSystem>(registry);
 	manage_invincible_status_system = std::make_unique<ManageInvincibleStatusSystem>(registry);
+	death_system = std::make_unique<DeathSystem>(registry);
+	change_mining_size_system = std::make_unique<ChangeMiningSizeSystem>(registry);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -278,7 +283,8 @@ void Game::initPlayer()
 	auto& mining_ability = registry.emplace<Components::MiningAbility>(player);
 	mining_ability.speed = BASE_MINING_SPEED;
 	mining_ability.radius = BASE_MINING_RADIUS;
-	mining_ability.size = BASE_MINING_SIZE;
+	mining_ability.max_size = BASE_MINING_SIZE;
+	mining_ability.current_size = BASE_MINING_SIZE;
 
 	auto& place_ability = registry.emplace<Components::PlaceAbility>(player);
 	place_ability.radius = 200.0f;
@@ -365,44 +371,60 @@ void Game::update(float dt)
 
 	const auto& mouse = InputManager::getMouseState();
 
-	input_system->update(screen, dt);
-	jump_system->update(dt);
-	physics_system->update(dt);
-	collision_system->update(dt);
-	button_system->update();
-	craft_system->update(player);
-	enemy_ai_system->update(dt, player);
-	player_combo_system->update(dt, player);
-	apply_damage_system->update(dt);
-	display_hit_marks_system->update(dt);
-	render_weapon_circle_system->update(dt);
-	item_usage_system->update();
-	drop_item_system->update(dt);
-	inventory_manage_system->update();
-	apply_armor_effects->update();
-	player_collision_system->update(player);
-	manage_invincible_status_system->update(dt);
-	
-	const auto& player_transform = registry.get<Components::Transform>(player);
-	const auto& player_pos = player_transform.position;
-	const auto& player_size = player_transform.size;
-	enemy_spawn_system->update(dt, player_pos + player_size * 0.5f, screen);
-
-	if (!inventory_view->isMouseCoveringInventory() || registry.all_of<Components::MineObjectsState>(player))
+	switch (current_state)
 	{
-		mining_tiles_system->update(dt);
-		place_system->update(dt);
-		mining_objects_system->update(dt);
+	case GameState::PLAY:
+		{
+			input_system->update(screen, dt);
+			jump_system->update(dt);
+			physics_system->update(dt);
+			collision_system->update(dt);
+			button_system->update();
+			craft_system->update(player);
+			enemy_ai_system->update(dt, player);
+			player_combo_system->update(dt, player);
+			apply_damage_system->update(dt);
+			display_hit_marks_system->update(dt);
+			render_weapon_circle_system->update(dt);
+			item_usage_system->update();
+			drop_item_system->update(dt);
+			inventory_manage_system->update();
+			apply_armor_effects->update();
+			player_collision_system->update(player);
+			manage_invincible_status_system->update(dt);
+			death_system->update(*this);
+			change_mining_size_system->update();
+			
+			const auto& player_transform = registry.get<Components::Transform>(player);
+			const auto& player_pos = player_transform.position;
+			const auto& player_size = player_transform.size;
+			enemy_spawn_system->update(dt, player_pos + player_size * 0.5f, screen);
+
+			if (!inventory_view->isMouseCoveringInventory() || registry.all_of<Components::MineObjectsState>(player))
+			{
+				mining_tiles_system->update(dt);
+				place_system->update(dt);
+				mining_objects_system->update(dt);
+			}
+
+			world->update(screen, dt, world_target);
+			world->updateTiles();
+
+			inventory_view->update();
+
+			updateTilemapTarget();
+
+			render_system->update(dt);
+		}
+		break;
+	case GameState::PLAYER_DEAD:
+		{
+			physics_system->update(dt);
+			collision_system->update(dt);
+			display_hit_marks_system->update(dt);
+		}
+		break;
 	}
-
-	world->update(screen, dt, world_target);
-	world->updateTiles();
-
-	inventory_view->update();
-
-	updateTilemapTarget();
-
-	render_system->update(dt);
 
 	ImGui_ImplSDLRenderer3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
@@ -415,24 +437,51 @@ void Game::render() const
 {
 	const auto& window_size = screen.getWindowSize();
 
-	world->render(screen);
-	render_system->render(screen);
-	mining_tiles_system->renderOutline(screen);
-	mining_objects_system->render(screen);
-	render_weapon_circle_system->render(screen);
+	switch (current_state)
+	{
+	case GameState::PLAY:
+	case GameState::PLAYER_DEAD:
+		{
+			world->render(screen);
+			render_system->render(screen);
+			mining_tiles_system->renderOutline(screen);
+			mining_objects_system->render(screen);
+			render_weapon_circle_system->render(screen);
 
-	//UI
-	inventory_view->render(screen);
-	render_crafting_ui_system->render(screen, player);
-	item_description_system->render(screen, player);
-	render_weapon_menu_system->render(screen, player);
-	render_health_bar_system->render(screen);
+			//UI
+			inventory_view->render(screen);
+			render_crafting_ui_system->render(screen, player);
+			item_description_system->render(screen, player);
+			render_weapon_menu_system->render(screen, player);
+			render_health_bar_system->render(screen);
+		}
+		break;
+	}
 	
 	//Set window base size to properly render imgui without scaling
 	SDL_SetRenderLogicalPresentation(screen.get(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
 	ImGui::Render();
 	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.get());
 	SDL_SetRenderLogicalPresentation(screen.get(), window_size.x, window_size.y, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+}
+
+void Game::setState(GameState new_state)
+{
+	if (new_state == current_state) return;
+
+	exitState(current_state);
+
+	current_state = new_state;
+
+	enterState(current_state);
+}
+
+void Game::enterState(GameState state)
+{
+}
+
+void Game::exitState(GameState state)
+{
 }
 
 void Game::updateTilemapTarget()

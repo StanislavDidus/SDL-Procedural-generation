@@ -105,6 +105,9 @@ int main()
 
         update(renderer);
 
+        // Reset mousewheel state
+        input_manager.setMouseWheel(glm::vec2{ 0.0f });
+
         const auto finish = std::chrono::steady_clock::now();   
         const std::chrono::duration<double> elapsed_seconds{ finish - start };
         dt = static_cast<float>(elapsed_seconds.count());

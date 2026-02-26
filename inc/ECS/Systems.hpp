@@ -128,8 +128,9 @@ public:
 		{
 			ph.is_ground = false;
 
-			int grid_local_x = static_cast<int>(ts.position.x / 20.0f);
-			int grid_local_y = static_cast<int>(ts.position.y / 20.0f);
+			glm::vec2 mid_position = ts.position + ts.size * 0.5f;
+			int grid_local_x = static_cast<int>(mid_position.x / 20.0f);
+			int grid_local_y = static_cast<int>(mid_position.y / 20.0f);
 
 			for (int i = -load_size; i < load_size; ++i)
 			{
@@ -162,7 +163,7 @@ public:
 	//std::vector<Transform> collisions;
 private:
 	entt::registry& registry;
-	int load_size = 5;
+	int load_size = 3;
 	std::shared_ptr<World> world;
 
 	void resolveCollision(Entity entity, Components::Transform& ts, Components::Physics& ph, const SDL_FRect& collider_rect) const
@@ -262,8 +263,9 @@ private:
 		Components::Transform above = { {step.x + 1.f, step.y - height + 1.f}, {step.w - 2.f, height - 2.f} };
 		SDL_FRect above_rect = { step.x + 1.f, step.y - height + 1.f, step.w - 2.f, height - 2.f };
 
-		int grid_local_x = static_cast<int>(above.position.x / 20.0f);
-		int grid_local_y = static_cast<int>(above.position.y / 20.0f);
+		glm::vec2 mid_position = glm::vec2{ above_rect.x, above_rect.y } + glm::vec2{ above_rect.w, above_rect.h } * 0.5f;
+		int grid_local_x = static_cast<int>(mid_position.x / 20.0f);
+		int grid_local_y = static_cast<int>(mid_position.y / 20.0f);
 
 		for (int i = -load_size; i < load_size; ++i)
 		{
@@ -418,7 +420,7 @@ struct JumpSystem
 				ph.velocity.y -= j.jump_force;
 				j.jump_held = false;
 				ph.is_ground = false;
-				std::cout << "Common Jump" << std::endl;
+				//std::cout << "Common Jump" << std::endl;
 			}
 			else if (j.jump_pressed_this_frame && dj.is_active)
 			{
@@ -426,7 +428,7 @@ struct JumpSystem
 				ph.velocity.y -= j.jump_force;
 				j.jump_pressed_this_frame = false;
 				dj.is_active = false;
-				std::cout << "Double Jump" << std::endl;
+				//std::cout << "Double Jump" << std::endl;
 			}
 
 			//Reset double_jump if entity touches the ground
@@ -461,7 +463,8 @@ public:
 
 			float mining_speed = mining_ability_component.speed;
 			float mining_radius = mining_ability_component.radius;
-			float mining_size = mining_ability_component.size;
+			float mining_size = mining_ability_component.current_size;
+			//std::cout << mining_size << std::endl;
 
 			const auto& mid_position = ts.position + ts.size * 0.5f;
 
@@ -599,7 +602,7 @@ public:
 		{
 			float mining_speed = mining_ability_component.speed;
 			float mining_radius = mining_ability_component.radius;
-			float mining_size = mining_ability_component.size;
+			float mining_size = mining_ability_component.current_size;
 
 			const auto& mid_position = ts.position + ts.size * 0.5f;
 			float distance = glm::distance(mid_position, mi.start_mouse_position);
@@ -784,7 +787,8 @@ public:
 						auto& mining_ability = registry.get<Components::MiningAbility>(target_entity);
 						mining_ability.speed = pickaxe_component.speed;
 						mining_ability.radius = pickaxe_component.radius;
-						mining_ability.size = pickaxe_component.size;
+						mining_ability.max_size = pickaxe_component.size;
+						mining_ability.current_size = std::clamp(mining_ability.current_size, 1, mining_ability.max_size);
 					}
 
 				}
@@ -862,7 +866,8 @@ public:
 						auto& mining_ability = registry.get<Components::MiningAbility>(target_entity);
 						mining_ability.speed = BASE_MINING_SPEED;
 						mining_ability.radius = BASE_MINING_RADIUS;
-						mining_ability.size = BASE_MINING_SIZE;
+						mining_ability.max_size = BASE_MINING_SIZE;
+						mining_ability.current_size = std::clamp(mining_ability.current_size, 1, mining_ability.max_size);
 					}
 				}
 

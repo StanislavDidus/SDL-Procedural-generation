@@ -13,7 +13,6 @@ struct GameState : public BaseState
 
 	void update(Game& game, float dt) override
 	{
-		
 	}
 	 
 	void render(Game& game, graphics::Renderer& screen) override

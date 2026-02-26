@@ -40,6 +40,16 @@
 #include "ECS/PlayerCollisionSystem.hpp"
 #include "ECS/RenderHealthBarSystem.hpp"
 
+class ChangeMiningSizeSystem;
+class DeathSystem;
+
+enum class GameState
+{
+	NONE,
+	PLAY,
+	PLAYER_DEAD,
+};
+
 class Game
 {
 public:
@@ -47,6 +57,8 @@ public:
 	virtual ~Game();
 
 	void tick(float dt);
+
+	void setState(GameState new_state);
 private:
 	void initSystems();
 	void initGenerationData();
@@ -63,6 +75,11 @@ private:
 
 	void update(float dt);
 	void render() const;
+
+	void enterState(GameState state);
+	void exitState(GameState state);
+
+	GameState current_state = GameState::NONE;
 
 	bool lock_camera = true;
 
@@ -111,6 +128,8 @@ private:
 	std::unique_ptr<RenderHealthBarSystem> render_health_bar_system;
 	std::unique_ptr<PlayerCollisionSystem> player_collision_system;
 	std::unique_ptr<ManageInvincibleStatusSystem> manage_invincible_status_system;
+	std::unique_ptr<DeathSystem> death_system;
+	std::unique_ptr<ChangeMiningSizeSystem> change_mining_size_system;
 
 	//UI
 	std::unique_ptr<CraftView> craft_view;

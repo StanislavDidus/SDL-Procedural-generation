@@ -74,7 +74,8 @@ namespace Components
 	{
 		float speed;
 		float radius;
-		int size;
+		int max_size;
+		int current_size;
 	};
 
 	struct MineObjectsState
@@ -290,6 +291,11 @@ namespace Components
 	struct CollideDamage
 	{
 		float damage;
+	};
+
+	struct Dead
+	{
+		
 	};
 
 	namespace Effects
