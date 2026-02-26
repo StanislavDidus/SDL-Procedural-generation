@@ -119,6 +119,7 @@ void Game::initSystems()
 	manage_invincible_status_system = std::make_unique<ManageInvincibleStatusSystem>(registry);
 	death_system = std::make_unique<DeathSystem>(registry);
 	change_mining_size_system = std::make_unique<ChangeMiningSizeSystem>(registry);
+	manage_button_actions_system = std::make_unique<ManageButtonActionsSystem>(registry);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -415,7 +416,8 @@ void Game::update(float dt)
 			jump_system->update(dt);
 			physics_system->update(dt);
 			collision_system->update(dt);
-			button_system->update();
+			button_system->update(screen);
+			manage_button_actions_system->update(player);
 			craft_system->update(player);
 			enemy_ai_system->update(dt, player);
 			player_combo_system->update(dt, player);

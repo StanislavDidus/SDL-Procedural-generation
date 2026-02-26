@@ -41,7 +41,7 @@ public:
 
 		//Loop through all craft buttons and split them in 3 arrays for rendering order
 		auto view = registry.view<Components::Transform, Components::Button, Components::CraftButton>();
-		for (auto [entity, ts, craft_button_component] : view.each())
+		for (auto [entity, ts, button, craft_button_component] : view.each())
 		{
 			if (craft_button_component.is_available)
 			{

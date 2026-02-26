@@ -185,7 +185,9 @@ namespace Components
 	
 	struct Button
 	{
-
+		//global identifies if a position of this button is in global or local coordinates
+		//where local are usually used for ui
+		bool global = false;
 	};
 
 	struct ButtonEntered

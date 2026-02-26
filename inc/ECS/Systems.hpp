@@ -306,7 +306,7 @@ struct InputSystem
 	void update(const graphics::Renderer& screen, float dt)
 	{
 		//Calculate global mouse position
-		glm::vec2 mouse_global_position = getMouseGlobalPosition(screen);
+		glm::vec2 mouse_global_position = graphics::getMouseGlobalPosition(screen, InputManager::getMouseState().position);
 		
 		auto view = registry.view<Components::Player>();
 
@@ -380,17 +380,6 @@ struct InputSystem
 
 private:
 	entt::registry& registry;
-
-	glm::vec2 getMouseGlobalPosition(const graphics::Renderer& screen)
-	{
-		const auto& view_position = screen.getView();
-		const auto& zoom = screen.getZoom();
-		const auto& window_size = screen.getWindowSize();
-
-		glm::vec2 mid_screen = { window_size.x / 2.f, window_size.y / 2.f };
-		glm::vec2 view_centered = view_position + mid_screen;
-		return view_centered + (InputManager::getMouseState().position - mid_screen) / zoom;
-	}
 };
 
 struct JumpSystem
@@ -933,16 +922,17 @@ class ButtonSystem
 public:
 	ButtonSystem(entt::registry& registry) : registry{registry} {}
 
-	void update()
+	void update(const graphics::Renderer& screen)
 	{
 		auto view = registry.view<Components::Transform, Components::Button>();
-		for (auto [entity, ts] : view.each())
+		for (auto [entity, ts, button] : view.each())
 		{
 			//Remove CraftItem components from the last frame
 			registry.remove<Components::CraftItem>(entity);
+			registry.remove<Components::ButtonReleased>(entity);
 
 			const auto& mouse_state = InputManager::getMouseState();
-			const auto& mouse_position = mouse_state.position;
+			const auto& mouse_position = button.global ? graphics::getMouseGlobalPosition(screen, mouse_state.position) : mouse_state.position;
 			const auto& mouse_left_state = mouse_state.left;
 
 			bool is_covered = isMouseIntersection(mouse_position, SDL_FRect{ ts.position.x, ts.position.y, ts.size.x, ts.size.y });
@@ -985,8 +975,7 @@ public:
 				{
 					registry.erase<Components::ButtonHeld>(entity);
 
-					//Do func()
-					press(entity);
+					registry.emplace<Components::ButtonReleased>(entity);
 				}
 			}
 
@@ -1003,19 +992,6 @@ public:
 
 private:
 	entt::registry& registry;
-
-	void press(Entity button)
-	{
-		if (registry.all_of<Components::CraftButton>(button))
-		{
-			auto& craft_component = registry.get<Components::CraftButton>(button);
-
-			if (craft_component.is_available)
-			{
-				registry.emplace<Components::CraftItem>(button, craft_component.recipe_id);
-			}
-		}
-	}
 };
 
 

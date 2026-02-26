@@ -36,6 +36,7 @@
 #include "ECS/PlayerComboSystem.hpp"
 #include "ECS/RenderWeaponCircle.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
+#include "ECS/ManageButtonActionsSystem.hpp"
 #include "ECS/ManageInvincibleStatusSystem.hpp"
 #include "ECS/PlayerCollisionSystem.hpp"
 #include "ECS/RenderHealthBarSystem.hpp"
@@ -131,6 +132,7 @@ private:
 	std::unique_ptr<ManageInvincibleStatusSystem> manage_invincible_status_system;
 	std::unique_ptr<DeathSystem> death_system;
 	std::unique_ptr<ChangeMiningSizeSystem> change_mining_size_system;
+	std::unique_ptr<ManageButtonActionsSystem> manage_button_actions_system;
 
 	//UI
 	std::unique_ptr<CraftView> craft_view;

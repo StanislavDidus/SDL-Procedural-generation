@@ -839,6 +839,8 @@ void World::addChests(const std::vector<Object>& objects, std::vector<Entity>& c
 			auto& chest_component = registry.emplace<Components::Chest>(chest);
 			chest_component.item_id = item_id;
 
+			registry.emplace<Components::Button>(chest, true);
+
 			chests.push_back(chest);
 
 			break;

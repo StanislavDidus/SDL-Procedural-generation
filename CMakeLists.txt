@@ -101,6 +101,7 @@ set(HEADER_FILES
     "inc/ECS/DeathSystem.hpp"
     "inc/ECS/ChangeMiningSizeSystem.hpp"
     "inc/WorldHelper.hpp"
+    "inc/ECS/ManageButtonActionsSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

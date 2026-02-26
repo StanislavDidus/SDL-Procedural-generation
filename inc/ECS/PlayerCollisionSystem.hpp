@@ -23,7 +23,7 @@ public:
 			{
 				auto damage_entity = registry.create();
 				registry.emplace<Components::Damage>(damage_entity, player, entity, collide_damage_component.damage);
-				std::cout << "Player damaged" << std::endl;
+				//std::cout << "Player damaged" << std::endl;
 			}
 		}
 	}

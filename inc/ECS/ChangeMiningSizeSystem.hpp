@@ -17,7 +17,7 @@ public:
 		auto view = registry.view<Components::Player, Components::MiningAbility>();
 		for (auto [entity,  mining_ability_component] : view.each())
 		{
-			std::cout << mouse_state.wheel.y << std::endl;
+			//std::cout << mouse_state.wheel.y << std::endl;
 
 			if (mouse_state.wheel.y < 0.0f)
 			{
