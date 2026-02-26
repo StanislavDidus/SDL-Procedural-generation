@@ -6,6 +6,7 @@
 #include <ranges>
 
 #include "ResourceManager.hpp"
+#include "WorldHelper.hpp"
 
 namespace
 {
@@ -13,33 +14,17 @@ namespace
 	std::minstd_rand rng(rd());
 }
 
-static int mapRange(int x, int inMin, float inMax, int outMin, int outMax)
-{
-	return outMin + ((x - inMin) / (inMax - inMin)) * (outMax - outMin);
-}
-
-static float mapRange(float x, float inMin, float inMax, float outMin, float outMax)
-{
-	return outMin + ((x - inMin) / (inMax - inMin)) * (outMax - outMin);
-}
-
-//Returns true if a rect is completely inside b
-static bool isRectInsideFloat(const SDL_FRect& a, const SDL_FRect& b)
-{
-	return a.x >= b.x &&
-		a.x + a.w <= b.x + b.w &&
-		a.y >= b.y &&
-		a.y + a.h <= b.y + b.h;
-}
 
 World::World
 (
 	const GenerationData& generation_data,
+	entt::registry& registry,
 	std::shared_ptr<TileCollisionSystem> collision_system,
 	int width_tiles, int height_tiles,
 	float tile_width_world, float tile_height_world
 )
 	: generation_data(generation_data)
+	, registry(registry)
 	, world_map(height_tiles, width_tiles)
 	, world_width_tiles(width_tiles)
 	, world_height_tiles(height_tiles)
@@ -244,22 +229,6 @@ Object* World::getObjectOnPosition(const glm::vec2& mouse_global_position)
 
 std::optional<int> World::damageObject(const glm::vec2& mouse_global_position, float damage)
 {
-	/*int tile_x_index = static_cast<int>(std::floor(mouse_global_position.x / tile_width_world));
-	int tile_y_index = static_cast<int>(std::floor(mouse_global_position.y / tile_height_world));
-
-	auto& chunk = tilePositionToChunk({ tile_x_index, tile_y_index });
-	auto* object = getObjectOnPosition(mouse_global_position);
-
-	if (object)
-	{
-		object->dealDamage(damage);
-
-		if (object->is_destroyed)
-		{
-			std::erase_if(chunk.objects, [object](const Object& other) { return object->id == other.id; });
-		}
-	}*/
-
 	int chunk_x_index = static_cast<int>(std::floor(mouse_global_position.x / (chunk_width_tiles * 20.f)));
 	int chunk_y_index = static_cast<int>(std::floor(mouse_global_position.y / (chunk_height_tiles * 20.f)));
 
@@ -358,6 +327,10 @@ void World::generateWorld(std::optional<int> seed)
 
 	std::vector<Object> objects;
 	addObjects(objects);
+
+	std::vector<Entity> chests;
+	addChests(objects, chests);
+
 	splitGrid(world_map, objects, chunk_width_tiles, chunk_height_tiles);
 }
 
@@ -678,29 +651,6 @@ void World::addBiomes()
 				}
 			}
 
-			/*//Desert,Forest,Snow
-			if (temperature < 0.45f && moisture > 0.55f)
-			{
-				//Snow
-				if (type == TileType::SURFACE)
-					tile.id = generation_data.biomes[BiomeType::TUNDRA].surface_tile;
-				else
-					tile.id = generation_data.biomes[BiomeType::TUNDRA].dirt_tile;
-			}
-			else if (temperature >= 0.6f && moisture < 0.5f)
-			{
-				//Desert
-				tile.id = generation_data.biomes[BiomeType::DESERT].surface_tile;
-			}
-			else
-			{
-				//Forest
-				if (type == TileType::SURFACE)
-					tile.id = generation_data.biomes[BiomeType::FOREST].surface_tile;
-				else
-					tile.id = generation_data.biomes[BiomeType::FOREST].dirt_tile;
-			}*/
-
 #ifdef DEBUG_TILES
 			tile.pv = std::min(peaks_and_valleys, 1.f);
 			tile.temperature = std::min(temperature, 1.f);
@@ -728,67 +678,25 @@ void World::addObjects(std::vector<Object>& objects)
 
 				//First - Noise
 				float noise_value = Noise::fractal2D<ValueNoise>(spawn_info.noise_settings, position_x * scale, position_y * scale);
-				if (noise_value < spawn_info.noise_threshold) continue;
+				if (noise_value > spawn_info.noise_threshold) continue;
 
 				//Second - Tile type
-				bool is_area_good = true;
-				for (int i = 0; i < spawn_info.size_tiles.x; ++i)
+				bool check_floor = checkTileFloor(world_map, x, y, spawn_info.size_tiles.x, [&spawn_info] (const Tile& tile)
 				{
-					bool is_tile_good = false;
-					auto& new_tile = world_map(x + i, y);
-					for (const auto& required_tile_id : spawn_info.spawn_tile_ids)
-					{
-						if (new_tile.id == required_tile_id)
-						{
-							is_tile_good = true;
-							break;
-						}
-					}
-					if (!is_tile_good)
-					{
-						is_area_good = false;
-						break;
-					}
-				}
-				if (!is_area_good) continue;
+						auto it = std::ranges::find(spawn_info.spawn_tile_ids, tile.id);
+						return it != spawn_info.spawn_tile_ids.end();
+				});
+
+				if (!check_floor) continue;
 
 				//Third - Object Size
 				auto& object_size = spawn_info.size_tiles;
 
-				bool is_space_free = true;
-				for (int i = 0; i < object_size.x; ++i)
-				{
-					//Set a small 1 tile offset for y loop because we want to check tiles above the ground
-					for (int j = 1; j <= object_size.y; ++j)
-					{
-
-						//Check the boundaries of thw world before getting a tile from the world_map
-						int new_x = x + i;
-						int new_y = y - j;
-
-						if (new_x < 0 || new_x >= world_width_tiles || new_y < 0 || new_y >= world_height_tiles)
-						{
-							is_space_free = false;
-							break;
-						}
-
-						auto& new_tile = world_map(x + i, y - j);
-
-						if (TileManager::get().getProperties(new_tile.id).is_solid)
-						{
-							is_space_free = false;
-							break;
-						}
-
-					}
-
-					if (!is_space_free) break;
-				}
+				bool is_space_free = checkTileSpace(world_map, x, y, object_size.x, object_size.y);
 
 				if (!is_space_free) continue;
 
 				//Fourth - Does the object intersect with any other object?
-
 				//Calculate rect
 				float y_offset = static_cast<float>(object_size.y) * tile_height_world;
 				SDL_FRect object_rect
@@ -812,28 +720,128 @@ void World::addObjects(std::vector<Object>& objects)
 
 				if (object_intersection) continue;
 
-				/*//Fifth - object must completely fit inside a chunk that it belongs to
-
-				float chunk_x_index = std::floor(object_rect.x / static_cast<float>(chunk_width_tiles));
-				float chunk_y_index = std::floor(object_rect.y / static_cast<float>(chunk_height_tiles));
-				SDL_FRect chunk_rect
-				{ 
-					chunk_x_index * tile_width_world,
-					chunk_y_index * tile_height_world,
-					static_cast<int>(chunk_width_tiles) * tile_width_world,
-					static_cast<int>(chunk_height_tiles) * tile_height_world 
-				};
-
-				bool does_object_fit = isRectInsideFloat(object_rect, chunk_rect);
-
-				if (!does_object_fit) continue;*/
-
 				//FINALLY! Spawn an object
 				int unique_id = next_object_id++;
 				int properties_id = spawn_info.object_properties_id;
 				objects.emplace_back(unique_id, properties_id, object_rect);
 				break;
 			}
+		}
+	}
+}
+
+void World::addChests(const std::vector<Object>& objects, std::vector<Entity>& chests)
+{
+	float scale = generation_data.scale;
+	for (int x = 0; x < world_width_tiles; x++)
+	{
+		float position_x = static_cast<float>(x);
+		for (int y = 0; y < world_height_tiles; y++)
+		{
+			float position_y = static_cast<float>(y);
+
+			//Check all 5 conditions
+
+			//First - Noise
+			float noise_value = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::CHEST], position_x * scale, position_y * scale);
+			if (noise_value > generation_data.chest_threshold) continue;
+
+			auto& object_size = generation_data.chest_size;
+
+			//Second - Tiles beneath must be solid
+			bool check_floor = checkTileFloor(world_map, x, y, object_size.x, [](const Tile& tile)
+				{
+					const auto& tile_properties = TileManager::get().getProperties(tile.id);
+					return tile_properties.is_solid;
+				});
+
+			if (!check_floor) continue;
+
+			//Third - Object Size
+			bool is_space_free = checkTileSpace(world_map, x, y, object_size.x, object_size.y);
+
+			if (!is_space_free) continue;
+
+			//Forth - Does the chest intersect with any other object?
+
+			//Calculate rect
+			float y_offset = static_cast<float>(object_size.y) * tile_height_world;
+			SDL_FRect chest_rect
+			{
+				position_x * tile_width_world,
+				position_y * tile_height_world - y_offset,
+				//Subtracted -1 from their width and height because otherwise SDL_HasRectIntersectionFloat would return true if the edges of both object collide
+				static_cast<float>(object_size.x) * tile_width_world - 1.f,
+				static_cast<float>(object_size.y) * tile_height_world - 1.f
+			};
+
+			bool object_intersection = false;
+			for (const auto& obj : objects)
+			{
+				if (SDL_HasRectIntersectionFloat(&chest_rect, &obj.rect))
+				{
+					object_intersection = true;
+					break;
+				}
+			}
+
+			if (object_intersection) continue;
+
+			// Fifth - Check if the chest intersects with any other chests
+
+			bool chest_intersection = false;
+			for (const auto& chest_ent : chests)
+			{
+				const auto& chest_transform_component = registry.get<Components::Transform>(chest_ent);
+				SDL_FRect chest_ent_rect = {chest_transform_component.position.x, chest_transform_component.position.y, chest_transform_component.size.x, chest_transform_component.size.y};
+
+				if (SDL_HasRectIntersectionFloat(&chest_rect, &chest_ent_rect))
+				{
+					chest_intersection = true;
+					break;
+				}
+			}
+
+			if (chest_intersection) continue;
+
+			//FINALLY! Spawn an object	
+			auto chest = registry.create();
+			auto& ts = registry.emplace<Components::Transform>(chest);
+			ts.position = { chest_rect.x, chest_rect.y };
+			ts.size = { chest_rect.w, chest_rect.h };
+
+			auto& renderable = registry.emplace<Components::Renderable>(chest);
+			renderable.sprite = (*ResourceManager::get().getSpriteSheet("objects"))[8];
+			
+			// Set a random item to the chest
+			//Calculate total weight of all items
+			float total_weight = 0.0f;
+			for (const auto& item : generation_data.chest_loot)
+			{
+				total_weight += item.weight;
+			}
+			//Generate random value
+			float item_noise_value = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::LOOT], scale * position_x, scale * position_y);
+			float random_number = item_noise_value * total_weight;
+			//Find an item by using generated random value
+			size_t item_id = 0;
+			float acc = 0.0f;
+			for (const auto& item : generation_data.chest_loot)
+			{
+				acc += item.weight;
+				if (random_number <= acc)
+				{
+					item_id = item.id;
+					break;
+				}
+			}
+
+			auto& chest_component = registry.emplace<Components::Chest>(chest);
+			chest_component.item_id = item_id;
+
+			chests.push_back(chest);
+
+			break;
 		}
 	}
 }

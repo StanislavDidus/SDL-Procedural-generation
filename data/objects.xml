@@ -12,7 +12,7 @@
         <spawnInfo>
             <size x="2" y="5" />
             <noiseSettings octaves="2" frequency="0.7" amplitude="1.5" />
-            <noiseThreshold>0.65</noiseThreshold>
+            <noiseThreshold>0.35</noiseThreshold>
             <spawnTiles>
                 <tile ref="Grass"/>
             </spawnTiles>
@@ -30,7 +30,7 @@
         <spawnInfo>
             <size x="3" y="6" />
             <noiseSettings octaves="2" frequency="0.6" amplitude="1.5" />
-            <noiseThreshold>0.7</noiseThreshold>
+            <noiseThreshold>0.3</noiseThreshold>
             <spawnTiles>
                 <tile ref="Grass"/>
             </spawnTiles>
@@ -47,7 +47,7 @@
         <spawnInfo>
             <size x="2" y="5" />
             <noiseSettings octaves="2" frequency="0.7" amplitude="1.5" />
-            <noiseThreshold>0.65</noiseThreshold>
+            <noiseThreshold>0.35</noiseThreshold>
             <spawnTiles>
                 <tile ref="Snow_Grass"/>
             </spawnTiles>
@@ -64,7 +64,7 @@
         <spawnInfo>
             <size x="2" y="5" />
             <noiseSettings octaves="2" frequency="0.7" amplitude="1.5" />
-            <noiseThreshold>0.65</noiseThreshold>
+            <noiseThreshold>0.35</noiseThreshold>
             <spawnTiles>
                 <tile ref="Sand"/>
             </spawnTiles>
@@ -81,7 +81,7 @@
         <spawnInfo>
             <size x="5" y="3" />
             <noiseSettings octaves="3" frequency="0.6" amplitude="1.3" />
-            <noiseThreshold>0.60</noiseThreshold>
+            <noiseThreshold>0.40</noiseThreshold>
             <spawnTiles>
                 <tile ref="Grass"/>
                 <tile ref="Snow_Grass"/>
@@ -100,7 +100,7 @@
         <spawnInfo>
             <size x="5" y="3" />
             <noiseSettings octaves="2" frequency="0.5" amplitude="1.5" />
-            <noiseThreshold>0.75</noiseThreshold>
+            <noiseThreshold>0.25</noiseThreshold>
             <spawnTiles>
                 <tile ref="Grass"/>
                 <tile ref="Snow_Grass"/>

@@ -8,6 +8,7 @@
 #include "glm/gtc/random.hpp"
 #include "ECS/Components.hpp"
 #include "Debug.hpp"
+#include "WorldHelper.hpp"
 
 EnemySpawnSystem::EnemySpawnSystem(entt::registry& registry, const World& world, const SpawnRadius& spawn_radius)
 	: world(world)
@@ -150,43 +151,8 @@ void EnemySpawnSystem::spawnEnemies(const glm::vec2& target_position, int number
 				{
 					auto& enemy_size = info.size;
 
-					//Check if space above the tile is free
-					bool is_space_free = true;
-					for (int i = 0; i < enemy_size.x; ++i)
-					{
-						//Set a small 1 tile offset for y loop because we want to check tiles above the ground
-						for (int j = 1; j <= enemy_size.y; ++j)
-						{
-
-							//Check the boundaries of thw world before getting a tile from the world_map
-							int new_x = x + i;
-							int new_y = y - j;
-
-							if (new_x < 0 || new_x >= grid.getColumns() || new_y < 0 || new_y >= grid.getRows())
-							{
-								is_space_free = false;
-								break;
-							}
-
-							auto& new_tile = grid(x + i, y - j);
-
-							if (TileManager::get().getProperties(new_tile.id).is_solid)
-							{
-								is_space_free = false;
-								break;
-							}
-
-						}
-
-						if (!is_space_free) break;
-					}
-
-					if (!is_space_free)
-					{
-						continue;
-					}
-
-					possible_enemy_spawns[info.id].emplace_back(x, y - enemy_size.y);
+					if (bool is_space_free = checkTileSpace(grid, x, y, enemy_size.x, enemy_size.y))
+						possible_enemy_spawns[info.id].emplace_back(x, y - enemy_size.y);
 				}
 			}
 		}

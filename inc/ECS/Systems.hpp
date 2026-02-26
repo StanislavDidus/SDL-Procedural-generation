@@ -316,8 +316,8 @@ struct InputSystem
 			if (registry.all_of<Components::Jump>(entity))
 			{
 				auto& j = registry.get<Components::Jump>(entity);
-				j.jump_pressed_this_frame = InputManager::isKeyDown(SDLK_U);
-				j.jump_held = InputManager::isKey(SDLK_U);
+				j.jump_pressed_this_frame = InputManager::isKeyDown(SDL_SCANCODE_U);
+				j.jump_held = InputManager::isKey(SDL_SCANCODE_U);
 			}
 
 			//Mining
@@ -351,7 +351,7 @@ struct InputSystem
 			if (registry.all_of<Components::Physics>(entity))
 			{
 				auto& ph = registry.get<Components::Physics>(entity);
-				if (InputManager::isKey(SDLK_H))
+				if (InputManager::isKey(SDL_SCANCODE_H))
 				{
 					ph.velocity.x -= ph.acceleration.x * dt;
 					ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
@@ -360,7 +360,7 @@ struct InputSystem
 					if (registry.all_of<Components::Renderable>(entity))
 						registry.get<Components::Renderable>(entity).flip_mode = SDL_FLIP_HORIZONTAL;
 				}
-				if (InputManager::isKey(SDLK_K))
+				if (InputManager::isKey(SDL_SCANCODE_K))
 				{
 					ph.velocity.x += ph.acceleration.x * dt;
 					ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
@@ -369,7 +369,7 @@ struct InputSystem
 					if (registry.all_of<Components::Renderable>(entity))
 						registry.get<Components::Renderable>(entity).flip_mode = SDL_FLIP_NONE;
 				}
-				if (!InputManager::isKey(SDLK_K) && !InputManager::isKey(SDLK_H))
+				if (!InputManager::isKey(SDL_SCANCODE_K) && !InputManager::isKey(SDL_SCANCODE_H))
 				{
 					/*ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;*/
 				}
@@ -766,6 +766,7 @@ public:
 			}
 			if (registry.all_of<Components::EquipItem>(target_entity))
 			{
+				bool was_equipped = false;
 				auto& equip_item_component = registry.get<Components::EquipItem>(target_entity);
 
 				// Pickaxe 
@@ -790,7 +791,7 @@ public:
 						mining_ability.max_size = pickaxe_component.size;
 						mining_ability.current_size = std::clamp(mining_ability.current_size, 1, mining_ability.max_size);
 					}
-
+					was_equipped = true;
 				}
 
 				// Melee weapon
@@ -800,6 +801,7 @@ public:
 					{
 						registry.get<Components::Equipment>(target_entity).weapons.emplace_back(equip_item_component.item);
 						registry.get<Components::InventoryItems::Item>(equip_item_component.item).equipped = true;
+						was_equipped = true;
 					}
 				}
 
@@ -815,6 +817,7 @@ public:
 					equipment_component.helmet = equip_item_component.item;
 					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
 					item_info.equipped = true;
+					was_equipped = true;
 				}
 
 				//Armor
@@ -829,6 +832,7 @@ public:
 					equipment_component.armor = equip_item_component.item;
 					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
 					item_info.equipped = true;
+					was_equipped = true;
 				}
 
 				//Boots
@@ -844,21 +848,26 @@ public:
 					equipment_component.boots = equip_item_component.item;
 					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
 					item_info.equipped = true;
+					was_equipped = true;
 				}
 
-
-				registry.emplace<Components::ItemEquipped>(target_entity, equip_item_component.item);
+				if (was_equipped)
+				{
+					registry.emplace<Components::ItemEquipped>(target_entity, equip_item_component.item);
+				}
 				registry.erase<Components::EquipItem>(target_entity);
 			}	
 
 			if (registry.all_of<Components::UnequipItem>(target_entity))
 			{
+				bool was_unequipped = false;
 				auto& unequip_item_component = registry.get<Components::UnequipItem>(target_entity);
 				
 				if (registry.all_of<Components::InventoryItems::PickaxeComponent>(unequip_item_component.item))
 				{
 					equipment_component.pickaxe = entt::null;
 					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+					was_unequipped = true;
 
 					// Set mining properties (speed, radius, size)
 					if (registry.all_of<Components::MiningAbility>(target_entity))
@@ -877,6 +886,7 @@ public:
 					auto& weapon_array = registry.get<Components::Equipment>(target_entity).weapons;
 					weapon_array.erase(std::ranges::remove(weapon_array, unequip_item_component.item).begin(), weapon_array.end());
 					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+					was_unequipped = true;
 				}
 
 
@@ -885,6 +895,7 @@ public:
 				{
 					equipment_component.helmet = entt::null;
 					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+					was_unequipped = true;
 				}
 
 				//Armor
@@ -892,6 +903,7 @@ public:
 				{
 					equipment_component.armor = entt::null;
 					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+					was_unequipped = true;
 				}
 
 				//Boots
@@ -899,9 +911,11 @@ public:
 				{
 					equipment_component.boots = entt::null;
 					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+					was_unequipped = true;
 				}
 
-				registry.emplace<Components::ItemUnequipped>(target_entity, unequip_item_component.item);
+				if (was_unequipped)
+					registry.emplace<Components::ItemUnequipped>(target_entity, unequip_item_component.item);
 				registry.erase<Components::UnequipItem>(target_entity);
 			}
 		}

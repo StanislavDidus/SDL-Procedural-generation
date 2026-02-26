@@ -139,11 +139,11 @@
     </item>
     <item id="Health_Amulet">
         <canStack>false</canStack>
-        <spriteIndex>18</spriteIndex>
+        <spriteIndex>20</spriteIndex>
         <action>EQUIP</action>
         <components>
             <component id="Accessory" />
-            <component id="Regeneration" />
+            <component id="HealthBonus" value="50" />
         </components>
     </item>
 </itemListing>

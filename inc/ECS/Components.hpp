@@ -245,6 +245,7 @@ namespace Components
 		Entity helmet = entt::null;
 		Entity armor = entt::null;
 		Entity boots = entt::null;
+		std::vector<Entity> accessories;
 	};
 
 	struct Animation
@@ -298,11 +299,21 @@ namespace Components
 		
 	};
 
+	struct Chest
+	{
+		size_t item_id;
+	};
+
 	namespace Effects
 	{
 		struct DoubleJump
 		{
 			bool is_active = true;
+		};
+		
+		struct HealthBonus
+		{
+			float value = 0.0f;
 		};
 	} // namespace Effects
 
@@ -352,11 +363,6 @@ namespace Components
 			float cooldown_timer = 0.0f;
 		};
 
-		struct ArmorComponent
-		{
-			
-		};
-
 		struct Helmet
 		{
 			
@@ -372,7 +378,7 @@ namespace Components
 			
 		};
 
-		struct AccessoryComponent
+		struct Accessory
 		{
 			
 		};

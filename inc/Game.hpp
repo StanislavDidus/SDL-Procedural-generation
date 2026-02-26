@@ -64,6 +64,7 @@ private:
 	void initGenerationData();
 	void initNoiseSettings();
 	void initMapRanges();
+	void initChestLoot();
 	void initBiomes();
 	void initPlayer();
 	void initPlayerAnimations();

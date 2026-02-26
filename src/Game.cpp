@@ -50,7 +50,7 @@ Game::Game(graphics::Renderer& screen)
 	initBiomes();
 
 	text = std::make_unique<Text>(ResourceManager::get().getFont("Main"), screen, "Player");
-	world = std::make_shared<World>(generation_data, collision_system, 500, 200, 20.f, 20.f);
+	world = std::make_shared<World>(generation_data, registry, collision_system, 500, 200, 20.f, 20.f);
 
 	initUserInterface();
 	initSystems();
@@ -82,7 +82,7 @@ Game::Game(graphics::Renderer& screen)
 	inventory->addItem(ItemManager::get().getItemID("Common_Boots"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Leather_Armor"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Leather_Helmet"), 1);
-
+	inventory->addItem(ItemManager::get().getItemID("Health_Amulet"), 1);
 }
 
 Game::~Game()
@@ -125,11 +125,13 @@ void Game::initSystems()
 
 void Game::initGenerationData()
 {
+	generation_data.chest_size = glm::ivec2{ 2,2 };
 	generation_data.y_base = 25.f;
 	generation_data.cave_y_base = 10.f;
 	generation_data.sea_y_base = 19.f;
 	generation_data.scale = 0.5f;
 	generation_data.density_threshold = 0.5f;
+	generation_data.chest_threshold = 0.4f;
 }
 
 void Game::initNoiseSettings()
@@ -189,6 +191,22 @@ void Game::initNoiseSettings()
 		settings.frequency = 0.04f;
 		settings.amplitude = 1.2f;
 	}
+
+	//Chest
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::CHEST];
+		settings.octaves = 2;
+		settings.frequency = 0.7f;
+		settings.amplitude = 2.0f;
+	}
+
+	//Loot
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::LOOT];
+		settings.octaves = 1;
+		settings.frequency = 0.1f;
+		settings.amplitude = 1.0f;
+	}
 }
 
 void Game::initMapRanges()
@@ -213,6 +231,24 @@ void Game::initMapRanges()
 
 		generation_data.maps[MapRangeType::CAVE_CHANGE] = map;
 	}
+}
+
+void Game::initChestLoot()
+{
+	tinyxml2::XMLDocument doc;
+	doc.LoadFile("data/chestLoot.xml");
+
+	const auto& loot_listing_node = doc.FirstChildElement("lootListing");
+
+	std::vector<RandomizedAccessory> randomized_accessories;
+	for (auto* item_node = loot_listing_node->FirstChildElement("item"); item_node != nullptr; item_node->NextSiblingElement())
+	{
+		size_t id = item_node->Int64Attribute("ref");
+		float weight = item_node->FloatAttribute("weight");
+		randomized_accessories.emplace_back(id, weight);
+	}
+
+	generation_data.chest_loot = randomized_accessories;
 }
 
 void Game::initBiomes()
@@ -510,68 +546,32 @@ void Game::updateInput(float dt)
 {
 	if (!lock_camera)
 	{
-		if (InputManager::isKey(SDLK_D))
+		if (InputManager::isKey(SDL_SCANCODE_D))
 		{
 			view_position.x += camera_move_speed * dt;
 		}
-		if (InputManager::isKey(SDLK_A))
+		if (InputManager::isKey(SDL_SCANCODE_A))
 		{
 			view_position.x -= camera_move_speed * dt;
 		}
-		if (InputManager::isKey(SDLK_W))
+		if (InputManager::isKey(SDL_SCANCODE_W))
 		{
 			view_position.y -= camera_move_speed * dt;
 		}
-		if (InputManager::isKey(SDLK_S))
+		if (InputManager::isKey(SDL_SCANCODE_S))
 		{
 			view_position.y += camera_move_speed * dt;
 		}
 	}
-	if (InputManager::isKey(SDLK_Q))
+	if (InputManager::isKey(SDL_SCANCODE_Q))
 	{
 		zoom -= 2.f * dt;
 		zoom = std::clamp(zoom, min_zoom, max_zoom);
 	}
-	if (InputManager::isKey(SDLK_E))
+	if (InputManager::isKey(SDL_SCANCODE_E))
 	{
 		zoom += 2.f * dt;
 		zoom = std::clamp(zoom, min_zoom, max_zoom);
-	}
-	if (InputManager::isKey(SDLK_Z))
-	{
-		//world->scale -= 0.1f * dt;
-		//world->cave_threshold -= 0.2f * dt;
-		
-	}
-	if (InputManager::isKey(SDLK_X))
-	{
-		//world->scale += 0.1f * dt;
-		//world->cave_threshold += 0.2f * dt;
-		
-	}
-	if (InputManager::isKeyDown(SDLK_SPACE))
-	{
-		world->generateWorld(std::nullopt);
-	}
-
-	//Add items
-	if (InputManager::isKeyDown(SDLK_G))
-	{
-		//registry.get<Components::HasInventory>(player).inventory->addItem(1, 1);
-	}
-
-	//Change the mining radius
-	if (InputManager::isKeyDown(SDLK_EQUALS))
-	{
-		//component_manager.mine_ability[player].mine_size++;
-		
-	}
-	if (InputManager::isKeyDown(SDLK_MINUS))
-	{
-		//int& mine_size = component_manager.mine_ability[player].mine_size;
-		//mine_size--;
-		//mine_size = std::max(1, mine_size);
-
 	}
 }
 

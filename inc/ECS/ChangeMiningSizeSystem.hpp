@@ -11,7 +11,7 @@ public:
 
 	void update()
 	{
-		//if (!InputManager::isKey(SDLK_LCTRL)) return;
+		if (!InputManager::isKey(SDL_SCANCODE_LCTRL)) return;
 
 		const auto& mouse_state = InputManager::getMouseState();
 		auto view = registry.view<Components::Player, Components::MiningAbility>();

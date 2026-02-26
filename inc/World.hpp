@@ -19,6 +19,7 @@
 #include "TileManager.hpp"
 #include "GenerationData.hpp"
 #include "RenderFunctions.hpp"
+#include "ECS/Entity.hpp"
 
 class TileCollisionSystem;
 
@@ -34,6 +35,7 @@ class World
 public:
 	World(
 		const GenerationData& generation_data,
+		entt::registry& registry,
 		std::shared_ptr<TileCollisionSystem> collision_system,
 		int width_tiles, int height_tiles,
 		float tile_width_world, float tile_height_world
@@ -69,6 +71,8 @@ private:
 	uint32_t getNewSeed(uint32_t master_seed);
 	GenerationData generation_data;
 
+	entt::registry& registry;
+
 	std::array<int, 7> seeds;
 
 	void generateBase();
@@ -78,6 +82,7 @@ private:
 	void addWater();
 	void addBiomes();
 	void addObjects(std::vector<Object>& objects);
+	void addChests(const std::vector<Object>& objects, std::vector<Entity>& chests);
 
 	std::optional<ObjectProperties> getProperties(int id) const;
 	const TileProperties& getTileProperties(int id) const;

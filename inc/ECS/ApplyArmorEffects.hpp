@@ -19,6 +19,13 @@ public:
 				registry.emplace_or_replace<Components::Effects::DoubleJump>(entity);
 				double_jump_counter[entity]++;
 			}
+			else if (registry.all_of<Components::Effects::HealthBonus>(item_equipped_component.item) && registry.all_of<Components::Health>(entity))
+			{
+				auto& health_component = registry.get<Components::Health>(entity);	
+				const auto& health_bonus_component = registry.get<Components::Effects::HealthBonus>(item_equipped_component.item);
+
+				health_component.max_health += health_bonus_component.value;
+			}
 			//else if(registry.all_of<Components::Effects::Regeneration>(item)
 			// Do something
 		}
@@ -40,6 +47,14 @@ public:
 					std::cout << "Component deleted" << std::endl;
 				}
 				double_jump_counter[entity]--;
+			}
+			if (registry.all_of<Components::Effects::HealthBonus>(item_unequipped_component.item) && registry.all_of<Components::Health>(entity))
+			{
+				
+				auto& health_component = registry.get<Components::Health>(entity);	
+				const auto& health_bonus_component = registry.get<Components::Effects::HealthBonus>(item_unequipped_component.item);
+
+				health_component.max_health -= health_bonus_component.value;
 			}
 		}
 	}

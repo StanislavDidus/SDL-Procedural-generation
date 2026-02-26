@@ -100,6 +100,7 @@ set(HEADER_FILES
     "inc/ECS/ManageInvincibleStatusSystem.hpp"
     "inc/ECS/DeathSystem.hpp"
     "inc/ECS/ChangeMiningSizeSystem.hpp"
+    "inc/WorldHelper.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

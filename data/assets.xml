@@ -20,14 +20,15 @@
             <path>assets/Sprites/objects.png</path>
             <scaleMode>NEAREST</scaleMode>
             <rectListing>
-                <rect x="0" y="0" w="16" h="48" />
-                <rect x="16" y="0" w="16" h="48" />
-                <rect x="32" y="0" w="16" h="48" />
-                <rect x="48" y="0" w="48" h="32" />
-                <rect x="48" y="32" w="16" h="16" />
-                <rect x="64" y="32" w="16" h="16" />
-                <rect x="96" y="0" w="32" h="48" />
-                <rect x="0" y="48" w="48" h="32" />
+                <rect x="0" y="0" w="16" h="48" /> <!--Tree-->
+                <rect x="16" y="0" w="16" h="48" /> <!--Snow_Tree-->
+                <rect x="32" y="0" w="16" h="48" /> <!--Cactus-->
+                <rect x="48" y="0" w="48" h="32" /> <!--Stone-->
+                <rect x="48" y="32" w="16" h="16" /> <!--Grass-->
+                <rect x="64" y="32" w="16" h="16" /> <!--Snow_Grass-->
+                <rect x="96" y="0" w="32" h="48" /> <!--Big_Tree-->
+                <rect x="0" y="48" w="48" h="32" /> <!--Golden_Ston-->
+                <rect x="48" y="54" w="32" h="26" /> <!--Chest-->
             </rectListing>
         </sprite>
         <sprite id="ui">
