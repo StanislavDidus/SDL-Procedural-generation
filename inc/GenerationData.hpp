@@ -36,7 +36,7 @@ struct GenerationData
 	std::unordered_map<NoiseType, NoiseSettings> noise_settings;
 	std::unordered_map<MapRangeType, MapRange> maps;
 
-	std::vector<RandomizedAccessory> chest_loot;
+	std::vector<RandomizedItem> chest_loot;
 	glm::vec2 chest_size = {2,2};
 
 	float scale = 0.1f;

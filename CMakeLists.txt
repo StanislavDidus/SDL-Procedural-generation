@@ -102,6 +102,8 @@ set(HEADER_FILES
     "inc/ECS/ChangeMiningSizeSystem.hpp"
     "inc/WorldHelper.hpp"
     "inc/ECS/ManageButtonActionsSystem.hpp"
+    "inc/ECS/ChestWindowSystem.hpp"
+    "inc/ECS/WindowManagerSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

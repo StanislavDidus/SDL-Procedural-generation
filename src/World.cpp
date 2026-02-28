@@ -818,7 +818,7 @@ void World::addChests(const std::vector<Object>& objects, std::vector<Entity>& c
 			float total_weight = 0.0f;
 			for (const auto& item : generation_data.chest_loot)
 			{
-				total_weight += item.weight;
+				total_weight += item.drop_chance;
 			}
 			//Generate random value
 			float item_noise_value = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::LOOT], scale * position_x, scale * position_y);
@@ -828,10 +828,10 @@ void World::addChests(const std::vector<Object>& objects, std::vector<Entity>& c
 			float acc = 0.0f;
 			for (const auto& item : generation_data.chest_loot)
 			{
-				acc += item.weight;
+				acc += item.drop_chance;
 				if (random_number <= acc)
 				{
-					item_id = item.id;
+					item_id = item.item_id;
 					break;
 				}
 			}

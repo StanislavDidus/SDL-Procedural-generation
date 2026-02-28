@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
 <lootListing>
-    <item ref="Health_Amulet" weight="10" />
+    <item ref="Health_Amulet" weight="10" min_quantity="1" max_quantity="1"/>
 </lootListing>

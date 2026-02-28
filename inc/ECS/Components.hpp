@@ -21,10 +21,10 @@ namespace Components
 
 	struct Renderable
 	{
-		//graphics::Sprite sprite;
 		graphics::Sprite sprite;
 		SDL_FlipMode flip_mode = SDL_FLIP_NONE;
 		graphics::Color color = graphics::Color::WHITE;
+		bool ignore_view_zoom = false;
 	};
 
 	struct Physics
@@ -318,6 +318,20 @@ namespace Components
 			float value = 0.0f;
 		};
 	} // namespace Effects
+
+	namespace UI
+	{
+		struct OpenChestWindow
+		{
+			Entity target;
+			Entity chest;
+		};
+		struct ChestWindow
+		{
+			Entity entity;
+			Entity chest;
+		};
+	} // namespace UI
 
 	namespace InventoryItems
 	{

@@ -26,12 +26,22 @@ namespace graphics
 		SpriteSheet& operator=(SpriteSheet&& other) noexcept = delete;
 
 		template<typename Self>
+		auto&& getSprite(this Self&& self, const std::string& name);
+
+		template<typename Self>
 		auto&& operator[](this Self&& self, size_t index);
 	private:
 		Texture loadTexture(graphics::Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode);
 
 		std::vector<Sprite> sprites;
+		std::unordered_map<std::string, Sprite> nameToSprite;
 	};
+
+	template <typename Self>
+	auto&& SpriteSheet::getSprite(this Self&& self, const std::string& name)
+	{
+		return nameToSprite.at(name);
+	}
 
 	template <typename Self>
 	auto&& SpriteSheet::operator[](this Self&& self, size_t index)

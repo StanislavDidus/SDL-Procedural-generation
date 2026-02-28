@@ -120,6 +120,7 @@ void Game::initSystems()
 	death_system = std::make_unique<DeathSystem>(registry);
 	change_mining_size_system = std::make_unique<ChangeMiningSizeSystem>(registry);
 	manage_button_actions_system = std::make_unique<ManageButtonActionsSystem>(registry);
+	chest_window_system = std::make_unique<ChestWindowSystem>(registry, ResourceManager::get().getFont("Main"));
 
 	world->setCollisionSystem(collision_system);
 }
@@ -241,12 +242,14 @@ void Game::initChestLoot()
 
 	const auto& loot_listing_node = doc.FirstChildElement("lootListing");
 
-	std::vector<RandomizedAccessory> randomized_accessories;
+	std::vector<RandomizedItem> randomized_accessories;
 	for (auto* item_node = loot_listing_node->FirstChildElement("item"); item_node != nullptr; item_node->NextSiblingElement())
 	{
 		size_t id = item_node->Int64Attribute("ref");
 		float weight = item_node->FloatAttribute("weight");
-		randomized_accessories.emplace_back(id, weight);
+		int min_quantity = item_node->IntAttribute("min_quantity");
+		int max_quantity = item_node->IntAttribute("max_quantity");	
+		randomized_accessories.emplace_back(id, weight, min_quantity, max_quantity);
 	}
 
 	generation_data.chest_loot = randomized_accessories;
@@ -417,7 +420,7 @@ void Game::update(float dt)
 			physics_system->update(dt);
 			collision_system->update(dt);
 			button_system->update(screen);
-			manage_button_actions_system->update(player);
+			manage_button_actions_system->update(player, screen);
 			craft_system->update(player);
 			enemy_ai_system->update(dt, player);
 			player_combo_system->update(dt, player);
@@ -432,6 +435,7 @@ void Game::update(float dt)
 			manage_invincible_status_system->update(dt);
 			death_system->update(*this);
 			change_mining_size_system->update();
+			chest_window_system->update(player, screen);
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
 			const auto& player_pos = player_transform.position;
@@ -453,6 +457,7 @@ void Game::update(float dt)
 			updateTilemapTarget();
 
 			render_system->update(dt);
+
 		}
 		break;
 	case GameState::PLAYER_DEAD:
@@ -492,6 +497,7 @@ void Game::render() const
 			item_description_system->render(screen, player);
 			render_weapon_menu_system->render(screen, player);
 			render_health_bar_system->render(screen);
+			chest_window_system->render(screen);
 		}
 		break;
 	}

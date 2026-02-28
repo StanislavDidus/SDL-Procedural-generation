@@ -289,12 +289,12 @@ namespace graphics
 		SDL_RenderTexture(renderer.get(), sprite.getTexture().get(), &src, &dst);
 	}
 
-	inline void drawRotatedSprite(Renderer& renderer, const Sprite& sprite, int x, int y, int width, int height, int angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE)
+	inline void drawRotatedSprite(Renderer& renderer, const Sprite& sprite, int x, int y, int width, int height, int angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE, bool ignore_view_zoom = false)
 	{
-		drawRotatedSprite(renderer, sprite, static_cast<float>(x), static_cast<float>(y), static_cast<float>(width), static_cast<float>(height), static_cast<float>(angle), flip_mode);
+		drawRotatedSprite(renderer, sprite, static_cast<float>(x), static_cast<float>(y), static_cast<float>(width), static_cast<float>(height), static_cast<float>(angle), flip_mode, ignore_view_zoom);
 	}
 
-	inline void drawRotatedSprite(Renderer& renderer, const Sprite& sprite, float x, float y, float width, float height, float angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE)
+	inline void drawRotatedSprite(Renderer& renderer, const Sprite& sprite, float x, float y, float width, float height, float angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE, bool ignore_view_zoom = false)
 	{
 		const auto& view_position = renderer.getView();
 
@@ -302,12 +302,18 @@ namespace graphics
 
 		src = sprite.getRect();
 
-		dst.x = x - view_position.x;
-		dst.y = y - view_position.y;
+		dst.x = x;
+		dst.y = y;
 		dst.w = width;
 		dst.h = height;
 
-		zoomRect(renderer, dst);
+		if (!ignore_view_zoom)
+		{
+			dst.x -= view_position.x;
+			dst.y -= view_position.y;
+
+			zoomRect(renderer, dst);
+		}
 
 		SDL_RenderTextureRotated(renderer.get(), sprite.getTexture().get(), &src, &dst, angle, nullptr, flip_mode);
 	}

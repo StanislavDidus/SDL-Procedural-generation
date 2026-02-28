@@ -8,37 +8,71 @@
         -->
         <sprite id="tiles">
             <path>assets/Sprites/tileset.png</path>
-            <size x="16" y="16" />
+            <rectListing>
+                <rect x="0" y="0" w="16" h="16" name="Grass" />
+                <rect x="16" y="0" w="16" h="16" name="Dirt" />
+                <rect x="32" y="0" w="16" h="16" name="Stone" />
+                <rect x="48" y="0" w="16" h="16" name="Sand" />
+                <rect x="64" y="0" w="16" h="16" name="Sky" />
+                <rect x="80" y="0" w="16" h="16" name="Snow_Grass" />
+                <rect x="96" y="0" w="16" h="16" name="Rock" />
+                <rect x="112" y="0" w="16" h="16" name="Water" />
+                <rect x="128" y="0" w="16" h="16" name="Snow_Dirt" />
+                <rect x="144" y="0" w="16" h="16" name="Jungle_Grass" />
+                <rect x="160" y="0" w="16" h="16" name="Jungle_Dirt" />
+            </rectListing>
             <scaleMode>NEAREST</scaleMode>
         </sprite>
         <sprite id="items">
             <path>assets/Sprites/items.png</path>
-            <size x="16" y="16" />
+            <rectListing>
+                <rect x="0" y="0" w="16" h="16" name="Apple" />
+                <rect x="16" y="0" w="16" h="16" name="Banana" />
+                <rect x="32" y="0" w="16" h="16" name="Health_Potion" />
+                <rect x="48" y="0" w="16" h="16" name="Regeneration_Potion" />
+                <rect x="64" y="0" w="16" h="16" name="Wood" />
+                <rect x="80" y="0" w="16" h="16" name="Stone" />
+                <rect x="96" y="0" w="16" h="16" name="Common_Pickaxe" />
+                <rect x="0" y="16" w="16" h="16" name="Cactus" />
+                <rect x="16" y="16" w="16" h="16" name="Rope" />
+                <rect x="32" y="16" w="16" h="16" name="Common_Sword" />
+                <rect x="48" y="16" w="16" h="16" name="Grass" />
+                <rect x="64" y="16" w="16" h="16" name="Golden_Pickaxe" />
+                <rect x="80" y="16" w="16" h="16" name="Gold" />
+                <rect x="96" y="16" w="16" h="16" name="Skin" />
+                <rect x="0" y="32" w="16" h="16" name="Bow" />
+                <rect x="16" y="32" w="16" h="16" name="Magic_Boots" />
+                <rect x="32" y="32" w="16" h="16" name="Common_Boots" />
+                <rect x="48" y="32" w="16" h="16" name="Leather_Helmet" />
+                <rect x="64" y="32" w="16" h="16" name="Leather_Armor" />
+                <rect x="80" y="32" w="16" h="16" name="Belt" />
+                <rect x="96" y="32" w="16" h="16" name="Health_Amulet" />
+            </rectListing>
             <scaleMode>NEAREST</scaleMode>
         </sprite>
         <sprite id="objects">
             <path>assets/Sprites/objects.png</path>
             <scaleMode>NEAREST</scaleMode>
             <rectListing>
-                <rect x="0" y="0" w="16" h="48" /> <!--Tree-->
-                <rect x="16" y="0" w="16" h="48" /> <!--Snow_Tree-->
-                <rect x="32" y="0" w="16" h="48" /> <!--Cactus-->
-                <rect x="48" y="0" w="48" h="32" /> <!--Stone-->
-                <rect x="48" y="32" w="16" h="16" /> <!--Grass-->
-                <rect x="64" y="32" w="16" h="16" /> <!--Snow_Grass-->
-                <rect x="96" y="0" w="32" h="48" /> <!--Big_Tree-->
-                <rect x="0" y="48" w="48" h="32" /> <!--Golden_Ston-->
-                <rect x="48" y="54" w="32" h="26" /> <!--Chest-->
+                <rect x="0" y="0" w="16" h="48" name="Tree" /> 
+                <rect x="16" y="0" w="16" h="48" name="Snow_Tree" />
+                <rect x="32" y="0" w="16" h="48" name="Cactus" /> 
+                <rect x="48" y="0" w="48" h="32" name="Stone" /> 
+                <rect x="48" y="32" w="16" h="16" name="Grass" /> 
+                <rect x="64" y="32" w="16" h="16" name="Snow_Grass" /> 
+                <rect x="96" y="0" w="32" h="48" name="Big_Tree" /> 
+                <rect x="0" y="48" w="48" h="32" name="Golden_Stone" /> 
+                <rect x="48" y="54" w="32" h="26" name="Chest" /> 
             </rectListing>
         </sprite>
         <sprite id="ui">
             <path>assets/Sprites/UI.png</path>
             <scaleMode>NEAREST</scaleMode>
             <rectListing>
-                <rect x="0" y="0" w="16" h="16" />
-                <rect x="16" y="0" w="16" h="16" />
-                <rect x="32" y="0" w="16" h="16" />
-                <rect x="48" y="0" w="48" h="16" />
+                <rect x="0" y="0" w="16" h="16" name="CraftIcon" />
+                <rect x="16" y="0" w="16" h="16" name="BlockedCraftIcon" />
+                <rect x="32" y="0" w="16" h="16" name="RedCraftIcon" />
+                <rect x="48" y="0" w="48" h="16" name="Health_Bar" />
             </rectListing>
         </sprite>
         <sprite id="icons">
@@ -50,16 +84,16 @@
             <path>assets/Sprites/player.png</path>
             <scaleMode>NEAREST</scaleMode>
              <rectListing>
-                <rect x="0" y="111" w="16" h="17" /> <!--Idle-->
-                <rect x="16" y="111" w="16" h="17" />
-                <rect x="32" y="111" w="16" h="17" />
-                <rect x="0" y="143" w="16" h="17" /> <!--Run-->
-                <rect x="16" y="143" w="16" h="17" />
-                <rect x="32" y="143" w="16" h="17" />
-                <rect x="48" y="143" w="16" h="17" />
-                <rect x="0" y="174" w="16" h="18" /> <!--Jump-->
-                <rect x="16" y="176" w="16" h="16" /> <!--Fall-->
-                <rect x="32" y="176" w="16" h="16" /> <!--Death-->
+                <rect x="0" y="111" w="16" h="17" name="Idle0" /> 
+                <rect x="16" y="111" w="16" h="17" name="Idle1" />
+                <rect x="32" y="111" w="16" h="17" name="Idle2" />
+                <rect x="0" y="143" w="16" h="17" name="Run0" /> 
+                <rect x="16" y="143" w="16" h="17" name="Run1" />
+                <rect x="32" y="143" w="16" h="17" name="Run2" />
+                <rect x="48" y="143" w="16" h="17" name="Run3" />
+                <rect x="0" y="174" w="16" h="18" name="Jump0" /> 
+                <rect x="16" y="176" w="16" h="16" name="Fall0" /> 
+                <rect x="32" y="176" w="16" h="16" name="Death0" /> 
 
             </rectListing>
         </sprite>
@@ -67,12 +101,18 @@
             <path>assets/Sprites/tile_break_anim.png</path>
             <scaleMode>NEAREST</scaleMode>
             <size x="16" y="16" />
+            <rectListing>
+                <rect x="0" y="0" w="16" h="16" name="TileBreak0" />
+                <rect x="16" y="0" w="16" h="16" name="TileBreak1" />
+                <rect x="32" y="0" w="16" h="16" name="TileBreak2" />
+                <rect x="48" y="0" w="16" h="16" name="TileBreak3" />
+            </rectListing>
         </sprite>
         <sprite id="enemies">
             <path>assets/Sprites/entities.png</path>
             <scaleMode>NEAREST</scaleMode>
             <rectListing>
-                <rect x="0" y="0" w="16" h="32" />
+                <rect x="0" y="0" w="16" h="32" name="Snowman" />
             </rectListing>
         </sprite>
     </spriteListing>

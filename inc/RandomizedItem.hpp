@@ -20,9 +20,3 @@ struct RandomizedItem
 	int drop_quantity_max; ///< Maximum quantity of the item that can drop.
 };
 
-// Random accessory
-struct RandomizedAccessory
-{
-	size_t id;
-	float weight;
-};

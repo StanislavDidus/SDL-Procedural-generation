@@ -8,7 +8,7 @@ class ManageButtonActionsSystem
 public:
 	ManageButtonActionsSystem(entt::registry& registry) : registry{registry} {}
 
-	void update(Entity target_entity)
+	void update(Entity target_entity, graphics::Renderer& screen)
 	{
 		auto view = registry.view<Components::ButtonReleased, Components::CraftButton>();
 		for (const auto& [entity, craft_button_component] : view.each())
@@ -30,7 +30,9 @@ public:
 
 				if (distance < 200.0f)
 				{
-					std::cout << "Chest open" << std::endl;
+					auto chest_window = registry.create();
+
+					registry.emplace<Components::UI::OpenChestWindow>(chest_window, target_entity, entity);
 				}
 			}
 		}

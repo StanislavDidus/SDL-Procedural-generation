@@ -213,7 +213,7 @@ void Inventory::removeItem(Entity item)
 		if (item_)
 		{
 			auto& item_info = registry.get<Item>(*item_);
-			if (item == *item_)
+			if (target_item_info.id == item_info.id)
 			{
 				//If destroyed number is bigger than a target then we don't need to delete some resources
 				if ( number_destroyed + item_info.stack_number > target_number)
@@ -229,6 +229,8 @@ void Inventory::removeItem(Entity item)
 					number_destroyed += item_info.stack_number;
 
 					eraseItemAtSlot(i);
+
+					std::cout << "erase" << std::endl;
 				}
 
 				if (number_destroyed >= target_number)

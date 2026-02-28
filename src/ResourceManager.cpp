@@ -45,36 +45,21 @@ void ResourceManager::loadXml(const std::filesystem::path& path, graphics::Rende
 			scale_mode = SDL_SCALEMODE_INVALID;
 		}
 
-		//See if spritesheet consists of sprites of the same size or of different rects
-		const auto& size_node = sprite_node->FirstChildElement("size");
+		const auto& rect_listing_node = sprite_node->FirstChildElement("rectListing");
 
-		//All sprites are of the same size
-		if (size_node)
+		std::vector<SDL_FRect> rects;
+		for (auto* rect_node = rect_listing_node->FirstChildElement("rect"); rect_node != nullptr; rect_node = rect_node->NextSiblingElement())
 		{
-			glm::vec2 sprite_size;
-			size_node->QueryFloatAttribute("x", &sprite_size.x);
-			size_node->QueryFloatAttribute("y", &sprite_size.y);
-
-			addSpriteSheet(asset_name, screen, path, sprite_size, scale_mode);
+			SDL_FRect rect;
+			rect_node->QueryFloatAttribute("x", &rect.x);
+			rect_node->QueryFloatAttribute("y", &rect.y);
+			rect_node->QueryFloatAttribute("w", &rect.w);
+			rect_node->QueryFloatAttribute("h", &rect.h);
+			const char* name = rect_node->Attribute("name");
+			rects.push_back(rect);
 		}
-		//Different rects
-		else
-		{
-			const auto& rect_listing_node = sprite_node->FirstChildElement("rectListing");
 
-			std::vector<SDL_FRect> rects;
-			for (auto* rect_node = rect_listing_node->FirstChildElement("rect"); rect_node != nullptr; rect_node = rect_node->NextSiblingElement())
-			{
-				SDL_FRect rect;
-				rect_node->QueryFloatAttribute("x", &rect.x);
-				rect_node->QueryFloatAttribute("y", &rect.y);
-				rect_node->QueryFloatAttribute("w", &rect.w);
-				rect_node->QueryFloatAttribute("h", &rect.h);
-				rects.push_back(rect);
-			}
-
-			addSpriteSheet(asset_name, screen, path, rects, scale_mode);
-		}
+		addSpriteSheet(asset_name, screen, path, rects, scale_mode);
 
 	}
 
