@@ -95,19 +95,19 @@ const std::vector<EnemySpawnInfo>& EnemyManager::getAllEnemySpawnInfo() const
 /*
 std::optional<Entity> EnemyManager::createEnemy(const std::string& name) const
 {
-	auto entity = EntityManager::get().createEntity();
+	auto target = EntityManager::get().createEntity();
 
-	if (!entity) return std::nullopt;
+	if (!target) return std::nullopt;
 
 	const auto& enemy_data = enemies_data.at(name);
 
 	auto& component_manager = ComponentManager::get();
 
-	component_manager.renderable[*entity] = Renderable
+	component_manager.renderable[*target] = Renderable
 	{
 		(*ResourceManager::get().getSpriteSheet("enemies"))[enemy_data.sprite_index]
 	};
 
-	return entity;
+	return target;
 }
 */

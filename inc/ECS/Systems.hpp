@@ -21,10 +21,10 @@ constexpr int BASE_MINING_SIZE = 2;
 
 //TODO: Change AddItem in ComponentManager to store vector of components in order to add multiple items in one frame
 /// <summary>
-/// Static function that takes an item and randomly decides whether add the item to the given entity.
+/// Static function that takes an item and randomly decides whether add the item to the given target.
 /// Quantities are also generated randomly based on the variables defined in <b>RandomizedItem</b> class.
 /// </summary>
-/// <param name="entity">Takes an entity that will get an item.</param>
+/// <param name="target">Takes an target that will get an item.</param>
 /// <param name="item">Item that is being added to the inventory</param>
 static void addRandomizedItem(entt::entity entity, const RandomizedItem& item, entt::registry& registry)
 {
@@ -36,7 +36,7 @@ static void addRandomizedItem(entt::entity entity, const RandomizedItem& item, e
 	if (drop_rand <= item.drop_chance)
 	{
 		auto item_entity = registry.create();
-		//Create new entity(item)
+		//Create new target(item)
 		auto crafted_item = ItemManager::get().createItem(registry, item.item_id, quantities_rand);
 		registry.emplace_or_replace<Components::AddItem>(item_entity, entity, crafted_item);
 	}
@@ -420,7 +420,7 @@ struct JumpSystem
 				//std::cout << "Double Jump" << std::endl;
 			}
 
-			//Reset double_jump if entity touches the ground
+			//Reset double_jump if target touches the ground
 			if (ph.is_ground) dj.is_active = true;
 		}
 	}
@@ -611,7 +611,7 @@ public:
 					registry.emplace<Components::MineObjectsStarted>(entity);
 					//std::cout << "Mining_Objects_Started" << std::endl;
 
-					//If entity has physics component - limit horizontal movement
+					//If target has physics component - limit horizontal movement
 					if (registry.all_of<Components::Physics>(entity))
 						registry.get<Components::Physics>(entity).can_move_horizontal = false;
 
@@ -628,7 +628,7 @@ public:
 					//Do something at the end
 					//std::cout << "Mining_Objects_Ended" << std::endl;
 
-					//If entity has physics component - return horizontal movement
+					//If target has physics component - return horizontal movement
 					if (registry.all_of<Components::Physics>(entity))
 						registry.get<Components::Physics>(entity).can_move_horizontal = true;
 				}
@@ -636,7 +636,7 @@ public:
 				{
 					auto destroyed_object_id = world.damageObject(mi.start_mouse_position, mining_speed * dt);
 
-					//If object was successfully destroyed - add items to the entity's inventory
+					//If object was successfully destroyed - add items to the target's inventory
 					if (destroyed_object_id && registry.all_of<Components::HasInventory>(entity))
 					{
 						const auto& items = ObjectManager::get().getProperties(*destroyed_object_id).drop;
@@ -1009,7 +1009,7 @@ public:
 		for (auto [entity, craft_item_component] : view.each())
 		{
 			//NOTE: CraftItem is a component that is attached to a CraftButton when user tries to craft an item.
-			//And the entity we have to give an item is our target_entity
+			//And the target we have to give an item is our target_entity
 
 			auto& inventory = inventory_component.inventory;
 

@@ -3,6 +3,7 @@
 #include <string>
 #include "Font.hpp"
 #include "Color.hpp"
+#include "glm/vec2.hpp"
 
 struct SDL_Texture;
 
@@ -25,6 +26,7 @@ namespace graphics
 		//Getters
 		SDL_Texture* getTexture() const;
 		const std::string& getText() const;
+		glm::vec2 getTextSize(const glm::vec2& scale) const;
 
 		//Setters
 		void setFont(const Font* font);

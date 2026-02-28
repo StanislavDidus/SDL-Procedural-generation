@@ -30,6 +30,15 @@ namespace graphics
 		return text;
 	}
 
+	glm::vec2 Text::getTextSize(const glm::vec2& scale) const
+	{
+		return
+		{
+			texture->w * scale.x,
+			texture->h * scale.y
+		};
+	}
+
 	void Text::setFont(const Font* font)
 	{
 		this->font = font;

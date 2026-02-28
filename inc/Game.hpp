@@ -40,6 +40,7 @@
 #include "ECS/ManageButtonActionsSystem.hpp"
 #include "ECS/ManageInvincibleStatusSystem.hpp"
 #include "ECS/PlayerCollisionSystem.hpp"
+#include "ECS/RenderEssenceCounter.hpp"
 #include "ECS/RenderHealthBarSystem.hpp"
 
 class ChangeMiningSizeSystem;
@@ -135,6 +136,7 @@ private:
 	std::unique_ptr<ChangeMiningSizeSystem> change_mining_size_system;
 	std::unique_ptr<ManageButtonActionsSystem> manage_button_actions_system;
 	std::unique_ptr<ChestWindowSystem> chest_window_system;
+	std::unique_ptr<RenderEssenceCounter> render_essence_counter;
 
 	//UI
 	std::unique_ptr<CraftView> craft_view;

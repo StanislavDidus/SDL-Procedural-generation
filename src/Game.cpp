@@ -121,6 +121,7 @@ void Game::initSystems()
 	change_mining_size_system = std::make_unique<ChangeMiningSizeSystem>(registry);
 	manage_button_actions_system = std::make_unique<ManageButtonActionsSystem>(registry);
 	chest_window_system = std::make_unique<ChestWindowSystem>(registry, ResourceManager::get().getFont("Main"));
+	render_essence_counter = std::make_unique<RenderEssenceCounter>(registry, ui_settings, ResourceManager::get().getFont("Main"));
 
 	world->setCollisionSystem(collision_system);
 }
@@ -343,6 +344,7 @@ void Game::initPlayer()
 	registry.emplace<Components::CraftingAbility>(player);
 
 	registry.emplace<Components::Equipment>(player, 2);
+	registry.emplace<Components::EquipmentEssence>(player);
 
 	auto& animation = registry.emplace<Components::CharacterAnimation>(player);
 	animation.idle_animation = idle_animation;
@@ -493,6 +495,7 @@ void Game::render() const
 
 			//UI
 			inventory_view->render(screen);
+			render_essence_counter->render(screen, player);
 			render_crafting_ui_system->render(screen, player);
 			item_description_system->render(screen, player);
 			render_weapon_menu_system->render(screen, player);

@@ -20,5 +20,4 @@ namespace graphics
 		std::vector<int> frames;
 		float timer = 0.0f;
 	};
-
 } // namespace graphics

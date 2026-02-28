@@ -15,51 +15,29 @@ public:
 	{
 		auto window_view = registry.view<Components::UI::ChestWindow>();
 
-
 		std::vector<Entity> to_destroy;
 
 		// Create a new window if there is no already existing windows
-		if (window_view.empty())
+		auto view = registry.view<Components::UI::OpenChestWindow>();
+		for (auto [entity, chest_window_component] : view.each())
 		{
-			auto view = registry.view<Components::UI::OpenChestWindow>();
-			for (auto [entity, chest_window_component] : view.each())
+			if (window_view.empty())
 			{
-				auto& player = chest_window_component.target;
-				auto& chest = chest_window_component.chest;
+				openChestWindow(chest_window_component, screen);
 
-				std::cout << "Open window" << std::endl;
-
-				const auto& window_size = screen.getWindowSize();
-
-				// Create window
-				auto chest_window = registry.create();
-				auto& ts = registry.emplace<Components::Transform>(chest_window);
-				ts.position = glm::vec2
-				{ 
-					window_size.x * 0.5f - menu_size.x * 0.5f,
-					window_size.y * 0.5f - menu_size.y * 0.5f 
-				};
-				ts.size = menu_size;
-
-				auto& renderable = registry.emplace<Components::Renderable>(chest_window);
-				renderable.sprite = (*ResourceManager::get().getSpriteSheet("ui"))[0];
-				renderable.ignore_view_zoom = true;
-
-				registry.emplace<Components::UI::ChestWindow>(chest_window, player, chest);
-
+				//Destroy the entity afterward
 				to_destroy.emplace_back(entity);
-
 				break;
-
 			}
-
+			
+			to_destroy.emplace_back(entity);
 		}
 
 		//If player is too far from the chest - close the window
 		auto view2 = registry.view<Components::UI::ChestWindow>();
 		for (auto [entity, chest_window_component] : view2.each())
 		{
-			auto& player = chest_window_component.entity;
+			auto& player = chest_window_component.target;
 			auto& chest = chest_window_component.chest;
 			
 			if (registry.all_of<Components::Transform>(player) && registry.all_of<Components::Transform>(chest))
@@ -135,6 +113,31 @@ public:
 		}
 	}
 private:
+	void openChestWindow(const Components::UI::OpenChestWindow& chest_window_component, const graphics::Renderer& screen)
+	{
+		auto& player = chest_window_component.target;
+		auto& chest = chest_window_component.chest;
+
+
+		const auto& window_size = screen.getWindowSize();
+
+		// Create window
+		auto chest_window = registry.create();
+		auto& ts = registry.emplace<Components::Transform>(chest_window);
+		ts.position = glm::vec2
+		{ 
+			window_size.x * 0.5f - menu_size.x * 0.5f,
+			window_size.y * 0.5f - menu_size.y * 0.5f 
+		};
+		ts.size = menu_size;
+
+		auto& renderable = registry.emplace<Components::Renderable>(chest_window);
+		renderable.sprite = ResourceManager::get().getSpriteSheet("ui")->getSprite("CraftIcon");
+		renderable.ignore_view_zoom = true;
+
+		registry.emplace<Components::UI::ChestWindow>(chest_window, player, chest);
+	}
+
 	entt::registry& registry;
 	const graphics::Font* font;
 

@@ -8,16 +8,18 @@
 namespace graphics
 {
 
-	SpriteSheet::SpriteSheet(graphics::Renderer& renderer, const Surface& surface, const std::vector<SDL_FRect>& sprite_rects, SDL_ScaleMode scale_mode)
+	SpriteSheet::SpriteSheet(graphics::Renderer& renderer, const Surface& surface, const SpriteList& sprite_list, SDL_ScaleMode scale_mode)
 	{
 		auto texture = loadTexture(renderer, surface, scale_mode);
 
-		for (const auto& rect : sprite_rects)
+		for (const auto& sprite : sprite_list)
 		{
-			sprites.emplace_back(texture, rect);
+			sprites.emplace_back(texture, sprite.second);
+			nameToIndex[sprite.first] = sprites.size() - 1;
 		}
 	}
 
+	/*
 	SpriteSheet::SpriteSheet(graphics::Renderer& renderer, const Surface& surface, const glm::vec2& sprite_size, SDL_ScaleMode scale_mode)
 	{
 		auto texture = loadTexture(renderer, surface, scale_mode);
@@ -32,10 +34,11 @@ namespace graphics
 		{
 			for (int x = 0; x < columns; x++)
 			{
-				sprites.emplace_back(texture, SDL_FRect{ static_cast<float>(x) * sprite_size.x, static_cast<float>(y) * sprite_size.y, sprite_size.x, sprite_size.y });
+				//sprites.emplace_back(texture, SDL_FRect{ static_cast<float>(x) * sprite_size.x, static_cast<float>(y) * sprite_size.y, sprite_size.x, sprite_size.y });
 			}
 		}
 	}
+	*/
 
 	Texture SpriteSheet::loadTexture(graphics::Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode)
 	{

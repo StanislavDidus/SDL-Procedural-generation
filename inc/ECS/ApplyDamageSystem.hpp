@@ -19,7 +19,7 @@ public:
 		to_destroy.reserve(view.size());
 		for (auto [entity, damage_component] : view.each())
 		{
-			// Delete "Damage" entity if the target is currently invincible to damage
+			// Delete "Damage" target if the target is currently invincible to damage
 			if (registry.all_of<Components::Invincible>(damage_component.target))
 			{
 				to_destroy.push_back(entity);
@@ -57,7 +57,7 @@ public:
 
 				}
 
-				// Destroy this entity
+				// Destroy this target
 				to_destroy.emplace_back(entity);
 			}
 		}

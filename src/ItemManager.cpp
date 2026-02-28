@@ -142,7 +142,7 @@ Entity ItemManager::registerItem(entt::registry& registry,
                                  const Components::InventoryItems::ItemProperties& properties)
 {
 	auto entity = registry.create();
-	//registry.emplace<Components::InventoryItems::ItemProperties>(entity, properties);
+	//registry.emplace<Components::InventoryItems::ItemProperties>(target, properties);
 	registry.emplace<Components::InventoryItems::Item>(entity, Components::InventoryItems::Item{items_counter});
 	item_properties.push_back(properties);
 	items.push_back(entity);

@@ -145,7 +145,7 @@ namespace Components
 		size_t item_id;
 	};
 
-	// Notify that entity tries to equip an item
+	// Notify that target tries to equip an item
 	struct EquipItem
 	{
 		Entity item;
@@ -233,14 +233,6 @@ namespace Components
 
 	struct Equipment
 	{
-		/*
-		Item* helmet;
-		Item* armor;
-		Item* shoes;
-		Item* amulet;
-		std::vector<Item*> accessories;
-		*/
-
 		int max_weapon = 0;
 		std::vector<Entity> weapons;
 		Entity pickaxe = entt::null;
@@ -248,6 +240,13 @@ namespace Components
 		Entity armor = entt::null;
 		Entity boots = entt::null;
 		std::vector<Entity> accessories;
+	};
+
+	struct EquipmentEssence
+	{
+		int common_essence = 0;
+		int snow_essence = 0;
+		int sand_essence = 0;
 	};
 
 	struct Animation
@@ -326,10 +325,21 @@ namespace Components
 			Entity target;
 			Entity chest;
 		};
+
+		struct Window
+		{
+
+		};
+
 		struct ChestWindow
 		{
-			Entity entity;
+			Entity target;
 			Entity chest;
+		};
+
+		struct ParentWindow
+		{
+			std::vector<Entity> children;
 		};
 	} // namespace UI
 

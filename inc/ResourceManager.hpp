@@ -24,8 +24,7 @@ public:
 private:
 	ResourceManager() = default;
 
-	void addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path, const glm::vec2& size, SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR);
-	void addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path, const std::vector<SDL_FRect>& rects, SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR);
+	void addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path, const graphics::SpriteList& sprite_list, SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR);
 
 	void addFont(const std::string& name, const std::filesystem::path& path, int size);
 

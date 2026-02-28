@@ -18,7 +18,7 @@ struct DroppedItemData
 
 /// <summary>
 /// Systems that takes care of already dropped items and updates their timers.
-/// Additionally, drops items if any entity intends to.
+/// Additionally, drops items if any target intends to.
 /// </summary>
 class DropItemSystem
 {
@@ -27,7 +27,7 @@ public:
 
 	void update(float dt)
 	{
-		// Drop item if entity intends to 
+		// Drop item if target intends to 
 		std::vector<DroppedItemData> dropped_item_datas;
 		auto view = registry.view<Components::DropItem>();
 		std::vector<Entity> to_destroy;
@@ -87,12 +87,12 @@ public:
 				dropped_item_component.can_be_collected = true;
 			}
 				
-			// Move dropped item to the nearest entity with inventory
-			// TODO: The item should not be picked up if entity doesn't have enough space
+			// Move dropped item to the nearest target with inventory
+			// TODO: The item should not be picked up if target doesn't have enough space
 
 			if (!dropped_item_component.can_be_collected) continue;
 
-			// Search for any other entity that can collect this item(has inventory component)
+			// Search for any other target that can collect this item(has inventory component)
 			for (auto [entity_, player_transform_component, inventory_component] : view3.each())
 			{
 				if (entity == entity_) continue;
@@ -110,9 +110,9 @@ public:
 		}
 
 		/*
-		for (const auto& entity : dropped_items_to_delete)
+		for (const auto& target : dropped_items_to_delete)
 		{
-			registry.destroy(entity);
+			registry.destroy(target);
 		}
 	*/
 	}

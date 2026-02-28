@@ -51,4 +51,21 @@ struct UISettings
 
 	//float weapon_menu_position_x = 0.0f;
 	float weapon_menu_position_y = 540.f - weapon_menu_slot_height;
+
+	// Essence counter
+
+	glm::vec2 essence_counter_position =
+	{
+		0.0f * ui_scale,
+		150.0f * ui_scale
+	};
+
+	glm::vec2 essence_icon_size =
+	{
+		50.0f * ui_scale,
+		50.0f * ui_scale
+	};
+
+	float essence_text_scale = 0.8f * ui_scale;
+	float essence_text_space = 10.0f * ui_scale;
 };

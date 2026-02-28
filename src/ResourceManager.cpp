@@ -47,7 +47,7 @@ void ResourceManager::loadXml(const std::filesystem::path& path, graphics::Rende
 
 		const auto& rect_listing_node = sprite_node->FirstChildElement("rectListing");
 
-		std::vector<SDL_FRect> rects;
+		SpriteList sprite_list;
 		for (auto* rect_node = rect_listing_node->FirstChildElement("rect"); rect_node != nullptr; rect_node = rect_node->NextSiblingElement())
 		{
 			SDL_FRect rect;
@@ -56,10 +56,10 @@ void ResourceManager::loadXml(const std::filesystem::path& path, graphics::Rende
 			rect_node->QueryFloatAttribute("w", &rect.w);
 			rect_node->QueryFloatAttribute("h", &rect.h);
 			const char* name = rect_node->Attribute("name");
-			rects.push_back(rect);
+			sprite_list.emplace_back(name, rect);
 		}
 
-		addSpriteSheet(asset_name, screen, path, rects, scale_mode);
+		addSpriteSheet(asset_name, screen, path, sprite_list, scale_mode);
 
 	}
 
@@ -86,17 +86,10 @@ std::shared_ptr<SpriteSheet> ResourceManager::getSpriteSheet(const std::string& 
 	return spritesheets.at(name);
 }
 
-void ResourceManager::addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path, const glm::vec2& size,
-                                     SDL_ScaleMode scale_mode)
-{
-	spritesheets[name] = std::make_unique<SpriteSheet>(screen, Surface{ path }, size, scale_mode);
-	//spritesheets[name] = std::move(SpriteSheet{ screen, Surface{path}, size, scale_mode });
-}
-
 void ResourceManager::addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path,
-                                     const std::vector<SDL_FRect>& rects, SDL_ScaleMode scale_mode)
+                                     const SpriteList& sprite_list, SDL_ScaleMode scale_mode)
 {
-	spritesheets[name] = std::make_unique<SpriteSheet>(screen, Surface{ path }, rects, scale_mode);
+	spritesheets[name] = std::make_unique<SpriteSheet>(screen, Surface{ path }, sprite_list, scale_mode);
 	//spritesheets[name] = std::move(SpriteSheet{ screen, Surface{path}, rects, scale_mode });
 }
 
