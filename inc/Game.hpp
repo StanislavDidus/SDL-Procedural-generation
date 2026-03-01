@@ -37,6 +37,7 @@
 #include "ECS/RenderWeaponCircle.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ChestWindowSystem.hpp"
+#include "ECS/CollectEssenceSystem.hpp"
 #include "ECS/ManageButtonActionsSystem.hpp"
 #include "ECS/ManageInvincibleStatusSystem.hpp"
 #include "ECS/PlayerCollisionSystem.hpp"
@@ -137,6 +138,7 @@ private:
 	std::unique_ptr<ManageButtonActionsSystem> manage_button_actions_system;
 	std::unique_ptr<ChestWindowSystem> chest_window_system;
 	std::unique_ptr<RenderEssenceCounter> render_essence_counter;
+	std::unique_ptr<CollectEssenceSystem> collect_essence_system;
 
 	//UI
 	std::unique_ptr<CraftView> craft_view;

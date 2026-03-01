@@ -480,7 +480,7 @@ void World::generateBase()
 
 			float new_height = position_y - map_height;
 
-			//Apply y base layer and change over vertical axis
+			//Apply y base layer and chance over vertical axis
 			float difference = new_height - generation_data.y_base;
 			float change = difference * new_change;
 			density_noise += change;

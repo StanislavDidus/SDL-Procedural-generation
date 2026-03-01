@@ -13,6 +13,10 @@
         <spawnTiles>
             <tile ref="Snow_Grass"/>
         </spawnTiles>
+        <components>
+            <component id="EnemyAI" />
+            <component id="DropEssence" value="Snow" number="1" chance="0.5" />
+        </components>
     </enemy>
     <enemy id="Elve">
         <size x="2" y="4" />
@@ -27,6 +31,10 @@
         <spawnTiles>
             <tile ref="Grass"/>
         </spawnTiles>
+        <components>
+            <component id="EnemyAI" />
+            <component id="DropEssence" value="Common" number="1" chance="0.5" />
+        </components>
     </enemy>
     <enemy id="Mummy">
         <size x="2" y="4" />
@@ -41,5 +49,9 @@
         <spawnTiles>
             <tile ref="Sand"/>
         </spawnTiles>
+        <components>
+            <component id="EnemyAI" />
+            <component id="DropEssence" value="Sand" number="1" chance="0.5" />
+        </components>
     </enemy>
 </enemyListing>

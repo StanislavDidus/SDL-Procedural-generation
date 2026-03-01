@@ -105,6 +105,7 @@ set(HEADER_FILES
     "inc/ECS/ChestWindowSystem.hpp"
     "inc/ECS/WindowManagerSystem.hpp"
     "inc/ECS/RenderEssenceCounter.hpp"
+    "inc/ECS/CollectEssenceSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

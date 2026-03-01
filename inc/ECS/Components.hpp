@@ -1,4 +1,6 @@
 #pragma once
+#include "Entity.hpp"
+#include "RandomizedItem.hpp"
 #include "SpriteAnimation.hpp"
 
 class Inventory;
@@ -8,6 +10,14 @@ enum class ItemAction
 	NONE,
 	EQUIP,
 	USE,
+};
+
+enum class EssenceType
+{
+	NONE,
+	COMMON,
+	SNOW,
+	SAND,
 };
 
 namespace Components
@@ -256,6 +266,13 @@ namespace Components
 		int sand_essence = 0;
 	};
 
+	struct GiveEssence
+	{
+		EssenceType type = EssenceType::NONE;
+		int number = 0;
+		float chance = 1.0f;
+	};
+
 	struct Animation
 	{
 		
@@ -269,17 +286,7 @@ namespace Components
 		std::shared_ptr<graphics::SpriteAnimation> fall_animation;
 	};
 	
-	struct Enemy
-	{
-		size_t id;
-	};
 
-	struct EnemyAI
-	{
-		float position_update_timer;
-		float position_update_time;
-		glm::vec2 last_position;
-	};
 
 	struct Damage
 	{
@@ -316,6 +323,56 @@ namespace Components
 	{
 		size_t item_id;
 	};
+
+	namespace Enemies
+	{
+		struct Enemy
+		{
+			size_t id;
+		};
+
+		/// <summary>
+		/// 
+		/// </summary>
+		struct EnemyData
+		{
+			std::string name;
+			
+			int sprite_index;
+			bool is_aggressive;
+			float max_health;
+
+			//AI settings
+			float ai_efficiency;
+
+			std::vector<RandomizedItem> item_drop;
+		};
+
+		/// <summary>
+		/// 
+		/// </summary>
+		struct EnemySpawnInfo
+		{
+			size_t id;
+			float spawn_chance_weight;
+			glm::ivec2 size;
+			std::vector<size_t> spawn_tiles;
+		};
+
+		struct EnemyAI
+		{
+			float position_update_timer;
+			float position_update_time;
+			glm::vec2 last_position;
+		};
+
+		struct DropEssence
+		{
+			EssenceType type = EssenceType::NONE;
+			int number = 0;
+			float chance = 0.0f;
+		};
+	} // namespace Enemies
 
 	namespace Effects
 	{

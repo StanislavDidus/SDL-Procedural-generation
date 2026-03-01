@@ -75,7 +75,7 @@ public:
 		{
 			glm::vec2 window_mid_position = transform_component.position + transform_component.size * 0.5f;
 			glm::vec2 unlock_button_size = glm::vec2{200.0f, 100.0f};
-			glm::vec2 unlock_button_position = glm::vec2{window_mid_position.x - unlock_button_size.x * 0.5f, transform_component.position.y + transform_component.size.y - unlock_button_size.y};
+			glm::vec2 unlock_button_position = glm::vec2{window_mid_position.x - unlock_button_size.x * 0.5f, transform_component.position.y + transform_component.size.y - unlock_button_size.y + 50.0f};
 
 			graphics::drawRectangle
 			(screen, unlock_button_position.x, unlock_button_position.y, unlock_button_size.x, unlock_button_size.y, graphics::RenderType::FILL, graphics::Color::RED, graphics::IGNORE_VIEW_ZOOM);
@@ -86,30 +86,43 @@ public:
 			graphics::printText(screen, unlock_text, unlock_button_position.x, unlock_button_position.y, unlock_button_size.x, unlock_button_size.y, graphics::IGNORE_VIEW_ZOOM);
 
 			//Draw essences icons
-			float step_x = (menu_size.x * 0.5f - icon_size.x) * 0.5f;
-			float offset_y = 25.0f;
+			float step_x = 10.0f;
+			float offset_y = 130.0f;
 
-			graphics::drawRectangle(
+			float new_x = transform_component.position.x + 10.0f;
+
+			new_x += step_x;
+
+			graphics::drawScaledSprite(
 				screen,
-				transform_component.position.x + step_x,
+				ResourceManager::get().getSpriteSheet("ui")->getSprite("Common_Essence"),
+				new_x,
 				transform_component.position.y + offset_y,
 				icon_size.x,
 				icon_size.y,
-				graphics::RenderType::FILL,
-				graphics::Color::YELLOW,
 				graphics::IGNORE_VIEW_ZOOM);
 
-			graphics::drawRectangle(
+			new_x += icon_size.x + step_x;
+
+			graphics::drawScaledSprite(
 				screen,
-				transform_component.position.x + step_x * 3.0f + icon_size.x,
+				ResourceManager::get().getSpriteSheet("ui")->getSprite("Snow_Essence"),
+				new_x,
 				transform_component.position.y + offset_y,
 				icon_size.x,
 				icon_size.y,
-				graphics::RenderType::FILL,
-				graphics::Color::YELLOW,
 				graphics::IGNORE_VIEW_ZOOM);
 
+			new_x += icon_size.x + step_x;
 
+			graphics::drawScaledSprite(
+				screen,
+				ResourceManager::get().getSpriteSheet("ui")->getSprite("Sand_Essence"),
+				new_x,
+				transform_component.position.y + offset_y,
+				icon_size.x,
+				icon_size.y,
+				graphics::IGNORE_VIEW_ZOOM);
 		}
 	}
 private:
@@ -132,7 +145,7 @@ private:
 		ts.size = menu_size;
 
 		auto& renderable = registry.emplace<Components::Renderable>(chest_window);
-		renderable.sprite = ResourceManager::get().getSpriteSheet("ui")->getSprite("CraftIcon");
+		renderable.sprite = ResourceManager::get().getSpriteSheet("ui")->getSprite("ChestUI");
 		renderable.ignore_view_zoom = true;
 
 		registry.emplace<Components::UI::ChestWindow>(chest_window, player, chest);
@@ -141,6 +154,6 @@ private:
 	entt::registry& registry;
 	const graphics::Font* font;
 
-	glm::vec2 icon_size = {100.0f, 100.0f};
+	glm::vec2 icon_size = {80.0f,80.0f};
 	glm::vec2 menu_size = {300.0f, 300.0f};
 };

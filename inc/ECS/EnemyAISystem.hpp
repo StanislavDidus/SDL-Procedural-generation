@@ -14,7 +14,7 @@ public:
 		if (!registry.all_of<Components::Transform>(target_entity)) return;
 		auto& target_transform_component = registry.get<Components::Transform>(target_entity);
 
-		auto view = registry.view <Components::Transform, Components::Physics, Components::EnemyAI, Components::Jump>();
+		auto view = registry.view <Components::Transform, Components::Physics, Components::Enemies::EnemyAI, Components::Jump>();
 		for (auto [entity, transform_component, physics_component, ai_component, jump_component] : view.each())
 		{
 			//Move Left

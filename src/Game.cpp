@@ -42,7 +42,7 @@ Game::Game(graphics::Renderer& screen)
 	TileManager::get().loadXml("data/tiles.xml");
 	CraftingManager::get().loadXml(registry, "data/crafts.xml");
 	ObjectManager::get().loadXml("data/objects.xml");
-	EnemyManager::get().loadXml("data/enemies.xml");
+	EnemyManager::get().loadXml(registry, "data/enemies.xml");
 
 	initNoiseSettings();
 	initMapRanges();
@@ -122,6 +122,7 @@ void Game::initSystems()
 	manage_button_actions_system = std::make_unique<ManageButtonActionsSystem>(registry);
 	chest_window_system = std::make_unique<ChestWindowSystem>(registry, ResourceManager::get().getFont("Main"));
 	render_essence_counter = std::make_unique<RenderEssenceCounter>(registry, ui_settings, ResourceManager::get().getFont("Main"));
+	collect_essence_system = std::make_unique<CollectEssenceSystem>(registry);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -438,6 +439,7 @@ void Game::update(float dt)
 			death_system->update(*this);
 			change_mining_size_system->update();
 			chest_window_system->update(player, screen);
+			collect_essence_system->update(player);
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
 			const auto& player_pos = player_transform.position;

@@ -67,7 +67,7 @@ void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphi
 				if (destroy)
 				{
 					// Drop random item
-					const auto& enemy_component = registry.get<Components::Enemy>(enemy);
+					const auto& enemy_component = registry.get<Components::Enemies::Enemy>(enemy);
 					const auto& enemy_data = EnemyManager::get().getEnemyData(enemy_component.id);
 					glm::vec2 enemy_position = registry.get<Components::Transform>(enemy).position;
 					for (const auto& n : enemy_data.item_drop)
@@ -76,6 +76,14 @@ void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphi
 						if (drop_item == entt::null) continue;
 						auto drop_entity = registry.create();
 						registry.emplace<Components::DropItem2>(drop_entity, enemy_position, drop_item);
+					}
+
+					// Give essence
+					if (registry.all_of<Components::Enemies::DropEssence>(enemy))
+					{
+						const auto& drop_essence_component = registry.get<Components::Enemies::DropEssence>(enemy);
+						auto entity = registry.create();
+						registry.emplace<Components::GiveEssence>(entity, drop_essence_component.type, drop_essence_component.number, drop_essence_component.chance);
 					}
 
 					// Destroy enemy
@@ -98,7 +106,7 @@ void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphi
 
 Entity EnemySpawnSystem::createEntity(size_t id) const
 {
-	auto entity = registry.create();
+	auto entity = EnemyManager::get().createEnemy(registry, id);
 
 	const auto& enemy_data = EnemyManager::get().getEnemyData(id);
 
@@ -123,10 +131,8 @@ Entity EnemySpawnSystem::createEntity(size_t id) const
 
 	registry.emplace<Components::CollideDamage>(entity, 10.0f);
 
-	registry.emplace<Components::Enemy>(entity, id);
-
-	auto& enemy_ai = registry.emplace<Components::EnemyAI>(entity);
-	enemy_ai.position_update_time = 2.0f;
+	//auto& enemy_ai = registry.emplace<Components::EnemyAI>(entity);
+	//enemy_ai.position_update_time = 2.0f;
 	
 	return entity;
 }

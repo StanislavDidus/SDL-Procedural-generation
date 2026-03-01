@@ -76,6 +76,7 @@
                 <rect x="96" y="0" w="16" h="16" name="Common_Essence" />
                 <rect x="112" y="0" w="16" h="16" name="Snow_Essence" />
                 <rect x="128" y="0" w="16" h="16" name="Sand_Essence" />
+                <rect x="0" y="16" w="32" h="32" name="ChestUI" />
             </rectListing>
         </sprite>
         <sprite id="icons">

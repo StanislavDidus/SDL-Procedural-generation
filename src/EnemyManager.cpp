@@ -4,10 +4,23 @@
 #include "RandomizedItem.hpp"
 #include "ResourceManager.hpp"
 #include "ECS/ComponentManager.hpp"
+#include "ECS/EnttCopyComponents.hpp"
+
+using namespace Components::Enemies;
+
+Entity EnemyManager::createEnemy(entt::registry& registry, size_t id) const
+{
+	const auto& enemy_origin = enemies[id];
+	auto new_item = registry.create();
+
+	copyComponents(registry, enemy_origin, new_item);
+
+	return new_item;
+}
 
 const EnemyData& EnemyManager::getEnemyData(size_t id) const
 {
-	return enemy_data[id];
+	return enemy_datas[id];
 }
 
 const EnemySpawnInfo& EnemyManager::getEnemySpawnInfo(size_t id) const
@@ -15,7 +28,7 @@ const EnemySpawnInfo& EnemyManager::getEnemySpawnInfo(size_t id) const
 	return enemy_spawn_infos[id];
 }
 
-void EnemyManager::loadXml(const std::filesystem::path& path)
+void EnemyManager::loadXml(entt::registry& registry, const std::filesystem::path& path)
 {
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile(path.string().c_str());
@@ -70,21 +83,38 @@ void EnemyManager::loadXml(const std::filesystem::path& path)
 		}
 
 		EnemyData enemy_data = EnemyData{ name, sprite_index, is_aggressive, max_health, ai_efficiency, items};
-		size_t id = registerEnemy(enemy_data);
-		EnemySpawnInfo enemy_spawn_info = EnemySpawnInfo{ id, spawn_chance_weight, size, spawn_tiles};
-		addEnemySpawnIfo(enemy_spawn_info);
+		EnemySpawnInfo enemy_spawn_info = EnemySpawnInfo{ enemy_count, spawn_chance_weight, size, spawn_tiles};
+	
+		auto enemy = registerEnemy(registry, enemy_data, enemy_spawn_info);
+
+		const auto& components_node = enemy_node->FirstChildElement("components");
+		for (auto* component_node = components_node->FirstChildElement("component"); component_node != nullptr; component_node = component_node->NextSiblingElement())
+		{
+			const auto* component_name = component_node->Attribute("id");
+
+			if (strcmp(component_name, "EnemyAI") == 0)
+			{
+				registry.emplace_or_replace<Components::Enemies::EnemyAI>(enemy, 2.0f);
+			}
+			else if (strcmp(component_name, "DropEssence") == 0)
+			{
+				EssenceType essence_type = EssenceType::NONE;
+				const char* essence_type_name = component_node->Attribute("value");
+
+				if (strcmp(essence_type_name, "Common") == 0) essence_type = EssenceType::COMMON;
+				else if (strcmp(essence_type_name, "Snow") == 0) essence_type = EssenceType::SNOW;
+				else if (strcmp(essence_type_name, "Sand") == 0) essence_type = EssenceType::SAND;
+
+				int number = 0;
+				component_node->QueryIntAttribute("number", &number);
+
+				float chance = 0.0f;
+				component_node->QueryFloatAttribute("chance", &chance);
+
+				registry.emplace_or_replace<Components::Enemies::DropEssence>(enemy, essence_type, number, chance);
+			}
+		}
 	}
-}
-
-size_t EnemyManager::registerEnemy(const EnemyData& enemy_data)
-{
-	this->enemy_data.push_back(enemy_data);
-	return enemy_count++;
-}
-
-void EnemyManager::addEnemySpawnIfo(const EnemySpawnInfo& enemy_spawn_info)
-{
-	enemy_spawn_infos.push_back(enemy_spawn_info);
 }
 
 const std::vector<EnemySpawnInfo>& EnemyManager::getAllEnemySpawnInfo() const
@@ -92,22 +122,16 @@ const std::vector<EnemySpawnInfo>& EnemyManager::getAllEnemySpawnInfo() const
 	return enemy_spawn_infos;
 }
 
-/*
-std::optional<Entity> EnemyManager::createEnemy(const std::string& name) const
+Entity EnemyManager::registerEnemy(entt::registry& registry,
+                                 const Components::Enemies::EnemyData& enemy_data, const Components::Enemies::EnemySpawnInfo& enemy_spawn_info)
 {
-	auto target = EntityManager::get().createEntity();
-
-	if (!target) return std::nullopt;
-
-	const auto& enemy_data = enemies_data.at(name);
-
-	auto& component_manager = ComponentManager::get();
-
-	component_manager.renderable[*target] = Renderable
-	{
-		(*ResourceManager::get().getSpriteSheet("enemies"))[enemy_data.sprite_index]
-	};
-
-	return target;
+	auto entity = registry.create();
+	//registry.emplace<Components::InventoryItems::ItemProperties>(target, properties);
+	registry.emplace<Components::Enemies::Enemy>(entity, Components::Enemies::Enemy{enemy_count});
+	enemy_datas.push_back(enemy_data);
+	enemy_spawn_infos.push_back(enemy_spawn_info);
+	enemies.push_back(entity);
+	//itemNameToID[properties.name] = items_counter;
+	enemy_count++;
+	return entity;
 }
-*/

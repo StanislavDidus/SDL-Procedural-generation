@@ -5,7 +5,9 @@
 
 #include "glm/vec2.hpp"
 #include "tinyxml2.h"
+#include "ECS/Components.hpp"
 #include "ECS/EntityManager.hpp"
+#include "ECS/Entity.hpp"
 
 struct Tile;
 class TileManager;
@@ -13,33 +15,6 @@ class ItemManager;
 struct RandomizedItem;
 class EnemyManager;
 
-/// <summary>
-/// 
-/// </summary>
-struct EnemyData
-{
-	std::string name;
-	
-	int sprite_index;
-	bool is_aggressive;
-	float max_health;
-
-	//AI settings
-	float ai_efficiency;
-
-	std::vector<RandomizedItem> item_drop;
-};
-
-/// <summary>
-/// 
-/// </summary>
-struct EnemySpawnInfo
-{
-	size_t id;
-	float spawn_chance_weight;
-	glm::ivec2 size;
-	std::vector<size_t> spawn_tiles;
-};
 
 class EnemyManager
 {
@@ -57,24 +32,25 @@ public:
 	EnemyManager& operator=(const EnemyManager& other) = delete;
 	EnemyManager& operator=(EnemyManager&& other) noexcept = delete;
 
+	Entity createEnemy(entt::registry& registry, size_t id) const;
+
 	//Getters
-	const EnemyData& getEnemyData(size_t id) const;
-	const EnemySpawnInfo& getEnemySpawnInfo(size_t id) const;
+	const Components::Enemies::EnemyData& getEnemyData(size_t id) const;
+	const Components::Enemies::EnemySpawnInfo& getEnemySpawnInfo(size_t id) const;
 
-	void loadXml(const std::filesystem::path& path);
-	
-	size_t registerEnemy(const EnemyData& enemy_data);
-	void addEnemySpawnIfo(const EnemySpawnInfo& enemy_spawn_info);
+	void loadXml(entt::registry& registry, const std::filesystem::path& path);
 
-	const std::vector<EnemySpawnInfo>& getAllEnemySpawnInfo() const;
+	const std::vector<Components::Enemies::EnemySpawnInfo>& getAllEnemySpawnInfo() const;
 
 	//std::optional<Entity> createEnemy(const std::string& name) const;
 private:
 	EnemyManager() = default;
 
-	std::vector<EnemyData> enemy_data;
-	std::vector<EnemySpawnInfo> enemy_spawn_infos;
-	size_t enemy_count = 0;
+	Entity registerEnemy(entt::registry& registry, const Components::Enemies::EnemyData& enemy_data, const Components::Enemies::EnemySpawnInfo& enemy_spawn_info);
 
-	std::unordered_map<std::string, EnemyData> enemies_data;
+	size_t enemy_count = 0;
+	std::vector<Entity> enemies;
+	std::vector<Components::Enemies::EnemyData> enemy_datas;
+	std::vector<Components::Enemies::EnemySpawnInfo> enemy_spawn_infos;
+	//std::unordered_map<std::string, Entity>
 };
