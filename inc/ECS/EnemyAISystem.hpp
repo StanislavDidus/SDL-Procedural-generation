@@ -22,12 +22,18 @@ public:
 			{
 				physics_component.velocity.x -= physics_component.acceleration.x * dt;
 				physics_component.velocity.x = std::clamp(physics_component.velocity.x, -physics_component.max_velocity.x, physics_component.max_velocity.x);
+					
+				if (registry.all_of<Components::Renderable>(entity))
+					registry.get<Components::Renderable>(entity).flip_mode = SDL_FLIP_NONE;
 			}
 			//Move right
 			else
 			{
 				physics_component.velocity.x += physics_component.acceleration.x * dt;
 				physics_component.velocity.x = std::clamp(physics_component.velocity.x, -physics_component.max_velocity.x, physics_component.max_velocity.x);
+				
+				if (registry.all_of<Components::Renderable>(entity))
+					registry.get<Components::Renderable>(entity).flip_mode = SDL_FLIP_HORIZONTAL;
 			}
 
 			if (ai_component.last_position == transform_component.position)

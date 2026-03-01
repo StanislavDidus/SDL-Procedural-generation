@@ -19,25 +19,36 @@ constexpr float BASE_MINING_SPEED = 100.0f;
 constexpr float BASE_MINING_RADIUS = 100.0f;
 constexpr int BASE_MINING_SIZE = 2;
 
-//TODO: Change AddItem in ComponentManager to store vector of components in order to add multiple items in one frame
+static Entity getRandomizedItem(entt::registry& registry, const RandomizedItem& random_item)
+{
+	if (random_item.drop_chance == 0.0f) return entt::null;
+
+	float drop_rand = glm::linearRand(0.0f, 1.0f);
+	int quantities_rand = glm::linearRand(random_item.drop_quantity_min, random_item.drop_quantity_max);
+	
+	if (drop_rand <= random_item.drop_chance)
+	{
+		auto item = ItemManager::get().createItem(registry, random_item.item_id, quantities_rand);
+		return item;
+	}
+	else
+	{
+		return entt::null;
+	}
+}
+
 /// <summary>
 /// Static function that takes an item and randomly decides whether add the item to the given target.
 /// Quantities are also generated randomly based on the variables defined in <b>RandomizedItem</b> class.
 /// </summary>
 /// <param name="target">Takes an target that will get an item.</param>
 /// <param name="item">Item that is being added to the inventory</param>
-static void addRandomizedItem(entt::entity entity, const RandomizedItem& item, entt::registry& registry)
+static void addRandomizedItem(Entity entity, const RandomizedItem& item, entt::registry& registry)
 {
-	if (item.drop_chance == 0.0f) return;
-
-	float drop_rand = glm::linearRand(0.0f, 1.0f);
-	int quantities_rand = glm::linearRand(item.drop_quantity_min, item.drop_quantity_max);
-
-	if (drop_rand <= item.drop_chance)
+	auto crafted_item = getRandomizedItem(registry, item);
+	if (crafted_item != entt::null)
 	{
 		auto item_entity = registry.create();
-		//Create new target(item)
-		auto crafted_item = ItemManager::get().createItem(registry, item.item_id, quantities_rand);
 		registry.emplace_or_replace<Components::AddItem>(item_entity, entity, crafted_item);
 	}
 }

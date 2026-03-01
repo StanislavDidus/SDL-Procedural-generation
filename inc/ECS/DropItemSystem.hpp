@@ -6,14 +6,13 @@
 #include "EntityManager.hpp"
 #include "ResourceManager.hpp"
 
-constexpr float ITEM_ACTIVATE_TIMER = 3.0f; ///< After this time dropped item will be available to pick up.
-
 struct DroppedItemData
 {
 	glm::vec2 position;
 	int sprite_index;
 	Entity item;
 	bool flipped;
+	float wait_time = 0.0f; // How much time does a player need to wait before picking up an item
 };
 
 /// <summary>
@@ -41,9 +40,20 @@ public:
 
 				const auto& item_properties = ItemManager::get().getProperties(registry, drop_item_component.item);
 
-				dropped_item_datas.emplace_back(transform_component.position, item_properties.sprite_index, drop_item_component.item, renderable_component.flip_mode == SDL_FLIP_HORIZONTAL);
+				dropped_item_datas.emplace_back(transform_component.position, item_properties.sprite_index, drop_item_component.item, renderable_component.flip_mode == SDL_FLIP_HORIZONTAL, 3.0f);
 				to_destroy.emplace_back(entity);
 			}
+		}
+
+		// Another way to drop items (without a source)
+		auto view_drop2 = registry.view<Components::DropItem2>();
+		to_destroy.reserve(view_drop2.size());
+		for (auto [entity, drop_item_component] : view_drop2.each())
+		{
+			const auto& item_properties = ItemManager::get().getProperties(registry, drop_item_component.item);
+
+			dropped_item_datas.emplace_back(drop_item_component.position, item_properties.sprite_index, drop_item_component.item, false, 0.0f);
+			to_destroy.emplace_back(entity);
 		}
 
 		for (const auto& entity : to_destroy)
@@ -72,9 +82,9 @@ public:
 			drop.item = dropped_item_data.item;
 			drop.can_be_collected = false;
 			drop.timer = 0.0f;
+			drop.time = dropped_item_data.wait_time;
 		}
 
-		std::vector<Entity> dropped_items_to_delete;
 		auto view2 = registry.view<Components::DroppedItem, Components::Transform>();
 		auto view3 = registry.view<Components::Transform, Components::HasInventory>();
 		for (auto [entity, dropped_item_component, transform_component] : view2.each())
@@ -82,14 +92,12 @@ public:
 			// Update items timers
 			dropped_item_component.timer += dt;
 
-			if (dropped_item_component.timer >= ITEM_ACTIVATE_TIMER)
+			if (dropped_item_component.timer >= dropped_item_component.time)
 			{
 				dropped_item_component.can_be_collected = true;
 			}
 				
 			// Move dropped item to the nearest target with inventory
-			// TODO: The item should not be picked up if target doesn't have enough space
-
 			if (!dropped_item_component.can_be_collected) continue;
 
 			// Search for any other target that can collect this item(has inventory component)
@@ -99,22 +107,14 @@ public:
 
 				float distance = glm::distance(transform_component.position, player_transform_component.position);
 
-				if (distance < 100.0f && inventory_component.inventory->full() == false)
+				if (distance < 100.0f)
 				{
 					auto item_entity = registry.create();
 					registry.emplace<Components::PickUpItem>(item_entity, entity_, entity, dropped_item_component.item);
-					dropped_items_to_delete.emplace_back(entity);
 					break;
 				}
 			}
 		}
-
-		/*
-		for (const auto& target : dropped_items_to_delete)
-		{
-			registry.destroy(target);
-		}
-	*/
 	}
 
 private:

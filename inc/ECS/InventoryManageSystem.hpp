@@ -36,9 +36,9 @@ public:
 		auto view2 = registry.view<Components::PickUpItem>();
 		for (auto [entity, pickup_component] : view2.each())
 		{
-			const auto& target = pickup_component.target;
-			const auto& source = pickup_component.source;
-			const auto& item = pickup_component.item;
+			const auto& target = pickup_component.target; // Player 
+			const auto& source = pickup_component.source; // Actual item on the floor
+			const auto& item = pickup_component.item; // Item's data
 			
 			//if (inventory_component.inventory->full()) continue;
 			if (registry.all_of<Components::HasInventory>(target))

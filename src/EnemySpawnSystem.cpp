@@ -9,6 +9,7 @@
 #include "ECS/Components.hpp"
 #include "Debug.hpp"
 #include "WorldHelper.hpp"
+#include "ECS/Systems.hpp"
 
 EnemySpawnSystem::EnemySpawnSystem(entt::registry& registry, const World& world, const SpawnRadius& spawn_radius)
 	: world(world)
@@ -58,11 +59,28 @@ void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphi
 
 	{
 		// Remove enemies that have less than 0 health points
+		// Give items to the player
 		auto begin = std::ranges::remove_if(enemies, [this, target_position](Entity enemy)
 			{
 				const auto& health_component = registry.get<Components::Health>(enemy);
 				bool destroy = health_component.current_health <= 0.0f;
-				if (destroy) destroyEnemy(enemy);
+				if (destroy)
+				{
+					// Drop random item
+					const auto& enemy_component = registry.get<Components::Enemy>(enemy);
+					const auto& enemy_data = EnemyManager::get().getEnemyData(enemy_component.id);
+					glm::vec2 enemy_position = registry.get<Components::Transform>(enemy).position;
+					for (const auto& n : enemy_data.item_drop)
+					{
+						auto drop_item = getRandomizedItem(registry, n);
+						if (drop_item == entt::null) continue;
+						auto drop_entity = registry.create();
+						registry.emplace<Components::DropItem2>(drop_entity, enemy_position, drop_item);
+					}
+
+					// Destroy enemy
+					destroyEnemy(enemy);
+				}
 				return destroy;
 
 			}).begin();
@@ -104,6 +122,8 @@ Entity EnemySpawnSystem::createEntity(size_t id) const
 	health.current_health = 100.0f;
 
 	registry.emplace<Components::CollideDamage>(entity, 10.0f);
+
+	registry.emplace<Components::Enemy>(entity, id);
 
 	auto& enemy_ai = registry.emplace<Components::EnemyAI>(entity);
 	enemy_ai.position_update_time = 2.0f;

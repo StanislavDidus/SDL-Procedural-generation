@@ -118,6 +118,8 @@
             <scaleMode>NEAREST</scaleMode>
             <rectListing>
                 <rect x="0" y="0" w="16" h="32" name="Snowman" />
+                <rect x="16" y="0" w="16" h="32" name="Elves" />
+                <rect x="48" y="0" w="16" h="32" name="Mummy" />
             </rectListing>
         </sprite>
     </spriteListing>

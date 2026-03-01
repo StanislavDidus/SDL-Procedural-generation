@@ -175,12 +175,19 @@ namespace Components
 		Entity item;
 	};
 
+	struct DropItem2
+	{
+		glm::vec2 position;
+		Entity item;
+	};
+
 	// Dropped item that exists in the world
 	struct DroppedItem
 	{
 		Entity item;
 		bool can_be_collected = false;
 		float timer = 0.0f; // Can be collected after some time
+		float time = 0.1f;
 	};
 	
 	struct Button
@@ -260,6 +267,11 @@ namespace Components
 		std::shared_ptr<graphics::SpriteAnimation> running_animation;
 		std::shared_ptr<graphics::SpriteAnimation> jump_animation;
 		std::shared_ptr<graphics::SpriteAnimation> fall_animation;
+	};
+	
+	struct Enemy
+	{
+		size_t id;
 	};
 
 	struct EnemyAI
