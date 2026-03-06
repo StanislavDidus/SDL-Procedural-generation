@@ -15,7 +15,7 @@
         </spawnTiles>
         <components>
             <component id="EnemyAI" />
-            <component id="DropEssence" value="Snow" number="1" chance="0.5" />
+            <component id="DropEssence" value="Snow" number="1" chance="1" />
         </components>
     </enemy>
     <enemy id="Elve">
@@ -33,7 +33,7 @@
         </spawnTiles>
         <components>
             <component id="EnemyAI" />
-            <component id="DropEssence" value="Common" number="1" chance="0.5" />
+            <component id="DropEssence" value="Common" number="1" chance="1" />
         </components>
     </enemy>
     <enemy id="Mummy">
@@ -51,7 +51,7 @@
         </spawnTiles>
         <components>
             <component id="EnemyAI" />
-            <component id="DropEssence" value="Sand" number="1" chance="0.5" />
+            <component id="DropEssence" value="Sand" number="1" chance="1" />
         </components>
     </enemy>
 </enemyListing>

@@ -5,11 +5,24 @@
 #include "ECS/EntityManager.hpp"
 #include "RenderFunctions.hpp"
 
+#include <queue>
+
+struct RenderEntry
+{
+	int priority;
+	Components::Transform transform;
+	Components::Renderable renderable;
+
+	bool operator>(const RenderEntry& rhs) const { return this->priority > rhs.priority; }
+};
+
 class RenderSystem
 {
 public:
 	RenderSystem(entt::registry& registry) : registry{registry} {}
 
+	// Update animations
+	// NOTE: Move it to another system?
 	void update(float dt) const
 	{
 		auto view = registry.view<Components::Physics, Components::Renderable, Components::CharacterAnimation>(entt::exclude<Components::Dead>);
@@ -45,15 +58,29 @@ public:
 
 	void render(graphics::Renderer& screen) const
 	{
+		std::priority_queue<RenderEntry, std::vector<RenderEntry>, std::greater<RenderEntry>> render_queue;
+
 		auto view = registry.view<Components::Transform, Components::Renderable>();
-		for (auto [view, transform_component, renderable_component] : view.each())
+		for (auto [entity, transform_component, renderable_component] : view.each())
 		{
+			render_queue.push({ renderable_component.priority, transform_component, renderable_component });
+		}
+
+		while (render_queue.empty() == false)
+		{
+			auto& render = render_queue.top();
+
+			const auto& transform_component = render.transform;
+			const auto& renderable_component = render.renderable;
+
 			const auto& position = transform_component.position;
 			const auto& size = transform_component.size;
 			
 			graphics::ColorModGuard colorModGuard{renderable_component.sprite.getTexture(), renderable_component.color};
 
 			graphics::drawRotatedSprite(screen, renderable_component.sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component.flip_mode, renderable_component.ignore_view_zoom);
+
+			render_queue.pop();
 		}
 	}
 

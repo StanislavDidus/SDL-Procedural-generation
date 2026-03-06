@@ -1,6 +1,3 @@
-#define WIN32_LEAN_AND_MEAN  
-#include <windows.h>
-
 #include "Game.hpp"
 #include <algorithm>
 #include <iostream>
@@ -48,6 +45,7 @@ Game::Game(graphics::Renderer& screen)
 	initMapRanges();
 	initGenerationData();
 	initBiomes();
+	initChestLoot();
 
 	text = std::make_unique<Text>(ResourceManager::get().getFont("Main"), screen, "Player");
 	world = std::make_shared<World>(generation_data, registry, collision_system, 500, 200, 20.f, 20.f);
@@ -123,6 +121,7 @@ void Game::initSystems()
 	chest_window_system = std::make_unique<ChestWindowSystem>(registry, ResourceManager::get().getFont("Main"));
 	render_essence_counter = std::make_unique<RenderEssenceCounter>(registry, ui_settings, ResourceManager::get().getFont("Main"));
 	collect_essence_system = std::make_unique<CollectEssenceSystem>(registry);
+	open_chest_system = std::make_unique<OpenChestSystem>(registry);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -237,6 +236,16 @@ void Game::initMapRanges()
 	}
 }
 
+void Game::readItemNode(tinyxml2::XMLElement* item_node, LootType loot_type)
+{
+	const char* name = item_node->Attribute("ref");
+	size_t id = ItemManager::get().getItemID(name);
+	float weight = item_node->FloatAttribute("weight");
+	int min_quantity = item_node->IntAttribute("min_quantity");
+	int max_quantity = item_node->IntAttribute("max_quantity");	
+	generation_data.chest_loot[loot_type].emplace_back(id, weight, min_quantity, max_quantity);
+}
+
 void Game::initChestLoot()
 {
 	tinyxml2::XMLDocument doc;
@@ -244,17 +253,29 @@ void Game::initChestLoot()
 
 	const auto& loot_listing_node = doc.FirstChildElement("lootListing");
 
-	std::vector<RandomizedItem> randomized_accessories;
-	for (auto* item_node = loot_listing_node->FirstChildElement("item"); item_node != nullptr; item_node->NextSiblingElement())
+	const auto& base_loot_node = loot_listing_node->FirstChildElement("baseLoot");
+	for (auto* item_node = base_loot_node->FirstChildElement("item"); item_node != nullptr; item_node = item_node->NextSiblingElement())
 	{
-		size_t id = item_node->Int64Attribute("ref");
-		float weight = item_node->FloatAttribute("weight");
-		int min_quantity = item_node->IntAttribute("min_quantity");
-		int max_quantity = item_node->IntAttribute("max_quantity");	
-		randomized_accessories.emplace_back(id, weight, min_quantity, max_quantity);
+		readItemNode(item_node, LootType::BASE);
 	}
 
-	generation_data.chest_loot = randomized_accessories;
+	const auto& common_loot_node = loot_listing_node->FirstChildElement("commonLoot");
+	for (auto* item_node = common_loot_node->FirstChildElement("item"); item_node != nullptr; item_node = item_node->NextSiblingElement())
+	{
+		readItemNode(item_node, LootType::COMMON);
+	}
+
+	const auto& snow_loot_node = loot_listing_node->FirstChildElement("snowLoot");
+	for (auto* item_node = snow_loot_node->FirstChildElement("item"); item_node != nullptr; item_node = item_node->NextSiblingElement())
+	{
+		readItemNode(item_node, LootType::SNOW);
+	}
+
+	const auto& sand_loot_node = loot_listing_node->FirstChildElement("sandLoot");
+	for (auto* item_node = sand_loot_node->FirstChildElement("item"); item_node != nullptr; item_node = item_node->NextSiblingElement())
+	{
+		readItemNode(item_node, LootType::SAND);
+	}
 }
 
 void Game::initBiomes()
@@ -304,6 +325,7 @@ void Game::initPlayer()
 
 	auto& renderable = registry.emplace<Components::Renderable>(player);
 	renderable.sprite = (*ResourceManager::get().getSpriteSheet("player"))[0];
+	renderable.priority = 1;
 
 	auto& physics = registry.emplace<Components::Physics>(player);
 	physics.can_move_horizontal = true;
@@ -440,6 +462,7 @@ void Game::update(float dt)
 			change_mining_size_system->update();
 			chest_window_system->update(player, screen);
 			collect_essence_system->update(player);
+			open_chest_system->update();
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
 			const auto& player_pos = player_transform.position;

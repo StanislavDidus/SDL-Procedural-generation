@@ -813,31 +813,50 @@ void World::addChests(const std::vector<Object>& objects, std::vector<Entity>& c
 			auto& renderable = registry.emplace<Components::Renderable>(chest);
 			renderable.sprite = (*ResourceManager::get().getSpriteSheet("objects"))[8];
 			
+			auto& chest_component = registry.emplace<Components::Chest>(chest);
+
 			// Set a random item to the chest
 			//Calculate total weight of all items
-			float total_weight = 0.0f;
-			for (const auto& item : generation_data.chest_loot)
+			for (const auto& [chest_type, chest_loot] : generation_data.chest_loot)
 			{
-				total_weight += item.drop_chance;
-			}
-			//Generate random value
-			float item_noise_value = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::LOOT], scale * position_x, scale * position_y);
-			float random_number = item_noise_value * total_weight;
-			//Find an item by using generated random value
-			size_t item_id = 0;
-			float acc = 0.0f;
-			for (const auto& item : generation_data.chest_loot)
-			{
-				acc += item.drop_chance;
-				if (random_number <= acc)
+				float total_weight = 0.0f;
+				for (const auto& item : chest_loot)
 				{
-					item_id = item.item_id;
+					total_weight += item.drop_chance;
+				}
+				//Generate random value
+				float item_noise_value = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::LOOT], scale * position_x, scale * position_y);
+				float random_number = item_noise_value * total_weight;
+				//Find an item by using generated random value
+				size_t item_id = chest_loot.back().item_id;
+				float acc = 0.0f;
+				for (const auto& item : chest_loot)
+				{
+					acc += item.drop_chance;
+					if (random_number <= acc)
+					{
+						item_id = item.item_id;
+						break;
+					}
+				}
+
+
+				switch (chest_type)
+				{
+				case LootType::BASE:
+					chest_component.base_item = item_id;
+					break;
+				case LootType::COMMON:
+					chest_component.common_item = item_id;
+					break;
+				case LootType::SNOW:
+					chest_component.snow_item = item_id;
+					break;
+				case LootType::SAND:
+					chest_component.sand_item = item_id;
 					break;
 				}
 			}
-
-			auto& chest_component = registry.emplace<Components::Chest>(chest);
-			chest_component.item_id = item_id;
 
 			registry.emplace<Components::Button>(chest, true);
 

@@ -62,7 +62,8 @@
                 <rect x="64" y="32" w="16" h="16" name="Snow_Grass" /> 
                 <rect x="96" y="0" w="32" h="48" name="Big_Tree" /> 
                 <rect x="0" y="48" w="48" h="32" name="Golden_Stone" /> 
-                <rect x="48" y="54" w="32" h="26" name="Chest" /> 
+                <rect x="48" y="48" w="32" h="32" name="Chest" />
+                <rect x="80" y="48" w="32" h="32" name="Opened_Chest" />
             </rectListing>
         </sprite>
         <sprite id="ui">

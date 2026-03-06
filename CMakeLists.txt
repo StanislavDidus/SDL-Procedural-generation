@@ -106,11 +106,16 @@ set(HEADER_FILES
     "inc/ECS/WindowManagerSystem.hpp"
     "inc/ECS/RenderEssenceCounter.hpp"
     "inc/ECS/CollectEssenceSystem.hpp"
+    "inc/ECS/OpenChestSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
 
 add_executable(SDL_PRO_GEN ${ALL_FILES})
+
+if(MSVC)
+    target_compile_options(SDL_PRO_GEN PRIVATE /bigobj)
+endif()
 
 #Copy assets and data folders to the build folder
 add_custom_target(copy_assets
@@ -122,8 +127,8 @@ target_include_directories(SDL_PRO_GEN PUBLIC inc)
 
 target_link_libraries(
     SDL_PRO_GEN PUBLIC
+    SDL3_ttf::SDL3_ttf-static
     SDL3::SDL3-static
-    SDL3_ttf::SDL3_ttf
     graphics 
     glm::glm 
     noise

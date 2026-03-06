@@ -1,0 +1,9 @@
+@ECHO OFF
+ECHO y| rmdir /s build
+cmake -G "Visual Studio 17 2022" -A x64 ^
+-DBUILD_SHARED_LIBS=OFF ^
+-DSDL_SHARED=OFF ^
+-DSDL_STATIC=ON ^
+-DSDLTTF_BUILD_SHARED_LIBS=OFF ^
+-B build
+PAUSE

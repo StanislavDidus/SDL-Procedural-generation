@@ -20,7 +20,7 @@ public:
 
 		}
 
-		auto view2 = registry.view<Components::ButtonReleased, Components::Chest, Components::Transform>();
+		auto view2 = registry.view<Components::ButtonReleased, Components::Chest, Components::Transform>(entt::exclude<Components::Closed_Chest>);
 		for (const auto& [entity, chest_component, button_transform_component] : view2.each())
 		{
 			if (registry.all_of<Components::Transform>(target_entity))
@@ -35,6 +35,12 @@ public:
 					registry.emplace<Components::UI::OpenChestWindow>(chest_window, target_entity, entity);
 				}
 			}
+		}
+
+		auto view3 = registry.view<Components::ButtonReleased, Components::ButtonFunction>();
+		for (auto [entity, button_function_component] : view3.each())
+		{
+			button_function_component.command();
 		}
 	}
 private:

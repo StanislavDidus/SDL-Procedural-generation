@@ -30,14 +30,24 @@ enum class MapRangeType
 	CAVE_CHANGE,
 };
 
+enum class LootType
+{
+	BASE,
+	COMMON,
+	SNOW,
+	SAND,
+};
+
 struct GenerationData
 {
 	std::vector<Biome> biomes;
 	std::unordered_map<NoiseType, NoiseSettings> noise_settings;
 	std::unordered_map<MapRangeType, MapRange> maps;
 
-	std::vector<RandomizedItem> chest_loot;
 	glm::vec2 chest_size = {2,2};
+
+	// Chest Loot
+	std::unordered_map<LootType, std::vector<RandomizedItem>> chest_loot;
 
 	float scale = 0.1f;
 	float y_base = 0.f;

@@ -32,6 +32,7 @@ namespace Components
 	struct Renderable
 	{
 		graphics::Sprite sprite;
+		int priority = 0;
 		SDL_FlipMode flip_mode = SDL_FLIP_NONE;
 		graphics::Color color = graphics::Color::WHITE;
 		bool ignore_view_zoom = false;
@@ -238,6 +239,12 @@ namespace Components
 		size_t recipe_id; ///< ID of the recipe according to CraftingManager.
 	};
 
+	struct ButtonFunction
+	{
+		std::function<void()> command;
+	};
+
+
 	struct CraftItem
 	{
 		size_t recipe_id;
@@ -321,7 +328,15 @@ namespace Components
 
 	struct Chest
 	{
-		size_t item_id;
+		size_t base_item;
+		size_t common_item;
+		size_t snow_item;
+		size_t sand_item;
+	};
+
+	struct Closed_Chest
+	{
+		
 	};
 
 	namespace Enemies
@@ -395,6 +410,13 @@ namespace Components
 			Entity chest;
 		};
 
+		struct OpenChest
+		{
+			Entity chest;
+			EssenceType type;
+			int number;
+		};
+
 		struct Window
 		{
 
@@ -404,6 +426,9 @@ namespace Components
 		{
 			Entity target;
 			Entity chest;
+
+			EssenceType essence_type = EssenceType::NONE;
+			int essence_number = 0;
 		};
 
 		struct ParentWindow

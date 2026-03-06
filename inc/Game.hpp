@@ -28,6 +28,7 @@
 
 #include "SpriteAnimation.hpp"
 #include "EnemySpawnSystem.hpp"
+#include "tinyxml2.h"
 #include "ECS/ApplyDamageSystem.hpp"
 #include "ECS/DisplayHitMarksSystem.hpp"
 #include "ECS/DropItemSystem.hpp"
@@ -40,6 +41,7 @@
 #include "ECS/CollectEssenceSystem.hpp"
 #include "ECS/ManageButtonActionsSystem.hpp"
 #include "ECS/ManageInvincibleStatusSystem.hpp"
+#include "ECS/OpenChestSystem.hpp"
 #include "ECS/PlayerCollisionSystem.hpp"
 #include "ECS/RenderEssenceCounter.hpp"
 #include "ECS/RenderHealthBarSystem.hpp"
@@ -68,6 +70,7 @@ private:
 	void initGenerationData();
 	void initNoiseSettings();
 	void initMapRanges();
+	void readItemNode(tinyxml2::XMLElement* item_node, LootType loot_type);
 	void initChestLoot();
 	void initBiomes();
 	void initPlayer();
@@ -139,6 +142,7 @@ private:
 	std::unique_ptr<ChestWindowSystem> chest_window_system;
 	std::unique_ptr<RenderEssenceCounter> render_essence_counter;
 	std::unique_ptr<CollectEssenceSystem> collect_essence_system;
+	std::unique_ptr<OpenChestSystem> open_chest_system;
 
 	//UI
 	std::unique_ptr<CraftView> craft_view;

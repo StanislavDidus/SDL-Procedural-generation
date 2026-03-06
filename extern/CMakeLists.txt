@@ -35,8 +35,8 @@ macro( set_targets_folder TARGETS FOLDER )
 endmacro()
 
 set ( ALL_LIBS
+    SDL3_ttf-static
     SDL3-static
-    SDL3_ttf
     glm
     imgui
     tinyxml2
@@ -46,7 +46,6 @@ set ( ALL_LIBS
     plutovg
     SDL_uclibc
     SDL3_test
-    SDL3_ttf-static
     EnTT
 )
 
