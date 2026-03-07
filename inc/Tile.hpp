@@ -32,6 +32,7 @@ struct Tile
 	bool sealed = false;
 	bool attached = false;
 	bool received_damage_last_frame = false;
+	bool cave_tile = false; ///< Is set to true if one of its neighbour tile is a cave.
 
 	void dealDamage(float damage);
 

@@ -29,6 +29,9 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 
 		std::string item_name = item_node->Attribute("id");
 
+		std::string description{};
+		if (auto* item_description_node = item_node->FirstChildElement("description")) description = item_description_node->Value();
+
 		ItemAction action = ItemAction::NONE;
 
 		const char* action_text = item_node->FirstChildElement("action")->GetText();
@@ -45,7 +48,7 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 			action = ItemAction::NONE;
 		}
 
-		auto item = registerItem(registry, { can_stack, sprite_index, item_name, action});
+		auto item = registerItem(registry, { can_stack, sprite_index, item_name, action, description});
 
 		const auto& components_node = item_node->FirstChildElement("components");
 		if (!components_node) continue;
@@ -124,6 +127,11 @@ const Components::InventoryItems::ItemProperties& ItemManager::getProperties(ent
 Entity ItemManager::getItem(size_t ID) const
 {
 	return items[ID];
+}
+
+size_t ItemManager::maxItems() const
+{
+	return items_counter;
 }
 
 Entity ItemManager::createItem(entt::registry& registry, size_t id, int stack_number) const

@@ -52,8 +52,8 @@ void MapRange::addPoint(float x, float y)
 {
 	points.emplace_back(x, y);
 
-	std::sort(points.begin(), points.end(), 
-		[](const Point& a, const Point& b) {
-			return a.x < b.x; 
-		});
+	std::ranges::sort(points, 
+	                  [](const Point& a, const Point& b) {
+		                  return a.x < b.x; 
+	                  });
 }

@@ -20,6 +20,7 @@
 #include "GenerationData.hpp"
 #include "RenderFunctions.hpp"
 #include "ECS/Entity.hpp"
+#include "DrunkWalker.hpp"
 
 class TileCollisionSystem;
 
@@ -53,6 +54,7 @@ public:
 	void update(const graphics::Renderer& screen, float dt, const glm::vec2& target);
 	void render(graphics::Renderer& screen) const;
 
+	void renderHelp(graphics::Renderer& screen) const;
 
 	void placeTile(int x, int tile_y, size_t tile_id);
 	void damageTile(int tile_x, int tile_y, float damage);
@@ -62,6 +64,8 @@ public:
 	void updateTiles();
 
 	void generateWorld(std::optional<int> seed);
+
+	bool use_cellular_automata = true;
 private:
 	void splitGrid(const Grid<Tile>& grid, const std::vector<Object>& objects, int chunk_width, int chunk_height);
 	Chunk& tilePositionToChunk(const glm::ivec2 tile_position);
@@ -74,15 +78,19 @@ private:
 	entt::registry& registry;
 
 	std::array<int, 7> seeds;
+	int master_seed;
 
 	void generateBase();
 	void addGrass();
 	void addDirt();
 	void addCaves();
+	void applyCellularAutomata();
 	void addWater();
 	void addBiomes();
 	void addObjects(std::vector<Object>& objects);
 	void addChests(const std::vector<Object>& objects, std::vector<Entity>& chests);
+
+	void removeTileCave(const glm::ivec2& position);
 
 	std::optional<ObjectProperties> getProperties(int id) const;
 	const TileProperties& getTileProperties(int id) const;

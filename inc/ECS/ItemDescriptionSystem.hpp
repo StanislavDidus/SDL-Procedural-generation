@@ -148,6 +148,10 @@ private:
 		{
 			number_properties += 3;
 		}
+		if (registry.all_of<Components::Effects::DoubleJump>(item))
+		{
+			number_properties += 1;	
+		}
 	}
 
 	void renderDescriptionLabel(graphics::Renderer& screen, float x, float y, const Components::InventoryItems::Item& item_info, int additional_space_height) const
@@ -240,6 +244,14 @@ private:
 				renderComponentValue(screen, "radius", weapon_component.radius, x, y, text_color);
 				y += ui_settings.item_description_step_y;
 			}
+		}
+
+		if (registry.all_of<Components::Effects::DoubleJump>(item))
+		{
+			graphics::Color color = {255, 255, 255, 255};
+			graphics::Text text{ font, screen, {"Grants you an ability to double jump"}, color };
+			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+			
 		}
 	}
 

@@ -28,6 +28,7 @@ public:
 	const Components::InventoryItems::ItemProperties& getProperties(int ID) const; ///< Get <b>ItemProperties</b> of an item by their <b>ID</b>.
 	const Components::InventoryItems::ItemProperties& getProperties(entt::registry& registry, Entity item) const;
 	Entity getItem(size_t ID) const;
+	size_t maxItems() const;
 
 	Entity createItem(entt::registry& registry, size_t id, int stack_number = 1) const;
 private:

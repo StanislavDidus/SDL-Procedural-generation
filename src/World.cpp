@@ -143,6 +143,18 @@ void World::render(graphics::Renderer& screen) const
 	}
 }
 
+void World::renderHelp(graphics::Renderer& screen) const
+{
+	// Render cave level
+	{
+		glm::vec2 position = { 0.0f, generation_data.cave_y_base * tile_height_world };
+		glm::vec2 size = {world_width_tiles * tile_width_world, 0.0f};
+
+		graphics::drawLine(screen, position.x, position.y, position.x + size.x, position.y + size.y, graphics::Color::RED);
+		graphics::drawLine(screen, position.x, 1000.0f, position.x + size.x, 1000.0f, graphics::Color::RED);
+	}
+}
+
 void World::placeTile(int tile_x, int tile_y, size_t tile_id)
 {
 	if (tile_x < 0 || tile_x > world_width_tiles - 1 | tile_y < 0 || tile_y > world_height_tiles - 1) return;
@@ -313,6 +325,13 @@ void World::generateWorld(std::optional<int> seed)
 {
 	world_map.reset();
 
+	//Remove all chests
+	auto view = registry.view<Components::Chest>();
+	std::vector<Entity> to_destroy;
+	for (const auto& [entity, chest] : view.each()) to_destroy.emplace_back(entity);
+	for (const auto& entity : to_destroy) registry.destroy(entity);
+
+
 	initSeeds(seed);
 
 	//tiles.resize(world_width_tiles * world_height_tiles);
@@ -322,6 +341,8 @@ void World::generateWorld(std::optional<int> seed)
 	addGrass();
 	addDirt();
 	addCaves();
+	if (use_cellular_automata)
+		for (int i = 0; i < 2; i++) applyCellularAutomata();
 	//addWater();
 	addBiomes();
 
@@ -438,6 +459,7 @@ void World::initSeeds(std::optional<int> seed_opt)
 		seed = seed_opt.value();
 	}
 
+	master_seed = seed;
 
 	for (auto& noise : generation_data.noise_settings | std::views::values)
 	{
@@ -569,6 +591,7 @@ void World::addDirt()
 void World::addCaves()
 {
 	float scale = generation_data.scale;
+	/*
 	for (int x = 0; x < world_width_tiles; x++)
 	{
 		for (int y = 0; y < world_height_tiles; y++)
@@ -589,6 +612,123 @@ void World::addCaves()
 			}
 		}
 	}
+*/
+	
+	std::mt19937 rng(master_seed);
+
+	std::vector<glm::ivec2> drunk_walker_position;
+	for (int x = 0; x < world_width_tiles; x++)
+	{
+		for (int y = 0; y < world_height_tiles; y++)
+		{
+			auto& tile = world_map(x, y);
+			bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
+
+			float noise_value = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::DRUNK_WALKER], static_cast<float>(x) * scale, static_cast<float>(y) * scale);
+
+			if (noise_value < generation_data.drunk_walker_threshold && is_solid)
+			{
+				drunk_walker_position.emplace_back(x, y);
+			}
+		}
+	}
+
+	int target_number = 35;
+	int current_number = 0;
+
+	size_t sky_tile_id = TileManager::get().getTileID("Sky");
+	std::cout << drunk_walker_position.size() << std::endl;
+	while (current_number < target_number && !drunk_walker_position.empty())
+	{
+		std::uniform_int_distribution<int> pos_dist(0, drunk_walker_position.size() - 1);
+		int index = pos_dist(rng);
+
+		glm::ivec2 position = drunk_walker_position[index];
+		
+		drunk_walker_position.erase(drunk_walker_position.begin() + index);
+
+		if (position.y < static_cast<int>(generation_data.cave_y_base)) continue;
+
+		++current_number;
+
+		int size = generation_data.maps[MapRangeType::CAVE_SIZE_CHANGE].getValue(position.y);
+
+		DrunkWalker walker{ position, size };
+
+		while (walker.isFinished() == false)
+		{
+			walker.move(rng() % 4);
+
+			glm::ivec2 new_position = walker.getPosition();
+
+			if (new_position.x < 0 || new_position.x + 1 >= world_width_tiles || new_position.y < 0 || new_position.y + 1 >= world_height_tiles)
+				break;
+
+			world_map(new_position.x, new_position.y).id = sky_tile_id;
+			world_map(new_position.x + 1, new_position.y).id = sky_tile_id;
+			world_map(new_position.x, new_position.y + 1).id = sky_tile_id;
+			world_map(new_position.x + 1, new_position.y + 1).id = sky_tile_id;
+
+			removeTileCave({new_position.x, new_position.y});
+			removeTileCave({new_position.x + 1, new_position.y});
+			removeTileCave({new_position.x, new_position.y + 1});
+			removeTileCave({new_position.x + 1, new_position.y + 1});
+		}
+	}
+}
+
+void World::removeTileCave(const glm::ivec2& position)
+{
+	auto& tile = world_map(position.x, position.y);
+	tile.id = TileManager::get().getTileID("Sky");
+
+	for (int i = -1; i < 1; ++i)
+	{
+		for (int j = -1; j < 1; ++j)
+		{
+			int new_x = position.x + i;
+			int new_y = position.y + j;
+			if (new_x < 0 || new_x >= world_width_tiles || new_y < 0 || new_y >= world_height_tiles) continue;
+			world_map(new_x, new_y).cave_tile = true;
+		}
+	}
+}
+
+void World::applyCellularAutomata()
+{
+	Grid<Tile> new_map = world_map;
+	for (int x = 0; x < world_width_tiles; x++)
+	{
+		for (int y = 0; y < world_height_tiles; y++)
+		{
+			if (!world_map(x, y).cave_tile) continue;
+
+			int solid_count = 0;
+			for (int i = -1; i <= 1; ++i)
+			{
+				for (int j = -1; j <= 1; ++j)
+				{
+					if (i == 0 && j == 0) continue;
+
+					int new_x = x + i;
+					int new_y = y + j;
+					if (new_x < 0 || new_x >= world_width_tiles || new_y < 0 || new_y >= world_height_tiles)
+					{
+						++solid_count;
+						continue;
+					}
+
+					auto& new_tile = world_map(new_x, new_y);
+					if (TileManager::get().getProperties(new_tile.id).is_solid) ++solid_count;
+				}
+			}
+
+			if (solid_count > 4) new_map(x, y).id = TileManager::get().getTileID("Stone");
+			else if (solid_count <= 4) new_map(x, y).id = TileManager::get().getTileID("Sky");
+		}
+	}
+
+	world_map = new_map;
 }
 
 void World::addWater()

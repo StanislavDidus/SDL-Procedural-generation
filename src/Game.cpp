@@ -122,6 +122,7 @@ void Game::initSystems()
 	render_essence_counter = std::make_unique<RenderEssenceCounter>(registry, ui_settings, ResourceManager::get().getFont("Main"));
 	collect_essence_system = std::make_unique<CollectEssenceSystem>(registry);
 	open_chest_system = std::make_unique<OpenChestSystem>(registry);
+	drop_chest_loot_system = std::make_unique<DropChestLootSystem>(registry);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -130,11 +131,12 @@ void Game::initGenerationData()
 {
 	generation_data.chest_size = glm::ivec2{ 2,2 };
 	generation_data.y_base = 25.f;
-	generation_data.cave_y_base = 10.f;
+	generation_data.cave_y_base = 18.0f;
 	generation_data.sea_y_base = 19.f;
 	generation_data.scale = 0.5f;
 	generation_data.density_threshold = 0.5f;
-	generation_data.chest_threshold = 0.4f;
+	generation_data.chest_threshold = 0.2f;
+	generation_data.drunk_walker_threshold = 0.3f;
 }
 
 void Game::initNoiseSettings()
@@ -191,7 +193,7 @@ void Game::initNoiseSettings()
 	{
 		NoiseSettings& settings = generation_data.noise_settings[NoiseType::MOISTURE];
 		settings.octaves = 2;
-		settings.frequency = 0.04f;
+		settings.frequency = 0.0f;
 		settings.amplitude = 1.2f;
 	}
 
@@ -208,6 +210,22 @@ void Game::initNoiseSettings()
 		NoiseSettings& settings = generation_data.noise_settings[NoiseType::LOOT];
 		settings.octaves = 1;
 		settings.frequency = 0.1f;
+		settings.amplitude = 1.0f;
+	}
+
+	//Drunk Walker
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::DRUNK_WALKER];
+		settings.octaves = 2;
+		settings.frequency = 0.75f;
+		settings.amplitude = 1.0f;
+	}
+
+	//Drunk Walker Movement
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::DRUNK_WALKER_MOVEMENT];
+		settings.octaves = 2;
+		settings.frequency = 1.0f;
 		settings.amplitude = 1.0f;
 	}
 }
@@ -233,6 +251,14 @@ void Game::initMapRanges()
 		map.addPoint(generation_data.cave_y_base + 25.f, 0.25f);
 
 		generation_data.maps[MapRangeType::CAVE_CHANGE] = map;
+	}
+
+	//CAVE_SIZE_CHANGE
+	{
+		MapRange map{ generation_data.cave_y_base, generation_data.cave_y_base + 150.0f,300.0f, 1000.0f };
+		map.addPoint(generation_data.cave_y_base + 30.0f, 650.0f);
+
+		generation_data.maps[MapRangeType::CAVE_SIZE_CHANGE] = map;
 	}
 }
 
@@ -424,7 +450,7 @@ void Game::tick(float dt)
 	update(dt);
 	
 	//Render
-	render();
+	render(dt);
 }
 
 void Game::update(float dt)
@@ -503,7 +529,7 @@ void Game::update(float dt)
 	updateImGui(dt);
 }
 
-void Game::render() const
+void Game::render(float dt) const
 {
 	const auto& window_size = screen.getWindowSize();
 
@@ -517,6 +543,7 @@ void Game::render() const
 			mining_tiles_system->renderOutline(screen);
 			mining_objects_system->render(screen);
 			render_weapon_circle_system->render(screen);
+			drop_chest_loot_system->update(dt, screen);
 
 			//UI
 			inventory_view->render(screen);
@@ -526,6 +553,7 @@ void Game::render() const
 			render_weapon_menu_system->render(screen, player);
 			render_health_bar_system->render(screen);
 			chest_window_system->render(screen);
+			world->renderHelp(screen);
 		}
 		break;
 	}
@@ -613,6 +641,7 @@ void Game::updateInput(float dt)
 
 void Game::updateImGui(float dt)
 {
+	ImGui::SetNextWindowPos(ImVec2(100, 100), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Window");
 
 	if (ImGui::CollapsingHeader("Player"))
@@ -683,6 +712,9 @@ void Game::updateImGui(float dt)
 			buffer = dist(rng);
 			world->generateWorld(buffer);
 		}
+
+		ImGui::Checkbox("Use Cellular Automata Algorithm", &world->use_cellular_automata);
+
 
 		//ImGui::SliderFloat("scale", &world->scale, 0.f, 1.f);
 		//ImGui::SliderFloat("density_change", &world->density_change, 0.1f, 1.f);

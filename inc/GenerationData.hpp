@@ -21,6 +21,8 @@ enum class NoiseType
 	MOISTURE,
 	CHEST,
 	LOOT,
+	DRUNK_WALKER,
+	DRUNK_WALKER_MOVEMENT,
 };
 
 enum class MapRangeType
@@ -28,6 +30,7 @@ enum class MapRangeType
 	PV_HEIGHT,
 	PV_CHANGE,
 	CAVE_CHANGE,
+	CAVE_SIZE_CHANGE,
 };
 
 enum class LootType
@@ -55,4 +58,5 @@ struct GenerationData
 	float sea_y_base = 0.f;
 	float density_threshold = 0.5f;
 	float chest_threshold = 0.5f;
+	float drunk_walker_threshold = 0.3f;
 };

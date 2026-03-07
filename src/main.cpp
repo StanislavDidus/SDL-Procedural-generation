@@ -22,8 +22,6 @@
 constexpr int WINDOW_WIDTH = 960;
 constexpr int WINDOW_HEIGHT = 540;
 
-#define WIN32_LEAN_AND_MEAN
-
 using namespace graphics;
 
 int main()

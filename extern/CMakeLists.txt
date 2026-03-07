@@ -1,5 +1,7 @@
 
 #SDL
+set(SDL_SHARED OFF CACHE BOOL "Don't buil SDL shared" FORCE)
+set(SDL_STATIC ON CACHE BOOL "Build SDL static" FORCE)
 add_subdirectory(SDL EXCLUDE_FROM_ALL)
 #SDL_ttf
 set(SDLTTF_VENDORED ON)

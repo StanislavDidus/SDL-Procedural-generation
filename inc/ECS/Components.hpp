@@ -200,6 +200,15 @@ namespace Components
 		float timer = 0.0f; // Can be collected after some time
 		float time = 0.1f;
 	};
+
+	struct DropItemChest
+	{
+		Entity item;
+
+		float timer = 0.0f;
+		float last_update = 0.0f;
+		int last_sprite = 0;
+	};
 	
 	struct Button
 	{
@@ -446,6 +455,7 @@ namespace Components
 			int sprite_index;
 			std::string name;
 			ItemAction action = ItemAction::NONE;
+			std::string description;
 		};
 
 		//DYNAMIC information ek. stack size and is or is not equipped

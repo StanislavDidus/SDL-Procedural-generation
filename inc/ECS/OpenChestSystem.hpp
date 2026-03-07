@@ -17,9 +17,24 @@ public:
 			registry.emplace<Components::Closed_Chest>(entity);
 			registry.erase<Components::UI::OpenChest>(entity);
 
+			/*
 			auto drop_item = registry.create();
 			auto item_to_drop = ItemManager::get().createItem(registry, chest_component.base_item);
 			registry.emplace<Components::DropItem>(drop_item, entity, item_to_drop);
+			*/
+
+			Entity item_to_drop = entt::null;
+			if(open_chest_component.number == 0)
+				item_to_drop = ItemManager::get().createItem(registry, chest_component.base_item);
+			else if(open_chest_component.type == EssenceType::COMMON)
+				item_to_drop = ItemManager::get().createItem(registry, chest_component.common_item);
+			else if(open_chest_component.type == EssenceType::SNOW)
+				item_to_drop = ItemManager::get().createItem(registry, chest_component.snow_item);
+			else if(open_chest_component.type == EssenceType::SAND)
+				item_to_drop = ItemManager::get().createItem(registry, chest_component.sand_item);
+			
+			if(item_to_drop != entt::null)
+				registry.emplace<Components::DropItemChest>(entity, item_to_drop);
 		}
 	}
 

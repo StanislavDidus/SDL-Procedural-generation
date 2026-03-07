@@ -4,6 +4,8 @@ project(SDL_PRO_GEN VERSION 1.0
     DESCRIPTION "Small survival game with procedural generation made with SDL3"
     LANGUAGES C CXX)
 
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Don't build shared libs" FORCE)
+
 add_subdirectory(EXTERN extern)
 add_subdirectory(GRAPHICS graphics)
 add_subdirectory(NOISE noise)
@@ -40,6 +42,7 @@ set(SOURCE_FILES
     "src/ResourceManager.cpp"
     "src/EnemyManager.cpp"
     "src/EnemySpawnSystem.cpp"
+    "src/DrunkWalker.cpp"
     )
 
 set(HEADER_FILES
@@ -107,6 +110,8 @@ set(HEADER_FILES
     "inc/ECS/RenderEssenceCounter.hpp"
     "inc/ECS/CollectEssenceSystem.hpp"
     "inc/ECS/OpenChestSystem.hpp"
+    "inc/ECS/DropChestLootSystem.hpp"
+    "inc/DrunkWalker.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

@@ -2,18 +2,14 @@
 <lootListing>
     <baseLoot>
         <item ref="Apple" weight="10" min_quantity="2" max_quantity="5" />
-        <item ref="Leather_Helmet" weight="20" min_quantity="1" max_quantity="1" />
     </baseLoot>
     <commonLoot>
         <item ref="Health_Amulet" weight="10" min_quantity="1" max_quantity="1" />
-        <item ref="Apple" weight="20" min_quantity="2" max_quantity="5" />
     </commonLoot>
     <snowLoot>
-        <item ref="Health_Amulet" weight="10" min_quantity="1" max_quantity="1" />
-        <item ref="Apple" weight="20" min_quantity="2" max_quantity="5" />
+        <item ref="Banana" weight="20" min_quantity="2" max_quantity="5" />
     </snowLoot>
     <sandLoot>
-        <item ref="Health_Amulet" weight="10" min_quantity="1" max_quantity="1" />
-        <item ref="Apple" weight="20" min_quantity="2" max_quantity="5" />
+        <item ref="Common_Sword" weight="20" min_quantity="1" max_quantity="1" />
     </sandLoot>
 </lootListing>

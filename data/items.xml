@@ -5,6 +5,9 @@
         <canStack>true</canStack>
         <spriteIndex>0</spriteIndex>
         <action>USE</action>
+        <description>
+            An ordinary apple grown from a lovely tree.
+        </description>
         <components>
             <component id="HealthComponent">10</component>
         </components>

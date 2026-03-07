@@ -141,18 +141,28 @@ namespace graphics
 	{
 		const auto& view_position = renderer.getView();
 		float zoom = renderer.getZoom();
+		
+		const glm::vec2 mid_screen{
+			static_cast<float>(renderer.getWindowSize().x) / 2.f,
+			static_cast<float>(renderer.getWindowSize().y) / 2.f
+		};
 
 		setColor(renderer, color);
 
-		float x1_ = x1 - view_position.x;
-		float y1_ = y1 - view_position.y;
-		float x2_ = x2 - view_position.x;
-		float y2_ = y2 - view_position.y;
+		float x1_ = x1 - view_position.x - mid_screen.x;
+		float y1_ = y1 - view_position.y - mid_screen.y;
+		float x2_ = x2 - view_position.x - mid_screen.x;
+		float y2_ = y2 - view_position.y - mid_screen.y;
 
 		x1_ *= zoom;
 		y1_ *= zoom;
 		x2_ *= zoom;
 		y2_ *= zoom;
+
+		x1_ += mid_screen.x;
+		y1_ += mid_screen.y;
+		x2_ += mid_screen.x;
+		y2_ += mid_screen.y;
 
 		SDL_RenderLine(renderer.get(), x1_, y1_, x2_, y2_);
 	}

@@ -29,6 +29,8 @@ namespace graphics
 
 		template<typename Self>
 		auto&& getSprite(this Self&& self, const std::string& name);
+		template<typename Self>
+		auto&& getSprite(this Self&& self, size_t index);
 
 		template<typename Self>
 		auto&& operator[](this Self&& self, size_t index);
@@ -43,6 +45,12 @@ namespace graphics
 	auto&& SpriteSheet::getSprite(this Self&& self, const std::string& name)
 	{
 		return self.sprites[self.nameToIndex[name]];
+	}
+
+	template <typename Self>
+	auto&& SpriteSheet::getSprite(this Self&& self, size_t index)
+	{
+		return self.sprites[index];
 	}
 
 	template <typename Self>
