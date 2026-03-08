@@ -26,6 +26,27 @@ public:
 
 				health_component.max_health += health_bonus_component.value;
 			}
+			else if (registry.all_of<Components::Effects::Big>(item_equipped_component.item) && registry.all_of<Components::Transform>(entity) && registry.all_of<Components::BaseValues>(entity))
+			{
+				auto& transform_component = registry.get<Components::Transform>(entity);
+				const auto& base_values_component = registry.get<Components::BaseValues>(entity);
+				const auto& value = registry.get<Components::Effects::Big>(item_equipped_component.item).value;
+
+				glm::vec2 value_to_add = base_values_component.size * (value - 1);
+				transform_component.size += value_to_add;
+
+			}
+			else if (registry.all_of<Components::Effects::Speed>(item_equipped_component.item) && registry.all_of<Components::Physics>(entity) && registry.all_of<Components::BaseValues>(entity))
+			{
+				auto& physics_component = registry.get<Components::Physics>(entity);
+				const auto& base_values_component = registry.get<Components::BaseValues>(entity);
+				const auto& value = registry.get<Components::Effects::Speed>(item_equipped_component.item).value;
+
+				glm::vec2 acceleration_to_add = base_values_component.acceleration * (value / 100.0f);
+				glm::vec2 max_velocity_to_add = base_values_component.max_velocity * (value / 100.0f);
+				physics_component.acceleration += acceleration_to_add;
+				physics_component.max_velocity += max_velocity_to_add;
+			}
 			//else if(registry.all_of<Components::Effects::Regeneration>(item)
 			// Do something
 		}
@@ -55,6 +76,27 @@ public:
 				const auto& health_bonus_component = registry.get<Components::Effects::HealthBonus>(item_unequipped_component.item);
 
 				health_component.max_health -= health_bonus_component.value;
+			}
+			else if (registry.all_of<Components::Effects::Big>(item_unequipped_component.item) && registry.all_of<Components::Transform>(entity) && registry.all_of<Components::BaseValues>(entity))
+			{
+				auto& transform_component = registry.get<Components::Transform>(entity);
+				const auto& base_values_component = registry.get<Components::BaseValues>(entity);
+				const auto& value = registry.get<Components::Effects::Big>(item_unequipped_component.item).value;
+
+				glm::vec2 value_to_add = base_values_component.size * (value - 1);
+				transform_component.size -= value_to_add;
+
+			}
+			else if (registry.all_of<Components::Effects::Speed>(item_unequipped_component.item) && registry.all_of<Components::Physics>(entity) && registry.all_of<Components::BaseValues>(entity))
+			{
+				auto& physics_component = registry.get<Components::Physics>(entity);
+				const auto& base_values_component = registry.get<Components::BaseValues>(entity);
+				const auto& value = registry.get<Components::Effects::Speed>(item_unequipped_component.item).value;
+
+				glm::vec2 acceleration_to_add = base_values_component.acceleration * (value / 100.0f);
+				glm::vec2 max_velocity_to_add = base_values_component.max_velocity * (value / 100.0f);
+				physics_component.acceleration -= acceleration_to_add;
+				physics_component.max_velocity -= max_velocity_to_add;
 			}
 		}
 	}

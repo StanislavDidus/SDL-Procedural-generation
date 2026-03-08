@@ -31,6 +31,9 @@ static bool checkTileFloor(const Grid<Tile>& grid, int x, int y, int range, cons
 {
 	for (int i = 0; i < range; ++i)
 	{
+		if (x + i < 0 || x + i >= grid.getColumns() || y < 0 || y >= grid.getRows())
+			return false;
+
 		auto& new_tile = grid(x + i, y);
 		if (!predicament(new_tile))
 		{

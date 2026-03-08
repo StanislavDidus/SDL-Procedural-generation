@@ -22,11 +22,19 @@ enum class EssenceType
 
 namespace Components
 {
+	struct BaseValues
+	{
+		glm::vec2 size;
+		glm::vec2 acceleration;
+		glm::vec2 max_velocity;
+	};
 
 	struct Transform
 	{
 		glm::vec2 position;
 		glm::vec2 size;
+
+		glm::vec2 base_size = size;
 	};
 
 	struct Renderable
@@ -46,6 +54,8 @@ namespace Components
 		glm::vec2 max_velocity{};
 		float decelaration{};
 		bool is_ground = false;
+
+		glm::vec2 base_acceleration = acceleration;
 	};
 
 	// Makes entities make a step when colliding with short walls
@@ -125,6 +135,12 @@ namespace Components
 	{
 		float max_health;
 		float current_health;
+	};
+
+	struct Regeneration
+	{
+		float speed = 0.0f; ///< Health regenerated in 1 second.
+		float timer = 0.0f;
 	};
 
 	struct Invincible
@@ -404,12 +420,30 @@ namespace Components
 		{
 			bool is_active = true;
 		};
+
+		struct Big
+		{
+			float value = 1.0f;
+		};
+
+		struct Speed
+		{
+			float value = 1.0f;
+		};
 		
 		struct HealthBonus
 		{
 			float value = 0.0f;
 		};
 	} // namespace Effects
+
+	namespace WeaponEffects
+	{
+		struct Freeze
+		{
+			float value = 0.0f;
+		};
+	}
 
 	namespace UI
 	{

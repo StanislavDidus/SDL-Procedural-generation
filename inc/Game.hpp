@@ -40,6 +40,7 @@
 #include "ECS/ChestWindowSystem.hpp"
 #include "ECS/CollectEssenceSystem.hpp"
 #include "ECS/DropChestLootSystem.hpp"
+#include "ECS/HealthRegenerationSystem.hpp"
 #include "ECS/ManageButtonActionsSystem.hpp"
 #include "ECS/ManageInvincibleStatusSystem.hpp"
 #include "ECS/OpenChestSystem.hpp"
@@ -145,6 +146,7 @@ private:
 	std::unique_ptr<CollectEssenceSystem> collect_essence_system;
 	std::unique_ptr<OpenChestSystem> open_chest_system;
 	std::unique_ptr<DropChestLootSystem> drop_chest_loot_system;
+	std::unique_ptr<HealthRegenerationSystem> health_regeneration_system;
 
 	//UI
 	std::unique_ptr<CraftView> craft_view;

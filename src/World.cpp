@@ -466,12 +466,12 @@ void World::initSeeds(std::optional<int> seed_opt)
 		noise.seed = getNewSeed(seed);
 	}
 
+	/*
 	for (auto& object : ObjectManager::get().getAllObjectSpawnInfos())
 	{
-		// TODO: Set the seeds for ObjectSpawnInfo before generation them!
 
-		object.noise_settings.seed = getNewSeed(seed);
 	}
+	*/
 
 }
 
@@ -591,88 +591,92 @@ void World::addDirt()
 void World::addCaves()
 {
 	float scale = generation_data.scale;
-	/*
-	for (int x = 0; x < world_width_tiles; x++)
+
+	//Two different cave generation algorithms
+	if (!use_new_cave_generation)
 	{
-		for (int y = 0; y < world_height_tiles; y++)
+		for (int x = 0; x < world_width_tiles; x++)
 		{
-			auto& tile = world_map(x, y);
-			bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
-
-			float cave_noise = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::CAVE], static_cast<float>(x) * scale, static_cast<float>(y) * scale);
-
-			float c_difference = (generation_data.cave_y_base - static_cast<float>(y)) * -1.f;
-			auto& change_map = generation_data.maps[MapRangeType::CAVE_CHANGE];
-			float correlated_cave_threshold = std::clamp(change_map.getValue(c_difference), 0.001f, change_map.getOutMax());
-
-			if (is_solid && cave_noise < correlated_cave_threshold)
+			for (int y = 0; y < world_height_tiles; y++)
 			{
-				tile.id = TileManager::get().getTileID("Sky");
-				tile.sealed = true;
+				auto& tile = world_map(x, y);
+				bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
+
+				float cave_noise = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::CAVE], static_cast<float>(x) * scale, static_cast<float>(y) * scale);
+
+				float c_difference = (generation_data.cave_y_base - static_cast<float>(y)) * -1.f;
+				auto& change_map = generation_data.maps[MapRangeType::CAVE_CHANGE];
+				float correlated_cave_threshold = std::clamp(change_map.getValue(c_difference), 0.001f, change_map.getOutMax());
+
+				if (is_solid && cave_noise < correlated_cave_threshold)
+				{
+					removeTileCave({ x, y });
+				}
 			}
 		}
 	}
-*/
-	
-	std::mt19937 rng(master_seed);
-
-	std::vector<glm::ivec2> drunk_walker_position;
-	for (int x = 0; x < world_width_tiles; x++)
+	else
 	{
-		for (int y = 0; y < world_height_tiles; y++)
+		std::mt19937 rng(master_seed);
+
+		std::vector<glm::ivec2> drunk_walker_position;
+		for (int x = 0; x < world_width_tiles; x++)
 		{
-			auto& tile = world_map(x, y);
-			bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
-
-			float noise_value = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::DRUNK_WALKER], static_cast<float>(x) * scale, static_cast<float>(y) * scale);
-
-			if (noise_value < generation_data.drunk_walker_threshold && is_solid)
+			for (int y = 0; y < world_height_tiles; y++)
 			{
-				drunk_walker_position.emplace_back(x, y);
+				auto& tile = world_map(x, y);
+				bool is_solid = TileManager::get().getProperties(tile.id).is_solid;
+
+				float noise_value = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::DRUNK_WALKER], static_cast<float>(x) * scale, static_cast<float>(y) * scale);
+
+				if (noise_value < generation_data.drunk_walker_threshold && is_solid)
+				{
+					drunk_walker_position.emplace_back(x, y);
+				}
 			}
 		}
-	}
 
-	int target_number = 35;
-	int current_number = 0;
+		int target_number = 50;
+		int current_number = 0;
 
-	size_t sky_tile_id = TileManager::get().getTileID("Sky");
-	std::cout << drunk_walker_position.size() << std::endl;
-	while (current_number < target_number && !drunk_walker_position.empty())
-	{
-		std::uniform_int_distribution<int> pos_dist(0, drunk_walker_position.size() - 1);
-		int index = pos_dist(rng);
-
-		glm::ivec2 position = drunk_walker_position[index];
-		
-		drunk_walker_position.erase(drunk_walker_position.begin() + index);
-
-		if (position.y < static_cast<int>(generation_data.cave_y_base)) continue;
-
-		++current_number;
-
-		int size = generation_data.maps[MapRangeType::CAVE_SIZE_CHANGE].getValue(position.y);
-
-		DrunkWalker walker{ position, size };
-
-		while (walker.isFinished() == false)
+		size_t sky_tile_id = TileManager::get().getTileID("Sky");
+		std::cout << drunk_walker_position.size() << std::endl;
+		while (current_number < target_number && !drunk_walker_position.empty())
 		{
-			walker.move(rng() % 4);
+			std::uniform_int_distribution<int> pos_dist(0, drunk_walker_position.size() - 1);
+			int index = pos_dist(rng);
 
-			glm::ivec2 new_position = walker.getPosition();
+			glm::ivec2 position = drunk_walker_position[index];
 
-			if (new_position.x < 0 || new_position.x + 1 >= world_width_tiles || new_position.y < 0 || new_position.y + 1 >= world_height_tiles)
-				break;
+			drunk_walker_position.erase(drunk_walker_position.begin() + index);
 
-			world_map(new_position.x, new_position.y).id = sky_tile_id;
-			world_map(new_position.x + 1, new_position.y).id = sky_tile_id;
-			world_map(new_position.x, new_position.y + 1).id = sky_tile_id;
-			world_map(new_position.x + 1, new_position.y + 1).id = sky_tile_id;
+			if (position.y < static_cast<int>(generation_data.cave_y_base)) continue;
 
-			removeTileCave({new_position.x, new_position.y});
-			removeTileCave({new_position.x + 1, new_position.y});
-			removeTileCave({new_position.x, new_position.y + 1});
-			removeTileCave({new_position.x + 1, new_position.y + 1});
+			++current_number;
+
+			int size = generation_data.maps[MapRangeType::CAVE_SIZE_CHANGE].getValue(position.y);
+
+			DrunkWalker walker{ position, size };
+
+			while (walker.isFinished() == false)
+			{
+				walker.move(rng() % 4);
+
+				glm::ivec2 new_position = walker.getPosition();
+
+				if (new_position.x < 0 || new_position.x + 1 >= world_width_tiles || new_position.y < 0 || new_position.y + 1 >= world_height_tiles)
+					break;
+
+				world_map(new_position.x, new_position.y).id = sky_tile_id;
+				world_map(new_position.x + 1, new_position.y).id = sky_tile_id;
+				world_map(new_position.x, new_position.y + 1).id = sky_tile_id;
+				world_map(new_position.x + 1, new_position.y + 1).id = sky_tile_id;
+
+				removeTileCave({ new_position.x, new_position.y });
+				removeTileCave({ new_position.x + 1, new_position.y });
+				removeTileCave({ new_position.x, new_position.y + 1 });
+				removeTileCave({ new_position.x + 1, new_position.y + 1 });
+			}
 		}
 	}
 }
@@ -802,6 +806,7 @@ void World::addBiomes()
 
 void World::addObjects(std::vector<Object>& objects)
 {
+	std::mt19937 rng(master_seed);
 	float scale = generation_data.scale;
 	for (int x = 0; x < world_width_tiles; x++)
 	{
@@ -812,13 +817,178 @@ void World::addObjects(std::vector<Object>& objects)
 
 			const auto& object_spawn_infos = ObjectManager::get().getAllObjectSpawnInfos();
 
+			std::vector<ObjectSpawnInfo> potential_objects_to_spawn;
+
+			for (const auto& spawn_info : object_spawn_infos)
+			{
+				bool check_floor = checkTileFloor(world_map, x, y, spawn_info.size_tiles.x, [&spawn_info] (const Tile& tile)
+				{
+						auto it = std::ranges::find(spawn_info.spawn_tile_ids, tile.id);
+						return it != spawn_info.spawn_tile_ids.end();
+				});
+
+				if (!check_floor) continue;
+
+				//Third - Object Size
+				auto& object_size = spawn_info.size_tiles;
+
+				bool is_space_free = checkTileSpace(world_map, x, y, object_size.x, object_size.y);
+
+				if (!is_space_free) continue;
+
+				//Fourth - Does the object intersect with any other object?
+				//Calculate rect
+				float y_offset = static_cast<float>(object_size.y) * tile_height_world;
+				SDL_FRect object_rect
+				{
+					position_x * tile_width_world,
+					position_y * tile_height_world - y_offset,
+					//Subtracted -1 from their width and height because otherwise SDL_HasRectIntersectionFloat would return true if the edges of both object collide
+					static_cast<float>(object_size.x) * tile_width_world - 1.f,
+					static_cast<float>(object_size.y) * tile_height_world - 1.f
+				};
+
+				bool object_intersection = false;
+				for (const auto& obj : objects)
+				{
+					if (SDL_HasRectIntersectionFloat(&object_rect, &obj.rect))
+					{
+						object_intersection = true;
+						break;
+					}
+				}
+
+				if (object_intersection) continue;
+
+				potential_objects_to_spawn.push_back(spawn_info);
+			}
+
+			float none_weight = 40.0f;
+			float total_weight = none_weight;
+			for (const auto& spawn_info : potential_objects_to_spawn)
+			{
+				//TODO: Rename noise_threshold to spawn_weight
+				total_weight += y < generation_data.cave_y_base ? spawn_info.spawn_weight : spawn_info.spawn_weight * 1.5f;
+			}
+
+			std::uniform_real_distribution<float> object_dist(0.0f, total_weight);
+			float random_object_value = object_dist(rng);
+			
+			if (random_object_value < none_weight)
+			{
+				continue;
+			}
+			random_object_value -= none_weight;
+
+			float acc = 0.0f;
+			for (const auto& spawn_info : potential_objects_to_spawn)
+			{
+				acc += y < generation_data.cave_y_base ? spawn_info.spawn_weight : spawn_info.spawn_weight * 1.5f;
+				if (random_object_value <= acc)
+				{	
+					//FINALLY! Spawn an object	SDL_FRect object_rect
+
+					auto& object_size = spawn_info.size_tiles;
+					float y_offset = static_cast<float>(object_size.y) * tile_height_world;
+					
+					SDL_FRect object_rect
+					{
+						position_x * tile_width_world,
+						position_y * tile_height_world - y_offset,
+						//Subtracted -1 from their width and height because otherwise SDL_HasRectIntersectionFloat would return true if the edges of both object collide
+						static_cast<float>(object_size.x) * tile_width_world - 1.f,
+						static_cast<float>(object_size.y) * tile_height_world - 1.f
+					};
+
+					int unique_id = next_object_id++;
+					int properties_id = spawn_info.object_properties_id;
+					objects.emplace_back(unique_id, properties_id, object_rect);
+
+					break;
+				}
+			}
+
+			/*
+			float total_weight = 0.0f;
+			for (const auto& spawn_info : object_spawn_infos)
+			{
+				total_weight += spawn_info.spawn_weight;
+			}
+
+			float noise_value = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::OBJECTS], position_x * scale, position_y * scale);
+			float acc = 0.0f;
+			const ObjectSpawnInfo* object_spawn_info = nullptr;
+			for (const auto& spawn_info_ : object_spawn_infos)
+			{
+				acc += spawn_info_.spawn_weight;
+				if (noise_value <= acc)
+				{
+					object_spawn_info = &spawn_info_;
+					break;
+				}
+			}
+
+			if (object_spawn_info == nullptr) continue;
+
+			const auto& spawn_info = *object_spawn_info;
+			//Check all 4 conditions
+
+			//First - Noise
+
+			//Second - Tile type
+			bool check_floor = checkTileFloor(world_map, x, y, spawn_info.size_tiles.x, [&spawn_info] (const Tile& tile)
+			{
+					auto it = std::ranges::find(spawn_info.spawn_tile_ids, tile.id);
+					return it != spawn_info.spawn_tile_ids.end();
+			});
+
+			if (!check_floor) continue;
+
+			//Third - Object Size
+			auto& object_size = spawn_info.size_tiles;
+
+			bool is_space_free = checkTileSpace(world_map, x, y, object_size.x, object_size.y);
+
+			if (!is_space_free) continue;
+
+			//Fourth - Does the object intersect with any other object?
+			//Calculate rect
+			float y_offset = static_cast<float>(object_size.y) * tile_height_world;
+			SDL_FRect object_rect
+			{
+				position_x * tile_width_world,
+				position_y * tile_height_world - y_offset,
+				//Subtracted -1 from their width and height because otherwise SDL_HasRectIntersectionFloat would return true if the edges of both object collide
+				static_cast<float>(object_size.x) * tile_width_world - 1.f,
+				static_cast<float>(object_size.y) * tile_height_world - 1.f
+			};
+
+			bool object_intersection = false;
+			for (const auto& obj : objects)
+			{
+				if (SDL_HasRectIntersectionFloat(&object_rect, &obj.rect))
+				{
+					object_intersection = true;
+					break;
+				}
+			}
+
+			if (object_intersection) continue;
+
+			//FINALLY! Spawn an object
+			int unique_id = next_object_id++;
+			int properties_id = spawn_info.object_properties_id;
+			objects.emplace_back(unique_id, properties_id, object_rect);
+			break;
+
 			for (const auto& spawn_info : object_spawn_infos)
 			{
 				//Check all 4 conditions
 
 				//First - Noise
 				float noise_value = Noise::fractal2D<ValueNoise>(spawn_info.noise_settings, position_x * scale, position_y * scale);
-				if (noise_value > spawn_info.noise_threshold) continue;
+				if (y > generation_data.cave_y_base) noise_value *= 0.5f;
+				if (noise_value > spawn_info.spawn_weight) continue;
 
 				//Second - Tile type
 				bool check_floor = checkTileFloor(world_map, x, y, spawn_info.size_tiles.x, [&spawn_info] (const Tile& tile)
@@ -866,12 +1036,16 @@ void World::addObjects(std::vector<Object>& objects)
 				objects.emplace_back(unique_id, properties_id, object_rect);
 				break;
 			}
+		*/
 		}
 	}
 }
 
 void World::addChests(const std::vector<Object>& objects, std::vector<Entity>& chests)
 {
+	std::mt19937 rng(master_seed);
+	std::uniform_int_distribution<int> chest_dist (0,100);
+
 	float scale = generation_data.scale;
 	for (int x = 0; x < world_width_tiles; x++)
 	{
@@ -882,9 +1056,9 @@ void World::addChests(const std::vector<Object>& objects, std::vector<Entity>& c
 
 			//Check all 5 conditions
 
-			//First - Noise
-			float noise_value = Noise::fractal2D<ValueNoise>(generation_data.noise_settings[NoiseType::CHEST], position_x * scale, position_y * scale);
-			if (noise_value > generation_data.chest_threshold) continue;
+			//First - Threshold
+			float random_value = static_cast<float>(chest_dist(rng)) / 100.0f;
+			if (random_value > generation_data.chest_threshold) continue;
 
 			auto& object_size = generation_data.chest_size;
 

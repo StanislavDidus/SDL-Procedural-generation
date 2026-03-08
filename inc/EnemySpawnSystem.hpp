@@ -39,7 +39,7 @@ private:
 	float time = 0.0f;
 
 	float spawn_time = 1.0f;
-	int max_enemies = 0;
+	int max_enemies = 5;
 	int enemies_to_spawn = 1;
 	float enemy_despawn_distance = 3000.0f;
 

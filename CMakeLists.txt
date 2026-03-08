@@ -112,6 +112,7 @@ set(HEADER_FILES
     "inc/ECS/OpenChestSystem.hpp"
     "inc/ECS/DropChestLootSystem.hpp"
     "inc/DrunkWalker.hpp"
+    "inc/ECS/HealthRegenerationSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

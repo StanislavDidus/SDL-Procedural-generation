@@ -152,6 +152,14 @@ private:
 		{
 			number_properties += 1;	
 		}
+		if (registry.all_of<Components::Effects::Big>(item))
+		{
+			number_properties += 1;	
+		}
+		if (registry.all_of<Components::Effects::Speed>(item))
+		{
+			number_properties += 1;	
+		}
 	}
 
 	void renderDescriptionLabel(graphics::Renderer& screen, float x, float y, const Components::InventoryItems::Item& item_info, int additional_space_height) const
@@ -251,7 +259,22 @@ private:
 			graphics::Color color = {255, 255, 255, 255};
 			graphics::Text text{ font, screen, {"Grants you an ability to double jump"}, color };
 			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
-			
+		}
+		else if (registry.all_of<Components::Effects::Big>(item))
+		{
+			const auto& value = registry.get<Components::Effects::Big>(item).value;
+			std::string str_text = std::format("Makes you {} times bigger", value);
+			graphics::Color color = {255, 255, 255, 255};
+			graphics::Text text{ font, screen, str_text, color };
+			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+		}
+		else if (registry.all_of<Components::Effects::Speed>(item))
+		{
+			const auto& value = registry.get<Components::Effects::Speed>(item).value;
+			std::string str_text = std::format("Makes you {} percent faster", value);
+			graphics::Color color = {255, 255, 255, 255};
+			graphics::Text text{ font, screen, str_text, color };
+			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
 		}
 	}
 

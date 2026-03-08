@@ -31,6 +31,12 @@ public:
 				// Decrease health points
 				registry.get<Components::Health>(damage_component.target).current_health -= damage_component.value;
 
+				// Slowdown enemy if weapon has Freeze effect
+				if (registry.all_of<Components::WeaponEffects::Freeze>(damage_component.source))
+				{
+					float freeze_value = registry.get<Components::WeaponEffects::Freeze>(damage_component.source).value;
+				}
+
 				// Place a hit mark
 				registry.emplace_or_replace<Components::HitMark>(damage_component.target, 0.1f, 0.0f, false);
 				

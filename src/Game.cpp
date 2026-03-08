@@ -68,19 +68,15 @@ Game::Game(graphics::Renderer& screen)
 
 	//Give basic items to the player
 	auto& inventory = registry.get<Components::HasInventory>(player).inventory;
-	inventory->addItem(ItemManager::get().getItemID("Apple"), 15);
-	inventory->addItem(ItemManager::get().getItemID("Banana"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Cactus"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 10);
 	inventory->addItem(ItemManager::get().getItemID("Wood"), 20);
 	inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
 	inventory->addItem(ItemManager::get().getItemID("Gold"), 10);
 	inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Magic_Boots"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Common_Boots"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Leather_Armor"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Leather_Helmet"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Health_Amulet"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Big_Armor"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Fast_Helmet"), 1);
 }
 
 Game::~Game()
@@ -123,6 +119,7 @@ void Game::initSystems()
 	collect_essence_system = std::make_unique<CollectEssenceSystem>(registry);
 	open_chest_system = std::make_unique<OpenChestSystem>(registry);
 	drop_chest_loot_system = std::make_unique<DropChestLootSystem>(registry);
+	health_regeneration_system = std::make_unique<HealthRegenerationSystem>(registry);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -131,11 +128,11 @@ void Game::initGenerationData()
 {
 	generation_data.chest_size = glm::ivec2{ 2,2 };
 	generation_data.y_base = 25.f;
-	generation_data.cave_y_base = 18.0f;
+	generation_data.cave_y_base = 25.0f;
 	generation_data.sea_y_base = 19.f;
 	generation_data.scale = 0.5f;
 	generation_data.density_threshold = 0.5f;
-	generation_data.chest_threshold = 0.2f;
+	generation_data.chest_threshold = 0.05f;
 	generation_data.drunk_walker_threshold = 0.3f;
 }
 
@@ -228,6 +225,14 @@ void Game::initNoiseSettings()
 		settings.frequency = 1.0f;
 		settings.amplitude = 1.0f;
 	}
+
+	//Objects
+	{
+		NoiseSettings& settings = generation_data.noise_settings[NoiseType::OBJECTS];
+		settings.octaves = 2;
+		settings.frequency = 0.5f;
+		settings.amplitude = 1.0f;
+	}
 }
 
 void Game::initMapRanges()
@@ -255,8 +260,8 @@ void Game::initMapRanges()
 
 	//CAVE_SIZE_CHANGE
 	{
-		MapRange map{ generation_data.cave_y_base, generation_data.cave_y_base + 150.0f,300.0f, 1000.0f };
-		map.addPoint(generation_data.cave_y_base + 30.0f, 650.0f);
+		MapRange map{ generation_data.cave_y_base, generation_data.cave_y_base + 150.0f,300.0f, 1200.0f };
+		map.addPoint(generation_data.cave_y_base + 30.0f, 800.0f);
 
 		generation_data.maps[MapRangeType::CAVE_SIZE_CHANGE] = map;
 	}
@@ -345,9 +350,15 @@ void Game::initPlayer()
 	const auto& window_size = screen.getWindowSize();
 	player = registry.create();
 
+	auto& base = registry.emplace<Components::BaseValues>(player);
+	base.size = { 35.0f, 40.0f };
+	base.acceleration = { 1500.0f, 0.0f };
+	base.max_velocity = { 250.0f, 200.0f };
+
 	auto& ts = registry.emplace<Components::Transform>(player);
 	ts.position = glm::vec2{ 400.0f, -500.f };
 	ts.size = glm::vec2{ 35.0f, 40.0f };
+	ts.base_size = ts.size;
 
 	auto& renderable = registry.emplace<Components::Renderable>(player);
 	renderable.sprite = (*ResourceManager::get().getSpriteSheet("player"))[0];
@@ -357,6 +368,8 @@ void Game::initPlayer()
 	physics.can_move_horizontal = true;
 	physics.velocity = glm::vec2{ 0.0f };
 	physics.acceleration = glm::vec2{ 1500.0f, 0.0f };
+	physics.base_acceleration = physics.acceleration;
+	
 	physics.max_velocity = glm::vec2{ 250.0f, 200.0f };
 	physics.decelaration = 5.0f;
 
@@ -389,6 +402,9 @@ void Game::initPlayer()
 	auto& health = registry.emplace<Components::Health>(player);
 	health.max_health = 100.0f;
 	health.current_health = 100.0f;
+
+	auto& regeneration = registry.emplace<Components::Regeneration>(player);
+	regeneration.speed = 0.5f;
 
 	registry.emplace<Components::CraftingAbility>(player);
 
@@ -489,6 +505,7 @@ void Game::update(float dt)
 			chest_window_system->update(player, screen);
 			collect_essence_system->update(player);
 			open_chest_system->update();
+			health_regeneration_system->update(dt);
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
 			const auto& player_pos = player_transform.position;
@@ -713,6 +730,7 @@ void Game::updateImGui(float dt)
 			world->generateWorld(buffer);
 		}
 
+		ImGui::Checkbox("Use New Cave Generation Algorithm", &world->use_new_cave_generation);
 		ImGui::Checkbox("Use Cellular Automata Algorithm", &world->use_cellular_automata);
 
 

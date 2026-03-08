@@ -102,6 +102,23 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 				float value = component_node->FloatAttribute("value");
 				registry.emplace_or_replace<Components::Effects::HealthBonus>(item, value);
 			}
+			else if (strcmp(component_name, "Big_Bonus") == 0)
+			{
+				float value = component_node->FloatAttribute("value");
+				registry.emplace_or_replace<Components::Effects::Big>(item, value);
+			}
+			else if (strcmp(component_name, "Speed_Bonus") == 0)
+			{
+				float value = component_node->FloatAttribute("value");
+				registry.emplace_or_replace<Components::Effects::Speed>(item, value);
+			}
+
+			//Weapon Effects
+			else if (strcmp(component_name, "WeaponFreezeEffect") == 0)
+			{
+				float value = component_node->FloatAttribute("value");
+				registry.emplace_or_replace<Components::WeaponEffects::Freeze>(item, value);
+			}
 		}
 	}
 }

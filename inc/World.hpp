@@ -66,6 +66,7 @@ public:
 	void generateWorld(std::optional<int> seed);
 
 	bool use_cellular_automata = true;
+	bool use_new_cave_generation = true;
 private:
 	void splitGrid(const Grid<Tile>& grid, const std::vector<Object>& objects, int chunk_width, int chunk_height);
 	Chunk& tilePositionToChunk(const glm::ivec2 tile_position);

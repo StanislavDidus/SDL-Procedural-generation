@@ -149,4 +149,31 @@
             <component id="HealthBonus" value="50" />
         </components>
     </item>
+    <item id="Big_Armor">
+        <canStack>false</canStack>
+        <spriteIndex>21</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="Armor" />
+            <component id="Big_Bonus" value="2" />
+        </components>
+    </item>
+    <item id="Fast_Helmet">
+        <canStack>false</canStack>
+        <spriteIndex>22</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="Helmet" />
+            <component id="Speed_Bonus" value="25"/>
+        </components>
+    </item>
+    <item id="Snow_Bow">
+        <canStack>false</canStack>
+        <spriteIndex>23</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="WeaponComponent" damage="30" cooldown="0.9" radius="350" /> 
+            <component id="WeaponFreezeEffect" value="50" />
+        </components>
+    </item>
 </itemListing>

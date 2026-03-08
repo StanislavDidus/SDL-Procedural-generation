@@ -12,12 +12,13 @@
 struct ObjectProperties
 {
 	ObjectProperties(float durability, int sprite_index, const std::string& name,
-		const std::vector<RandomizedItem>& drop);
+		const std::vector<RandomizedItem>& drop, const glm::ivec2& size_tiles);
 
 	float durability;
 	int sprite_index;
 	std::string name;
 	std::vector<RandomizedItem> drop;
+	glm::ivec2 size_tiles;
 };
 
 /// <summary>
@@ -25,12 +26,10 @@ struct ObjectProperties
 /// </summary>
 struct ObjectSpawnInfo
 {
-	ObjectSpawnInfo(const std::vector<int>& spawn_tile_ids, const NoiseSettings& noise_settings,
-		float noise_threshold, const glm::ivec2& size_tiles, int object_properties_id);
+	ObjectSpawnInfo(const std::vector<int>& spawn_tile_ids, float spawn_weight, const glm::ivec2& size_tiles, int object_properties_id);
 
 	std::vector<int> spawn_tile_ids; ///< Ids of tiles that the object can spawn on.
-	NoiseSettings noise_settings; ///< Noise properties.
-	float noise_threshold; ///< Minimum value that noise function must return to place an object
+	float spawn_weight; ///< The chance of object spawning relative to all other objects.
 	glm::ivec2 size_tiles; ///< The area in tiles that must be clear for the object to spawn there.
 	int object_properties_id; ///< ID used to get object's properties in <b>Object Manager</b>.
 };

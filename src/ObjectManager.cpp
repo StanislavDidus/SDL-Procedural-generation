@@ -47,10 +47,6 @@ void ObjectManager::loadXml(const std::filesystem::path& path)
 			drop.emplace_back(item_id, drop_chance, drop_quantity_min, drop_quantity_max);
 		}
 
-		ObjectProperties properties{ durability, sprite_index, object_name, drop };
-
-		size_t properties_id = registerObjectProperties(properties);
-
 		//Get spawn info
 		const auto& spawn_info_node = object_node->FirstChildElement("spawnInfo");
 
@@ -59,14 +55,19 @@ void ObjectManager::loadXml(const std::filesystem::path& path)
 		size_node->QueryIntAttribute("x", &size.x);
 		size_node->QueryIntAttribute("y", &size.y);
 
+		ObjectProperties properties{ durability, sprite_index, object_name, drop , size};
+
+		size_t properties_id = registerObjectProperties(properties);
+		/*
 		const auto& noise_settings_node = spawn_info_node->FirstChildElement("noiseSettings");
 		NoiseSettings noise_settings;
 		noise_settings_node->QueryIntAttribute("octaves", &noise_settings.octaves);
 		noise_settings_node->QueryFloatAttribute("frequency", &noise_settings.frequency);
 		noise_settings_node->QueryFloatAttribute("amplitude", &noise_settings.amplitude);
+		*/
 		
-		float noise_threshold;
-		spawn_info_node->FirstChildElement("noiseThreshold")->QueryFloatText(&noise_threshold);
+		float spawn_weight;
+		spawn_info_node->FirstChildElement("noiseThreshold")->QueryFloatText(&spawn_weight);
 
 		std::vector<int> spawn_tiles;
 		const auto& spawn_tiles_node = spawn_info_node->FirstChildElement("spawnTiles");
@@ -77,7 +78,7 @@ void ObjectManager::loadXml(const std::filesystem::path& path)
 			spawn_tiles.push_back(tile_id);
 		}
 
-		ObjectSpawnInfo spawn_info {spawn_tiles, noise_settings, noise_threshold, size, static_cast<int>(properties_id)};
+		ObjectSpawnInfo spawn_info {spawn_tiles, spawn_weight, size, static_cast<int>(properties_id)};
 
 		addObjectSpawnInfo(spawn_info);
 	}
