@@ -22,7 +22,6 @@ public:
 			// Delete "Damage" target if the target is currently invincible to damage
 			if (registry.all_of<Components::Invincible>(damage_component.target))
 			{
-				to_destroy.push_back(entity);
 			}
 
 			// Otherwise deal damage
@@ -34,7 +33,18 @@ public:
 				// Slowdown enemy if weapon has Freeze effect
 				if (registry.all_of<Components::WeaponEffects::Freeze>(damage_component.source))
 				{
-					float freeze_value = registry.get<Components::WeaponEffects::Freeze>(damage_component.source).value;
+					const auto& freeze_component = registry.get<Components::WeaponEffects::Freeze>(damage_component.source);
+					auto effect_entity = registry.create();
+					registry.emplace<Components::AddEffect>(effect_entity, damage_component.target, damage_component.source);
+					registry.emplace<Components::WeaponEffects::Freeze>(effect_entity, freeze_component);
+				}
+				// Deal damage every second
+				if (registry.all_of<Components::WeaponEffects::Poison>(damage_component.source))
+				{
+					const auto& poison_component = registry.get<Components::WeaponEffects::Poison>(damage_component.source);
+					auto effect_entity = registry.create();
+					registry.emplace<Components::AddEffect>(effect_entity, damage_component.target, damage_component.source);
+					registry.emplace<Components::WeaponEffects::Poison>(effect_entity, poison_component);
 				}
 
 				// Place a hit mark
@@ -62,10 +72,8 @@ public:
 
 
 				}
-
-				// Destroy this target
-				to_destroy.emplace_back(entity);
 			}
+			to_destroy.emplace_back(entity);
 		}
 
 		for (const auto& entity : to_destroy)

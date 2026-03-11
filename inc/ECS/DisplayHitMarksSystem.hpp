@@ -18,6 +18,7 @@ public:
 			if (!hit_mark_component.active)
 			{	
 				hit_mark_component.active = true;
+				hit_mark_component.base_color = renderable_component.color;
 				renderable_component.color = graphics::Color::RED;
 			}
 
@@ -25,7 +26,8 @@ public:
 
 			if (hit_mark_component.timer >= hit_mark_component.time)
 			{
-				renderable_component.color = graphics::Color::WHITE;
+				renderable_component.color = hit_mark_component.base_color;
+				registry.erase<Components::HitMark>(entity);
 			}
 		}
 	}

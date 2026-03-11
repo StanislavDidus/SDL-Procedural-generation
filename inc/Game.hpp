@@ -37,6 +37,8 @@
 #include "ECS/PlayerComboSystem.hpp"
 #include "ECS/RenderWeaponCircle.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
+#include "ECS/ApplyEffects.hpp"
+#include "ECS/ApplyWeaponEffects.hpp"
 #include "ECS/ChestWindowSystem.hpp"
 #include "ECS/CollectEssenceSystem.hpp"
 #include "ECS/DropChestLootSystem.hpp"
@@ -45,6 +47,7 @@
 #include "ECS/ManageInvincibleStatusSystem.hpp"
 #include "ECS/OpenChestSystem.hpp"
 #include "ECS/PlayerCollisionSystem.hpp"
+#include "ECS/RenderAccessoriesSystem.hpp"
 #include "ECS/RenderEssenceCounter.hpp"
 #include "ECS/RenderHealthBarSystem.hpp"
 
@@ -91,7 +94,7 @@ private:
 
 	GameState current_state = GameState::NONE;
 
-	bool lock_camera = false;
+	bool lock_camera = true;
 
 	glm::vec2 view_position = { 0.f, 0.f };
 
@@ -147,6 +150,9 @@ private:
 	std::unique_ptr<OpenChestSystem> open_chest_system;
 	std::unique_ptr<DropChestLootSystem> drop_chest_loot_system;
 	std::unique_ptr<HealthRegenerationSystem> health_regeneration_system;
+	std::unique_ptr<ApplyWeaponEffects> apply_weapon_effects_system;
+	std::unique_ptr<ApplyEffects> apply_effects_system;
+	std::unique_ptr<RenderAccessoriesSystem> render_accessories_system;
 
 	//UI
 	std::unique_ptr<CraftView> craft_view;

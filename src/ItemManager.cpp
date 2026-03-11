@@ -117,7 +117,14 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 			else if (strcmp(component_name, "WeaponFreezeEffect") == 0)
 			{
 				float value = component_node->FloatAttribute("value");
-				registry.emplace_or_replace<Components::WeaponEffects::Freeze>(item, value);
+				float duration = component_node->FloatAttribute("duration");
+				registry.emplace_or_replace<Components::WeaponEffects::Freeze>(item, value, duration);
+			}
+			else if (strcmp(component_name, "WeaponPoisonEffect") == 0)
+			{
+				float value = component_node->FloatAttribute("value");
+				float duration = component_node->FloatAttribute("duration");
+				registry.emplace_or_replace<Components::WeaponEffects::Poison>(item, value, duration);
 			}
 		}
 	}

@@ -15,7 +15,7 @@ namespace graphics
 	class  Text
 	{
 	public:
-		Text(const Font* font, graphics::Renderer& renderer, const std::string& text, Color color = Color::BLACK);
+		Text(const Font* font, graphics::Renderer& renderer, const std::string& text, Color color = Color::BLACK, std::optional<int> wrapped_width = std::nullopt);
 		~Text();
 
 		Text(const Text& other) = delete;
@@ -32,6 +32,7 @@ namespace graphics
 		void setFont(const Font* font);
 		void setColor(Color color);
 		void setText(const std::string& text);
+		void setWrappedWidth(int wrapped_width);
 
 		void updateText(graphics::Renderer& renderer);
 	private:
@@ -42,6 +43,7 @@ namespace graphics
 		SDL_Texture* texture;
 		const Font* font;
 		Color color;
+		std::optional<int> wrapped_width;
 
 		bool is_dirty = false;
 	};

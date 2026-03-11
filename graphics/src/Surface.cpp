@@ -9,9 +9,9 @@ namespace graphics
 		loadImage(path);
 	}
 
-	Surface::Surface(TTF_Font* font, const std::string& text, Color color)
+	Surface::Surface(TTF_Font* font, const std::string& text, Color color, std::optional<int> wrapped_width)
 	{
-		loadText(font, text, color);
+		loadText(font, text, color, wrapped_width);
 	}
 
 	Surface::~Surface()
@@ -32,9 +32,12 @@ namespace graphics
 		return true;
 	}
 
-	bool Surface::loadText(TTF_Font* font, const std::string& text, Color color)
+	bool Surface::loadText(TTF_Font* font, const std::string& text, Color color, std::optional<int> wrapped_length)
 	{
-		surface = TTF_RenderText_Blended(font, text.c_str(), text.size(), static_cast<SDL_Color>(color));
+		if (wrapped_length.has_value())
+			surface = TTF_RenderText_Blended_Wrapped(font, text.c_str(), text.size(), static_cast<SDL_Color>(color), wrapped_length.value());
+		else 
+			surface = TTF_RenderText_Blended(font, text.c_str(), text.size(), static_cast<SDL_Color>(color));
 
 		if (!surface)
 		{

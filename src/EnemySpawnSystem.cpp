@@ -110,6 +110,8 @@ Entity EnemySpawnSystem::createEntity(size_t id) const
 
 	const auto& enemy_data = EnemyManager::get().getEnemyData(id);
 
+	auto& ts = registry.emplace<Components::Transform>(entity);
+
 	auto& renderable = registry.emplace<Components::Renderable>(entity);
 	renderable.sprite = (*ResourceManager::get().getSpriteSheet("enemies"))[enemy_data.sprite_index];
 
@@ -130,6 +132,10 @@ Entity EnemySpawnSystem::createEntity(size_t id) const
 	health.current_health = 100.0f;
 
 	registry.emplace<Components::CollideDamage>(entity, 10.0f);
+
+	auto& base_values = registry.emplace<Components::BaseValues>(entity);
+	base_values.acceleration = physics.acceleration;
+	base_values.max_velocity = physics.max_velocity;
 
 	//auto& enemy_ai = registry.emplace<Components::EnemyAI>(entity);
 	//enemy_ai.position_update_time = 2.0f;
@@ -216,9 +222,13 @@ void EnemySpawnSystem::spawnEnemies(const glm::vec2& target_position, int number
 				auto enemy = createEntity(spawn_info.id);
 
 				const auto& enemy_size = spawn_info.size;
-				auto& ts = registry.emplace<Components::Transform>(enemy);
+				auto& ts = registry.get<Components::Transform>(enemy);
 				ts.position = { tile_size.x * position.x, tile_size.y * position.y };
 				ts.size = { tile_size.x * enemy_size.x, tile_size.y * enemy_size.y };
+
+				//Update base values
+				auto& base_values = registry.get<Components::BaseValues>(enemy);
+				base_values.size = ts.size;
 
 				enemies.push_back(enemy);
 

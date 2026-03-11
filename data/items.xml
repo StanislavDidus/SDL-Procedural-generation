@@ -58,7 +58,7 @@
         <action>NONE</action>
     </item>
     <item id="Rope">
-        <canStack>false</canStack>
+        <canStack>true</canStack>
         <spriteIndex>8</spriteIndex>
         <action>NONE</action>
     </item>
@@ -173,7 +173,23 @@
         <action>EQUIP</action>
         <components>
             <component id="WeaponComponent" damage="30" cooldown="0.9" radius="350" /> 
-            <component id="WeaponFreezeEffect" value="50" />
+            <component id="WeaponFreezeEffect" value="50" duration="2" />
+        </components>
+    </item>
+    <item id="Dagger_With_Poison">
+        <canStack>false</canStack>
+        <spriteIndex>24</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="WeaponComponent" damage="15" cooldown="0.75" radius="125" /> 
+            <component id="WeaponPoisonEffect" value="10" duration="3" />
+        </components>
+    </item>
+    <item id="Fire_Emblem">
+        <canStack>false</canStack>
+        <spriteIndex>24</spriteIndex>
+        <action>EQUIP</action>
+        <components>
         </components>
     </item>
 </itemListing>

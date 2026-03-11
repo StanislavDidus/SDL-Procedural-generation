@@ -867,7 +867,6 @@ void World::addObjects(std::vector<Object>& objects)
 			float total_weight = none_weight;
 			for (const auto& spawn_info : potential_objects_to_spawn)
 			{
-				//TODO: Rename noise_threshold to spawn_weight
 				total_weight += y < generation_data.cave_y_base ? spawn_info.spawn_weight : spawn_info.spawn_weight * 1.5f;
 			}
 

@@ -160,6 +160,14 @@ private:
 		{
 			number_properties += 1;	
 		}
+		if (registry.all_of<Components::WeaponEffects::Freeze>(item))
+		{
+			number_properties += 1;
+		}
+		if (registry.all_of<Components::WeaponEffects::Poison>(item))
+		{
+			number_properties += 1;
+		}
 	}
 
 	void renderDescriptionLabel(graphics::Renderer& screen, float x, float y, const Components::InventoryItems::Item& item_info, int additional_space_height) const
@@ -274,6 +282,22 @@ private:
 			std::string str_text = std::format("Makes you {} percent faster", value);
 			graphics::Color color = {255, 255, 255, 255};
 			graphics::Text text{ font, screen, str_text, color };
+			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+		}
+		else if (registry.all_of<Components::WeaponEffects::Freeze>(item))
+		{
+			const auto& freeze = registry.get<Components::WeaponEffects::Freeze>(item);
+			std::string str_text = std::format("Applies {} percent freeze on enemies for {} second", freeze.value, freeze.duration);
+			graphics::Color color = {255,255,255,255};
+			graphics::Text text{ font, screen, str_text, color, 550};
+			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+		}
+		else if (registry.all_of<Components::WeaponEffects::Poison>(item))
+		{
+			const auto& poison = registry.get<Components::WeaponEffects::Poison>(item);
+			std::string str_text = std::format("Poisons enemies on hit and deals {} damage for {} seconds", poison.value, poison.duration);
+			graphics::Color color = {255,255,255,255};
+			graphics::Text text{ font, screen, str_text, color, 550};
 			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
 		}
 	}

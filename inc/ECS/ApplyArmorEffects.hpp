@@ -42,10 +42,8 @@ public:
 				const auto& base_values_component = registry.get<Components::BaseValues>(entity);
 				const auto& value = registry.get<Components::Effects::Speed>(item_equipped_component.item).value;
 
-				glm::vec2 acceleration_to_add = base_values_component.acceleration * (value / 100.0f);
-				glm::vec2 max_velocity_to_add = base_values_component.max_velocity * (value / 100.0f);
-				physics_component.acceleration += acceleration_to_add;
-				physics_component.max_velocity += max_velocity_to_add;
+				auto change_speed = registry.create();
+				registry.emplace<Components::ChangeSpeed>(change_speed, entity, value);
 			}
 			//else if(registry.all_of<Components::Effects::Regeneration>(item)
 			// Do something
@@ -93,10 +91,8 @@ public:
 				const auto& base_values_component = registry.get<Components::BaseValues>(entity);
 				const auto& value = registry.get<Components::Effects::Speed>(item_unequipped_component.item).value;
 
-				glm::vec2 acceleration_to_add = base_values_component.acceleration * (value / 100.0f);
-				glm::vec2 max_velocity_to_add = base_values_component.max_velocity * (value / 100.0f);
-				physics_component.acceleration -= acceleration_to_add;
-				physics_component.max_velocity -= max_velocity_to_add;
+				auto change_speed = registry.create();
+				registry.emplace<Components::ChangeSpeed>(change_speed, entity, -value);
 			}
 		}
 	}

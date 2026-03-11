@@ -61,13 +61,8 @@ public:
 					{
 						const auto& [distance, enemy] = enemy_queue.top();
 
-						if (registry.all_of<Components::Health>(enemy))
-						{
-							auto& enemy_health = registry.get<Components::Health>(enemy);
-
-							auto damage_entity = registry.create();
-							registry.emplace<Components::Damage>(damage_entity, enemy, weapon, damage);
-						}
+						auto damage_entity = registry.create();
+						registry.emplace<Components::Damage>(damage_entity, enemy, weapon, damage);
 					}
 				}
 			}

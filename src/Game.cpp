@@ -77,6 +77,14 @@ Game::Game(graphics::Renderer& screen)
 	inventory->addItem(ItemManager::get().getItemID("Common_Boots"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Big_Armor"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Fast_Helmet"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Snow_Bow"), 1);
+	inventory->addItem(ItemManager::get().getItemID("Dagger_With_Poison"), 1);
+
+
+	//Test accessories
+	auto& accessories = registry.get<Components::Equipment>(player).accessories;
+	accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Magic_Boots"), 1));
+	accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
 }
 
 Game::~Game()
@@ -120,6 +128,9 @@ void Game::initSystems()
 	open_chest_system = std::make_unique<OpenChestSystem>(registry);
 	drop_chest_loot_system = std::make_unique<DropChestLootSystem>(registry);
 	health_regeneration_system = std::make_unique<HealthRegenerationSystem>(registry);
+	apply_weapon_effects_system = std::make_unique<ApplyWeaponEffects>(registry);
+	apply_effects_system = std::make_unique<ApplyEffects>(registry);
+	render_accessories_system = std::make_unique<RenderAccessoriesSystem>(registry, ui_settings);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -506,6 +517,8 @@ void Game::update(float dt)
 			collect_essence_system->update(player);
 			open_chest_system->update();
 			health_regeneration_system->update(dt);
+			apply_weapon_effects_system->update(dt);
+			apply_effects_system->update(dt);
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
 			const auto& player_pos = player_transform.position;
@@ -570,6 +583,7 @@ void Game::render(float dt) const
 			render_weapon_menu_system->render(screen, player);
 			render_health_bar_system->render(screen);
 			chest_window_system->render(screen);
+			render_accessories_system->update(player, screen);
 			world->renderHelp(screen);
 		}
 		break;

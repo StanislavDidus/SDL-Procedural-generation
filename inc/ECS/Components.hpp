@@ -332,6 +332,7 @@ namespace Components
 		float time = 0.5f;
 		float timer = 0.0f;
 		bool active = false;
+		graphics::Color base_color = graphics::Color::WHITE;
 	};
 
 	struct HealthBar
@@ -437,11 +438,46 @@ namespace Components
 		};
 	} // namespace Effects
 
+	struct AddEffect
+	{
+		Entity target;
+		Entity source;
+	};
+
+	struct EffectDuration
+	{
+		Entity target;
+		Entity source;
+
+		float time = 0.0f;
+		float timer = 0.0f;
+	};
+
+	struct RemoveEffect
+	{
+		Entity target;
+	};
+
+	struct ChangeSpeed
+	{
+		Entity target;
+		float value = 0.0f; // Value in percents. Positive - increase speed. Negative - decrease speed.
+	};
+
 	namespace WeaponEffects
 	{
 		struct Freeze
 		{
 			float value = 0.0f;
+			float duration = 0.0f;
+		};
+
+		struct Poison
+		{
+			float value = 0.0f; // Damage per second
+			float duration = 0.0f;
+			
+			float timer = 0.0f;
 		};
 	}
 

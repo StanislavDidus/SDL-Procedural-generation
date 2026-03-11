@@ -12,11 +12,11 @@ namespace graphics
 	public:
 		Surface() = default;
 		Surface(const std::filesystem::path& path);
-		Surface(TTF_Font* font, const std::string& text, Color color = Color::BLACK);
+		Surface(TTF_Font* font, const std::string& text, Color color = Color::BLACK, std::optional<int> wrapped_width = std::nullopt);
 		~Surface();
 
 		bool loadImage(const std::filesystem::path& path);
-		bool loadText(TTF_Font* font, const std::string& text, Color color);
+		bool loadText(TTF_Font* font, const std::string& text, Color color, std::optional<int> wrapped_length);
 
 		SDL_Surface* getSurface() const;
 	private:

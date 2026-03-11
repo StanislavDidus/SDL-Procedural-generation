@@ -50,6 +50,8 @@
                 <rect x="32" y="48" w="32" h="32" name="Big_Armor" />
                 <rect x="64" y="48" w="32" h="32" name="Fast_Helmet" />
                 <rect x="96" y="48" w="32" h="32" name="Snow_Bow" />
+                <rect x="112" y="0" w="32" h="32" name="Poison_Dagger" />
+                <rect x="144" y="0" w="34" h="34" name="Fire_Emblem" />
             </rectListing>
             <scaleMode>NEAREST</scaleMode>
         </sprite>

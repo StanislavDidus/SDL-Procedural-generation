@@ -9,7 +9,7 @@
 namespace graphics
 {
 
-	Text::Text(const Font* font, Renderer& renderer, const std::string& text, Color color) : text(text), font(font), color(color)
+	Text::Text(const Font* font, Renderer& renderer, const std::string& text, Color color, std::optional<int> wrapped_width) : text(text), font(font), color(color), wrapped_width(wrapped_width)
 	{
 		generateTextTexture(renderer);
 	}
@@ -57,6 +57,12 @@ namespace graphics
 		is_dirty = true;
 	}
 
+	void Text::setWrappedWidth(int wrapped_width)
+	{
+		this->wrapped_width = wrapped_width;
+		is_dirty = true;
+	}
+
 	void Text::updateText(Renderer& renderer)
 	{
 		//If current text is equal to new text then we don't do anything
@@ -86,7 +92,7 @@ namespace graphics
 		if (texture)
 			SDL_DestroyTexture(texture);
 
-		Surface surface{ font->getFont(), text, color };
+		Surface surface{ font->getFont(), text, color, wrapped_width};
 
 		loadTexture(renderer, surface);
 	}
