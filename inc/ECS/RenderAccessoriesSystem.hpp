@@ -10,9 +10,10 @@
 class RenderAccessoriesSystem
 {
 public:
-	RenderAccessoriesSystem(entt::registry& registry, const UISettings& ui_settings) 
+	RenderAccessoriesSystem(entt::registry& registry, const UISettings& ui_settings, std::shared_ptr<ItemDescriptionSystem> item_description_system = nullptr) 
 		: registry{registry}
 		, ui_settings{ ui_settings }
+		, item_description_system{item_description_system}
 	{
 	}
 
@@ -22,7 +23,6 @@ public:
 		{
 			const auto& equipment = registry.get<Components::Equipment>(target_entity);
 
-			
 			int i = 0;
 			for (const auto& accessory : equipment.accessories)
 			{
@@ -32,7 +32,7 @@ public:
 				int x = i % ui_settings.accessories_columns;
 				int y = i / ui_settings.accessories_columns;
 
-				if (y > ui_settings.accessories_rows) break;
+				if (y >= ui_settings.accessories_rows) break;
 
 				graphics::drawScaledSprite
 				(
@@ -53,4 +53,5 @@ public:
 private:
 	entt::registry& registry;
 	const UISettings& ui_settings;
+	std::shared_ptr<ItemDescriptionSystem> item_description_system;
 };

@@ -17,7 +17,6 @@ public:
 			{
 				registry.emplace<Components::CraftItem>(entity, craft_button_component.recipe_id);
 			}
-
 		}
 
 		auto view2 = registry.view<Components::ButtonReleased, Components::Chest, Components::Transform>(entt::exclude<Components::Closed_Chest>);

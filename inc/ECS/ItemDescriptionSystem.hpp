@@ -43,6 +43,26 @@ public:
 		text.erase(text.begin() + comma_position + digits_after_comma + 1, text.end());
 	}
 
+	void drawItemDescription(graphics::Renderer& screen, float x, float y, Entity item) const
+	{
+		const auto& item_component = registry.get<Components::InventoryItems::Item>(item);
+		int number_item_properties = 0;
+		countProperties(item_component.id, number_item_properties);
+
+		const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
+
+		//Clamp the position to a screen
+		float draw_x = std::max(0.f, x);
+		float draw_y = std::max(0.f, y);
+
+		draw_x = std::min(draw_x, window_size.x - ui_settings.item_description_label_width);
+		draw_y = std::min(draw_y, window_size.y - (ui_settings.item_description_label_height + number_item_properties * ui_settings.item_description_icon_height));
+
+		renderDescriptionLabel(screen, draw_x, draw_y, item_component, number_item_properties);
+
+		renderItemComponents(screen, draw_x + ui_settings.item_description_components_offset_x, draw_y + ui_settings.item_description_label_height, item);
+	}
+
 	void render(graphics::Renderer& screen, Entity target_entity) const
 	{
 		if (auto inventory_view_s = inventory_view.lock())
@@ -64,24 +84,7 @@ public:
 				float draw_x = slot_global_position.x - ui_settings.item_description_label_width * 0.5f;
 				float draw_y = slot_global_position.y + slot_size.y;
 
-				const auto& item_info = registry.get<Components::InventoryItems::Item>(*item);
-
-				//Count how many properties an item has
-				int number_item_properties = 0;
-				countProperties(item_info.id, number_item_properties);
-
-				const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
-
-				//Clamp the position to a screen
-				draw_x = std::max(0.f, draw_x);
-				draw_y = std::max(0.f, draw_y);
-
-				draw_x = std::min(draw_x, window_size.x - ui_settings.item_description_label_width);
-				draw_y = std::min(draw_y, window_size.y - (ui_settings.item_description_label_height + number_item_properties * ui_settings.item_description_icon_height));
-
-				renderDescriptionLabel(screen, draw_x, draw_y, item_info, number_item_properties);
-
-				renderItemComponents(screen, draw_x + ui_settings.item_description_components_offset_x, draw_y + ui_settings.item_description_label_height, *item);
+				drawItemDescription(screen, draw_x, draw_y, *item);
 			}
 			//Otherwise check if mouse is on any of the crafting recipes
 			else

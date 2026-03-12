@@ -70,10 +70,10 @@ struct UISettings
 	float essence_text_space = 10.0f * ui_scale;
 
 	// Accessories display
-	float accessories_position_x = 10.0f * ui_scale;
-	float accessories_position_y = 430.0f * ui_scale;
 	float accessories_icon_size_x = 40.0f * ui_scale;
 	float accessories_icon_size_y = 40.0f * ui_scale;
+	float accessories_position_x = 10.0f * ui_scale;
+	float accessories_position_y = 540.0f - accessories_icon_size_y - 60.0f - accessories_icon_size_y;
 
 	int accessories_rows = 2;
 	int accessories_columns = 5;

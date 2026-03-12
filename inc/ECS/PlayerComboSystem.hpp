@@ -11,17 +11,15 @@ class PlayerComboSystem
 public:
 	PlayerComboSystem(entt::registry& registry, const std::shared_ptr<EnemySpawnSystem>& enemy_spawn_system) : registry{ registry }, enemy_spawn_system(enemy_spawn_system) {}
 
-	void update(float dt, Entity target_entity)
+	void update(float dt)
 	{
 		auto enemy_spawn_system_s = enemy_spawn_system.lock();
 		if (!enemy_spawn_system_s)
 			return;
 
-		if (registry.all_of<Components::Transform, Components::Equipment>(target_entity))
+		auto view = registry.view<Components::Transform, Components::Equipment>();
+		for (auto [ entity, player_transform_component, player_equipment_component] : view.each())
 		{
-			auto& player_transform_component = registry.get<Components::Transform>(target_entity);
-			auto& player_equipment_component = registry.get<Components::Equipment>(target_entity);
-
 			for (auto& weapon : player_equipment_component.weapons)
 			{
 				auto& weapon_properties = registry.get<Components::InventoryItems::WeaponComponent>(weapon);

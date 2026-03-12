@@ -501,7 +501,7 @@ void Game::update(float dt)
 			manage_button_actions_system->update(player, screen);
 			craft_system->update(player);
 			enemy_ai_system->update(dt, player);
-			player_combo_system->update(dt, player);
+			player_combo_system->update(dt);
 			apply_damage_system->update(dt);
 			display_hit_marks_system->update(dt);
 			render_weapon_circle_system->update(dt);
