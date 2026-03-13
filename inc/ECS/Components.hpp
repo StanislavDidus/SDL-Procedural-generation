@@ -27,6 +27,7 @@ namespace Components
 		glm::vec2 size;
 		glm::vec2 acceleration;
 		glm::vec2 max_velocity;
+		float gravity;
 	};
 
 	struct Transform
@@ -283,6 +284,7 @@ namespace Components
 	struct Equipment
 	{
 		int max_weapon = 0;
+		int max_accessories = 0;
 		std::vector<Entity> weapons;
 		Entity pickaxe = entt::null;
 		Entity helmet = entt::null;
@@ -435,6 +437,11 @@ namespace Components
 		struct HealthBonus
 		{
 			float value = 0.0f;
+		};
+
+		struct DecreaseGravity
+		{
+			float value; ///< Percentage.
 		};
 	} // namespace Effects
 

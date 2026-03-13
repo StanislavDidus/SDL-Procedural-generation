@@ -83,6 +83,21 @@ public:
 	}
 
 private:
+	/*template<typename T>
+	void addEffect(Entity target, const T& component_value)
+	{
+		if (!registry.all_of<T>(target))
+		{
+			registry.emplace<T>(target, component_value);
+		
+		}
+		else
+		{
+			auto& component = registry.get<T>(target);
+			component += component_value;
+		}
+	}*/
+
 	entt::registry& registry;
 	float timer = 0.0f;
 };

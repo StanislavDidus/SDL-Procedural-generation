@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <lootListing>
     <baseLoot>
-        <item ref="Apple" weight="10" min_quantity="2" max_quantity="5" />
+        <item ref="Health_Amulet" weight="10" min_quantity="2" max_quantity="5" />
     </baseLoot>
     <commonLoot>
         <item ref="Health_Amulet" weight="10" min_quantity="1" max_quantity="1" />

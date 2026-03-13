@@ -19,13 +19,31 @@ public:
 			//if (inventory_component.inventory->full()) continue;
 			if (registry.all_of<Components::HasInventory>(target))
 			{
-				auto& inventory_component = registry.get<Components::HasInventory>(target);
-				bool result = inventory_component.inventory->addItem(item);
-				to_destroy.emplace_back(entity);
+				bool drop_item = true;
+				if (registry.all_of<Components::InventoryItems::Accessory>(item))
+				{
+					// Check if player has enough space for new accessory
+					const auto& equipment = registry.get<Components::Equipment>(target);
+					if (equipment.accessories.size() < equipment.max_accessories)
+					{
+						registry.emplace<Components::EquipItem>(target, item);
+					}
+					else
+					{
+						drop_item = false;
+					}
+					to_destroy.emplace_back(entity);
+				}
+				else
+				{
+					auto& inventory_component = registry.get<Components::HasInventory>(target);
+					if (!inventory_component.inventory->addItem(item)) drop_item = false;
+					to_destroy.emplace_back(entity);
+				}
 				
 				// If adding an item to the inventory failed
 				// We drop it
-				if (result == false)
+				if (drop_item == false)
 				{
 					auto drop_entity = registry.create();
 					registry.emplace<Components::DropItem>(drop_entity, target, item);
@@ -46,7 +64,7 @@ public:
 				auto& inventory_component = registry.get<Components::HasInventory>(target);
 				bool result = inventory_component.inventory->addItem(item);
 				to_destroy.emplace_back(entity);
-				
+
 				if (result)
 				{
 					registry.destroy(source);

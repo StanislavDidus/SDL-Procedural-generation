@@ -129,7 +129,7 @@ private:
 	std::unique_ptr<CraftSystem> craft_system;
 	std::unique_ptr<RenderCraftingUISystem> render_crafting_ui_system;
 	std::unique_ptr<RenderWeaponMenuSystem> render_weapon_menu_system;
-	std::unique_ptr<ItemDescriptionSystem> item_description_system;
+	std::shared_ptr<ItemDescriptionSystem> item_description_system;
 	std::unique_ptr<RenderSystem> render_system;
 	std::unique_ptr<EnemyAISystem> enemy_ai_system;
 	std::unique_ptr<ApplyDamageSystem> apply_damage_system;

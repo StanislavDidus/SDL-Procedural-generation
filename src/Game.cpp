@@ -83,8 +83,8 @@ Game::Game(graphics::Renderer& screen)
 
 	//Test accessories
 	auto& accessories = registry.get<Components::Equipment>(player).accessories;
-	accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Magic_Boots"), 1));
-	accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
+	//accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Magic_Boots"), 1));
+	//accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
 }
 
 Game::~Game()
@@ -105,7 +105,7 @@ void Game::initSystems()
 	button_system = std::make_unique<ButtonSystem>(registry);
 	craft_system = std::make_unique<CraftSystem>(registry);
 	render_crafting_ui_system = std::make_unique<RenderCraftingUISystem>(registry, ui_settings);
-	item_description_system = std::make_unique<ItemDescriptionSystem>(registry, ResourceManager::get().getFont("Main"), inventory_view, ui_settings);
+	item_description_system = std::make_shared<ItemDescriptionSystem>(registry, ResourceManager::get().getFont("Main"), inventory_view, ui_settings);
 	render_system = std::make_unique<RenderSystem>(registry);
 	render_weapon_menu_system = std::make_unique<RenderWeaponMenuSystem>(registry, ui_settings);
 	enemy_ai_system = std::make_unique<EnemyAISystem>(registry);
@@ -130,7 +130,7 @@ void Game::initSystems()
 	health_regeneration_system = std::make_unique<HealthRegenerationSystem>(registry);
 	apply_weapon_effects_system = std::make_unique<ApplyWeaponEffects>(registry);
 	apply_effects_system = std::make_unique<ApplyEffects>(registry);
-	render_accessories_system = std::make_unique<RenderAccessoriesSystem>(registry, ui_settings);
+	render_accessories_system = std::make_unique<RenderAccessoriesSystem>(registry, ui_settings, item_description_system);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -365,6 +365,7 @@ void Game::initPlayer()
 	base.size = { 35.0f, 40.0f };
 	base.acceleration = { 1500.0f, 0.0f };
 	base.max_velocity = { 250.0f, 200.0f };
+	base.gravity = 1400.0f;
 
 	auto& ts = registry.emplace<Components::Transform>(player);
 	ts.position = glm::vec2{ 400.0f, -500.f };
@@ -419,7 +420,7 @@ void Game::initPlayer()
 
 	registry.emplace<Components::CraftingAbility>(player);
 
-	registry.emplace<Components::Equipment>(player, 2);
+	registry.emplace<Components::Equipment>(player, 2, 10);
 	registry.emplace<Components::EquipmentEssence>(player);
 
 	auto& animation = registry.emplace<Components::CharacterAnimation>(player);

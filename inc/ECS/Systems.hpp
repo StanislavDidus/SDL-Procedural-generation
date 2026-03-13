@@ -838,7 +838,7 @@ public:
 				//Boots
 				if (registry.all_of<Components::InventoryItems::Boots>(equip_item_component.item))
 				{
-						if (equipment_component.boots != entt::null)
+					if (equipment_component.boots != entt::null)
 					{
 						registry.get<Components::InventoryItems::Item>(equipment_component.boots).equipped = false;
 						//Make sure that previous boots are properly unequipped
@@ -849,6 +849,16 @@ public:
 					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
 					item_info.equipped = true;
 					was_equipped = true;
+				}
+
+				//Accessory
+				if (registry.all_of<Components::InventoryItems::Accessory>(equip_item_component.item))
+				{
+					if (equipment_component.accessories.size() < equipment_component.max_accessories)
+					{
+						equipment_component.accessories.push_back(equip_item_component.item);
+						was_equipped = true;
+					}
 				}
 
 				if (was_equipped)

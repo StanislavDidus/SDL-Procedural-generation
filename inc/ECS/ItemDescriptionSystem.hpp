@@ -143,6 +143,10 @@ private:
 		{
 			number_properties += 1;
 		}
+		if (registry.all_of<Components::Effects::HealthBonus>(item))
+		{
+			number_properties += 1;
+		}
 		if (registry.all_of<Components::InventoryItems::PickaxeComponent>(item))
 		{
 			number_properties += 3;
@@ -269,6 +273,14 @@ private:
 		{
 			graphics::Color color = {255, 255, 255, 255};
 			graphics::Text text{ font, screen, {"Grants you an ability to double jump"}, color };
+			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+		}
+		else if (registry.all_of<Components::Effects::HealthBonus>(item))
+		{
+			const auto& value = registry.get<Components::Effects::HealthBonus>(item).value;
+			std::string str_text = std::format("Increases your max health by {}", value);
+			graphics::Color color = {255, 255, 255, 255};
+			graphics::Text text{ font, screen, str_text, color };
 			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
 		}
 		else if (registry.all_of<Components::Effects::Big>(item))
