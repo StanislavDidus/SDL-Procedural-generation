@@ -155,7 +155,8 @@
         <action>EQUIP</action>
         <components>
             <component id="Armor" />
-            <component id="Big_Bonus" value="2" />
+            <component id="Big_Bonus" value="100" />
+            <components id="Spike" value="10" />
         </components>
     </item>
     <item id="Fast_Helmet">
@@ -164,7 +165,7 @@
         <action>EQUIP</action>
         <components>
             <component id="Helmet" />
-            <component id="Speed_Bonus" value="25"/>
+            <component id="Speed_Bonus" value="50"/>
         </components>
     </item>
     <item id="Snow_Bow">
@@ -190,6 +191,33 @@
         <spriteIndex>24</spriteIndex>
         <action>EQUIP</action>
         <components>
+        </components>
+    </item>
+    <item id="Astronaut_Suit">
+        <canStack>false</canStack>
+        <spriteIndex>26</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="Accessory" />
+            <component id="DecreaseGravity" value="20" />
+        </components>
+    </item>
+    <item id="War_Hammer">
+        <canStack>false</canStack>
+        <spriteIndex>27</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="WeaponComponent" damage="50" cooldown="1.5" radius="170" /> 
+            <component id="StunEffect" duration="0.3" />
+        </components>
+    </item>
+    <item id="Common_Belt">
+        <canStack>false</canStack>
+        <spriteIndex>19</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="Accessory" />
+            <component id="IncreaseWeaponSlots" value="2" />
         </components>
     </item>
 </itemListing>

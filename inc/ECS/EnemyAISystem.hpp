@@ -36,7 +36,7 @@ public:
 					registry.get<Components::Renderable>(entity).flip_mode = SDL_FLIP_HORIZONTAL;
 			}
 
-			if (ai_component.last_position == transform_component.position)
+			if (ai_component.last_position == transform_component.position && physics_component.can_move_horizontal)
 			{
 				jump_component.jump_held = true;
 			}

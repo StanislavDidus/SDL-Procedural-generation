@@ -27,7 +27,9 @@ namespace Components
 		glm::vec2 size;
 		glm::vec2 acceleration;
 		glm::vec2 max_velocity;
-		float gravity;
+		float gravity = 1400.0f;
+		float max_health;
+		int max_weapons;
 	};
 
 	struct Transform
@@ -55,6 +57,7 @@ namespace Components
 		glm::vec2 max_velocity{};
 		float decelaration{};
 		bool is_ground = false;
+		float gravity = 1400.0f;
 
 		glm::vec2 base_acceleration = acceleration;
 	};
@@ -70,6 +73,9 @@ namespace Components
 		float jump_force;
 		bool jump_pressed_this_frame;
 		bool jump_held;
+
+		int jump_count = 1;
+		int max_jump_count = 1;
 	};
 
 	struct MineIntent
@@ -171,29 +177,34 @@ namespace Components
 	struct UseItem
 	{
 		size_t item_id;
+		Entity target;
 	};
 
 	// Notify that target tries to equip an item
 	struct EquipItem
 	{
 		Entity item;
+		Entity target;
 	};
 
 	struct UnequipItem
 	{
 		Entity item;
+		Entity target;
 	};
 
 	// Notify that item was equipped
 	struct ItemEquipped
 	{
 		Entity item;
+		Entity target;
 	};
 
 	// Notify that item was unequipped
 	struct ItemUnequipped
 	{
 		Entity item;
+		Entity target;
 	};
 
 	// Entity is going to drop an item
@@ -428,11 +439,6 @@ namespace Components
 		{
 			float value = 1.0f;
 		};
-
-		struct Speed
-		{
-			float value = 1.0f;
-		};
 		
 		struct HealthBonus
 		{
@@ -443,27 +449,18 @@ namespace Components
 		{
 			float value; ///< Percentage.
 		};
+
+		struct IncreaseWeaponSlots
+		{
+			int value;
+		};
+
+		//Enemies take damage when they hit you
+		struct Spike
+		{
+			float value;
+		};
 	} // namespace Effects
-
-	struct AddEffect
-	{
-		Entity target;
-		Entity source;
-	};
-
-	struct EffectDuration
-	{
-		Entity target;
-		Entity source;
-
-		float time = 0.0f;
-		float timer = 0.0f;
-	};
-
-	struct RemoveEffect
-	{
-		Entity target;
-	};
 
 	struct ChangeSpeed
 	{
@@ -473,18 +470,34 @@ namespace Components
 
 	namespace WeaponEffects
 	{
+		struct Effect
+		{
+			Entity target;
+			Entity source;
+		};
+		struct EffectDuration
+		{
+			float time = 0.0f;
+			float timer = 0.0f;
+		};
 		struct Freeze
 		{
 			float value = 0.0f;
-			float duration = 0.0f;
+		};
+
+		struct SpeedBoost
+		{
+			float value = 0.0f;
 		};
 
 		struct Poison
 		{
 			float value = 0.0f; // Damage per second
-			float duration = 0.0f;
-			
 			float timer = 0.0f;
+		};
+
+		struct Stun
+		{
 		};
 	}
 

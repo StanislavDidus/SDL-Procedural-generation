@@ -163,7 +163,7 @@ private:
 		{
 			number_properties += 1;	
 		}
-		if (registry.all_of<Components::Effects::Speed>(item))
+		if (registry.all_of<Components::WeaponEffects::SpeedBoost>(item))
 		{
 			number_properties += 1;	
 		}
@@ -172,6 +172,18 @@ private:
 			number_properties += 1;
 		}
 		if (registry.all_of<Components::WeaponEffects::Poison>(item))
+		{
+			number_properties += 1;
+		}
+		if (registry.all_of<Components::Effects::DecreaseGravity>(item))
+		{
+			number_properties += 2;
+		}
+		if (registry.all_of<Components::WeaponEffects::Stun>(item))
+		{
+			number_properties += 1;
+		}
+		if (registry.all_of<Components::Effects::IncreaseWeaponSlots>(item))
 		{
 			number_properties += 1;
 		}
@@ -272,48 +284,49 @@ private:
 		if (registry.all_of<Components::Effects::DoubleJump>(item))
 		{
 			graphics::Color color = {255, 255, 255, 255};
-			graphics::Text text{ font, screen, {"Grants you an ability to double jump"}, color };
-			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+			renderItemDescription(screen, x, y, "Grants you an ability to double jump");
+		}
+		else if (registry.all_of<Components::Effects::DecreaseGravity>(item))
+		{
+			const auto& value = registry.get<Components::Effects::DecreaseGravity>(item).value;
+			renderItemDescription(screen, x, y, "Gravity fields affects you {} percent less", value);
 		}
 		else if (registry.all_of<Components::Effects::HealthBonus>(item))
 		{
 			const auto& value = registry.get<Components::Effects::HealthBonus>(item).value;
-			std::string str_text = std::format("Increases your max health by {}", value);
-			graphics::Color color = {255, 255, 255, 255};
-			graphics::Text text{ font, screen, str_text, color };
-			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+			renderItemDescription(screen, x, y, "Increases your max health by {}", value);
 		}
 		else if (registry.all_of<Components::Effects::Big>(item))
 		{
 			const auto& value = registry.get<Components::Effects::Big>(item).value;
-			std::string str_text = std::format("Makes you {} times bigger", value);
-			graphics::Color color = {255, 255, 255, 255};
-			graphics::Text text{ font, screen, str_text, color };
-			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+			renderItemDescription(screen, x, y, "Makes you {} percent bigger", value);
 		}
-		else if (registry.all_of<Components::Effects::Speed>(item))
+		else if (registry.all_of<Components::WeaponEffects::SpeedBoost>(item))
 		{
-			const auto& value = registry.get<Components::Effects::Speed>(item).value;
-			std::string str_text = std::format("Makes you {} percent faster", value);
-			graphics::Color color = {255, 255, 255, 255};
-			graphics::Text text{ font, screen, str_text, color };
-			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+			const auto& value = registry.get<Components::WeaponEffects::SpeedBoost>(item).value;
+			renderItemDescription(screen, x, y, "Makes you {} percent faster", value);
 		}
 		else if (registry.all_of<Components::WeaponEffects::Freeze>(item))
 		{
 			const auto& freeze = registry.get<Components::WeaponEffects::Freeze>(item);
-			std::string str_text = std::format("Applies {} percent freeze on enemies for {} second", freeze.value, freeze.duration);
-			graphics::Color color = {255,255,255,255};
-			graphics::Text text{ font, screen, str_text, color, 550};
-			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+			const auto& effect_duration = registry.get<Components::WeaponEffects::EffectDuration>(item);
+			renderItemDescription(screen, x, y, "Apples {} percent freeze on enemies for {} seconds", freeze.value, effect_duration.time);
 		}
 		else if (registry.all_of<Components::WeaponEffects::Poison>(item))
 		{
 			const auto& poison = registry.get<Components::WeaponEffects::Poison>(item);
-			std::string str_text = std::format("Poisons enemies on hit and deals {} damage for {} seconds", poison.value, poison.duration);
-			graphics::Color color = {255,255,255,255};
-			graphics::Text text{ font, screen, str_text, color, 550};
-			graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+			const auto& effect_duration = registry.get<Components::WeaponEffects::EffectDuration>(item);
+			renderItemDescription(screen, x, y, "Poisons enemies on hit and deals {} damage for {} seconds", poison.value, effect_duration.time);
+		}
+		else if (registry.all_of<Components::WeaponEffects::Stun>(item))
+		{
+			const auto& effect_duration = registry.get<Components::WeaponEffects::EffectDuration>(item);
+			renderItemDescription(screen, x, y, "Stuns enemies for {} seconds", effect_duration.time);
+		}
+		else if (registry.all_of<Components::Effects::IncreaseWeaponSlots>(item))
+		{
+			const auto& increase = registry.get<Components::Effects::IncreaseWeaponSlots>(item);
+			renderItemDescription(screen, x, y, "Increases maximum weapon carry capacity by {}", increase.value);
 		}
 	}
 
@@ -334,6 +347,15 @@ private:
 		graphics::Text pickaxe_text{ font, screen, text, text_color };
 		graphics::drawScaledSprite(screen, sprite, x, y, ui_settings.item_description_icon_width, ui_settings.item_description_icon_height, graphics::IGNORE_VIEW_ZOOM);
 		graphics::printTextScaled(screen, pickaxe_text, x + ui_settings.item_description_icon_width, y + 12.5f, ui_settings.item_recipe_text_scale_x, ui_settings.item_recipe_text_scale_y, graphics::IGNORE_VIEW_ZOOM);
+	}
+
+	template<typename... T>
+	void renderItemDescription(graphics::Renderer& screen, float x, float y, std::format_string<T...> text_, T&&... args) const
+	{
+		auto str_text = std::format(text_, args...);
+		graphics::Color color = {255,255,255,255};
+		graphics::Text text{ font, screen, str_text, color, 550};
+		graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
 	}
 
 	const graphics::Font* font;	

@@ -37,6 +37,75 @@ static Entity getRandomizedItem(entt::registry& registry, const RandomizedItem& 
 	}
 }
 
+template<typename T>
+std::vector<Entity> getEffects(entt::registry& registry, Entity target)
+{
+	std::vector<Entity> effects;
+	std::set<Entity> found_entities;
+	auto view = registry.view<Components::WeaponEffects::Effect, T>();
+	for (auto [entity, effect_component, weapon_effect_component] : view.each())
+	{
+		if (effect_component.target == target && !found_entities.contains(effect_component.source))
+		{
+			effects.push_back(entity);
+			found_entities.emplace(effect_component.source);
+		}
+	}
+	return effects;
+}
+
+template<typename T>
+bool isEffectApplied(entt::registry& registry, Entity target)
+{
+	int i = 0;
+	auto view = registry.view<Components::WeaponEffects::Effect, T>();
+	for (auto [entity, effect] : view.each())
+	{
+		if (effect.target == target) ++i;
+	}
+	return i != 0;
+}
+
+inline void removeEffectFromSource(entt::registry& registry, Entity target, Entity source)
+{
+	std::vector<Entity> to_destroy;
+	auto view = registry.view<Components::WeaponEffects::Effect>();
+	for (auto [entity, effect_component] : view.each())
+	{
+		if (effect_component.source == source && effect_component.target == target)
+		{
+			to_destroy.emplace_back(entity);
+		}
+	}
+
+	for (const auto& entity : to_destroy)
+	{
+		registry.destroy(entity);
+	}
+}
+// Get stacked WeaponEffect value
+// Specified effect has to have a variable called "value"
+/*
+template<typename T>
+T getEffectValue(entt::registry& registry, Entity target)
+{
+	T total;
+	std::set<Entity> found_sources;
+
+	auto view = registry.view<Components::WeaponEffects::Effect, T>();
+	for (auto [entity, effect_component, weapon_effect_component] : view.each())
+	{
+		if (effect_component.target == target)
+			if (!found_sources.contains(effect_component.source))
+			{
+				total += weapon_effect_component;
+				found_sources.emplace(effect_component.source);
+			}
+	}
+	return total;
+}
+*/
+
 /// <summary>
 /// Static function that takes an item and randomly decides whether add the item to the given target.
 /// Quantities are also generated randomly based on the variables defined in <b>RandomizedItem</b> class.
@@ -98,14 +167,18 @@ struct PhysicsSystem
 		for (auto [entity, ts, ph] : view.each())
 		{
 			//Add gravity
-			float gravity = 1400.f;
+			float gravity = ph.gravity;
 			ph.velocity.y += gravity * dt;
 
 			ts.position.y += ph.velocity.y * dt;
 
-			if (ph.can_move_horizontal) ts.position.x += ph.velocity.x * dt;
+			if (ph.can_move_horizontal)
+			{
+				ts.position.x += ph.velocity.x * dt;
+			}
 
 			ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
+
 		}
 	}
 
@@ -400,39 +473,32 @@ struct JumpSystem
 	void update(float dt)
 	{
 		//Jump for common entities
-		auto view = registry.view<Components::Physics, Components::Jump>(entt::exclude<Components::Effects::DoubleJump>);
+		auto view = registry.view<Components::Physics, Components::Jump>();
 		for (auto [entity, ph, j] : view.each())
 		{
-			if (j.jump_held && ph.is_ground)
+			if (ph.is_ground)
 			{
-				ph.velocity.y -= j.jump_force;
-				j.jump_held = false;
-				ph.is_ground = false;
+				if (j.jump_held)
+				{
+					//Jump
+					ph.velocity.y = -j.jump_force;
+					j.jump_held = false;
+					ph.is_ground = false;
+				}
 			}
-		}
-
-		//Jump for entities that have double jump
-		auto view2 = registry.view<Components::Physics, Components::Jump, Components::Effects::DoubleJump>();
-		for (auto [entity, ph, j, dj] : view2.each())
-		{
-			if (j.jump_held && ph.is_ground)
-			{	
-				ph.velocity.y -= j.jump_force;
-				j.jump_held = false;
-				ph.is_ground = false;
-				//std::cout << "Common Jump" << std::endl;
-			}
-			else if (j.jump_pressed_this_frame && dj.is_active)
+			else if (j.jump_count - 1 >= 1)
 			{
-				ph.velocity.y = 0.0f;
-				ph.velocity.y -= j.jump_force;
-				j.jump_pressed_this_frame = false;
-				dj.is_active = false;
-				//std::cout << "Double Jump" << std::endl;
+				if (j.jump_pressed_this_frame)
+				{
+					//Jump
+					ph.velocity.y = -j.jump_force;
+					j.jump_pressed_this_frame = false;
+					ph.is_ground = false;
+					j.jump_count--;
+				}
 			}
-
-			//Reset double_jump if target touches the ground
-			if (ph.is_ground) dj.is_active = true;
+			  
+			if (ph.is_ground) j.jump_count = j.max_jump_count;
 		}
 	}
 
@@ -733,208 +799,241 @@ private:
 class ItemUsageSystem
 {
 public:
-	ItemUsageSystem(entt::registry& registry, Entity& target_entity)
-		: target_entity(target_entity)
-		, registry(registry)
+	ItemUsageSystem(entt::registry& registry)
+		: registry(registry)
 	{
 	}
 
 	void update()
 	{
 		//Remove Item Equip/Unequip components after one frame
-		registry.remove<Components::ItemEquipped>(target_entity);
-		registry.remove<Components::ItemUnequipped>(target_entity);
+		std::vector<Entity> to_destroy;
 
-		if (registry.all_of<Components::Equipment>(target_entity))
+		// Delete all tag components after one frame
 		{
-			auto& equipment_component = registry.get<Components::Equipment>(target_entity);
+			for (auto [entity, item_equipped_component] : registry.view<Components::ItemEquipped>().each()) to_destroy.push_back(entity);
+			for (auto [entity, item_equipped_component] : registry.view<Components::ItemUnequipped>().each()) to_destroy.push_back(entity);
+		}
 
-			if (registry.all_of<Components::UseItem>(target_entity))
+		//--------------------------------//
+		//......EQUIP............ITEM.....//
+		//--------------------------------//
+		auto view = registry.view<Components::EquipItem>();
+		for (auto [entity, equip_item_component] : view.each())
+		{
+			Entity target = equip_item_component.target;
+
+			if (!registry.all_of<Components::Equipment>(target)) continue;
+
+			auto& equipment_component = registry.get<Components::Equipment>(target);
+			bool was_equipped = false;
+
+			// Pickaxe 
+			if (registry.all_of<Components::InventoryItems::PickaxeComponent>(equip_item_component.item))
 			{
-				auto& use_item_component = registry.get<Components::UseItem>(target_entity);
-				const auto& item_properties = ItemManager::get().getProperties(use_item_component.item_id);
-				const auto& item = ItemManager::get().getItem(use_item_component.item_id);
-
-				if (registry.all_of<Components::InventoryItems::HealComponent>(item))
+				if (equipment_component.pickaxe != entt::null)
 				{
-					const auto& heal_component = registry.get<Components::InventoryItems::HealComponent>(item);
-					auto& health_component = registry.get<Components::Health>(target_entity);
-					health_component.current_health = std::min(health_component.max_health, health_component.current_health + heal_component.value);
+					registry.get<Components::InventoryItems::Item>(equipment_component.pickaxe).equipped = false;
 				}
 
-				registry.erase<Components::UseItem>(target_entity);
+				equipment_component.pickaxe = equip_item_component.item;
+				auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
+				item_info.equipped = true;
+
+				// Set mining properties (speed, radius, size)
+				if (registry.all_of<Components::MiningAbility>(target))
+				{
+					const auto& pickaxe_component = registry.get<Components::InventoryItems::PickaxeComponent>(equip_item_component.item);
+					auto& mining_ability = registry.get<Components::MiningAbility>(target);
+					mining_ability.speed = pickaxe_component.speed;
+					mining_ability.radius = pickaxe_component.radius;
+					mining_ability.max_size = pickaxe_component.size;
+					mining_ability.current_size = std::clamp(mining_ability.current_size, 1, mining_ability.max_size);
+				}
+				was_equipped = true;
 			}
-			if (registry.all_of<Components::EquipItem>(target_entity))
+
+			// Melee weapon
+			if (registry.all_of<Components::InventoryItems::WeaponComponent>(equip_item_component.item))
 			{
-				bool was_equipped = false;
-				auto& equip_item_component = registry.get<Components::EquipItem>(target_entity);
-
-				// Pickaxe 
-				if (registry.all_of<Components::InventoryItems::PickaxeComponent>(equip_item_component.item))
+				if (equipment_component.weapons.size() < equipment_component.max_weapon)
 				{
-					if (equipment_component.pickaxe != entt::null)
-					{
-						registry.get<Components::InventoryItems::Item>(equipment_component.pickaxe).equipped = false;
-					}
-
-					equipment_component.pickaxe = equip_item_component.item;
-					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
-					item_info.equipped = true;
-
-					// Set mining properties (speed, radius, size)
-					if (registry.all_of<Components::MiningAbility>(target_entity))
-					{
-						const auto& pickaxe_component = registry.get<Components::InventoryItems::PickaxeComponent>(equip_item_component.item);
-						auto& mining_ability = registry.get<Components::MiningAbility>(target_entity);
-						mining_ability.speed = pickaxe_component.speed;
-						mining_ability.radius = pickaxe_component.radius;
-						mining_ability.max_size = pickaxe_component.size;
-						mining_ability.current_size = std::clamp(mining_ability.current_size, 1, mining_ability.max_size);
-					}
+					registry.get<Components::Equipment>(target).weapons.emplace_back(equip_item_component.item);
+					registry.get<Components::InventoryItems::Item>(equip_item_component.item).equipped = true;
 					was_equipped = true;
 				}
-
-				// Melee weapon
-				if (registry.all_of<Components::InventoryItems::WeaponComponent>(equip_item_component.item))
-				{
-					if (equipment_component.weapons.size() < equipment_component.max_weapon)
-					{
-						registry.get<Components::Equipment>(target_entity).weapons.emplace_back(equip_item_component.item);
-						registry.get<Components::InventoryItems::Item>(equip_item_component.item).equipped = true;
-						was_equipped = true;
-					}
-				}
-
-				//Helmet
-				if (registry.all_of<Components::InventoryItems::Helmet>(equip_item_component.item))
-				{
-					if (equipment_component.helmet != entt::null)
-					{
-						registry.get<Components::InventoryItems::Item>(equipment_component.helmet).equipped = false;
-						registry.emplace<Components::ItemUnequipped>(target_entity, equipment_component.helmet);
-					}
-
-					equipment_component.helmet = equip_item_component.item;
-					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
-					item_info.equipped = true;
-					was_equipped = true;
-				}
-
-				//Armor
-				if (registry.all_of<Components::InventoryItems::Armor>(equip_item_component.item))
-				{
-					if (equipment_component.armor != entt::null)
-					{
-						registry.get<Components::InventoryItems::Item>(equipment_component.armor).equipped = false;
-						registry.emplace<Components::ItemUnequipped>(target_entity, equipment_component.armor);
-					}
-
-					equipment_component.armor = equip_item_component.item;
-					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
-					item_info.equipped = true;
-					was_equipped = true;
-				}
-
-				//Boots
-				if (registry.all_of<Components::InventoryItems::Boots>(equip_item_component.item))
-				{
-					if (equipment_component.boots != entt::null)
-					{
-						registry.get<Components::InventoryItems::Item>(equipment_component.boots).equipped = false;
-						//Make sure that previous boots are properly unequipped
-						registry.emplace<Components::ItemUnequipped>(target_entity, equipment_component.boots);
-					}
-
-					equipment_component.boots = equip_item_component.item;
-					auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
-					item_info.equipped = true;
-					was_equipped = true;
-				}
-
-				//Accessory
-				if (registry.all_of<Components::InventoryItems::Accessory>(equip_item_component.item))
-				{
-					if (equipment_component.accessories.size() < equipment_component.max_accessories)
-					{
-						equipment_component.accessories.push_back(equip_item_component.item);
-						was_equipped = true;
-					}
-				}
-
-				if (was_equipped)
-				{
-					registry.emplace<Components::ItemEquipped>(target_entity, equip_item_component.item);
-				}
-				registry.erase<Components::EquipItem>(target_entity);
-			}	
-
-			if (registry.all_of<Components::UnequipItem>(target_entity))
-			{
-				bool was_unequipped = false;
-				auto& unequip_item_component = registry.get<Components::UnequipItem>(target_entity);
-				
-				if (registry.all_of<Components::InventoryItems::PickaxeComponent>(unequip_item_component.item))
-				{
-					equipment_component.pickaxe = entt::null;
-					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
-					was_unequipped = true;
-
-					// Set mining properties (speed, radius, size)
-					if (registry.all_of<Components::MiningAbility>(target_entity))
-					{
-						auto& mining_ability = registry.get<Components::MiningAbility>(target_entity);
-						mining_ability.speed = BASE_MINING_SPEED;
-						mining_ability.radius = BASE_MINING_RADIUS;
-						mining_ability.max_size = BASE_MINING_SIZE;
-						mining_ability.current_size = std::clamp(mining_ability.current_size, 1, mining_ability.max_size);
-					}
-				}
-
-				// Melee weapon
-				if (registry.all_of<Components::InventoryItems::WeaponComponent>(unequip_item_component.item))
-				{
-					auto& weapon_array = registry.get<Components::Equipment>(target_entity).weapons;
-					weapon_array.erase(std::ranges::remove(weapon_array, unequip_item_component.item).begin(), weapon_array.end());
-					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
-					was_unequipped = true;
-				}
-
-
-				//Helmet
-				if (registry.all_of<Components::InventoryItems::Helmet>(unequip_item_component.item))
-				{
-					equipment_component.helmet = entt::null;
-					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
-					was_unequipped = true;
-				}
-
-				//Armor
-				if (registry.all_of<Components::InventoryItems::Armor>(unequip_item_component.item))
-				{
-					equipment_component.armor = entt::null;
-					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
-					was_unequipped = true;
-				}
-
-				//Boots
-				if (registry.all_of<Components::InventoryItems::Boots>(unequip_item_component.item))
-				{
-					equipment_component.boots = entt::null;
-					registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
-					was_unequipped = true;
-				}
-
-				if (was_unequipped)
-					registry.emplace<Components::ItemUnequipped>(target_entity, unequip_item_component.item);
-				registry.erase<Components::UnequipItem>(target_entity);
 			}
+
+			//Helmet
+			if (registry.all_of<Components::InventoryItems::Helmet>(equip_item_component.item))
+			{
+				if (equipment_component.helmet != entt::null)
+				{
+					registry.get<Components::InventoryItems::Item>(equipment_component.helmet).equipped = false;
+					unequipItem(equipment_component.helmet, target);
+				}
+
+				equipment_component.helmet = equip_item_component.item;
+				auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
+				item_info.equipped = true;
+				was_equipped = true;
+			}
+
+			//Armor
+			if (registry.all_of<Components::InventoryItems::Armor>(equip_item_component.item))
+			{
+				if (equipment_component.armor != entt::null)
+				{
+					registry.get<Components::InventoryItems::Item>(equipment_component.armor).equipped = false;
+					unequipItem(equipment_component.armor, target);
+				}
+
+				equipment_component.armor = equip_item_component.item;
+				auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
+				item_info.equipped = true;
+				was_equipped = true;
+			}
+
+			//Boots
+			if (registry.all_of<Components::InventoryItems::Boots>(equip_item_component.item))
+			{
+				if (equipment_component.boots != entt::null)
+				{
+					registry.get<Components::InventoryItems::Item>(equipment_component.boots).equipped = false;
+					unequipItem(equipment_component.boots, target);
+
+				}
+
+				equipment_component.boots = equip_item_component.item;
+				auto& item_info = registry.get<Components::InventoryItems::Item>(equip_item_component.item);
+				item_info.equipped = true;
+				was_equipped = true;
+			}
+
+			//Accessory
+			if (registry.all_of<Components::InventoryItems::Accessory>(equip_item_component.item))
+			{
+				if (equipment_component.accessories.size() < equipment_component.max_accessories)
+				{
+					equipment_component.accessories.push_back(equip_item_component.item);
+					was_equipped = true;
+				}
+			}
+
+			if (was_equipped)
+			{
+				auto item_equipped_entity = registry.create();
+				registry.emplace<Components::ItemEquipped>(item_equipped_entity, equip_item_component.item, target);
+			}
+			to_destroy.push_back(entity);
+		
+		}
+		//--------------------------------//
+		//....UNEQUIP............ITEM.....//
+		//--------------------------------//
+		auto view1 = registry.view<Components::UnequipItem>();
+		for (auto [entity, unequip_item_component] : view1.each())
+		{
+			Entity target = unequip_item_component.target;
+
+			if (!registry.all_of<Components::Equipment>(target)) continue;
+
+			auto& equipment_component = registry.get<Components::Equipment>(target);
+			bool was_unequipped = false;
+			
+			if (registry.all_of<Components::InventoryItems::PickaxeComponent>(unequip_item_component.item))
+			{
+				equipment_component.pickaxe = entt::null;
+				registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+				was_unequipped = true;
+
+				// Set mining properties (speed, radius, size)
+				if (registry.all_of<Components::MiningAbility>(target))
+				{
+					auto& mining_ability = registry.get<Components::MiningAbility>(target);
+					mining_ability.speed = BASE_MINING_SPEED;
+					mining_ability.radius = BASE_MINING_RADIUS;
+					mining_ability.max_size = BASE_MINING_SIZE;
+					mining_ability.current_size = std::clamp(mining_ability.current_size, 1, mining_ability.max_size);
+				}
+			}
+
+			// Melee weapon
+			if (registry.all_of<Components::InventoryItems::WeaponComponent>(unequip_item_component.item))
+			{
+				auto& weapon_array = registry.get<Components::Equipment>(target).weapons;
+				weapon_array.erase(std::ranges::remove(weapon_array, unequip_item_component.item).begin(), weapon_array.end());
+				registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+				was_unequipped = true;
+			}
+
+
+			//Helmet
+			if (registry.all_of<Components::InventoryItems::Helmet>(unequip_item_component.item))
+			{
+				equipment_component.helmet = entt::null;
+				registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+				was_unequipped = true;
+			}
+
+			//Armor
+			if (registry.all_of<Components::InventoryItems::Armor>(unequip_item_component.item))
+			{
+				equipment_component.armor = entt::null;
+				registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+				was_unequipped = true;
+			}
+
+			//Boots
+			if (registry.all_of<Components::InventoryItems::Boots>(unequip_item_component.item))
+			{
+				equipment_component.boots = entt::null;
+				registry.get<Components::InventoryItems::Item>(unequip_item_component.item).equipped = false;
+				was_unequipped = true;
+			}
+
+			if (was_unequipped)
+			{
+				auto item_unequipped = registry.create();
+				registry.emplace<Components::ItemUnequipped>(item_unequipped, unequip_item_component.item, target);
+			}
+			to_destroy.push_back(entity);
+		}
+		//--------------------------------//
+		//......USE..............ITEM.....//
+		//--------------------------------//
+		auto view2 = registry.view<Components::UseItem>();
+		for (auto [entity, use_item_component] : view2.each())
+		{
+			Entity target = use_item_component.target;
+
+			const auto& item_properties = ItemManager::get().getProperties(use_item_component.item_id);
+			const auto& item = ItemManager::get().getItem(use_item_component.item_id);
+
+			if (registry.all_of<Components::InventoryItems::HealComponent>(item))
+			{
+				const auto& heal_component = registry.get<Components::InventoryItems::HealComponent>(item);
+				auto& health_component = registry.get<Components::Health>(target);
+				health_component.current_health = std::min(health_component.max_health, health_component.current_health + heal_component.value);
+			}
+
+			to_destroy.push_back(entity);
+		}
+
+		for (const auto& entity : to_destroy)
+		{
+			registry.destroy(entity);
 		}
 	}
 
 
 private:
+	void unequipItem(Entity item, Entity target)
+	{
+		auto entity = registry.create();
+		registry.emplace<Components::UnequipItem>(entity, item, target);
+	}
 	entt::registry& registry;
-	Entity& target_entity;
 };
 
 

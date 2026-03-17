@@ -33,7 +33,8 @@ void Inventory::useItem(int slot, Entity target_entity, entt::registry& registry
 	{
 	case ItemAction::USE:
 	{
-		registry.emplace<Components::UseItem>(target_entity, item_info.id);
+		auto use_item_entity = registry.create();
+		registry.emplace<Components::UseItem>(use_item_entity, item_info.id, target_entity);
 		item_info.stack_number--;
 
 		if (item_info.stack_number <= 0)
@@ -48,11 +49,13 @@ void Inventory::useItem(int slot, Entity target_entity, entt::registry& registry
 	case ItemAction::EQUIP:
 		if (!item_info.equipped)
 		{
-			registry.emplace<Components::EquipItem>(target_entity, *item);
+			auto equip_item_entity = registry.create();
+			registry.emplace<Components::EquipItem>(equip_item_entity, *item, target_entity);
 		}
 		else if (item_info.equipped)
 		{
-			registry.emplace<Components::UnequipItem>(target_entity, *item);
+			auto unequip_item_entity = registry.create();
+			registry.emplace<Components::UnequipItem>(unequip_item_entity, *item, target_entity);
 		}
 		break;
 	case ItemAction::NONE:

@@ -30,21 +30,41 @@ public:
 				// Decrease health points
 				registry.get<Components::Health>(damage_component.target).current_health -= damage_component.value;
 
+				//Hit the source if has Spike effect active
+				for (const auto& effect : getEffects<Components::Effects::Spike>(registry, damage_component.target))
+				{
+					float value = registry.get<Components::Effects::Spike>(effect).value;
+					auto spike_damage_entity = registry.create();
+					registry.emplace<Components::Damage>(spike_damage_entity, damage_component.source, entt::null, value);
+				}
+
 				// Slowdown enemy if weapon has Freeze effect
-				if (registry.all_of<Components::WeaponEffects::Freeze>(damage_component.source))
+				if (registry.all_of<Components::WeaponEffects::Freeze, Components::WeaponEffects::EffectDuration>(damage_component.source))
 				{
 					const auto& freeze_component = registry.get<Components::WeaponEffects::Freeze>(damage_component.source);
+					const auto& effect_duration_component = registry.get<Components::WeaponEffects::EffectDuration>(damage_component.source);
 					auto effect_entity = registry.create();
-					registry.emplace<Components::AddEffect>(effect_entity, damage_component.target, damage_component.source);
 					registry.emplace<Components::WeaponEffects::Freeze>(effect_entity, freeze_component);
+					registry.emplace<Components::WeaponEffects::Effect>(effect_entity, damage_component.target, damage_component.source);
+					registry.emplace<Components::WeaponEffects::EffectDuration>(effect_entity, effect_duration_component.time);
 				}
 				// Deal damage every second
-				if (registry.all_of<Components::WeaponEffects::Poison>(damage_component.source))
+				if (registry.all_of<Components::WeaponEffects::Poison, Components::WeaponEffects::EffectDuration>(damage_component.source))
 				{
 					const auto& poison_component = registry.get<Components::WeaponEffects::Poison>(damage_component.source);
+					const auto& effect_duration_component = registry.get<Components::WeaponEffects::EffectDuration>(damage_component.source);
 					auto effect_entity = registry.create();
-					registry.emplace<Components::AddEffect>(effect_entity, damage_component.target, damage_component.source);
 					registry.emplace<Components::WeaponEffects::Poison>(effect_entity, poison_component);
+					registry.emplace<Components::WeaponEffects::Effect>(effect_entity, damage_component.target, damage_component.source);
+					registry.emplace<Components::WeaponEffects::EffectDuration>(effect_entity, effect_duration_component.time);
+				}
+				if (registry.all_of<Components::WeaponEffects::Stun, Components::WeaponEffects::EffectDuration>(damage_component.source))
+				{
+					const auto& effect_duration_component = registry.get<Components::WeaponEffects::EffectDuration>(damage_component.source);
+					auto effect_entity = registry.create();
+					registry.emplace<Components::WeaponEffects::Stun>(effect_entity);
+					registry.emplace<Components::WeaponEffects::Effect>(effect_entity, damage_component.target, damage_component.source);
+					registry.emplace<Components::WeaponEffects::EffectDuration>(effect_entity, effect_duration_component.time);
 				}
 
 				// Place a hit mark

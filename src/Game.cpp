@@ -48,7 +48,7 @@ Game::Game(graphics::Renderer& screen)
 	initChestLoot();
 
 	text = std::make_unique<Text>(ResourceManager::get().getFont("Main"), screen, "Player");
-	world = std::make_shared<World>(generation_data, registry, collision_system, 500, 200, 20.f, 20.f);
+	world = std::make_shared<World>(generation_data, registry, collision_system, 500, 200, 20.f, 20.f, screen);
 
 	initUserInterface();
 	initSystems();
@@ -57,7 +57,7 @@ Game::Game(graphics::Renderer& screen)
 	initPlayerAnimations();
 
 	initPlayer();
-	item_usage_system = std::make_shared<ItemUsageSystem>(registry, player);
+	item_usage_system = std::make_shared<ItemUsageSystem>(registry);
 	render_weapon_circle_system = std::make_unique<RenderWeaponCircle>(registry, player);
 	craft_view = std::make_unique<CraftView>(registry, player, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
 	inventory_view->setTargetEntity(player);
@@ -71,7 +71,7 @@ Game::Game(graphics::Renderer& screen)
 	inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 10);
 	inventory->addItem(ItemManager::get().getItemID("Wood"), 20);
 	inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
-	inventory->addItem(ItemManager::get().getItemID("Gold"), 10);
+	inventory->addItem(ItemManager::get().getItemID("Common_Belt"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Magic_Boots"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Common_Boots"), 1);
@@ -79,11 +79,13 @@ Game::Game(graphics::Renderer& screen)
 	inventory->addItem(ItemManager::get().getItemID("Fast_Helmet"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Snow_Bow"), 1);
 	inventory->addItem(ItemManager::get().getItemID("Dagger_With_Poison"), 1);
+	inventory->addItem(ItemManager::get().getItemID("War_Hammer"), 1);
 
 
 	//Test accessories
 	auto& accessories = registry.get<Components::Equipment>(player).accessories;
-	//accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Magic_Boots"), 1));
+	registry.emplace<Components::EquipItem>(player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Astronaut_Suit"), 1));
+	//registry.emplace_or_replace<Components::EquipItem>(player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Common_Belt"), 1));
 	//accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
 }
 
@@ -101,7 +103,7 @@ void Game::initSystems()
 	mining_tiles_system = std::make_unique<MiningTilesSystem>(registry, *world, 20.f, 20.f);
 	mining_objects_system = std::make_unique<MiningObjectsSystem>(registry, *world, 20.f, 20.f);
 	place_system = std::make_unique<PlaceSystem>(registry, *world, 20.f, 20.f);
-	item_usage_system = std::make_shared<ItemUsageSystem>(registry, player);
+	item_usage_system = std::make_shared<ItemUsageSystem>(registry);
 	button_system = std::make_unique<ButtonSystem>(registry);
 	craft_system = std::make_unique<CraftSystem>(registry);
 	render_crafting_ui_system = std::make_unique<RenderCraftingUISystem>(registry, ui_settings);
@@ -128,9 +130,10 @@ void Game::initSystems()
 	open_chest_system = std::make_unique<OpenChestSystem>(registry);
 	drop_chest_loot_system = std::make_unique<DropChestLootSystem>(registry);
 	health_regeneration_system = std::make_unique<HealthRegenerationSystem>(registry);
-	apply_weapon_effects_system = std::make_unique<ApplyWeaponEffects>(registry);
+	update_effects_system = std::make_unique<UpdateEffects>(registry);
 	apply_effects_system = std::make_unique<ApplyEffects>(registry);
 	render_accessories_system = std::make_unique<RenderAccessoriesSystem>(registry, ui_settings, item_description_system);
+	enemy_spawn_manager = std::make_unique<EnemySpawnManager>(enemy_spawn_system);
 
 	world->setCollisionSystem(collision_system);
 }
@@ -193,7 +196,7 @@ void Game::initNoiseSettings()
 	{
 		NoiseSettings& settings = generation_data.noise_settings[NoiseType::TEMPERATURE];
 		settings.octaves = 1;
-		settings.frequency = 0.05f;
+		settings.frequency = 0.1f;
 		settings.amplitude = 1.0f;
 	}
 
@@ -201,7 +204,7 @@ void Game::initNoiseSettings()
 	{
 		NoiseSettings& settings = generation_data.noise_settings[NoiseType::MOISTURE];
 		settings.octaves = 2;
-		settings.frequency = 0.0f;
+		settings.frequency = 0.05f;
 		settings.amplitude = 1.2f;
 	}
 
@@ -384,6 +387,8 @@ void Game::initPlayer()
 	
 	physics.max_velocity = glm::vec2{ 250.0f, 200.0f };
 	physics.decelaration = 5.0f;
+	physics.gravity = 1400.0f;
+	base.gravity = physics.gravity;
 
 	auto& physics_step = registry.emplace<Components::PhysicStep>(player);
 	physics_step.max_step_height = 20.0f;
@@ -414,6 +419,7 @@ void Game::initPlayer()
 	auto& health = registry.emplace<Components::Health>(player);
 	health.max_health = 100.0f;
 	health.current_health = 100.0f;
+	base.max_health = health.max_health;
 
 	auto& regeneration = registry.emplace<Components::Regeneration>(player);
 	regeneration.speed = 0.5f;
@@ -421,6 +427,7 @@ void Game::initPlayer()
 	registry.emplace<Components::CraftingAbility>(player);
 
 	registry.emplace<Components::Equipment>(player, 2, 10);
+	base.max_weapons = 2;
 	registry.emplace<Components::EquipmentEssence>(player);
 
 	auto& animation = registry.emplace<Components::CharacterAnimation>(player);
@@ -518,8 +525,9 @@ void Game::update(float dt)
 			collect_essence_system->update(player);
 			open_chest_system->update();
 			health_regeneration_system->update(dt);
-			apply_weapon_effects_system->update(dt);
+			update_effects_system->update(dt);
 			apply_effects_system->update(dt);
+			enemy_spawn_manager->update(dt);
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
 			const auto& player_pos = player_transform.position;

@@ -10,7 +10,7 @@ namespace graphics
 
 	SpriteSheet::SpriteSheet(graphics::Renderer& renderer, const Surface& surface, const SpriteList& sprite_list, SDL_ScaleMode scale_mode)
 	{
-		auto texture = loadTexture(renderer, surface, scale_mode);
+		loadTexture(renderer, surface, scale_mode);
 
 		for (const auto& sprite : sprite_list)
 		{
@@ -40,18 +40,23 @@ namespace graphics
 	}
 	*/
 
-	Texture SpriteSheet::loadTexture(graphics::Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode)
+	Texture SpriteSheet::getTexture() const
 	{
-		auto* texture = SDL_CreateTextureFromSurface(renderer.get(), surface.getSurface());
+		return texture;
+	}
 
-		SDL_SetTextureScaleMode(texture, scale_mode);
+	void SpriteSheet::loadTexture(graphics::Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode)
+	{
+		auto* sdl_texture = SDL_CreateTextureFromSurface(renderer.get(), surface.getSurface());
 
-		if (!texture)
+		SDL_SetTextureScaleMode(sdl_texture, scale_mode);
+
+		if (!sdl_texture)
 		{
 			std::cerr << "ERROR: Could not load a texture: " << SDL_GetError() << std::endl;
 		}
 
-		return Texture{ texture, SDL_DestroyTexture };
+		texture = Texture{ sdl_texture, SDL_DestroyTexture };
 	}
 
 } // namespace graphics

@@ -25,7 +25,7 @@ public:
 			{
 				size_t max_items = ItemManager::get().maxItems();
 				int rand = glm::linearRand(0, static_cast<int>(max_items) - 1);
-				drop_item_chest_component.last_sprite = rand;
+				drop_item_chest_component.last_sprite = ItemManager::get().getProperties(registry, ItemManager::get().getItem(rand)).sprite_index;
 				drop_item_chest_component.last_update = drop_item_chest_component.timer;
 			}
 			else if (DROP_TIME - drop_item_chest_component.timer <= SHOW_TIME)

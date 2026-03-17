@@ -104,6 +104,21 @@ void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphi
 #endif
 }
 
+void EnemySpawnSystem::setEnemySpawnTime(float time)
+{
+	spawn_time = time;
+}
+
+void EnemySpawnSystem::setMaxEnemy(int number)
+{
+	max_enemies = number;
+}
+
+void EnemySpawnSystem::setEnemiesToSpawn(int number)
+{
+	enemies_to_spawn = number;
+}
+
 Entity EnemySpawnSystem::createEntity(size_t id) const
 {
 	auto entity = EnemyManager::get().createEnemy(registry, id);

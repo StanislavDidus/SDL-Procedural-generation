@@ -39,7 +39,8 @@ public:
 		entt::registry& registry,
 		std::shared_ptr<TileCollisionSystem> collision_system,
 		int width_tiles, int height_tiles,
-		float tile_width_world, float tile_height_world
+		float tile_width_world, float tile_height_world,
+		graphics::Renderer& screen
 	);
 	~World() = default;
 
@@ -52,7 +53,7 @@ public:
 	void setCollisionSystem(std::shared_ptr<TileCollisionSystem> collision_system);
 
 	void update(const graphics::Renderer& screen, float dt, const glm::vec2& target);
-	void render(graphics::Renderer& screen) const;
+	void render(graphics::Renderer& screen);
 
 	void renderHelp(graphics::Renderer& screen) const;
 
@@ -93,6 +94,8 @@ private:
 
 	void removeTileCave(const glm::ivec2& position);
 
+	void addTileToVertexBuffer(const graphics::Renderer& screen, int x, int y, std::vector<VertexQuad>& quads) const;
+
 	std::optional<ObjectProperties> getProperties(int id) const;
 	const TileProperties& getTileProperties(int id) const;
 	//std::map<BlockType, int> tile_presets;
@@ -123,4 +126,9 @@ private:
 
 	int world_width_tiles;
 	int world_height_tiles;
+
+	graphics::Renderer& screen;
+
+	std::vector<SDL_Vertex> vertices;
+	std::vector<int> indices;
 };

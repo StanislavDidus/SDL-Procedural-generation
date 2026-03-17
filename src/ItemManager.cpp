@@ -110,7 +110,22 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 			else if (strcmp(component_name, "Speed_Bonus") == 0)
 			{
 				float value = component_node->FloatAttribute("value");
-				registry.emplace_or_replace<Components::Effects::Speed>(item, value);
+				registry.emplace_or_replace<Components::WeaponEffects::SpeedBoost>(item, value);
+			}
+			else if (strcmp(component_name, "DecreaseGravity") == 0)
+			{
+				float value = component_node->FloatAttribute("value");
+				registry.emplace_or_replace<Components::Effects::DecreaseGravity>(item, value);
+			}
+			else if (strcmp(component_name, "IncreaseWeaponSlots") == 0)
+			{
+				int value = component_node->IntAttribute("value");
+				registry.emplace_or_replace<Components::Effects::IncreaseWeaponSlots>(item, value);
+			}
+			else if (strcmp(component_name, "Spike") == 0)
+			{
+				float value = component_node->FloatAttribute("value");
+				registry.emplace_or_replace<Components::Effects::Spike>(item, value);
 			}
 
 			//Weapon Effects
@@ -118,13 +133,21 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 			{
 				float value = component_node->FloatAttribute("value");
 				float duration = component_node->FloatAttribute("duration");
-				registry.emplace_or_replace<Components::WeaponEffects::Freeze>(item, value, duration);
+				registry.emplace_or_replace<Components::WeaponEffects::Freeze>(item, value);
+				registry.emplace_or_replace<Components::WeaponEffects::EffectDuration>(item, duration);
 			}
 			else if (strcmp(component_name, "WeaponPoisonEffect") == 0)
 			{
 				float value = component_node->FloatAttribute("value");
 				float duration = component_node->FloatAttribute("duration");
-				registry.emplace_or_replace<Components::WeaponEffects::Poison>(item, value, duration);
+				registry.emplace_or_replace<Components::WeaponEffects::Poison>(item, value);
+				registry.emplace_or_replace<Components::WeaponEffects::EffectDuration>(item, duration);
+			}
+			else if (strcmp(component_name, "StunEffect") == 0)
+			{
+				float duration = component_node->FloatAttribute("duration");
+				registry.emplace_or_replace<Components::WeaponEffects::Stun>(item);
+				registry.emplace_or_replace<Components::WeaponEffects::EffectDuration>(item, duration);
 			}
 		}
 	}

@@ -26,10 +26,26 @@ public:
 	void PlaceCircleSlots(const Components::Equipment& equipment)
 	{
 		// Instantiate empty slots around a player
+
+		std::vector<CircleWeapon> temp = circle_slots;
+
+		circle_slots.clear();
 		float angle_between = 360.0f / equipment.max_weapon;
 		for (int i = 0; i < equipment.max_weapon; ++i)
 		{
 			circle_slots.emplace_back(entt::null, 35.0f, angle_between * i, false);
+		}
+
+		// Restore the old weapons
+		for (const auto& circle_weapon : temp)
+		{
+			bool result = putItemInSlot(circle_weapon.entity);
+
+			if (!result)
+			{
+				auto unequip_item_entity = registry.create();
+				registry.emplace<Components::UnequipItem>(unequip_item_entity, circle_weapon.entity, target_entity);
+			}
 		}
 	}
 
@@ -40,42 +56,39 @@ public:
 		const auto& player_transform_component = registry.get<Components::Transform>(target_entity);
 		const auto& player_equipment_component = registry.get<Components::Equipment>(target_entity);
 
-		// Add new circle_slots to the "Circle"
-		if (registry.all_of<Components::ItemEquipped>(target_entity))
+		// Store the last weapon capacity of the player
+		// Reconstruct circle weapon slots if values are not the same
+		if (last_weapon_capacity != player_equipment_component.max_weapon)
 		{
-			const auto& item_equipped_component = registry.get<Components::ItemEquipped>(target_entity);
-			const auto& item_properties = ItemManager::get().getProperties(registry, item_equipped_component.item);
-			
-			// Store the last weapon capacity of the player
-			// Reconstruct circle weapon slots if values are not the same
-			if (last_weapon_capacity != player_equipment_component.max_weapon)
-			{
-				PlaceCircleSlots(player_equipment_component);
-			}
-			last_weapon_capacity = player_equipment_component.max_weapon;
+			PlaceCircleSlots(player_equipment_component);
+		}
+		last_weapon_capacity = player_equipment_component.max_weapon;
 
-			// If item is a weapon
-			if (registry.all_of<Components::InventoryItems::WeaponComponent>(item_equipped_component.item))
+		// Add new circle_slots to the "Circle"
+		auto view = registry.view<Components::ItemEquipped>();
+		for (auto [entity, item_equipped_component] : view.each())
+		{
+			auto target = item_equipped_component.target;
+
+			if (target == target_entity)
 			{
-				auto free_circle_slot = std::ranges::find_if(circle_slots, [](const CircleWeapon& cw) {return cw.entity == entt::null; });
-				if (free_circle_slot != circle_slots.end())
+				// If item is a weapon
+				if (registry.all_of<Components::InventoryItems::WeaponComponent>(item_equipped_component.item))
 				{
-					auto& slot = *free_circle_slot;
-					slot.entity = item_equipped_component.item;
+					putItemInSlot(item_equipped_component.item);
 				}
 			}
 		}
 		
 		// Unequip item
-		if (registry.all_of<Components::ItemUnequipped>(target_entity))
+		auto view1 = registry.view<Components::ItemUnequipped>();
+		for (auto [entity, item_unequipped_component] : view1.each())
 		{
-			/*circle_slots.erase(std::ranges::remove_if(circle_slots,))*/
-			const auto& item_unequipped_component = registry.get<Components::ItemUnequipped>(target_entity);
-			//circle_slots.erase(std::ranges::remove_if(circle_slots, [unequip_item_component](const CircleWeapon& display_weapon) {return display_weapon.item == unequip_item_component.item; }).begin(), circle_slots.end());
+			auto target = item_unequipped_component.target;
 
-			for (auto& slot : circle_slots)
+			if (target == target_entity)
 			{
-				if (slot.entity == item_unequipped_component.item) slot.entity = entt::null;
+				removeItemInSlot(item_unequipped_component.item);
 			}
 		}
 		
@@ -126,6 +139,29 @@ public:
 	}
 
 private:
+	bool putItemInSlot(Entity item) ///< Return false on failure
+	{
+		auto free_circle_slot = std::ranges::find_if(circle_slots, [](const CircleWeapon& cw) {return cw.entity == entt::null; });
+		if (free_circle_slot != circle_slots.end())
+		{
+			auto& slot = *free_circle_slot;
+			slot.entity = item;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	void removeItemInSlot(Entity item)
+	{
+		for (auto& slot : circle_slots)
+		{
+			if (slot.entity == item) slot.entity = entt::null;
+		}
+	}
+
 	entt::registry& registry;
 	std::vector<CircleWeapon> circle_slots;
 	Entity target_entity;

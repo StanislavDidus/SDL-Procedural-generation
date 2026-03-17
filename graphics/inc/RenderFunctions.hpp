@@ -52,6 +52,25 @@ namespace graphics
 		return camera_rect;
 	}
 
+	inline void zoomPoint(const Renderer& renderer, float& x, float& y) noexcept
+	{
+		const glm::vec2 mid_screen{
+			static_cast<float>(renderer.getWindowSize().x) / 2.f,
+			static_cast<float>(renderer.getWindowSize().y) / 2.f
+		};
+
+		const float zoom = renderer.getZoom();
+
+		x -= mid_screen.x;
+		y -= mid_screen.y;
+
+		x *= zoom;
+		y *= zoom;
+
+		x += mid_screen.x;
+		y += mid_screen.y;
+	}
+
 	inline void zoomRect(const Renderer& renderer, SDL_FRect& rect) noexcept
 	{
 		const glm::vec2 mid_screen{
@@ -117,19 +136,11 @@ namespace graphics
 
 		setColor(renderer, color);
 
-		float x_ = x - view_position.x;
-		float y_ = y - view_position.y;
+		glm::vec2 p{ x, y };
+		p -= view_position;
+		zoomPoint(renderer, p.x, p.y);
 
-		x_ -= mid_screen.x;
-		y_ -= mid_screen.y;
-
-		x_ *= zoom;
-		y_ *= zoom;
-
-		x_ += mid_screen.x;
-		y_ += mid_screen.y;
-
-		SDL_RenderPoint(renderer.get(), x_, y_);
+		SDL_RenderPoint(renderer.get(), x, y);
 	}
 
 	inline void drawLine(Renderer& renderer, int x1, int y1, int x2, int y2, const Color& color)

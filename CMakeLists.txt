@@ -113,9 +113,11 @@ set(HEADER_FILES
     "inc/ECS/DropChestLootSystem.hpp"
     "inc/DrunkWalker.hpp"
     "inc/ECS/HealthRegenerationSystem.hpp"
-    "inc/ECS/ApplyWeaponEffects.hpp"
+    "inc/ECS/UpdateEffects.hpp"
     "inc/ECS/ApplyEffects.hpp"
     "inc/ECS/RenderAccessoriesSystem.hpp"
+    "inc/EnemySpawnManager.hpp"
+    "inc/VertexBuffer.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

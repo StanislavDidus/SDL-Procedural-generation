@@ -26,7 +26,8 @@ public:
 					const auto& equipment = registry.get<Components::Equipment>(target);
 					if (equipment.accessories.size() < equipment.max_accessories)
 					{
-						registry.emplace<Components::EquipItem>(target, item);
+						auto equip_item_entity = registry.create();
+						registry.emplace<Components::EquipItem>(equip_item_entity, item, target);
 					}
 					else
 					{

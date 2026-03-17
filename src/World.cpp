@@ -6,7 +6,11 @@
 #include <ranges>
 
 #include "ResourceManager.hpp"
+#include "ViewportGuard.hpp"
 #include "WorldHelper.hpp"
+#include "ECS/ApplyArmorEffects.hpp"
+#include "ECS/ApplyArmorEffects.hpp"
+#include "VertexBuffer.hpp"
 
 namespace
 {
@@ -14,14 +18,14 @@ namespace
 	std::minstd_rand rng(rd());
 }
 
-
 World::World
 (
 	const GenerationData& generation_data,
 	entt::registry& registry,
 	std::shared_ptr<TileCollisionSystem> collision_system,
 	int width_tiles, int height_tiles,
-	float tile_width_world, float tile_height_world
+	float tile_width_world, float tile_height_world,
+	graphics::Renderer& screen
 )
 	: generation_data(generation_data)
 	, registry(registry)
@@ -33,6 +37,7 @@ World::World
 	, tile_height_world(tile_height_world)
 	, world_width_chunks(static_cast<float>(width_tiles) / chunk_width_tiles)
 	, world_height_chunks(static_cast<float>(height_tiles) / chunk_height_tiles)
+	, screen(screen)
 {
 
 }
@@ -63,16 +68,77 @@ void World::update(const graphics::Renderer& screen, float dt, const glm::vec2& 
 	camera_rect = rect;
 }
 
-void World::render(graphics::Renderer& screen) const
+/*void World::render(graphics::Renderer& screen) const
 {
-	float chunk_width_tiles = 25.f;
-	float chunk_height_tiles = 25.f;
+	{
+	//Render tiles
+	const auto& view_position = screen.getView();
+	graphics::ViewportGuard viewport_guard{ screen, SDL_Rect(-view_position.x, -view_position.y, 960 + view_position.x, 540 + view_position.y) };
+	const auto& tile_set = ResourceManager::get().getSpriteSheet("tiles");
+	for (const auto& chunk : chunks)
+	{
+		if (SDL_HasRectIntersectionFloat(&camera_rect, &chunk.rect))
+		{
+			const auto& tile_set = ResourceManager::get().getSpriteSheet("tiles");
+			const auto& vertex_buffer = chunk.vertex_buffer;
+			SDL_RenderGeometry(screen.get(), tile_set->getTexture().get(), vertex_buffer.vertices.data(), vertex_buffer.vertices_size, vertex_buffer.indices.data(), vertex_buffer.indices_size);
+		}
+	}
+	}
+
+	{
+		//Render objects
+		for (const auto& chunk : chunks)
+		{
+			if (SDL_HasRectIntersectionFloat(&camera_rect, &chunk.rect))
+			{
+				for (const auto& object : chunk.objects)
+				{
+					if (SDL_HasRectIntersectionFloat(&camera_rect, &object.rect))
+					{
+						int sprite_index = ObjectManager::get().getProperties(object.properties_id).sprite_index;
+						graphics::drawScaledSprite(screen, (*ResourceManager::get().getSpriteSheet("objects"))[sprite_index], object.rect.x, object.rect.y, object.rect.w, object.rect.h);
+					}
+				}
+			}
+		}
+	}
+}*/
+
+void World::render(graphics::Renderer& screen)
+{
+	vertices.clear();
+	indices.clear();
+
+	vertices.reserve(world_width_tiles * world_height_chunks * 4);
+	indices.reserve(world_width_tiles * world_height_chunks * 6);
+
+	const auto& view_zoom = screen.getView();
 
 	//Render tiles
 	for (const auto& chunk : chunks)
 	{
 		if (SDL_HasRectIntersectionFloat(&camera_rect, &chunk.rect))
 		{
+			for (const auto& quads : chunk.quads)
+			{
+				int indices_index = vertices.size();
+				for (int i = 0; i < 4; ++i)
+				{
+					const auto& vertex = quads.vertices[i];
+					SDL_FPoint vertex_position = {vertex.position.x - view_zoom.x, vertex.position.y - view_zoom.y};
+					graphics::zoomPoint(screen, vertex_position.x, vertex_position.y);
+					vertices.emplace_back(vertex_position, vertex.color, vertex.tex_coord);
+				}
+				indices.emplace_back(indices_index + 0);
+				indices.emplace_back(indices_index + 1);
+				indices.emplace_back(indices_index + 2);
+				indices.emplace_back(indices_index + 2);
+				indices.emplace_back(indices_index + 3);
+				indices.emplace_back(indices_index + 0);
+			}
+
+
 			for (int x = 0; x < chunk_width_tiles; ++x)
 			{
 				for (int y = 0; y < chunk_height_tiles; ++y)
@@ -407,6 +473,21 @@ void World::splitGrid(const Grid<Tile>& grid, const std::vector<Object>& objects
 		++i;
 	}
 
+	// Initialize vertex buffer
+	for (auto& chunk : chunks)
+	{
+		for (int x = 0; x < chunk_width_tiles; ++x)
+		{
+			for (int y = 0; y < chunk_height_tiles; ++y)
+			{
+				int x_ = chunk.grid_position.x * chunk_width_tiles + x;
+				int y_ = chunk.grid_position.y * chunk_height_tiles + y;
+
+				addTileToVertexBuffer(screen, x_, y_, chunk.quads);
+			}
+		}
+	}
+
 	//Divide objects between chunks
 	for (auto& chunk : chunks)
 	{
@@ -696,6 +777,60 @@ void World::removeTileCave(const glm::ivec2& position)
 			world_map(new_x, new_y).cave_tile = true;
 		}
 	}
+}
+
+void World::addTileToVertexBuffer(const graphics::Renderer& screen, int x, int y, std::vector<VertexQuad>& quads) const
+{
+	int tile_id = world_map(x, y).id;
+	const auto& tile_properties = TileManager::get().getProperties(tile_id);
+	int is_solid = tile_properties.is_solid;
+	int sprite_index = tile_properties.sprite_index;
+	const auto& sprite = ResourceManager::get().getSpriteSheet("tiles")->getSprite(sprite_index);
+	const auto& sprite_rect = sprite.getRect();
+
+	float tile_x = static_cast<float>(x) * tile_width_world;
+	float tile_y = static_cast<float>(y) * tile_height_world;
+	float tile_w = tile_width_world;
+	float tile_h = tile_height_world;
+
+	SDL_FPoint p(tile_x, tile_y);
+	SDL_FPoint p1(tile_x + tile_w, tile_y);
+	SDL_FPoint p2(tile_x + tile_w, tile_y + tile_h);
+	SDL_FPoint p3(tile_x, tile_y + tile_h);
+
+	// Apply view_position
+	/*
+	const auto& view_position = screen.getView();
+	p.x -= view_position.x;
+	p.y -= view_position.y;
+	p1.x -= view_position.x;
+	p1.y -= view_position.y;
+	p2.x -= view_position.x;
+	p2.y -= view_position.y;
+	p3.x -= view_position.x;
+	p3.y -= view_position.y;
+
+	//Zoom points
+	graphics::zoomPoint(screen, p.x, p.y);
+	graphics::zoomPoint(screen, p1.x, p1.y);
+	graphics::zoomPoint(screen, p2.x, p2.y);
+	graphics::zoomPoint(screen, p3.x, p3.y);
+	*/
+
+	SDL_FColor color(1.0f, 1.0, 1.0f, 1.0f);
+
+	const auto& texture_size = SDL_FPoint{static_cast<float>(sprite.getTexture()->w), static_cast<float>(sprite.getTexture()->h)};
+	SDL_FPoint t(sprite_rect.x / texture_size.x, sprite_rect.y / texture_size.y);
+	SDL_FPoint t1((sprite_rect.x + sprite_rect.w) / texture_size.x, sprite_rect.y / texture_size.y);
+	SDL_FPoint t2((sprite_rect.x + sprite_rect.w) / texture_size.x, (sprite_rect.y + sprite_rect.h) / texture_size.y);
+	SDL_FPoint t3(sprite_rect.x / texture_size.x, (sprite_rect.y + sprite_rect.h) / texture_size.y);
+
+	VertexQuad quad;
+	quad.vertices[0] = { p, color, t };
+	quad.vertices[1] = { p1, color, t1 };
+	quad.vertices[2] = { p2, color, t2 };
+	quad.vertices[3] = { p3, color, t3 };
+	quads.push_back(quad);
 }
 
 void World::applyCellularAutomata()

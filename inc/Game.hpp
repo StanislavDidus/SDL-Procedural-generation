@@ -19,6 +19,7 @@
 
 #include "CraftingManager.hpp"
 #include "CraftView.hpp"
+#include "EnemySpawnManager.hpp"
 #include "Surface.hpp"
 #include "ECS/ItemDescriptionSystem.hpp"
 #include "ECS/RenderSystem.hpp"
@@ -38,7 +39,7 @@
 #include "ECS/RenderWeaponCircle.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ApplyEffects.hpp"
-#include "ECS/ApplyWeaponEffects.hpp"
+#include "ECS/UpdateEffects.hpp"
 #include "ECS/ChestWindowSystem.hpp"
 #include "ECS/CollectEssenceSystem.hpp"
 #include "ECS/DropChestLootSystem.hpp"
@@ -150,7 +151,7 @@ private:
 	std::unique_ptr<OpenChestSystem> open_chest_system;
 	std::unique_ptr<DropChestLootSystem> drop_chest_loot_system;
 	std::unique_ptr<HealthRegenerationSystem> health_regeneration_system;
-	std::unique_ptr<ApplyWeaponEffects> apply_weapon_effects_system;
+	std::unique_ptr<UpdateEffects> update_effects_system;
 	std::unique_ptr<ApplyEffects> apply_effects_system;
 	std::unique_ptr<RenderAccessoriesSystem> render_accessories_system;
 
@@ -163,6 +164,7 @@ private:
 
 	//Enemies
 	std::shared_ptr<EnemySpawnSystem> enemy_spawn_system;
+	std::unique_ptr<EnemySpawnManager> enemy_spawn_manager;
 	std::unique_ptr<PlayerComboSystem> player_combo_system;
 	
 

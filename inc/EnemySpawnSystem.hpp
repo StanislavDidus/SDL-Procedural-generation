@@ -24,6 +24,10 @@ public:
 	const std::vector<Entity>& getEnemies() const; 
 
 	void update(float dt, const glm::vec2& target_position, graphics::Renderer& screen); //TODO: Remove Renderer(used for debug purposes).
+
+	void setEnemySpawnTime(float time);
+	void setMaxEnemy(int number);
+	void setEnemiesToSpawn(int number);
 private:
 	Entity createEntity(size_t id) const;
 	void destroyEnemy(Entity enemy) const;

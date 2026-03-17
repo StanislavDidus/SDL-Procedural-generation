@@ -27,6 +27,8 @@ namespace graphics
 		SpriteSheet& operator=(const SpriteSheet& other) = delete;
 		SpriteSheet& operator=(SpriteSheet&& other) noexcept = delete;
 
+		Texture getTexture() const;
+
 		template<typename Self>
 		auto&& getSprite(this Self&& self, const std::string& name);
 		template<typename Self>
@@ -35,7 +37,9 @@ namespace graphics
 		template<typename Self>
 		auto&& operator[](this Self&& self, size_t index);
 	private:
-		Texture loadTexture(graphics::Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode);
+		void loadTexture(graphics::Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode);
+
+		Texture texture = nullptr;
 
 		std::vector<Sprite> sprites;
 		std::unordered_map<std::string, size_t> nameToIndex;
