@@ -118,6 +118,8 @@ set(HEADER_FILES
     "inc/ECS/RenderAccessoriesSystem.hpp"
     "inc/EnemySpawnManager.hpp"
     "inc/VertexBuffer.hpp"
+    "inc/WorldOutput.hpp"
+    "inc/WorldRenderer.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

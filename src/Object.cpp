@@ -18,9 +18,9 @@ ObjectSpawnInfo::ObjectSpawnInfo(const std::vector<int>& spawn_tile_ids, float s
 {
 }
 
-Object::Object(int object_id, int properties_id, const SDL_FRect& rect) 
+Object::Object(int object_id, int properties_id, const SDL_Rect& rect) 
 	: object_id(object_id)
 	, properties_id(properties_id)
-	, rect(rect)
+	, grid_rect(rect)
 {
 }

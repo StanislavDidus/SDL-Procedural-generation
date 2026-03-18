@@ -41,52 +41,7 @@ Game::Game(graphics::Renderer& screen)
 	ObjectManager::get().loadXml("data/objects.xml");
 	EnemyManager::get().loadXml(registry, "data/enemies.xml");
 
-	initNoiseSettings();
-	initMapRanges();
-	initGenerationData();
-	initBiomes();
-	initChestLoot();
-
-	text = std::make_unique<Text>(ResourceManager::get().getFont("Main"), screen, "Player");
-	world = std::make_shared<World>(generation_data, registry, collision_system, 500, 200, 20.f, 20.f, screen);
-
-	initUserInterface();
-	initSystems();
-
-	//Set player idle animation
-	initPlayerAnimations();
-
-	initPlayer();
-	item_usage_system = std::make_shared<ItemUsageSystem>(registry);
-	render_weapon_circle_system = std::make_unique<RenderWeaponCircle>(registry, player);
-	craft_view = std::make_unique<CraftView>(registry, player, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
-	inventory_view->setTargetEntity(player);
-
-	world->generateWorld(0);
-
-	setState(GameState::PLAY);
-
-	//Give basic items to the player
-	auto& inventory = registry.get<Components::HasInventory>(player).inventory;
-	inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 10);
-	inventory->addItem(ItemManager::get().getItemID("Wood"), 20);
-	inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
-	inventory->addItem(ItemManager::get().getItemID("Common_Belt"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Magic_Boots"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Common_Boots"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Big_Armor"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Fast_Helmet"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Snow_Bow"), 1);
-	inventory->addItem(ItemManager::get().getItemID("Dagger_With_Poison"), 1);
-	inventory->addItem(ItemManager::get().getItemID("War_Hammer"), 1);
-
-
-	//Test accessories
-	auto& accessories = registry.get<Components::Equipment>(player).accessories;
-	registry.emplace<Components::EquipItem>(player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Astronaut_Suit"), 1));
-	//registry.emplace_or_replace<Components::EquipItem>(player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Common_Belt"), 1));
-	//accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
+	
 }
 
 Game::~Game()
@@ -98,11 +53,11 @@ void Game::initSystems()
 {
 	physics_system = std::make_unique<PhysicsSystem>(registry);
 	input_system = std::make_unique<InputSystem>(registry);
-	collision_system = std::make_shared<TileCollisionSystem>(registry, world);
+	collision_system = std::make_shared<TileCollisionSystem>(registry, world_output->grid);
 	jump_system = std::make_unique<JumpSystem>(registry);
-	mining_tiles_system = std::make_unique<MiningTilesSystem>(registry, *world, 20.f, 20.f);
-	mining_objects_system = std::make_unique<MiningObjectsSystem>(registry, *world, 20.f, 20.f);
-	place_system = std::make_unique<PlaceSystem>(registry, *world, 20.f, 20.f);
+	mining_tiles_system = std::make_unique<MiningTilesSystem>(registry, world_output->grid, 20.f, 20.f);
+	mining_objects_system = std::make_unique<MiningObjectsSystem>(registry, world_output->grid, 20.f, 20.f);
+	place_system = std::make_unique<PlaceSystem>(registry, world_output->grid, 20.f, 20.f);
 	item_usage_system = std::make_shared<ItemUsageSystem>(registry);
 	button_system = std::make_unique<ButtonSystem>(registry);
 	craft_system = std::make_unique<CraftSystem>(registry);
@@ -111,7 +66,7 @@ void Game::initSystems()
 	render_system = std::make_unique<RenderSystem>(registry);
 	render_weapon_menu_system = std::make_unique<RenderWeaponMenuSystem>(registry, ui_settings);
 	enemy_ai_system = std::make_unique<EnemyAISystem>(registry);
-	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(registry, *world, SpawnRadius{ 1500.0f,2000.0f });
+	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(registry, world_output->grid, SpawnRadius{ 1500.0f,2000.0f });
 	player_combo_system = std::make_unique<PlayerComboSystem>(registry, enemy_spawn_system);
 	apply_damage_system = std::make_unique<ApplyDamageSystem>(registry);
 	display_hit_marks_system = std::make_unique<DisplayHitMarksSystem>(registry);
@@ -134,8 +89,6 @@ void Game::initSystems()
 	apply_effects_system = std::make_unique<ApplyEffects>(registry);
 	render_accessories_system = std::make_unique<RenderAccessoriesSystem>(registry, ui_settings, item_description_system);
 	enemy_spawn_manager = std::make_unique<EnemySpawnManager>(enemy_spawn_system);
-
-	world->setCollisionSystem(collision_system);
 }
 
 void Game::initGenerationData()
@@ -373,7 +326,7 @@ void Game::initPlayer()
 	auto& ts = registry.emplace<Components::Transform>(player);
 	ts.position = glm::vec2{ 400.0f, -500.f };
 	ts.size = glm::vec2{ 35.0f, 40.0f };
-	ts.base_size = ts.size;
+	base.size = ts.size;
 
 	auto& renderable = registry.emplace<Components::Renderable>(player);
 	renderable.sprite = (*ResourceManager::get().getSpriteSheet("player"))[0];
@@ -499,6 +452,12 @@ void Game::update(float dt)
 
 	switch (current_state)
 	{
+	case GameState::NONE:
+		if (InputManager::isKeyDown(SDL_SCANCODE_SPACE))
+		{
+			setState(GameState::PLAY);
+		}
+		break;
 	case GameState::PLAY:
 		{
 			input_system->update(screen, dt);
@@ -541,8 +500,8 @@ void Game::update(float dt)
 				mining_objects_system->update(dt);
 			}
 
-			world->update(screen, dt, world_target);
-			world->updateTiles();
+			//world->update(screen, dt, world_target);
+			//world->updateTiles();
 
 			inventory_view->update();
 
@@ -571,31 +530,37 @@ void Game::update(float dt)
 void Game::render(float dt) const
 {
 	const auto& window_size = screen.getWindowSize();
+	const auto& view_position = screen.getView();
 
 	switch (current_state)
 	{
 	case GameState::PLAY:
 	case GameState::PLAYER_DEAD:
-		{
-			world->render(screen);
-			render_system->render(screen);
-			mining_tiles_system->renderOutline(screen);
-			mining_objects_system->render(screen);
-			render_weapon_circle_system->render(screen);
-			drop_chest_loot_system->update(dt, screen);
+	{
+		//Draw Sky
+		const auto& sky_sprite = ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky");
+		graphics::drawScaledSprite(screen, sky_sprite, 0.0f, 0.0f, static_cast<float>(window_size.x), static_cast<float>(window_size.y), graphics::IGNORE_VIEW_ZOOM);
 
-			//UI
-			inventory_view->render(screen);
-			render_essence_counter->render(screen, player);
-			render_crafting_ui_system->render(screen, player);
-			item_description_system->render(screen, player);
-			render_weapon_menu_system->render(screen, player);
-			render_health_bar_system->render(screen);
-			chest_window_system->render(screen);
-			render_accessories_system->update(player, screen);
-			world->renderHelp(screen);
-		}
-		break;
+		world_renderer->render(screen, world_target);
+		//world->render(screen);
+		render_system->render(screen);
+		mining_tiles_system->renderOutline(screen);
+		mining_objects_system->render(screen);
+		render_weapon_circle_system->render(screen);
+		drop_chest_loot_system->update(dt, screen);
+
+		//UI
+		inventory_view->render(screen);
+		render_essence_counter->render(screen, player);
+		render_crafting_ui_system->render(screen, player);
+		item_description_system->render(screen, player);
+		render_weapon_menu_system->render(screen, player);
+		render_health_bar_system->render(screen);
+		chest_window_system->render(screen);
+		render_accessories_system->update(player, screen);
+		//world->renderHelp(screen);
+	}
+	break;
 	}
 	
 	//Set window base size to properly render imgui without scaling
@@ -618,6 +583,65 @@ void Game::setState(GameState new_state)
 
 void Game::enterState(GameState state)
 {
+	switch (state)
+	{
+	case GameState::NONE:
+		break;
+	case GameState::PLAY:
+		{
+		initNoiseSettings();
+		initMapRanges();
+		initGenerationData();
+		initBiomes();
+		initChestLoot();
+
+		text = std::make_unique<Text>(ResourceManager::get().getFont("Main"), screen, "Player");
+		world = std::make_unique<World>(generation_data, registry, 500, 200);
+		world_output = world->generateWorld(0);
+		spawnObjects(registry, *world_output, 20.0f, 20.0f);
+
+		initUserInterface();
+		initSystems();
+
+		//Set player idle animation
+		initPlayerAnimations();
+
+		initPlayer();
+		item_usage_system = std::make_shared<ItemUsageSystem>(registry);
+		render_weapon_circle_system = std::make_unique<RenderWeaponCircle>(registry, player);
+		craft_view = std::make_unique<CraftView>(registry, player, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
+		inventory_view->setTargetEntity(player);
+
+		world_renderer = std::make_unique<WorldRenderer<500, 200, 20, 20>>(*world_output);
+
+		setState(GameState::PLAY);
+
+		//Give basic items to the player
+		auto& inventory = registry.get<Components::HasInventory>(player).inventory;
+		inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 10);
+		inventory->addItem(ItemManager::get().getItemID("Wood"), 20);
+		inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
+		inventory->addItem(ItemManager::get().getItemID("Common_Belt"), 1);
+		inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
+		inventory->addItem(ItemManager::get().getItemID("Magic_Boots"), 1);
+		inventory->addItem(ItemManager::get().getItemID("Common_Boots"), 1);
+		inventory->addItem(ItemManager::get().getItemID("Big_Armor"), 1);
+		inventory->addItem(ItemManager::get().getItemID("Fast_Helmet"), 1);
+		inventory->addItem(ItemManager::get().getItemID("Snow_Bow"), 1);
+		inventory->addItem(ItemManager::get().getItemID("Dagger_With_Poison"), 1);
+		inventory->addItem(ItemManager::get().getItemID("War_Hammer"), 1);
+
+
+		//Test accessories
+		auto& accessories = registry.get<Components::Equipment>(player).accessories;
+		registry.emplace<Components::EquipItem>(player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Astronaut_Suit"), 1));
+		//registry.emplace_or_replace<Components::EquipItem>(player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Common_Belt"), 1));
+		//accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
+		break;
+		}
+	case GameState::PLAYER_DEAD:
+		break;
+	}
 }
 
 void Game::exitState(GameState state)
@@ -681,130 +705,138 @@ void Game::updateInput(float dt)
 
 void Game::updateImGui(float dt)
 {
-	ImGui::SetNextWindowPos(ImVec2(100, 100), ImGuiCond_FirstUseEver);
-	ImGui::Begin("Window");
-
-	if (ImGui::CollapsingHeader("Player"))
+	switch (current_state)
 	{
-		ImGui::Text("Tiles");
-		/*if (component_manager.mine_tiles_ability.contains(player))
+	case GameState::NONE:
+		break;
+	case GameState::PLAY:
+	case GameState::PLAYER_DEAD:
+		ImGui::SetNextWindowPos(ImVec2(100, 100), ImGuiCond_FirstUseEver);
+		ImGui::Begin("Window");
+
+		if (ImGui::CollapsingHeader("Player"))
 		{
-			ImGui::SliderFloat("mining speed", &component_manager.mine_tiles_ability[player].speed, 0.f, 1000.f);
-			ImGui::SliderFloat("mining radius", &component_manager.mine_tiles_ability[player].radius, 0.f, 500.f);
-		}
-		else
-		{
-			ImGui::Text("*Component is missing*");
+			ImGui::Text("Tiles");
+			/*if (component_manager.mine_tiles_ability.contains(player))
+			{
+				ImGui::SliderFloat("mining speed", &component_manager.mine_tiles_ability[player].speed, 0.f, 1000.f);
+				ImGui::SliderFloat("mining radius", &component_manager.mine_tiles_ability[player].radius, 0.f, 500.f);
+			}
+			else
+			{
+				ImGui::Text("*Component is missing*");
+			}
+
+			ImGui::Text("Objects");
+			if (component_manager.mine_objects_ability.contains(player))
+			{
+				ImGui::SliderFloat("mining speed", &component_manager.mine_objects_ability[player].speed, 0.f, 1000.f);
+				ImGui::SliderFloat("mining radius", &component_manager.mine_objects_ability[player].radius, 0.f, 500.f);
+			}
+			else
+			{
+				ImGui::Text("*Component is missing*");
+			}*/
+			
 		}
 
-		ImGui::Text("Objects");
-		if (component_manager.mine_objects_ability.contains(player))
+		if (ImGui::CollapsingHeader("Camera"))
 		{
-			ImGui::SliderFloat("mining speed", &component_manager.mine_objects_ability[player].speed, 0.f, 1000.f);
-			ImGui::SliderFloat("mining radius", &component_manager.mine_objects_ability[player].radius, 0.f, 500.f);
+			ImGui::SliderFloat("camera_move_speed", &camera_move_speed, 1000.f, 10000.f);
+			ImGui::SliderFloat("zoom", &zoom, 0.1f, 5.f);
+
+			ImGui::Checkbox("Lock camera on player", &lock_camera);
 		}
-		else
+
+		if (ImGui::CollapsingHeader("UI"))
 		{
-			ImGui::Text("*Component is missing*");
-		}*/
-		
+			if (ImGui::SliderFloat("UI Scale", &ui_scale, 0.5f, 1.7f))
+			{
+				ui_settings = UISettings(ui_scale);
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Procedural generation"))
+		{
+			static int buffer = 0;
+			ImGui::InputInt("Seed", &buffer);
+
+			if (ImGui::Button("Random seed"))
+			{
+				std::uniform_int_distribution dist(0, 10000000);
+				buffer = dist(rng);
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Generate world"))
+			{
+				world_output = (world->generateWorld(buffer));
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Generate world with random seed"))
+			{
+				std::uniform_int_distribution dist(0, 10000000);
+				buffer = dist(rng);
+				world_output = std::move(world->generateWorld(buffer));
+			}
+
+			//ImGui::Checkbox("Use New Cave Generation Algorithm", &world->use_new_cave_generation);
+			//ImGui::Checkbox("Use Cellular Automata Algorithm", &world->use_cellular_automata);
+
+
+			//ImGui::SliderFloat("scale", &world->scale, 0.f, 1.f);
+			//ImGui::SliderFloat("density_change", &world->density_change, 0.1f, 1.f);
+			//ImGui::SliderFloat("y_base", &world->y_base, -100.f, 100.f);
+			//ImGui::SliderFloat("sea_level", &world->sea_level, -100.f, 100.f);
+
+			//ImGui::SliderFloat("cave_threshold_min", &world->cave_threshold_min, 0.1f, 1.0f);
+			//ImGui::SliderFloat("cave_threshold_max", &world->cave_threshold_max, 0.1f, 1.0f);
+			//ImGui::SliderFloat("cave_threshold_step", &world->cave_threshold_step, 0.0001f, 0.1f);
+			//ImGui::SliderFloat("cave_base_y", &world->cave_base_height, -100.f, 100.f);
+
+			static int current = 0;
+			const char* items[] = { "Default", "PV", "Temperature", "Moisture", "Durability"};
+
+			//ImGui::Combo("Render Mode", &tilemap->render_mode, items, IM_ARRAYSIZE(items));
+
+			/*if (ImGui::CollapsingHeader("Terrain & Nature"))
+			{
+				ImGui::Text("PV");
+				ImGui::SliderInt("Octaves##PV", &world->peaks_and_valleys_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##PV", &world->peaks_and_valleys_settings.frequency, 0.0001f, 2.f);
+				ImGui::SliderFloat("Amplitude##PV", &world->peaks_and_valleys_settings.amplitude, 0.0001f, 2.f);
+
+				ImGui::Text("Density");
+				ImGui::SliderInt("Octaves##Density", &world->density_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##Density", &world->density_settings.frequency, 0.0001f, 2.f);
+				ImGui::SliderFloat("Amplitude##Density", &world->density_settings.amplitude, 0.0001f, 2.f);
+
+				ImGui::Text("Caves");
+				ImGui::SliderInt("Octaves##Caves", &world->cave_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##Caves", &world->cave_settings.frequency, 0.0001f, 2.f);
+				ImGui::SliderFloat("Amplitude##Caves", &world->cave_settings.amplitude, 0.0001f, 2.f);
+
+				ImGui::Text("Tunnels");
+				ImGui::SliderInt("Octaves##Tunnels", &world->tunnel_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##Tunnels", &world->tunnel_settings.frequency, 0.001f, 2.f);
+				ImGui::SliderFloat("Amplitude##Tunnels", &world->tunnel_settings.amplitude, 0.001f, 2.f);
+
+				ImGui::Text("Temperature");
+				ImGui::SliderInt("Octaves##Temperature", &world->temperature_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##Temperature", &world->temperature_settings.frequency, 0.0001f, 2.f);
+				ImGui::SliderFloat("Amplitude##Temperature", &world->temperature_settings.amplitude, 0.0001f, 2.f);
+
+				ImGui::Text("Moisture");
+				ImGui::SliderInt("Octaves##Moisture", &world->moisture_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##Moisture", &world->moisture_settings.frequency, 0.0001f, 2.f);
+				ImGui::SliderFloat("Amplitude##Moisture", &world->moisture_settings.amplitude, 0.0001f, 2.f);
+			}*/
+		}
+		ImGui::End();
+		break;
 	}
-
-	if (ImGui::CollapsingHeader("Camera"))
-	{
-		ImGui::SliderFloat("camera_move_speed", &camera_move_speed, 1000.f, 10000.f);
-		ImGui::SliderFloat("zoom", &zoom, 0.1f, 5.f);
-
-		ImGui::Checkbox("Lock camera on player", &lock_camera);
-	}
-
-	if (ImGui::CollapsingHeader("UI"))
-	{
-		if (ImGui::SliderFloat("UI Scale", &ui_scale, 0.5f, 1.7f))
-		{
-			ui_settings = UISettings(ui_scale);
-		}
-	}
-
-	if (ImGui::CollapsingHeader("Procedural generation"))
-	{
-		static int buffer = 0;
-		ImGui::InputInt("Seed", &buffer);
-
-		if (ImGui::Button("Random seed"))
-		{
-			std::uniform_int_distribution dist(0, 10000000);
-			buffer = dist(rng);
-		}
-
-		ImGui::SameLine();
-
-		if (ImGui::Button("Generate world"))
-		{
-			world->generateWorld(buffer);
-		}
-
-		ImGui::SameLine();
-
-		if (ImGui::Button("Generate world with random seed"))
-		{
-			std::uniform_int_distribution dist(0, 10000000);
-			buffer = dist(rng);
-			world->generateWorld(buffer);
-		}
-
-		ImGui::Checkbox("Use New Cave Generation Algorithm", &world->use_new_cave_generation);
-		ImGui::Checkbox("Use Cellular Automata Algorithm", &world->use_cellular_automata);
-
-
-		//ImGui::SliderFloat("scale", &world->scale, 0.f, 1.f);
-		//ImGui::SliderFloat("density_change", &world->density_change, 0.1f, 1.f);
-		//ImGui::SliderFloat("y_base", &world->y_base, -100.f, 100.f);
-		//ImGui::SliderFloat("sea_level", &world->sea_level, -100.f, 100.f);
-
-		//ImGui::SliderFloat("cave_threshold_min", &world->cave_threshold_min, 0.1f, 1.0f);
-		//ImGui::SliderFloat("cave_threshold_max", &world->cave_threshold_max, 0.1f, 1.0f);
-		//ImGui::SliderFloat("cave_threshold_step", &world->cave_threshold_step, 0.0001f, 0.1f);
-		//ImGui::SliderFloat("cave_base_y", &world->cave_base_height, -100.f, 100.f);
-
-		static int current = 0;
-		const char* items[] = { "Default", "PV", "Temperature", "Moisture", "Durability"};
-
-		//ImGui::Combo("Render Mode", &tilemap->render_mode, items, IM_ARRAYSIZE(items));
-
-		/*if (ImGui::CollapsingHeader("Terrain & Nature"))
-		{
-			ImGui::Text("PV");
-			ImGui::SliderInt("Octaves##PV", &world->peaks_and_valleys_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##PV", &world->peaks_and_valleys_settings.frequency, 0.0001f, 2.f);
-			ImGui::SliderFloat("Amplitude##PV", &world->peaks_and_valleys_settings.amplitude, 0.0001f, 2.f);
-
-			ImGui::Text("Density");
-			ImGui::SliderInt("Octaves##Density", &world->density_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Density", &world->density_settings.frequency, 0.0001f, 2.f);
-			ImGui::SliderFloat("Amplitude##Density", &world->density_settings.amplitude, 0.0001f, 2.f);
-
-			ImGui::Text("Caves");
-			ImGui::SliderInt("Octaves##Caves", &world->cave_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Caves", &world->cave_settings.frequency, 0.0001f, 2.f);
-			ImGui::SliderFloat("Amplitude##Caves", &world->cave_settings.amplitude, 0.0001f, 2.f);
-
-			ImGui::Text("Tunnels");
-			ImGui::SliderInt("Octaves##Tunnels", &world->tunnel_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Tunnels", &world->tunnel_settings.frequency, 0.001f, 2.f);
-			ImGui::SliderFloat("Amplitude##Tunnels", &world->tunnel_settings.amplitude, 0.001f, 2.f);
-
-			ImGui::Text("Temperature");
-			ImGui::SliderInt("Octaves##Temperature", &world->temperature_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Temperature", &world->temperature_settings.frequency, 0.0001f, 2.f);
-			ImGui::SliderFloat("Amplitude##Temperature", &world->temperature_settings.amplitude, 0.0001f, 2.f);
-
-			ImGui::Text("Moisture");
-			ImGui::SliderInt("Octaves##Moisture", &world->moisture_settings.octaves, 1, 10);
-			ImGui::SliderFloat("Frequency##Moisture", &world->moisture_settings.frequency, 0.0001f, 2.f);
-			ImGui::SliderFloat("Amplitude##Moisture", &world->moisture_settings.amplitude, 0.0001f, 2.f);
-		}*/
-	}
-	ImGui::End();
 }
 

@@ -54,7 +54,7 @@ size_t TileManager::getTileID(const std::string& tile_name) const
 	return tileNameToID.at(tile_name);
 }
 
-const TileProperties& TileManager::getProperties(int ID) const
+const TileProperties& TileManager::getProperties(size_t ID) const
 {
 	return tiles[ID];
 }

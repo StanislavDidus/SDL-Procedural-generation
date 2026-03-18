@@ -36,6 +36,7 @@ namespace graphics
 
 		template<typename Self>
 		auto&& operator[](this Self&& self, size_t index);
+
 	private:
 		void loadTexture(graphics::Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode);
 

@@ -233,7 +233,6 @@ void Inventory::removeItem(Entity item)
 
 					eraseItemAtSlot(i);
 
-					std::cout << "erase" << std::endl;
 				}
 
 				if (number_destroyed >= target_number)

@@ -66,23 +66,6 @@ bool isEffectApplied(entt::registry& registry, Entity target)
 	return i != 0;
 }
 
-inline void removeEffectFromSource(entt::registry& registry, Entity target, Entity source)
-{
-	std::vector<Entity> to_destroy;
-	auto view = registry.view<Components::WeaponEffects::Effect>();
-	for (auto [entity, effect_component] : view.each())
-	{
-		if (effect_component.source == source && effect_component.target == target)
-		{
-			to_destroy.emplace_back(entity);
-		}
-	}
-
-	for (const auto& entity : to_destroy)
-	{
-		registry.destroy(entity);
-	}
-}
 // Get stacked WeaponEffect value
 // Specified effect has to have a variable called "value"
 /*
@@ -126,7 +109,7 @@ static void addRandomizedItem(Entity entity, const RandomizedItem& item, entt::r
 /// Checks if a mouse cursor is inside a bounding box.
 /// </summary>
 /// <param name="mouse_position">Position of a cursor,</param>
-/// <param name="rect">Bounding box that we are checking.</param>
+/// <param name="grid_rect">Bounding box that we are checking.</param>
 /// <returns>True if mouse is inside a bounding box.</returns>
 static bool isMouseIntersection(const glm::vec2& mouse_position, const SDL_FRect& rect)
 {
@@ -202,11 +185,11 @@ struct Collider
 class TileCollisionSystem
 {
 public:
-	TileCollisionSystem(entt::registry& registry, std::shared_ptr<World> world) : registry{ registry }, world(std::move(world)) {}
+	TileCollisionSystem(entt::registry& registry, Grid<Tile>& grid) : registry{ registry }, grid{ grid } {}
+
 
 	void update(float dt)
 	{
-		const auto& grid = world->getGrid();
 		auto view = registry.view<Components::Transform, Components::Physics>();
 		for (auto [entity, ts, ph] : view.each())
 		{
@@ -248,7 +231,7 @@ public:
 private:
 	entt::registry& registry;
 	int load_size = 3;
-	std::shared_ptr<World> world;
+	Grid<Tile>& grid;
 
 	void resolveCollision(Entity entity, Components::Transform& ts, Components::Physics& ph, const SDL_FRect& collider_rect) const
 	{
@@ -343,7 +326,6 @@ private:
 
 	bool isSpaceAbove(const SDL_FRect& step, float height) const
 	{
-		const auto& grid = world->getGrid();
 		Components::Transform above = { {step.x + 1.f, step.y - height + 1.f}, {step.w - 2.f, height - 2.f} };
 		SDL_FRect above_rect = { step.x + 1.f, step.y - height + 1.f, step.w - 2.f, height - 2.f };
 
@@ -509,10 +491,10 @@ private:
 class MiningTilesSystem
 {
 public:
-	MiningTilesSystem(entt::registry& registry, World& world, float tile_width, float tile_height)
+	MiningTilesSystem(entt::registry& registry, Grid<Tile>& grid, float tile_width, float tile_height)
 		: tile_width(tile_width)
 		, tile_height(tile_height)
-		, world(world)
+		, grid{grid}
 		, registry(registry)
 	{
 
@@ -523,7 +505,7 @@ public:
 		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
 		for (auto [entity, ts, mi, mining_ability_component] : view.each())
 		{
-			if (registry.all_of<Components::MineObjectsState>(entity)) continue;
+			/*if (registry.all_of<Components::MineObjectsState>(entity)) continue;
 
 			tiles_covered.clear();
 
@@ -558,7 +540,7 @@ public:
 
 					if (distance <= mining_radius)
 						world.damageTile(tile_covered.x, tile_covered.y, mining_speed * dt); 
-			}
+			}*/
 		}
 	}
 
@@ -592,7 +574,7 @@ public:
 private:
 	entt::registry& registry;
 
-	World& world;
+	Grid<Tile>& grid;
 
 	float tile_width = 1.f;
 	float tile_height = 1.f;
@@ -603,10 +585,10 @@ private:
 class PlaceSystem
 {
 public:
-	PlaceSystem(entt::registry& registry, World& world, float tile_width, float tile_height)
+	PlaceSystem(entt::registry& registry, Grid<Tile>& grid, float tile_width, float tile_height)
 		: tile_width(tile_width)
 		, tile_height(tile_height)
-		, world(world)
+		, grid(grid)
 		, registry(registry)
 	{
 	}
@@ -616,7 +598,7 @@ public:
 		auto view = registry.view<Components::Transform, Components::PlaceAbility, Components::PlaceIntent>();
 		for (auto [entity, ts, pl, pi] : view.each())
 		{
-			pl.placing_timer += dt;
+			/*pl.placing_timer += dt;
 
 			if (!pi.active || pl.placing_timer < pl.placing_time) continue;
 
@@ -638,13 +620,13 @@ public:
 			int tile_y = static_cast<int>(std::floor((mouse_global_position.y) / tile_height));
 
 			//TODO Temporary placed 0 instead of a tile id
-			world.placeTile(tile_x, tile_y, 0);
+			world.placeTile(tile_x, tile_y, 0);*/
 		}
 	}
 
 private:
 	entt::registry& registry;
-	World& world;
+	Grid<Tile>& grid;
 	float tile_width = 1.f;
 	float tile_height = 1.f;
 };
@@ -652,10 +634,10 @@ private:
 class MiningObjectsSystem
 {
 public:
-	MiningObjectsSystem(entt::registry& registry, World& world, float tile_width, float tile_height)
+	MiningObjectsSystem(entt::registry& registry, Grid<Tile>& grid, float tile_width, float tile_height)
 		: tile_width(tile_width)
 		, tile_height(tile_height)
-		, world(world)
+		, grid(grid)
 		, registry(registry)
 	{
 
@@ -663,7 +645,7 @@ public:
 
 	void update(float dt)
 	{
-		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
+		/*auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
 		for (auto [entity, ts, mi, mining_ability_component] : view.each())
 		{
 			float mining_speed = mining_ability_component.speed;
@@ -726,12 +708,12 @@ public:
 					// std::cout << "Deal damage\n";
 				}
 			}
-		}
+		}*/
 	}
 
 	void render(graphics::Renderer& screen)
 	{
-		auto view = registry.view<Components::Transform, Components::MineIntent>();
+		/*auto view = registry.view<Components::Transform, Components::MineIntent>();
 		for (auto [entity, ts, mi] : view.each())
 		{
 			float mining_speed;
@@ -784,11 +766,11 @@ public:
 					}
 				}
 			}
-		}
+		}*/
 	}
 private:
 	entt::registry& registry;
-	World& world;
+	Grid<Tile>& grid;
 
 	float tile_width = 1.f;
 	float tile_height = 1.f;

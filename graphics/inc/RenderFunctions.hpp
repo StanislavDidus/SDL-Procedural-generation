@@ -69,6 +69,9 @@ namespace graphics
 
 		x += mid_screen.x;
 		y += mid_screen.y;
+
+		x = std::floor(x);
+		y = std::floor(y);
 	}
 
 	inline void zoomRect(const Renderer& renderer, SDL_FRect& rect) noexcept

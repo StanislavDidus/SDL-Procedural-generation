@@ -21,6 +21,10 @@
 #include "RenderFunctions.hpp"
 #include "ECS/Entity.hpp"
 #include "DrunkWalker.hpp"
+#include "ECS/ApplyArmorEffects.hpp"
+#include "ECS/ApplyArmorEffects.hpp"
+#include "ECS/ApplyArmorEffects.hpp"
+#include "WorldOutput.hpp"
 
 class TileCollisionSystem;
 
@@ -35,100 +39,33 @@ class World
 {
 public:
 	World(
-		const GenerationData& generation_data,
+		GenerationData& generation_data,
 		entt::registry& registry,
-		std::shared_ptr<TileCollisionSystem> collision_system,
-		int width_tiles, int height_tiles,
-		float tile_width_world, float tile_height_world,
-		graphics::Renderer& screen
+		int world_width_tiles,
+		int world_height_tiles
 	);
 	~World() = default;
 
-	//Getters
-	const Grid<Tile>& getGrid() const;
-	glm::ivec2 getWorldSizeTiles() const; ///< Returns world's size in tiles.
-	glm::vec2 getTileSize() const;
-
-	//Setters
-	void setCollisionSystem(std::shared_ptr<TileCollisionSystem> collision_system);
-
-	void update(const graphics::Renderer& screen, float dt, const glm::vec2& target);
-	void render(graphics::Renderer& screen);
-
-	void renderHelp(graphics::Renderer& screen) const;
-
-	void placeTile(int x, int tile_y, size_t tile_id);
-	void damageTile(int tile_x, int tile_y, float damage);
-	Object* getObjectOnPosition(const glm::vec2& mouse_global_position);
-	std::optional<int> damageObject(const glm::vec2& mouse_global_position, float damage); ///< Returns <b>id</b> of a destroyed object, returns <b>std::nullopt</b> if no object was ndestroyed.
-
-	void updateTiles();
-
-	void generateWorld(std::optional<int> seed);
-
-	bool use_cellular_automata = true;
-	bool use_new_cave_generation = true;
+	[[nodiscard]] std::shared_ptr<WorldOutput> generateWorld(std::optional<int> seed);
 private:
-	void splitGrid(const Grid<Tile>& grid, const std::vector<Object>& objects, int chunk_width, int chunk_height);
-	Chunk& tilePositionToChunk(const glm::ivec2 tile_position);
-	glm::ivec2 getTileLocalPosition(const glm::ivec2 tile_position) const;
-	
 	void initSeeds(std::optional<int> seed_opt);
-	uint32_t getNewSeed(uint32_t master_seed);
-	GenerationData generation_data;
-
+	GenerationData& generation_data;
 	entt::registry& registry;
 
-	std::array<int, 7> seeds;
-	int master_seed;
+	uint32_t master_seed;
 
-	void generateBase();
-	void addGrass();
-	void addDirt();
-	void addCaves();
-	void applyCellularAutomata();
-	void addWater();
-	void addBiomes();
-	void addObjects(std::vector<Object>& objects);
-	void addChests(const std::vector<Object>& objects, std::vector<Entity>& chests);
+	void generateBase(Grid<Tile>& grid) const;
+	void addGrass(Grid<Tile>& grid) const;
+	void addDirt(Grid<Tile>& grid) const;
+	void addCaves(Grid<Tile>& grid) const;
+	void applyCellularAutomata(Grid<Tile>& grid);
+	void addWater(Grid<Tile>& grid) const;
+	void addBiomes(Grid<Tile>& grid) const;
+	void addObjects(std::vector<ObjectData>& objects, Grid<Tile>& grid);
+	void addChests(std::vector<ChestData>& chests, Grid<Tile>& grid);
 
-	void removeTileCave(const glm::ivec2& position);
-
-	void addTileToVertexBuffer(const graphics::Renderer& screen, int x, int y, std::vector<VertexQuad>& quads) const;
-
-	std::optional<ObjectProperties> getProperties(int id) const;
-	const TileProperties& getTileProperties(int id) const;
-	//std::map<BlockType, int> tile_presets;
-
-	SDL_FRect camera_rect;
-
-	//Objects
-	std::weak_ptr<TileCollisionSystem> collision_system;
-	int next_object_id = 0;
-
-	size_t seeds_count = 0;
-
-	//TileManager tile_manager;
-	std::vector<Chunk> chunks;
-
-	int chunk_width_tiles = 25;
-	int chunk_height_tiles = 25;
-
-	Grid<Tile> world_map;
-
-	std::vector<TileChange> dirt_tiles;
-
-	float tile_width_world;
-	float tile_height_world;
-	
-	float world_width_chunks;
-	float world_height_chunks;
+	void removeTileCave(const glm::ivec2& position, Grid<Tile>& grid) const;
 
 	int world_width_tiles;
 	int world_height_tiles;
-
-	graphics::Renderer& screen;
-
-	std::vector<SDL_Vertex> vertices;
-	std::vector<int> indices;
 };

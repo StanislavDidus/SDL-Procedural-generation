@@ -48,7 +48,7 @@ struct GenerationData
 	std::unordered_map<NoiseType, NoiseSettings> noise_settings;
 	std::unordered_map<MapRangeType, MapRange> maps;
 
-	glm::vec2 chest_size = {2,2};
+	glm::ivec2 chest_size = {2,2};
 
 	// Chest Loot
 	std::unordered_map<LootType, std::vector<RandomizedItem>> chest_loot;
@@ -60,4 +60,8 @@ struct GenerationData
 	float density_threshold = 0.5f;
 	float chest_threshold = 0.5f;
 	float drunk_walker_threshold = 0.3f;
+
+	bool use_cellular_automata = true;
+	int cellular_automata_iterations = 2;
+	bool use_new_cave_generation = true;
 };

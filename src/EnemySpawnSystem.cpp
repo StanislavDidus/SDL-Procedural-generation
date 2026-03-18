@@ -11,8 +11,8 @@
 #include "WorldHelper.hpp"
 #include "ECS/Systems.hpp"
 
-EnemySpawnSystem::EnemySpawnSystem(entt::registry& registry, const World& world, const SpawnRadius& spawn_radius)
-	: world(world)
+EnemySpawnSystem::EnemySpawnSystem(entt::registry& registry, const Grid<Tile>& grid, const SpawnRadius& spawn_radius)
+	: grid(grid)
 	, spawn_radius(spawn_radius)
 	, registry(registry)
 {
@@ -30,8 +30,7 @@ void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphi
 	//std::cout << "x: " << target_position.x << " y: " << target_position.y << std::endl;
 
 	//const auto& world_size_tiles = world.getWorldSizeTiles();
-	const auto& tile_size = world.getTileSize();
-	const auto& grid = world.getGrid();
+	const auto& tile_size = glm::vec2{20.f, 20.0f};
 	//const auto& camera_rect = graphics::getCameraRectFromTarget(screen, target_position);
 	//float camera_half_width = camera_rect.w * 0.5f;
 
@@ -167,8 +166,7 @@ void EnemySpawnSystem::spawnEnemies(const glm::vec2& target_position, int number
 {
 	if (enemies.size() >= max_enemies) return;
 
-	const auto& tile_size = world.getTileSize();
-	const auto& grid = world.getGrid();
+	const auto& tile_size = glm::vec2{20.f, 20.0f};
 
 	std::unordered_map<size_t, std::vector<glm::ivec2>> possible_enemy_spawns; // size_t - enemy id and the position where the enemy can be spawned
 

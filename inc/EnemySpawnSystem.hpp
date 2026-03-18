@@ -18,7 +18,7 @@ struct SpawnRadius
 class EnemySpawnSystem
 {
 public:
-	EnemySpawnSystem(entt::registry& registry, const World& world, const SpawnRadius& spawn_radius);
+	EnemySpawnSystem(entt::registry& registry, const Grid<Tile>& grid, const SpawnRadius& spawn_radius);
 
 	//Getters
 	const std::vector<Entity>& getEnemies() const; 
@@ -34,7 +34,7 @@ private:
 	
 	void spawnEnemies(const glm::vec2& target_position, int number);
 
-	const World& world;
+	const Grid<Tile>& grid;
 
 	SpawnRadius spawn_radius;
 

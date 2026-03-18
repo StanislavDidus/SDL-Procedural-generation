@@ -24,20 +24,18 @@ namespace Components
 {
 	struct BaseValues
 	{
-		glm::vec2 size;
-		glm::vec2 acceleration;
-		glm::vec2 max_velocity;
+		glm::vec2 size{};
+		glm::vec2 acceleration{};
+		glm::vec2 max_velocity{};
 		float gravity = 1400.0f;
-		float max_health;
-		int max_weapons;
+		float max_health = 0.0f;
+		int max_weapons = 0;
 	};
 
 	struct Transform
 	{
-		glm::vec2 position;
-		glm::vec2 size;
-
-		glm::vec2 base_size = size;
+		glm::vec2 position{};
+		glm::vec2 size{};
 	};
 
 	struct Renderable
@@ -70,9 +68,9 @@ namespace Components
 
 	struct Jump
 	{
-		float jump_force;
-		bool jump_pressed_this_frame;
-		bool jump_held;
+		float jump_force = 0.0f;
+		bool jump_pressed_this_frame = false;
+		bool jump_held = false;
 
 		int jump_count = 1;
 		int max_jump_count = 1;
@@ -350,9 +348,9 @@ namespace Components
 
 	struct HealthBar
 	{
-		glm::vec2 position;
-		glm::vec2 size;
-		graphics::Color color;
+		glm::vec2 position{};
+		glm::vec2 size{};
+		graphics::Color color{};
 	};
 
 	struct CollideDamage
@@ -505,13 +503,13 @@ namespace Components
 	{
 		struct OpenChestWindow
 		{
-			Entity target;
-			Entity chest;
+			Entity target = entt::null;
+			Entity chest = entt::null;
 		};
 
 		struct OpenChest
 		{
-			Entity chest;
+			Entity chest = entt::null;
 			EssenceType type;
 			int number;
 		};
@@ -523,8 +521,8 @@ namespace Components
 
 		struct ChestWindow
 		{
-			Entity target;
-			Entity chest;
+			Entity target = entt::null;
+			Entity chest = entt::null;
 
 			EssenceType essence_type = EssenceType::NONE;
 			int essence_number = 0;
@@ -551,7 +549,7 @@ namespace Components
 		//DYNAMIC information ek. stack size and is or is not equipped
 		struct Item
 		{
-			size_t id;
+			size_t id = 0;
 			int stack_number = 1;
 			bool equipped = false;
 			float cooldown_timer = 0.0f;
@@ -577,9 +575,9 @@ namespace Components
 
 		struct WeaponComponent
 		{
-			float damage;
-			float cooldown;
-			float radius;
+			float damage = 0.0f;
+			float cooldown = 0.0f;
+			float radius = 0.0f;
 			float cooldown_timer = 0.0f;
 		};
 

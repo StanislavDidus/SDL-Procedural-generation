@@ -114,7 +114,6 @@
         <sprite id="tile_break_anim">
             <path>assets/Sprites/tile_break_anim.png</path>
             <scaleMode>NEAREST</scaleMode>
-            <size x="16" y="16" />
             <rectListing>
                 <rect x="0" y="0" w="16" h="16" name="TileBreak0" />
                 <rect x="16" y="0" w="16" h="16" name="TileBreak1" />
@@ -130,6 +129,13 @@
                 <rect x="16" y="0" w="16" h="32" name="Elves" />
                 <rect x="48" y="0" w="16" h="32" name="Mummy" />
             </rectListing>
+        </sprite>
+        <sprite id="backgrounds">
+            <path>assets/Sprites/bg1.png</path>
+            <scaleMode>NEAREST</scaleMode>
+            <rectListing>
+                <rect x="0" y="0" w="320" h="180" name="Sky"/>
+            </rectListing> 
         </sprite>
     </spriteListing>
     <fontListing>

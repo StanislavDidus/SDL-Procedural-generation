@@ -39,11 +39,11 @@ struct ObjectSpawnInfo
 /// </summary>
 struct Object
 {
-	Object(int object_id, int properties_id, const SDL_FRect& rect);
+	Object(int object_id, int properties_id, const SDL_Rect& rect);
 
 	size_t object_id = 0; ///< Object's unique id.
 	size_t properties_id = 0; ///< ID used to get object's properties in <b>Object Manager</b>.
-	SDL_FRect rect; ///< Object's rect that is used for rendering and collision detection
+	SDL_Rect grid_rect; ///< Object's grid grid_rect.
 
 	float current_durability = 0.0f;
 	bool is_destroyed = false;

@@ -4,6 +4,25 @@
 #include "Entity.hpp"
 #include "Systems.hpp"
 
+static void removeEffectFromSource(entt::registry& registry, Entity target, Entity source)
+{
+	std::vector<Entity> to_destroy;
+	auto view = registry.view<Components::WeaponEffects::Effect>();
+	for (auto [entity, effect_component] : view.each())
+	{
+		if (effect_component.source == source && effect_component.target == target)
+		{
+			to_destroy.emplace_back(entity);
+		}
+	}
+
+	for (const auto& entity : to_destroy)
+	{
+		registry.destroy(entity);
+	}
+}
+
+
 class ApplyArmorEffects
 {
 public:

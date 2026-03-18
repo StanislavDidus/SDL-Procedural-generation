@@ -17,7 +17,7 @@ static float mapRange(float x, float inMin, float inMax, float outMin, float out
 	return outMin + ((x - inMin) / (inMax - inMin)) * (outMax - outMin);
 }
 
-//Returns true if a rect is completely inside b
+//Returns true if a grid_rect is completely inside b
 static bool isRectInsideFloat(const SDL_FRect& a, const SDL_FRect& b)
 {
 	return a.x >= b.x &&
@@ -72,3 +72,30 @@ static bool checkTileSpace(const Grid<Tile>& grid, int x, int y, int w, int h)
 
 	return true;
 }
+
+static std::vector<Entity> spawnObjects(entt::registry& registry, const WorldOutput& output, float tile_width, float tile_height)
+{
+	const auto& tile_set = ResourceManager::get().getSpriteSheet("objects");
+	std::vector<Entity> entities;
+	for (const auto& object_data : output.objects)
+	{
+		auto entity = registry.create();
+
+		const auto& rect = object_data.grid_rect;
+		auto& ts = registry.emplace<Components::Transform>(entity);
+		ts.position.x = rect.x * tile_width;
+		ts.position.y = rect.y * tile_height;
+		ts.size.x = rect.w * tile_width;
+		ts.size.y = rect.h * tile_height;
+
+		const auto& sprite = tile_set->getSprite(ObjectManager::get().getProperties(object_data.properties_id).sprite_index);
+		auto& renderable = registry.emplace<Components::Renderable>(entity);
+		renderable.sprite = sprite;
+
+		entities.push_back(entity);
+	}
+
+	return entities;
+}
+
+

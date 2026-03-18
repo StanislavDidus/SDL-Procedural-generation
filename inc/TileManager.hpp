@@ -23,7 +23,7 @@ public:
 
 	//Getters
 	size_t getTileID(const std::string& tile_name) const;
-	const TileProperties& getProperties(int ID) const;
+	const TileProperties& getProperties(size_t ID) const;
 private:
 	TileManager() = default;
 

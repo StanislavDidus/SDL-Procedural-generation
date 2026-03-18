@@ -30,6 +30,7 @@
 #include "SpriteAnimation.hpp"
 #include "EnemySpawnSystem.hpp"
 #include "tinyxml2.h"
+#include "WorldRenderer.hpp"
 #include "ECS/ApplyDamageSystem.hpp"
 #include "ECS/DisplayHitMarksSystem.hpp"
 #include "ECS/DropItemSystem.hpp"
@@ -111,6 +112,8 @@ private:
 
 	glm::vec2 world_target;
 	std::shared_ptr<World> world;
+	std::shared_ptr<WorldOutput> world_output;
+	std::unique_ptr<WorldRenderer<500, 200, 20, 20>> world_renderer;
 
 	float tilemap_rows = 10.f;
 	float tilemap_columns = 10.f;
