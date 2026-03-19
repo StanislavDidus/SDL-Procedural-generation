@@ -60,7 +60,7 @@ public:
 	{
 		std::priority_queue<RenderEntry, std::vector<RenderEntry>, std::greater<RenderEntry>> render_queue;
 
-		auto view = registry.view<Components::Transform, Components::Renderable>();
+		auto view = registry.view<Components::Transform, Components::Renderable, Components::AlwaysRender>();
 		for (auto [entity, transform_component, renderable_component] : view.each())
 		{
 			render_queue.push({ renderable_component.priority, transform_component, renderable_component });
@@ -83,6 +83,7 @@ public:
 			render_queue.pop();
 		}
 	}
+
 
 private:
 	entt::registry& registry;

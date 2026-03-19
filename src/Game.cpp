@@ -332,6 +332,8 @@ void Game::initPlayer()
 	renderable.sprite = (*ResourceManager::get().getSpriteSheet("player"))[0];
 	renderable.priority = 1;
 
+	registry.emplace<Components::AlwaysRender>(player);
+
 	auto& physics = registry.emplace<Components::Physics>(player);
 	physics.can_move_horizontal = true;
 	physics.velocity = glm::vec2{ 0.0f };
@@ -487,6 +489,7 @@ void Game::update(float dt)
 			update_effects_system->update(dt);
 			apply_effects_system->update(dt);
 			enemy_spawn_manager->update(dt);
+			updateTilesDurability(world_output->grid);
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
 			const auto& player_pos = player_transform.position;
@@ -541,7 +544,7 @@ void Game::render(float dt) const
 		const auto& sky_sprite = ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky");
 		graphics::drawScaledSprite(screen, sky_sprite, 0.0f, 0.0f, static_cast<float>(window_size.x), static_cast<float>(window_size.y), graphics::IGNORE_VIEW_ZOOM);
 
-		world_renderer->render(screen, world_target);
+		world_renderer->render(registry, screen, world_target);
 		//world->render(screen);
 		render_system->render(screen);
 		mining_tiles_system->renderOutline(screen);
@@ -598,7 +601,7 @@ void Game::enterState(GameState state)
 		text = std::make_unique<Text>(ResourceManager::get().getFont("Main"), screen, "Player");
 		world = std::make_unique<World>(generation_data, registry, 500, 200);
 		world_output = world->generateWorld(0);
-		spawnObjects(registry, *world_output, 20.0f, 20.0f);
+		//spawnObjects(registry, *world_output, 20.0f, 20.0f);
 
 		initUserInterface();
 		initSystems();
@@ -612,7 +615,8 @@ void Game::enterState(GameState state)
 		craft_view = std::make_unique<CraftView>(registry, player, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
 		inventory_view->setTargetEntity(player);
 
-		world_renderer = std::make_unique<WorldRenderer<500, 200, 20, 20>>(*world_output);
+		world_renderer = std::make_unique<WorldRenderer<500, 200, 20, 20>>(registry, *world_output);
+		world_renderer->spawnObjects(registry);
 
 		setState(GameState::PLAY);
 

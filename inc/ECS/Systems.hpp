@@ -13,6 +13,7 @@
 
 #include "InputManager.hpp"
 #include "Inventory.hpp"
+#include "WorldHelper.hpp"
 #include "glm/gtc/random.hpp"
 
 constexpr float BASE_MINING_SPEED = 100.0f;
@@ -505,7 +506,7 @@ public:
 		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
 		for (auto [entity, ts, mi, mining_ability_component] : view.each())
 		{
-			/*if (registry.all_of<Components::MineObjectsState>(entity)) continue;
+			if (registry.all_of<Components::MineObjectsState>(entity)) continue;
 
 			tiles_covered.clear();
 
@@ -539,12 +540,12 @@ public:
 				float distance = glm::distance(tile_position_global, mid_position);
 
 					if (distance <= mining_radius)
-						world.damageTile(tile_covered.x, tile_covered.y, mining_speed * dt); 
-			}*/
+						damageTile(grid, tile_covered.x, tile_covered.y, mining_speed * dt); 
+			}
 		}
 	}
 
-	void renderOutline(graphics::Renderer& screen)
+	void renderOutline(graphics::Renderer& screen) const
 	{
 		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
 		for (auto [entity, ts, mi, mining_ability_component] : view.each())
@@ -598,7 +599,7 @@ public:
 		auto view = registry.view<Components::Transform, Components::PlaceAbility, Components::PlaceIntent>();
 		for (auto [entity, ts, pl, pi] : view.each())
 		{
-			/*pl.placing_timer += dt;
+			pl.placing_timer += dt;
 
 			if (!pi.active || pl.placing_timer < pl.placing_time) continue;
 
@@ -610,7 +611,7 @@ public:
 			float distance = glm::distance(mid_position, mouse_global_position);
 
 			if (distance > pl.radius) continue;
-			if (world.getObjectOnPosition(mouse_global_position)) continue;
+			if (getObjectOnPosition(registry, mouse_global_position) != entt::null) continue;
 
 			//Prevents from placing blocks on the player 
 			float min_distance = glm::distance(mid_position, ts.position);
@@ -620,7 +621,7 @@ public:
 			int tile_y = static_cast<int>(std::floor((mouse_global_position.y) / tile_height));
 
 			//TODO Temporary placed 0 instead of a tile id
-			world.placeTile(tile_x, tile_y, 0);*/
+			placeTile(grid, tile_x, tile_y, 0);
 		}
 	}
 
@@ -645,7 +646,7 @@ public:
 
 	void update(float dt)
 	{
-		/*auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
+		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
 		for (auto [entity, ts, mi, mining_ability_component] : view.each())
 		{
 			float mining_speed = mining_ability_component.speed;
@@ -654,7 +655,7 @@ public:
 
 			const auto& mid_position = ts.position + ts.size * 0.5f;
 			float distance = glm::distance(mid_position, mi.start_mouse_position);
-			bool is_mining = world.getObjectOnPosition(mi.start_mouse_position) && distance < mining_radius && mi.active;
+			bool is_mining = getObjectOnPosition(registry, mi.start_mouse_position) != entt::null && distance < mining_radius && mi.active;
 
 			//Remove start-finish marks
 			registry.remove<Components::MineObjectsStarted>(entity);
@@ -685,7 +686,6 @@ public:
 					registry.emplace<Components::MineObjectsFinished>(entity);
 
 					//Do something at the end
-					//std::cout << "Mining_Objects_Ended" << std::endl;
 
 					//If target has physics component - return horizontal movement
 					if (registry.all_of<Components::Physics>(entity))
@@ -693,27 +693,26 @@ public:
 				}
 				else
 				{
-					auto destroyed_object_id = world.damageObject(mi.start_mouse_position, mining_speed * dt);
+					auto destroyed_object = damageObject(registry, mi.start_mouse_position, mining_speed * dt);
 
 					//If object was successfully destroyed - add items to the target's inventory
-					if (destroyed_object_id && registry.all_of<Components::HasInventory>(entity))
+					if (destroyed_object && registry.all_of<Components::HasInventory>(entity))
 					{
-						const auto& items = ObjectManager::get().getProperties(*destroyed_object_id).drop;
+						const auto& items = ObjectManager::get().getProperties(destroyed_object->id).drop;
 						for (const auto& item : items)
 						{
 							addRandomizedItem(entity, item, registry);
 						}
 
 					}
-					// std::cout << "Deal damage\n";
 				}
 			}
-		}*/
+		}
 	}
 
 	void render(graphics::Renderer& screen)
 	{
-		/*auto view = registry.view<Components::Transform, Components::MineIntent>();
+		auto view = registry.view<Components::Transform, Components::MineIntent>();
 		for (auto [entity, ts, mi] : view.each())
 		{
 			float mining_speed;
@@ -737,36 +736,35 @@ public:
 
 			if (registry.all_of<Components::MineObjectsState>(entity))
 			{
-				auto object = world.getObjectOnPosition(mi.start_mouse_position);
+				Entity object = getObjectOnPosition(registry, mi.start_mouse_position);
 
-				if (object)
+				if (object != entt::null)
 				{
-					const auto& object_rect = object->rect;
-					graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::YELLOW);
+					const auto& object_transform = registry.get<Components::Transform>(object);
+					graphics::drawRectangle(screen, object_transform.position.x, object_transform.position.y, object_transform.size.x, object_transform.size.y, graphics::RenderType::NONE, graphics::Color::YELLOW);
 				}
 			}
 			else
 			{
-				auto object = world.getObjectOnPosition(mi.current_mouse_position);
+				Entity object = getObjectOnPosition(registry, mi.current_mouse_position);
 
-				if (object)
+				if (object != entt::null)
 				{
 					const auto& mid_position = ts.position + ts.size * 0.5f;
 					float distance = glm::distance(mid_position, mi.current_mouse_position);
-					const auto& object_rect = object->rect;
+					const auto& object_transform = registry.get<Components::Transform>(object);
 
 					if (distance < mining_radius)
 					{
-
-						graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::BLUE);
+						graphics::drawRectangle(screen, object_transform.position.x, object_transform.position.y, object_transform.size.x, object_transform.size.y, graphics::RenderType::NONE, graphics::Color::BLUE);
 					}
 					else
 					{
-						graphics::drawRectangle(screen, object_rect.x, object_rect.y, object_rect.w, object_rect.h, graphics::RenderType::NONE, graphics::Color::RED);
+						graphics::drawRectangle(screen, object_transform.position.x, object_transform.position.y, object_transform.size.x, object_transform.size.y, graphics::RenderType::NONE, graphics::Color::RED);
 					}
 				}
 			}
-		}*/
+		}
 	}
 private:
 	entt::registry& registry;

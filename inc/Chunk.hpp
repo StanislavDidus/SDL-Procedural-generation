@@ -4,7 +4,7 @@
 
 #include <SDL3/SDL_rect.h>
 #include "TileMap.hpp"
-#include "Object.hpp"
+#include "ECS/Entity.hpp"
 #include "VertexBuffer.hpp"
 
 inline SDL_FPoint& operator+=(SDL_FPoint& lhs, const SDL_FPoint& rhs)
@@ -58,6 +58,6 @@ struct Chunk
 	SDL_FRect rect{};
 	glm::ivec2 grid_position{};
 
-	std::vector<Object> objects;
+	std::vector<Entity> objects; // object player can mine and chest to loot
 	std::array<SDL_Vertex, WidthTiles * HeightTiles * 4> vertices;
 };

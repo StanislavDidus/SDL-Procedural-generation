@@ -47,6 +47,11 @@ namespace Components
 		bool ignore_view_zoom = false;
 	};
 
+	struct AlwaysRender
+	{
+		
+	};
+
 	struct Physics
 	{
 		bool can_move_horizontal = true;
@@ -363,6 +368,15 @@ namespace Components
 		
 	};
 
+	struct Object
+	{
+		size_t id = -1;
+
+		float current_durability = 0.0f;
+		bool is_destroyed = false;
+		bool received_damage_last_frame = false;
+	};
+
 	struct Chest
 	{
 		size_t base_item;
@@ -510,8 +524,8 @@ namespace Components
 		struct OpenChest
 		{
 			Entity chest = entt::null;
-			EssenceType type;
-			int number;
+			EssenceType type = EssenceType::NONE;
+			int number = 0;
 		};
 
 		struct Window

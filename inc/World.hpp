@@ -63,6 +63,7 @@ private:
 	void addBiomes(Grid<Tile>& grid) const;
 	void addObjects(std::vector<ObjectData>& objects, Grid<Tile>& grid);
 	void addChests(std::vector<ChestData>& chests, Grid<Tile>& grid);
+	void setTileDurability(Grid<Tile>& grid) const;
 
 	void removeTileCave(const glm::ivec2& position, Grid<Tile>& grid) const;
 

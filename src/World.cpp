@@ -54,6 +54,8 @@ std::shared_ptr<WorldOutput> World::generateWorld(std::optional<int> seed)
 	std::vector<ChestData> chests;
 	addChests(chests, grid);
 
+	setTileDurability(grid);
+
 	return std::make_shared<WorldOutput>( grid, objects, chests );
 }
 
@@ -534,7 +536,7 @@ void World::addChests(std::vector<ChestData>& chests, Grid<Tile>& grid)
 			SDL_Rect chest_grid_rect
 			{
 				x,
-				y,
+				y - generation_data.chest_size.y,
 				generation_data.chest_size.x,
 				generation_data.chest_size.y
 			};
@@ -567,7 +569,6 @@ void World::addChests(std::vector<ChestData>& chests, Grid<Tile>& grid)
 					}
 				}
 
-
 				switch (chest_type)
 				{
 				case LootType::BASE:
@@ -588,6 +589,18 @@ void World::addChests(std::vector<ChestData>& chests, Grid<Tile>& grid)
 			chests.push_back(chest_data);
 
 			break;
+		}
+	}
+}
+
+void World::setTileDurability(Grid<Tile>& grid) const
+{
+	for (int x = 0; x < world_width_tiles; x++)
+	{
+		for (int y = 0; y < world_height_tiles; y++)
+		{
+			auto& tile = grid(x, y);
+			tile.current_durability = TileManager::get().getProperties(tile.id).max_durability;
 		}
 	}
 }

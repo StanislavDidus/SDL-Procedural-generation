@@ -18,11 +18,12 @@ class WorldRenderer
 {
 public:
 	WorldRenderer() = default;
-	WorldRenderer(const WorldOutput& output);
+	WorldRenderer(entt::registry& registry, const WorldOutput& output);
 	~WorldRenderer() = default;
 	
-	void render(graphics::Renderer& screen, const glm::vec2& target);
+	void render(const entt::registry& registry, graphics::Renderer& screen, const glm::vec2& target);
 
+	void spawnObjects(entt::registry& registry);
 private:
 	/// Const member function that takes <b>WorldOutput</b> as a param
 	/// and removes all objects from it that do not fit inside a chunk
@@ -56,6 +57,7 @@ private:
 
 template <int WorldWidthTiles, int WorldHeightTiles, int TileWidthWorld, int TileHeightWorld>
 WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeightWorld>::WorldRenderer(
+	entt::registry& registry,
 	const WorldOutput& output)
 	: output{ output }
 {
@@ -75,32 +77,11 @@ WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeightWorld
 
 		chunks[chunk_count++] = Chunk<ChunkWidthTiles, ChunkHeightTiles>{ rect, grid_position };
 	}
-
-	for (const auto& object : output.objects)
-	{
-		const auto object_grid_rect = object.grid_rect;
-		SDL_FRect object_rect
-		{
-			static_cast<float>(object_grid_rect.x) * TileWidthWorld,
-			static_cast<float>(object_grid_rect.y) * TileHeightWorld,
-			TileWidthWorld,
-			TileHeightWorld
-		};
-
-		for (int i = 0; i < chunk_count; ++i)
-		{
-			auto& chunk = chunks[i];
-			if (isRectInsideFloat(object_rect, chunk.rect))
-			{
-				//chunk.objects.push_back(object);
-			}
-		}
-	}
 }
 
 template <int WorldWidthTiles, int WorldHeightTiles, int TileWidthWorld, int TileHeightWorld>
 void WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeightWorld>::render(
-	graphics::Renderer& screen, const glm::vec2& target)
+	const entt::registry& registry, graphics::Renderer& screen, const glm::vec2& target)
 {
 	vertices.clear();
 	indices.clear();
@@ -172,9 +153,79 @@ void WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeight
 				indices.push_back(base + 3);
 				indices.push_back(base + 0);
 			}
+
+			// Render objects
+			for (const auto& object : chunk.objects)
+			{
+				const auto& transform = registry.get<Components::Transform>(object);
+				const auto& renderable = registry.get<Components::Renderable>(object);
+
+				graphics::drawRotatedSprite(
+					screen,
+					renderable.sprite,
+					transform.position.x,
+					transform.position.y,
+					transform.size.x,
+					transform.size.y,
+					0.0f,
+					renderable.flip_mode,
+					renderable.ignore_view_zoom
+				);
+			}
 		}
 	}
 
 	const auto& tile_set = ResourceManager::get().getSpriteSheet("tiles")->getTexture();
 	SDL_RenderGeometry(screen.get(), tile_set.get(), vertices.data(), vertices.size(), indices.data(), indices.size());
+}
+
+template <int WorldWidthTiles, int WorldHeightTiles, int TileWidthWorld, int TileHeightWorld>
+void WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeightWorld>::spawnObjects(
+	entt::registry& registry)
+{
+	for (const auto& object : output.objects)
+	{
+		const auto object_grid_rect = object.grid_rect;
+		SDL_FRect object_rect
+		{
+			static_cast<float>(object_grid_rect.x) * TileWidthWorld,
+			static_cast<float>(object_grid_rect.y) * TileHeightWorld,
+			TileWidthWorld,
+			TileHeightWorld
+		};
+
+		for (int i = 0; i < chunk_count; ++i)
+		{
+			auto& chunk = chunks[i];
+			if (isRectInsideFloat(object_rect, chunk.rect))
+			{
+				//If object completely fits inside a chunk we spawn it by using a registry	
+				Entity object_entity = spawnObject(registry, object, TileWidthWorld, TileHeightWorld);
+				chunk.objects.push_back(object_entity);
+			}
+		}
+	}
+
+	for (const auto& object : output.chests)
+	{
+		const auto object_grid_rect = object.grid_rect;
+		SDL_FRect object_rect
+		{
+			static_cast<float>(object_grid_rect.x) * TileWidthWorld,
+			static_cast<float>(object_grid_rect.y) * TileHeightWorld,
+			TileWidthWorld,
+			TileHeightWorld
+		};
+
+		for (int i = 0; i < chunk_count; ++i)
+		{
+			auto& chunk = chunks[i];
+			if (isRectInsideFloat(object_rect, chunk.rect))
+			{
+				//If object completely fits inside a chunk we spawn it by using a registry	
+				Entity object_entity = spawnChest(registry, object, TileWidthWorld, TileHeightWorld);
+				chunk.objects.push_back(object_entity);
+			}
+		}
+	}
 }
