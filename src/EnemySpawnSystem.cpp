@@ -126,6 +126,8 @@ Entity EnemySpawnSystem::createEntity(size_t id) const
 
 	auto& ts = registry.emplace<Components::Transform>(entity);
 
+	registry.emplace<Components::AlwaysRender>(entity);
+
 	auto& renderable = registry.emplace<Components::Renderable>(entity);
 	renderable.sprite = (*ResourceManager::get().getSpriteSheet("enemies"))[enemy_data.sprite_index];
 

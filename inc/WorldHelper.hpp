@@ -120,6 +120,8 @@ static Entity spawnChest(entt::registry& registry, const ChestData& chest_data, 
 	chest_component.sand_item = chest_data.sand_item;
 	chest_component.snow_item = chest_data.snow_item;
 
+	registry.emplace<Components::Button>(chest, true);
+
 	return chest;
 }
 
@@ -191,11 +193,10 @@ static std::optional<Components::Object> damageObject(entt::registry& registry, 
 		object_component.current_durability -= damage;
 		object_component.received_damage_last_frame = true;
 
-		if (object_component.current_durability <= 0.0f)
+		if (object_component.current_durability <= 0.0f && !object_component.is_destroyed)
 		{
-			Components::Object temp = object_component;
-			registry.destroy(entity);
-			return temp;
+			object_component.is_destroyed = true;
+			return object_component;
 		}
 	}
 	return std::nullopt;

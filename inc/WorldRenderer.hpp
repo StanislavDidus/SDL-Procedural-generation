@@ -10,6 +10,8 @@
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
+#include "ECS/ApplyArmorEffects.hpp"
+#include "ECS/ApplyArmorEffects.hpp"
 
 struct WorldOutput;
 
@@ -21,9 +23,10 @@ public:
 	WorldRenderer(entt::registry& registry, const WorldOutput& output);
 	~WorldRenderer() = default;
 	
-	void render(const entt::registry& registry, graphics::Renderer& screen, const glm::vec2& target);
+	void update();
+	void render(graphics::Renderer& screen, const glm::vec2& target);
 
-	void spawnObjects(entt::registry& registry);
+	void spawnObjects();
 private:
 	/// Const member function that takes <b>WorldOutput</b> as a param
 	/// and removes all objects from it that do not fit inside a chunk
@@ -45,6 +48,7 @@ private:
 	static constexpr int World_Chunks = WorldWidthChunks * WorldHeightChunks;
 
 	const WorldOutput& output;
+	entt::registry& registry;
 
 	std::array<Chunk<ChunkWidthTiles, ChunkHeightTiles>, World_Chunks> chunks;
 	size_t chunk_count = 0;
@@ -60,6 +64,7 @@ WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeightWorld
 	entt::registry& registry,
 	const WorldOutput& output)
 	: output{ output }
+	, registry(registry)
 {
 	for (int i = 0; i < World_Chunks; ++i)
 	{
@@ -80,8 +85,30 @@ WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeightWorld
 }
 
 template <int WorldWidthTiles, int WorldHeightTiles, int TileWidthWorld, int TileHeightWorld>
+void WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeightWorld>::update()
+{
+	for (auto& chunk : chunks)
+	{
+		auto new_end = std::ranges::remove_if(chunk.objects, [this](const Entity& entity)
+		{
+			if (registry.all_of<Components::Object>(entity))
+			{
+				if (registry.get<Components::Object>(entity).is_destroyed)
+				{
+					registry.destroy(entity);
+					return true;
+				}
+			}
+			return false;
+		}).begin();
+
+		chunk.objects.erase(new_end, chunk.objects.end());
+	}
+}
+
+template <int WorldWidthTiles, int WorldHeightTiles, int TileWidthWorld, int TileHeightWorld>
 void WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeightWorld>::render(
-	const entt::registry& registry, graphics::Renderer& screen, const glm::vec2& target)
+	graphics::Renderer& screen, const glm::vec2& target)
 {
 	vertices.clear();
 	indices.clear();
@@ -181,7 +208,7 @@ void WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeight
 
 template <int WorldWidthTiles, int WorldHeightTiles, int TileWidthWorld, int TileHeightWorld>
 void WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeightWorld>::spawnObjects(
-	entt::registry& registry)
+)
 {
 	for (const auto& object : output.objects)
 	{

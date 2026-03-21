@@ -490,6 +490,7 @@ void Game::update(float dt)
 			apply_effects_system->update(dt);
 			enemy_spawn_manager->update(dt);
 			updateTilesDurability(world_output->grid);
+			world_renderer->update();
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
 			const auto& player_pos = player_transform.position;
@@ -544,7 +545,7 @@ void Game::render(float dt) const
 		const auto& sky_sprite = ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky");
 		graphics::drawScaledSprite(screen, sky_sprite, 0.0f, 0.0f, static_cast<float>(window_size.x), static_cast<float>(window_size.y), graphics::IGNORE_VIEW_ZOOM);
 
-		world_renderer->render(registry, screen, world_target);
+		world_renderer->render(screen, world_target);
 		//world->render(screen);
 		render_system->render(screen);
 		mining_tiles_system->renderOutline(screen);
@@ -616,7 +617,7 @@ void Game::enterState(GameState state)
 		inventory_view->setTargetEntity(player);
 
 		world_renderer = std::make_unique<WorldRenderer<500, 200, 20, 20>>(registry, *world_output);
-		world_renderer->spawnObjects(registry);
+		world_renderer->spawnObjects();
 
 		setState(GameState::PLAY);
 
