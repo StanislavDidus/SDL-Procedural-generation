@@ -1,11 +1,16 @@
 
 #SDL
-set(SDL_SHARED OFF CACHE BOOL "Don't buil SDL shared" FORCE)
+set(SDL_SHARED OFF CACHE BOOL "Don't build SDL shared" FORCE)
 set(SDL_STATIC ON CACHE BOOL "Build SDL static" FORCE)
 add_subdirectory(SDL EXCLUDE_FROM_ALL)
 #SDL_ttf
 set(SDLTTF_VENDORED ON)
 add_subdirectory(SDL_ttf EXCLUDE_FROM_ALL)
+#SDL_shadercross
+#set(SDLSHADERCROSS_DXC OFF CACHE BOOL "")
+#set(SDLSHADERCROSS_SHARED_DEFAULT OFF CACHE BOOL "Don't build SDL_shadecross shared" FORCE)
+#set(SDLSHADERCROSS_STATIC_DEFAULT ON CACHE BOOL "Build SDL_shadecross static" FORCE)
+#add_subdirectory(SDL_shadercross EXCLUDE_FROM_ALL)
 #glm
 add_subdirectory(glm EXCLUDE_FROM_ALL)
 #tinyxml2

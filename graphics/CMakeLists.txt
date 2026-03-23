@@ -1,5 +1,6 @@
 set(GRAPHICS_SOURCE_FILES 
     "src/Renderer.cpp"
+    "src/GpuRenderer.cpp"
     "src/Sprite.cpp"
     "src/Surface.cpp"
     "src/Window.cpp"
@@ -10,10 +11,12 @@ set(GRAPHICS_SOURCE_FILES
     "src/ViewportGuard.cpp"
     "src/SpriteAnimation.cpp"
     "src/ColorModGuard.cpp"
+    "src/GpuShader.cpp"
     )
 
 set(GRAPHICS_HEADER_FILES
     "inc/Renderer.hpp"
+    "inc/GpuRenderer.hpp"
     "inc/Sprite.hpp"
     "inc/Surface.hpp"
     "inc/Window.hpp"
@@ -25,6 +28,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/RenderFunctions.hpp"
     "inc/SpriteAnimation.hpp"
     "inc/ColorModGuard.hpp"
+    "inc/GpuShader.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})

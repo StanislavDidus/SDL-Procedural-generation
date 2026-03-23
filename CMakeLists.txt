@@ -124,7 +124,57 @@ set(HEADER_FILES
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
 
+set(DXC_PATH "C:/tools/VulkanSDK/1.4.341.1/Bin/dxc.exe")
+
+set(VERTEX_SHADERS
+    "OnlyPosition"
+)
+
+set(FRAGMENT_SHADERS
+    "SolidColor"
+    "Gradient"
+)
+
+# Compile all shaders to .spv format
+set(SHADERS_SOURCE_PATH ${CMAKE_SOURCE_DIR}/shaders)
+set(SHADERS_OUTPUT_PATH ${CMAKE_BINARY_DIR}/shaders/compiled)
+
+set(VERTEX_OUTPUTS)
+set(FRAGMENT_OUTPUTS)
+
+foreach(SHADER IN LISTS VERTEX_SHADERS)
+add_custom_command(
+    OUTPUT ${SHADERS_OUTPUT_PATH}/${SHADER}.vert.spv
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${SHADERS_OUTPUT_PATH}
+    COMMAND ${DXC_PATH} -spirv -T vs_6_0 -E main 
+        ${SHADERS_SOURCE_PATH}/${SHADER}.vert.hlsl 
+        -Fo ${SHADERS_OUTPUT_PATH}/${SHADER}.vert.spv 
+    DEPENDS ${SHADERS_SOURCE_PATH}/${SHADER}.vert.hlsl
+)
+list(APPEND VERTEX_OUTPUTS ${SHADERS_OUTPUT_PATH}/${SHADER}.vert.spv)
+endforeach()
+
+foreach(SHADER IN LISTS FRAGMENT_SHADERS)
+add_custom_command(
+    OUTPUT ${SHADERS_OUTPUT_PATH}/${SHADER}.frag.spv
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${SHADERS_OUTPUT_PATH}
+    COMMAND ${DXC_PATH} -spirv -T ps_6_0 -E main 
+        ${SHADERS_SOURCE_PATH}/${SHADER}.frag.hlsl 
+        -Fo ${SHADERS_OUTPUT_PATH}/${SHADER}.frag.spv 
+    DEPENDS ${SHADERS_SOURCE_PATH}/${SHADER}.frag.hlsl
+)
+list(APPEND FRAGMENT_OUTPUTS ${SHADERS_OUTPUT_PATH}/${SHADER}.frag.spv)
+endforeach()
+
+add_custom_target(compile_shaders ALL
+    DEPENDS 
+        ${VERTEX_OUTPUTS}
+        ${FRAGMENT_OUTPUTS}
+)
+
 add_executable(SDL_PRO_GEN ${ALL_FILES})
+
+add_dependencies(SDL_PRO_GEN compile_shaders)
 
 if(MSVC)
     target_compile_options(SDL_PRO_GEN PRIVATE /bigobj)

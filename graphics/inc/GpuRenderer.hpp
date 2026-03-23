@@ -1,0 +1,156 @@
+#pragma once
+
+#include <iostream>
+
+#include "SDL3/SDL_gpu.h"
+
+#include "Window.hpp"
+#include "GpuShader.hpp"
+
+namespace graphics
+{
+	struct Vertex
+	{
+		float x, y, z;
+		float r, g, b, a;
+	};
+
+	/*static Vertex vertices[]
+	{
+	    {-0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},     // top vertex
+	    {-0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f},   // bottom left vertex
+	    {0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f},     // bottom right vertex
+
+	    {0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f},     // top vertex
+	    {1.0f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f},   // bottom left vertex
+	    {1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f}     // bottom right vertex
+	};*/
+
+	/*struct GPUDeviceDeleter
+	{
+		constexpr GPUDeviceDeleter() = default;
+
+		void operator()(SDL_GPUDevice* device) const
+		{
+			std::cout << "Destroy GPU device." << std::endl;
+
+			SDL_DestroyGPUDevice(device);
+		}
+	};*/
+
+	struct GPUGraphicsPipelineDeleter
+	{
+		SDL_GPUDevice* device;
+
+		GPUGraphicsPipelineDeleter() = default;
+		GPUGraphicsPipelineDeleter(SDL_GPUDevice* device) : device{device}{}
+
+		void operator()(SDL_GPUGraphicsPipeline* graphics_pipeline) const
+		{
+			SDL_ReleaseGPUGraphicsPipeline(device, graphics_pipeline);
+		}
+	};
+		
+	struct GPUBufferDeleter
+	{
+		SDL_GPUDevice* device;
+
+		GPUBufferDeleter() = default;
+		GPUBufferDeleter(SDL_GPUDevice* device) : device{device} {}
+
+		void operator()(SDL_GPUBuffer* vertex_buffer) const
+		{
+			SDL_ReleaseGPUBuffer(device, vertex_buffer);
+		}
+	};
+
+	struct GPUTransferBufferDeleter
+	{
+		SDL_GPUDevice* device;
+
+		GPUTransferBufferDeleter() = default;
+		GPUTransferBufferDeleter(SDL_GPUDevice* device) : device{device} {}
+
+		void operator()(SDL_GPUTransferBuffer* transfer_buffer) const
+		{
+			SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
+		}
+	};
+
+
+	struct GPUCommandBufferDeleter
+	{
+		constexpr GPUCommandBufferDeleter() = default;
+
+		void operator()(SDL_GPUCommandBuffer* command_buffer) const
+		{
+			SDL_SubmitGPUCommandBuffer(command_buffer);
+		}
+	};
+
+	struct WindowClaimer
+	{
+		SDL_GPUDevice* device;
+		SDL_Window* window;
+
+		WindowClaimer() = default;
+		WindowClaimer(SDL_GPUDevice* device, SDL_Window* window) : device{device}, window{window} {}
+		~WindowClaimer()
+		{
+			if (device && window)
+				SDL_ReleaseWindowFromGPUDevice(device, window);
+		}
+	};
+
+	/*struct UniformBuffer
+	{
+		float time = 0.0f;
+	};
+
+	static UniformBuffer time_uniform;*/
+
+	struct ScreenSize
+	{
+		int width = 960;
+		int height = 540;
+	};
+
+	struct Uniform
+	{
+		float time;
+	};
+	
+	static ScreenSize screen_size_uniform;
+	static Uniform time_uniform;
+	
+	class GpuRenderer
+	{
+	public:
+		explicit GpuRenderer(Window& window);
+		~GpuRenderer() = default;
+
+		void updateBuffers();
+		void update();
+
+		void renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color);
+		void renderRectangle1(float x1, float y1, float x2, float y2, SDL_FColor color);
+		void renderRectangle2(float x, float y, float w, float h, SDL_FColor color);
+	private:
+		Window& window;
+		std::shared_ptr<SDL_GPUDevice> device = nullptr;
+
+		std::unique_ptr<WindowClaimer> window_claimer;
+		std::unique_ptr<SDL_GPUGraphicsPipeline, GPUGraphicsPipelineDeleter> graphics_pipeline;
+		std::unique_ptr<SDL_GPUBuffer, GPUBufferDeleter> vertex_buffer;
+
+		std::unique_ptr<GpuShader> vertex_shader;
+		std::unique_ptr<GpuShader> fragment_shader;
+
+		std::vector<Vertex> vertices = 
+		{
+			{0.0f,0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},
+			{480.0f, 540.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+			{960.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f}
+		};
+	};
+}

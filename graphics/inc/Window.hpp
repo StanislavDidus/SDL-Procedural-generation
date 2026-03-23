@@ -20,7 +20,9 @@ public:
 
 	//Getters
 	glm::ivec2 getWindowSize() const;
-	SDL_Window* get() const;
+
+	template<typename Self>
+	auto&& get(this Self&& self);
 
 	explicit operator bool() const
 	{
@@ -35,4 +37,10 @@ private:
 	int height;
 
 };
+
+template <typename Self>
+auto&& Window::get(this Self&& self)
+{
+	return self.window;
+}
 } //namespace graphics

@@ -13,6 +13,7 @@
 
 #include "Window.hpp"
 #include "Renderer.hpp"
+#include "GpuRenderer.hpp"
 #include "Game.hpp"
 
 #include "InputManager.hpp"
@@ -42,12 +43,14 @@ int main()
     srand(time(0));
 
     Window window{ "First SDL program", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE};
-	graphics::Renderer renderer{ window };
-    Game game{ renderer };
+	//graphics::Renderer renderer{ window };
+    GpuRenderer gpu_renderer{ window };
+    //Game game{ renderer };
 
     InputManager input_manager;
 
     //Init ImGui
+    /*
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -55,6 +58,7 @@ int main()
     ImGui_ImplSDL3_InitForSDLRenderer(window.get(), renderer.get() );
     ImGui_ImplSDLRenderer3_Init(renderer.get());
     ImGui::GetIO().FontGlobalScale = 1.5f;
+    */
 
     float dt = 0.f;
     while (window)
@@ -65,7 +69,7 @@ int main()
         SDL_Event event;
         while (window.pollEvent(event))
         {
-            ImGui_ImplSDL3_ProcessEvent(&event);
+            //ImGui_ImplSDL3_ProcessEvent(&event);
 
             //Handle input
             switch (event.type)
@@ -87,7 +91,7 @@ int main()
         //Update mouse input
         float mouse_x, mouse_y = 0.f;
         SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-        SDL_RenderCoordinatesFromWindow(renderer.get(), mouse_x, mouse_y, &mouse_x, &mouse_y);
+        //SDL_RenderCoordinatesFromWindow(renderer.get(), mouse_x, mouse_y, &mouse_x, &mouse_y);
    
         input_manager.setMouseState(
             { mouse_x, mouse_y },
@@ -95,13 +99,18 @@ int main()
             static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_RIGHT))
         );
 
-        clear(renderer, Color::BLACK);
+        //clear(renderer, Color::BLACK);
 
         input_manager.update();
 
-        game.tick(dt);
+        //game.tick(dt);
 
-        update(renderer);
+		//gpu_renderer.renderTriangle(0.0f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, SDL_FColor{ 1.0f, 0.0,0.0f, 1.0f });
+        //gpu_renderer.renderRectangle2(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
+		//gpu_renderer.updateBuffers();
+        gpu_renderer.update();
+
+        //update(renderer);
 
         // Reset mousewheel state
         input_manager.setMouseWheel(glm::vec2{ 0.0f });
@@ -112,7 +121,9 @@ int main()
     }
 
     //Destroy imgui
+    /*
     ImGui_ImplSDL3_Shutdown();
     ImGui_ImplSDLRenderer3_Shutdown();
     ImGui::DestroyContext();
+*/
 }
