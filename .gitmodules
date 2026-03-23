@@ -16,3 +16,6 @@
 [submodule "extern/entt"]
 	path = extern/entt
 	url = https://github.com/skypjack/entt.git
+[submodule "extern/SDL_shadercross"]
+	path = extern/SDL_shadercross
+	url = https://github.com/libsdl-org/SDL_shadercross.git
