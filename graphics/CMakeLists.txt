@@ -12,6 +12,7 @@ set(GRAPHICS_SOURCE_FILES
     "src/SpriteAnimation.cpp"
     "src/ColorModGuard.cpp"
     "src/GpuShader.cpp"
+    "src/GpuGraphicsPipeline.cpp"
     )
 
 set(GRAPHICS_HEADER_FILES
@@ -29,6 +30,11 @@ set(GRAPHICS_HEADER_FILES
     "inc/SpriteAnimation.hpp"
     "inc/ColorModGuard.hpp"
     "inc/GpuShader.hpp"
+    "inc/GpuGraphicsPipeline.hpp"
+    "inc/Vertex.hpp"
+    "inc/GpuVertexBuffer.hpp"
+    "inc/GpuTransferBuffer.hpp"
+    "inc/GpuTexture.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})

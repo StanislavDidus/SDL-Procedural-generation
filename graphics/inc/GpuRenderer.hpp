@@ -1,19 +1,20 @@
 #pragma once
 
 #include <iostream>
+#include <unordered_map>
 
 #include "SDL3/SDL_gpu.h"
 
 #include "Window.hpp"
 #include "GpuShader.hpp"
+#include "GpuGraphicsPipeline.hpp"
+#include "GpuVertexBuffer.hpp"
+#include "GpuTexture.hpp"
+
+#include "Vertex.hpp"
 
 namespace graphics
 {
-	struct Vertex
-	{
-		float x, y, z;
-		float r, g, b, a;
-	};
 
 	/*static Vertex vertices[]
 	{
@@ -37,46 +38,6 @@ namespace graphics
 			SDL_DestroyGPUDevice(device);
 		}
 	};*/
-
-	struct GPUGraphicsPipelineDeleter
-	{
-		SDL_GPUDevice* device;
-
-		GPUGraphicsPipelineDeleter() = default;
-		GPUGraphicsPipelineDeleter(SDL_GPUDevice* device) : device{device}{}
-
-		void operator()(SDL_GPUGraphicsPipeline* graphics_pipeline) const
-		{
-			SDL_ReleaseGPUGraphicsPipeline(device, graphics_pipeline);
-		}
-	};
-		
-	struct GPUBufferDeleter
-	{
-		SDL_GPUDevice* device;
-
-		GPUBufferDeleter() = default;
-		GPUBufferDeleter(SDL_GPUDevice* device) : device{device} {}
-
-		void operator()(SDL_GPUBuffer* vertex_buffer) const
-		{
-			SDL_ReleaseGPUBuffer(device, vertex_buffer);
-		}
-	};
-
-	struct GPUTransferBufferDeleter
-	{
-		SDL_GPUDevice* device;
-
-		GPUTransferBufferDeleter() = default;
-		GPUTransferBufferDeleter(SDL_GPUDevice* device) : device{device} {}
-
-		void operator()(SDL_GPUTransferBuffer* transfer_buffer) const
-		{
-			SDL_ReleaseGPUTransferBuffer(device, transfer_buffer);
-		}
-	};
-
 
 	struct GPUCommandBufferDeleter
 	{
@@ -132,6 +93,8 @@ namespace graphics
 		void updateBuffers();
 		void update();
 
+		void loadTexture(const std::filesystem::path& path, const std::string& name);
+
 		void renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color);
 		void renderRectangle1(float x1, float y1, float x2, float y2, SDL_FColor color);
 		void renderRectangle2(float x, float y, float w, float h, SDL_FColor color);
@@ -140,17 +103,19 @@ namespace graphics
 		std::shared_ptr<SDL_GPUDevice> device = nullptr;
 
 		std::unique_ptr<WindowClaimer> window_claimer;
-		std::unique_ptr<SDL_GPUGraphicsPipeline, GPUGraphicsPipelineDeleter> graphics_pipeline;
-		std::unique_ptr<SDL_GPUBuffer, GPUBufferDeleter> vertex_buffer;
+		std::unique_ptr<GpuGraphicsPipeline> graphics_pipeline;
+		std::unique_ptr<GpuVertexBuffer> vertex_buffer;
 
 		std::unique_ptr<GpuShader> vertex_shader;
 		std::unique_ptr<GpuShader> fragment_shader;
 
-		std::vector<Vertex> vertices = 
-		{
+		std::vector<Vertex> vertices;
+		/*{
 			{0.0f,0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},
 			{480.0f, 540.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 			{960.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f}
-		};
+		};*/
+
+		std::unordered_map<std::string, std::shared_ptr<GpuTexture>> textures;
 	};
 }

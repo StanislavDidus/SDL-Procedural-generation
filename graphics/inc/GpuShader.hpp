@@ -16,30 +16,17 @@ namespace graphics
 		}
 	};
 
-	struct GpuShaderDeleter
-	{
-		SDL_GPUDevice* device = nullptr;
-
-		GpuShaderDeleter() = default;
-		GpuShaderDeleter(SDL_GPUDevice* device) : device{device} {}
-
-		void operator()(SDL_GPUShader* gpu_shader) const
-		{
-			if (gpu_shader && device)
-				SDL_ReleaseGPUShader(device, gpu_shader);
-		}
-	};
-
 	class GpuShader
 	{
 	public:
+		GpuShader() = default;
 		GpuShader(std::shared_ptr<SDL_GPUDevice> device, const std::filesystem::path& path, int num_uniform_buffers);
-		~GpuShader() = default;
+		~GpuShader();
 
 		template<typename Self>
 		auto&& get(this Self&& self);
 	private:
-		std::unique_ptr<SDL_GPUShader, GpuShaderDeleter> shader = nullptr;
+		SDL_GPUShader* shader = nullptr;
 		std::shared_ptr<SDL_GPUDevice> device = nullptr;
 	};
 

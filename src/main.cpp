@@ -42,88 +42,98 @@ int main()
     //Initialize randomizer
     srand(time(0));
 
-    Window window{ "First SDL program", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE};
-	//graphics::Renderer renderer{ window };
-    GpuRenderer gpu_renderer{ window };
-    //Game game{ renderer };
-
-    InputManager input_manager;
-
-    //Init ImGui
-    /*
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplSDL3_InitForSDLRenderer(window.get(), renderer.get() );
-    ImGui_ImplSDLRenderer3_Init(renderer.get());
-    ImGui::GetIO().FontGlobalScale = 1.5f;
-    */
-
-    float dt = 0.f;
-    while (window)
+    try
     {
-        const auto start = std::chrono::steady_clock::now();
+        Window window{ "First SDL program", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE };
+        //graphics::Renderer renderer{ window };
+        GpuRenderer gpu_renderer{ window };
+        gpu_renderer.loadTexture("assets/Sprites/car.png", "Car");
+        //Game game{ renderer };
 
-        //Do everything here
-        SDL_Event event;
-        while (window.pollEvent(event))
+        InputManager input_manager;
+
+        //Init ImGui
+        /*
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui::StyleColorsDark();
+
+        ImGui_ImplSDL3_InitForSDLRenderer(window.get(), renderer.get() );
+        ImGui_ImplSDLRenderer3_Init(renderer.get());
+        ImGui::GetIO().FontGlobalScale = 1.5f;
+        */
+
+        float dt = 0.f;
+        while (window)
         {
-            //ImGui_ImplSDL3_ProcessEvent(&event);
+            const auto start = std::chrono::steady_clock::now();
 
-            //Handle input
-            switch (event.type)
+            //Do everything here
+            SDL_Event event;
+            while (window.pollEvent(event))
             {
-            case SDL_EVENT_KEY_DOWN:
-                input_manager.buttonPressed(event.key.scancode);
-                break;
-            case SDL_EVENT_KEY_UP:
-                input_manager.buttonUp(event.key.scancode);
-                break;
-            case SDL_EVENT_MOUSE_WHEEL:
-                input_manager.setMouseWheel({ event.wheel.x, event.wheel.y });
-            	break;
+                //ImGui_ImplSDL3_ProcessEvent(&event);
+
+                //Handle input
+                switch (event.type)
+                {
+                case SDL_EVENT_KEY_DOWN:
+                    input_manager.buttonPressed(event.key.scancode);
+                    break;
+                case SDL_EVENT_KEY_UP:
+                    input_manager.buttonUp(event.key.scancode);
+                    break;
+                case SDL_EVENT_MOUSE_WHEEL:
+                    input_manager.setMouseWheel({ event.wheel.x, event.wheel.y });
+                    break;
+                }
             }
+
+            dt = std::min(dt, 0.033f);
+
+            //Update mouse input
+            float mouse_x, mouse_y = 0.f;
+            SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+            //SDL_RenderCoordinatesFromWindow(renderer.get(), mouse_x, mouse_y, &mouse_x, &mouse_y);
+
+            input_manager.setMouseState(
+                { mouse_x, mouse_y },
+                static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_LEFT)),
+                static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_RIGHT))
+            );
+
+            //clear(renderer, Color::BLACK);
+
+            input_manager.update();
+
+            //game.tick(dt);
+
+            gpu_renderer.renderTriangle(0.0f, 0.0f, 480.0f, 540.0f, 960.0f, 0.0f, SDL_FColor{ 1.0f, 0.0,0.0f, 1.0f });
+            //gpu_renderer.renderRectangle2(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
+            gpu_renderer.updateBuffers();
+            gpu_renderer.update();
+
+            //update(renderer);
+
+            // Reset mousewheel state
+            input_manager.setMouseWheel(glm::vec2{ 0.0f });
+
+            const auto finish = std::chrono::steady_clock::now();
+            const std::chrono::duration<double> elapsed_seconds{ finish - start };
+            dt = static_cast<float>(elapsed_seconds.count());
         }
 
-        dt = std::min(dt, 0.033f);
+        //Destroy imgui
+        /*
+        ImGui_ImplSDL3_Shutdown();
+        ImGui_ImplSDLRenderer3_Shutdown();
+        ImGui::DestroyContext();
 
-        //Update mouse input
-        float mouse_x, mouse_y = 0.f;
-        SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-        //SDL_RenderCoordinatesFromWindow(renderer.get(), mouse_x, mouse_y, &mouse_x, &mouse_y);
-   
-        input_manager.setMouseState(
-            { mouse_x, mouse_y },
-            static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_LEFT)),
-            static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_RIGHT))
-        );
-
-        //clear(renderer, Color::BLACK);
-
-        input_manager.update();
-
-        //game.tick(dt);
-
-		//gpu_renderer.renderTriangle(0.0f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, SDL_FColor{ 1.0f, 0.0,0.0f, 1.0f });
-        //gpu_renderer.renderRectangle2(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
-		//gpu_renderer.updateBuffers();
-        gpu_renderer.update();
-
-        //update(renderer);
-
-        // Reset mousewheel state
-        input_manager.setMouseWheel(glm::vec2{ 0.0f });
-
-        const auto finish = std::chrono::steady_clock::now();   
-        const std::chrono::duration<double> elapsed_seconds{ finish - start };
-        dt = static_cast<float>(elapsed_seconds.count());
+    */
     }
-
-    //Destroy imgui
-    /*
-    ImGui_ImplSDL3_Shutdown();
-    ImGui_ImplSDLRenderer3_Shutdown();
-    ImGui::DestroyContext();
-*/
+    catch (const std::exception& e)
+    {
+        std::cout << "Unexpected error occured: " << e.what() << std::endl;
+        throw;
+    }
 }

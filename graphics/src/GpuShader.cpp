@@ -37,10 +37,16 @@ graphics::GpuShader::GpuShader(std::shared_ptr<SDL_GPUDevice> device, const std:
 	vertex_info.num_storage_buffers = 0;
 	vertex_info.num_storage_textures = 0;
 	vertex_info.num_uniform_buffers = num_uniform_buffers;
-	shader = { SDL_CreateGPUShader(device.get(), &vertex_info), GpuShaderDeleter{device.get()} };
+	shader = SDL_CreateGPUShader(device.get(), &vertex_info);
 
 	if (!shader)
 	{
 		throw std::runtime_error{ std::format("Failed to create GPU shader: {}", SDL_GetError()) };
 	}
+}
+
+graphics::GpuShader::~GpuShader()
+{
+	if (shader)
+		SDL_ReleaseGPUShader(device.get(), shader);
 }
