@@ -2,7 +2,6 @@
 #include "Window.hpp"
 
 #include <iostream>
-#include "GpuTransferBuffer.hpp"
 
 #include "SDL3/SDL_gpu.h"
 	
@@ -20,7 +19,7 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 		SDL_GPU_SHADERFORMAT_MSL
 	};
 
-	device = std::shared_ptr<SDL_GPUDevice>{ SDL_CreateGPUDevice(shader_formats, true, nullptr), SDL_DestroyGPUDevice };
+	device = std::shared_ptr<SDL_GPUDevice>{ SDL_CreateGPUDevice(shader_formats, false, nullptr), SDL_DestroyGPUDevice };
 
 	if (!device)
 	{
@@ -42,7 +41,7 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	std::cout << "Window was successfully claimed for current GPU device." << std::endl;
 
 	// Disable VSync
-	//	SDL_SetGPUSwapchainParameters(device.get(), window.get(), SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_IMMEDIATE);
+	//SDL_SetGPUSwapchainParameters(device.get(), window.get(), SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_IMMEDIATE);
 
 	// Init vertex shader
 	vertex_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.vert.spv", 0, 0);
@@ -123,6 +122,11 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	std::cout << "Samplers initialized." << std::endl;
 	
 	graphics_pipeline = std::make_unique<GpuGraphicsPipeline>(device, window.get(), *vertex_shader, *fragment_shader);
+
+	texture_vertex_buffer = std::make_unique<GpuVertexBuffer>(device, MAX_OBJECTS * 4 * sizeof(TextureVertex), SDL_GPU_BUFFERUSAGE_VERTEX);
+	texture_index_buffer = std::make_unique<GpuVertexBuffer>(device, MAX_OBJECTS * 6 * sizeof(Uint16), SDL_GPU_BUFFERUSAGE_INDEX);
+	transfer_buffer = std::make_unique<GpuTransferBuffer<TextureVertex>>(
+		device, static_cast<Uint32>(MAX_OBJECTS * 4 * sizeof(TextureVertex) + MAX_OBJECTS * 6 * sizeof(Uint16)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD);
 }
 
 void graphics::GpuRenderer::updateBuffers()
@@ -175,12 +179,10 @@ void graphics::GpuRenderer::updateBuffers()
 	if (!texture_objects.empty())
 	{
 		size_t objects_size = texture_objects.size();
-		texture_vertex_buffer = std::make_unique<GpuVertexBuffer>(device, objects_size * 4 * sizeof(TextureVertex), SDL_GPU_BUFFERUSAGE_VERTEX);
-		texture_index_buffer = std::make_unique<GpuVertexBuffer>(device, objects_size * 6 * sizeof(Uint16), SDL_GPU_BUFFERUSAGE_INDEX);
+		//texture_vertex_buffer = std::make_unique<GpuVertexBuffer>(device, objects_size * 4 * sizeof(TextureVertex), SDL_GPU_BUFFERUSAGE_VERTEX);
+		//texture_index_buffer = std::make_unique<GpuVertexBuffer>(device, objects_size * 6 * sizeof(Uint16), SDL_GPU_BUFFERUSAGE_INDEX);
 
-		GpuTransferBuffer<TextureVertex> transfer_buffer = GpuTransferBuffer<TextureVertex>{ device, static_cast<Uint32>(objects_size * 4 * sizeof(TextureVertex) + objects_size * 6 * sizeof(Uint16)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD};
-
-		TextureVertex* data = transfer_buffer.map();
+		TextureVertex* data = transfer_buffer->map();
 
 		//SDL_memcpy can be used instead
 		for (int i = 0; i < objects_size; ++i)
@@ -203,60 +205,30 @@ void graphics::GpuRenderer::updateBuffers()
 			index_data[i * 6 + 5] = static_cast<Uint16>(i * 4 + 0);
 		}
 
-		transfer_buffer.unmap();
+		transfer_buffer->unmap();
 
 		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
 		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
-
-		//Upload texture
-		std::vector<GpuTransferBuffer<Uint8>> texture_transfer_buffers;
-		texture_transfer_buffers.reserve(objects_size);
-		for (const auto& texture_object : texture_objects)
-		{
-			const auto& texture = textures.at(texture_object.texture_name);
-			texture_transfer_buffers.emplace_back(device, static_cast<Uint32>(texture->w() * texture->h() * 4), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD);
-			auto& texture_transfer_buffer = texture_transfer_buffers.back();
-
-			Uint8* texture_data = texture_transfer_buffer.map();
-
-			SDL_memcpy(texture_data, texture->pixels(), texture->w() * texture->h() * 4);
-
-			texture_transfer_buffer.unmap();
-
-			// Source
-			SDL_GPUTextureTransferInfo gpu_texture_transfer_info = {};
-			gpu_texture_transfer_info.transfer_buffer = texture_transfer_buffer.get();
-			gpu_texture_transfer_info.offset = 0;
-
-			// Destination
-			SDL_GPUTextureRegion gpu_texture_region = {};
-			gpu_texture_region.texture = texture->get();
-			gpu_texture_region.w = texture->w();
-			gpu_texture_region.h = texture->h();
-			gpu_texture_region.d = 1;
-
-			SDL_UploadToGPUTexture(copy_pass, &gpu_texture_transfer_info, &gpu_texture_region, false);
-		}
-
+		
 		// Upload vertices
 		SDL_GPUTransferBufferLocation vertices_transfer_info = {};
-		vertices_transfer_info.transfer_buffer = transfer_buffer.get();
+		vertices_transfer_info.transfer_buffer = transfer_buffer->get();
 		vertices_transfer_info.offset = 0;
 		SDL_GPUBufferRegion vertices_buffer_region = {};
 		vertices_buffer_region.buffer = texture_vertex_buffer->get();
 		vertices_buffer_region.offset = 0;
-		vertices_buffer_region.size = texture_objects.size() * sizeof(TextureVertex) * 4;
+		vertices_buffer_region.size = objects_size * sizeof(TextureVertex) * 4;
 
 		SDL_UploadToGPUBuffer(copy_pass, &vertices_transfer_info, &vertices_buffer_region, false);
 
 		// Upload indices
 		SDL_GPUTransferBufferLocation indices_transfer_info = {};
-		indices_transfer_info.transfer_buffer = transfer_buffer.get();
-		indices_transfer_info.offset = texture_objects.size() * sizeof(TextureVertex) * 4;
+		indices_transfer_info.transfer_buffer = transfer_buffer->get();
+		indices_transfer_info.offset = objects_size * sizeof(TextureVertex) * 4;
 		SDL_GPUBufferRegion indices_buffer_region = {};
 		indices_buffer_region.buffer = texture_index_buffer->get();
 		indices_buffer_region.offset = 0;
-		indices_buffer_region.size = texture_objects.size() * sizeof(Uint16) * 6;
+		indices_buffer_region.size = objects_size * sizeof(Uint16) * 6;
 
 		SDL_UploadToGPUBuffer(copy_pass, &indices_transfer_info, &indices_buffer_region, false);
 
@@ -296,7 +268,7 @@ void graphics::GpuRenderer::update()
 
 		SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
 
-		if (texture_vertex_buffer && texture_index_buffer)
+		if (!texture_objects.empty())
 		{
 			SDL_BindGPUGraphicsPipeline(render_pass, graphics_pipeline->get());
 
@@ -352,6 +324,33 @@ void graphics::GpuRenderer::loadTexture(const std::filesystem::path& path, const
 	auto texture = std::make_shared<GpuTexture>(device, path);
 	texture->setName(name);
 	textures[name] = texture;
+
+	// Upload texture on the GPU
+	GpuTransferBuffer<Uint8> texture_transfer_buffer {device, static_cast<Uint32>(texture->w() * texture->h() * 4), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD};
+	
+	std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
+	SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
+
+	Uint8* texture_data = texture_transfer_buffer.map();
+
+	SDL_memcpy(texture_data, texture->pixels(), texture->w() * texture->h() * 4);
+
+	texture_transfer_buffer.unmap();
+
+	// Source
+	SDL_GPUTextureTransferInfo gpu_texture_transfer_info = {};
+	gpu_texture_transfer_info.transfer_buffer = texture_transfer_buffer.get();
+	gpu_texture_transfer_info.offset = 0;
+
+	// Destination
+	SDL_GPUTextureRegion gpu_texture_region = {};
+	gpu_texture_region.texture = texture->get();
+	gpu_texture_region.w = texture->w();
+	gpu_texture_region.h = texture->h();
+	gpu_texture_region.d = 1;
+
+	SDL_UploadToGPUTexture(copy_pass, &gpu_texture_transfer_info, &gpu_texture_region, false);
+	SDL_EndGPUCopyPass(copy_pass);
 }
 
 void graphics::GpuRenderer::renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color)

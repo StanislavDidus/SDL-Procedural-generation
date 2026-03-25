@@ -10,11 +10,14 @@
 #include "GpuGraphicsPipeline.hpp"
 #include "GpuVertexBuffer.hpp"
 #include "GpuTexture.hpp"
+#include "GpuTransferBuffer.hpp"
 
 #include "Vertex.hpp"
 
 namespace graphics
 {
+	constexpr int MAX_OBJECTS = 1'000;
+
 	struct GPUCommandBufferDeleter
 	{
 		constexpr GPUCommandBufferDeleter() = default;
@@ -82,9 +85,14 @@ namespace graphics
 		std::unique_ptr<WindowClaimer> window_claimer;
 		std::unique_ptr<GpuGraphicsPipeline> graphics_pipeline;
 
+		//Buffers
+		//Vertex buffers
 		std::unique_ptr<GpuVertexBuffer> vertex_buffer;
 		std::unique_ptr<GpuVertexBuffer> texture_vertex_buffer;
+		//Index buffers
 		std::unique_ptr<GpuVertexBuffer> texture_index_buffer;
+		//Transfer buffer
+		std::unique_ptr<GpuTransferBuffer<TextureVertex>> transfer_buffer;
 
 		std::unique_ptr<GpuShader> vertex_shader;
 		std::unique_ptr<GpuShader> fragment_shader;
