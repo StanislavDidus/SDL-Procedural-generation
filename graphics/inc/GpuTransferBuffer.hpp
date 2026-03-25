@@ -7,6 +7,7 @@
 
 namespace graphics
 {
+	template<typename MapType>
 	class GpuTransferBuffer
 	{
 	public:
@@ -14,7 +15,7 @@ namespace graphics
 		GpuTransferBuffer(std::shared_ptr<SDL_GPUDevice> device, Uint32 size, SDL_GPUTransferBufferUsage flags);
 		~GpuTransferBuffer() noexcept;
 
-		Vertex* map();
+		MapType* map();
 		void unmap();
 		
 		/// Function will take a dynamic array pointer and copy its contents to the transfer buffer.
@@ -22,7 +23,7 @@ namespace graphics
 		/// You should not try to call it yourself unless you intend to copy it manually.
 		/// @param arr Array pointer.
 		/// @param size Array size;
-		void putAutomatically(Vertex* arr, size_t size);
+		void putAutomatically(MapType* arr, size_t size);
 
 		template<typename Self>
 		auto&& get(this Self&& self);
@@ -31,13 +32,15 @@ namespace graphics
 		SDL_GPUTransferBuffer* transfer_buffer;
 	};
 
+	template<typename MapType>
 	template <typename Self>
-	auto&& GpuTransferBuffer::get(this Self&& self)
+	auto&& GpuTransferBuffer<MapType>::get(this Self&& self)
 	{
 		return self.transfer_buffer;
 	}
 
-	inline GpuTransferBuffer::GpuTransferBuffer(std::shared_ptr<SDL_GPUDevice> device, Uint32 size, SDL_GPUTransferBufferUsage flags)
+	template<typename MapType>
+	inline GpuTransferBuffer<MapType>::GpuTransferBuffer(std::shared_ptr<SDL_GPUDevice> device, Uint32 size, SDL_GPUTransferBufferUsage flags)
 		: device{device}
 	{
 		// Create transfer buffer
@@ -52,7 +55,8 @@ namespace graphics
 		}
 	}
 
-	inline GpuTransferBuffer::~GpuTransferBuffer() noexcept
+	template<typename MapType>
+	inline GpuTransferBuffer<MapType>::~GpuTransferBuffer() noexcept
 	{
 		if (transfer_buffer)
 		{
@@ -60,9 +64,10 @@ namespace graphics
 		}
 	}
 
-	inline Vertex* GpuTransferBuffer::map() 
+	template<typename MapType>
+	inline MapType* GpuTransferBuffer<MapType>::map() 
 	{
-		Vertex* data = static_cast<Vertex*>(SDL_MapGPUTransferBuffer(device.get(), transfer_buffer, false));
+		MapType* data = static_cast<MapType*>(SDL_MapGPUTransferBuffer(device.get(), transfer_buffer, false));
 
 		if (!data)
 		{
@@ -72,12 +77,14 @@ namespace graphics
 		return data;
 	}
 
-	inline void GpuTransferBuffer::unmap()
+	template<typename MapType>
+	inline void GpuTransferBuffer<MapType>::unmap()
 	{
 		SDL_UnmapGPUTransferBuffer(device.get(), transfer_buffer);
 	}
 
-	inline void GpuTransferBuffer::putAutomatically(Vertex* arr, size_t size)
+	template<typename MapType>
+	inline void GpuTransferBuffer<MapType>::putAutomatically(MapType* arr, size_t size)
 	{
 		auto* data = map();
 

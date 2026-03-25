@@ -1,6 +1,6 @@
 #include "GpuShader.hpp"
 
-graphics::GpuShader::GpuShader(std::shared_ptr<SDL_GPUDevice> device, const std::filesystem::path& path, int num_uniform_buffers)
+graphics::GpuShader::GpuShader(std::shared_ptr<SDL_GPUDevice> device, const std::filesystem::path& path, int sampler_count, int uniform_count)
 	: device{device}
 {
 	SDL_GPUShaderStage stage;
@@ -33,10 +33,10 @@ graphics::GpuShader::GpuShader(std::shared_ptr<SDL_GPUDevice> device, const std:
 	vertex_info.entrypoint = "main";
 	vertex_info.format = SDL_GPU_SHADERFORMAT_SPIRV;
 	vertex_info.stage = stage;
-	vertex_info.num_samplers = 0;
+	vertex_info.num_samplers = sampler_count;
 	vertex_info.num_storage_buffers = 0;
 	vertex_info.num_storage_textures = 0;
-	vertex_info.num_uniform_buffers = num_uniform_buffers;
+	vertex_info.num_uniform_buffers = uniform_count;
 	shader = SDL_CreateGPUShader(device.get(), &vertex_info);
 
 	if (!shader)

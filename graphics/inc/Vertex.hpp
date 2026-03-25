@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 namespace graphics
 {
 	static const char* SamplerNames[] =
@@ -20,5 +22,10 @@ namespace graphics
 	{
 		float x, y, z;
 		float u, v;
+	};
+	struct TextureObject
+	{
+		std::string texture_name;
+		std::array<TextureVertex, 4> vertices;
 	};
 }

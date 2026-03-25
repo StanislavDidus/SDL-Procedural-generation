@@ -20,10 +20,17 @@ graphics::GpuGraphicsPipeline::GpuGraphicsPipeline(std::shared_ptr<SDL_GPUDevice
 
 	// Describe the vertex buffers
 	SDL_GPUVertexBufferDescription vertex_buffer_descriptions[1] = {};
+	/*
 	vertex_buffer_descriptions[0].slot = 0;
 	vertex_buffer_descriptions[0].input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
 	vertex_buffer_descriptions[0].instance_step_rate = 0;
 	vertex_buffer_descriptions[0].pitch = sizeof(Vertex);
+	*/
+
+	vertex_buffer_descriptions[0].slot = 0;
+	vertex_buffer_descriptions[0].input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
+	vertex_buffer_descriptions[0].instance_step_rate = 0;
+	vertex_buffer_descriptions[0].pitch = sizeof(TextureVertex);
 
 	pipeline_info.vertex_input_state.num_vertex_buffers = 1;
 	pipeline_info.vertex_input_state.vertex_buffer_descriptions = vertex_buffer_descriptions;
@@ -39,7 +46,7 @@ graphics::GpuGraphicsPipeline::GpuGraphicsPipeline(std::shared_ptr<SDL_GPUDevice
 	// float4 Color
 	vertex_attributes[1].buffer_slot = 0;
 	vertex_attributes[1].location = 1;
-	vertex_attributes[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+	vertex_attributes[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
 	vertex_attributes[1].offset = 3 * sizeof(float);
 
 	pipeline_info.vertex_input_state.num_vertex_attributes = 2;

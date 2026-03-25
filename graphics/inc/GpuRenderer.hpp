@@ -15,30 +15,6 @@
 
 namespace graphics
 {
-
-	/*static Vertex vertices[]
-	{
-	    {-0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},     // top vertex
-	    {-0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f},   // bottom left vertex
-	    {0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f},     // bottom right vertex
-
-	    {0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f},     // top vertex
-	    {1.0f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f},   // bottom left vertex
-	    {1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f}     // bottom right vertex
-	};*/
-
-	/*struct GPUDeviceDeleter
-	{
-		constexpr GPUDeviceDeleter() = default;
-
-		void operator()(SDL_GPUDevice* device) const
-		{
-			std::cout << "Destroy GPU device." << std::endl;
-
-			SDL_DestroyGPUDevice(device);
-		}
-	};*/
-
 	struct GPUCommandBufferDeleter
 	{
 		constexpr GPUCommandBufferDeleter() = default;
@@ -98,23 +74,24 @@ namespace graphics
 		void renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color);
 		void renderRectangle1(float x1, float y1, float x2, float y2, SDL_FColor color);
 		void renderRectangle2(float x, float y, float w, float h, SDL_FColor color);
+		void renderSprite(const std::string& texture_name, float x, float y, float w, float h);
 	private:
 		Window& window;
 		std::shared_ptr<SDL_GPUDevice> device = nullptr;
 
 		std::unique_ptr<WindowClaimer> window_claimer;
 		std::unique_ptr<GpuGraphicsPipeline> graphics_pipeline;
+
 		std::unique_ptr<GpuVertexBuffer> vertex_buffer;
+		std::unique_ptr<GpuVertexBuffer> texture_vertex_buffer;
+		std::unique_ptr<GpuVertexBuffer> texture_index_buffer;
 
 		std::unique_ptr<GpuShader> vertex_shader;
 		std::unique_ptr<GpuShader> fragment_shader;
 
 		std::vector<Vertex> vertices;
-		/*{
-			{0.0f,0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f},
-			{480.0f, 540.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-			{960.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f}
-		};*/
+		//std::vector<TextureVertex> texture_vertices;
+		std::vector<TextureObject> texture_objects;
 
 		std::unordered_map<std::string, std::shared_ptr<GpuTexture>> textures;
 	};

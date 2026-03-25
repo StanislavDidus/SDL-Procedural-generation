@@ -128,11 +128,13 @@ set(DXC_PATH "C:/tools/VulkanSDK/1.4.341.1/Bin/dxc.exe")
 
 set(VERTEX_SHADERS
     "OnlyPosition"
+    "TextureQuad"
 )
 
 set(FRAGMENT_SHADERS
     "SolidColor"
     "Gradient"
+    "TextureQuad"
 )
 
 # Compile all shaders to .spv format
