@@ -110,8 +110,7 @@ int main()
 
             //gpu_renderer.renderTriangle(0.0f, 0.0f, 480.0f, 540.0f, 960.0f, 0.0f, SDL_FColor{ 1.0f, 0.0,0.0f, 1.0f });
             gpu_renderer.renderSprite("Car", 0.0f, 0.0f,960.0f, 540.0f);
-            //gpu_renderer.renderRectangle2(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
-            gpu_renderer.updateBuffers();
+            gpu_renderer.renderRectangle2(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
             gpu_renderer.update();
 
             //update(renderer);

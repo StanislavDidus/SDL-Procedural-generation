@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+#include "glm/mat4x4.hpp"
 #include "SDL3/SDL_gpu.h"
 	
 static SDL_GPUSampler* Samplers[std::size(graphics::SamplerNames)];
@@ -41,11 +42,13 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	std::cout << "Window was successfully claimed for current GPU device." << std::endl;
 
 	// Disable VSync
-	//SDL_SetGPUSwapchainParameters(device.get(), window.get(), SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_IMMEDIATE);
+	SDL_SetGPUSwapchainParameters(device.get(), window.get(), SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_IMMEDIATE);
 
 	// Init vertex shader
-	vertex_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.vert.spv", 0, 0);
-	fragment_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.frag.spv", 1, 0);
+	vertex_shader = std::make_unique<GpuShader>(device, "shaders/compiled/OnlyPosition.vert.spv", 0, 1);
+	fragment_shader = std::make_unique<GpuShader>(device, "shaders/compiled/SolidColor.frag.spv", 0, 0);
+	text_vertex_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.vert.spv", 0, 0);
+	texture_fragment_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.frag.spv", 1, 0);
 
 	std::cout << "Shaders initialized." << std::endl;
 
@@ -120,18 +123,71 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	Samplers[5] = SDL_CreateGPUSampler(device.get(), &anisotropicWrap);
 
 	std::cout << "Samplers initialized." << std::endl;
+
+	// Vertex graphics pipeline
+	{
+		std::vector<SDL_GPUVertexBufferDescription> vertex_buffer_descriptions;
+		vertex_buffer_descriptions.emplace_back(0, sizeof(Vertex), SDL_GPU_VERTEXINPUTRATE_VERTEX, 0);
+
+		std::vector<SDL_GPUVertexAttribute> vertex_attributes;
+		vertex_attributes.emplace_back(0, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, 0);
+		vertex_attributes.emplace_back(1, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4, 3 * sizeof(float));
+
+		vertex_graphics_pipeline = std::make_unique<GpuGraphicsPipeline>(device, window.get(), *vertex_shader, *fragment_shader, vertex_buffer_descriptions, vertex_attributes);
+	}
+
+	// TextureVertex graphics pipeline
+	{
+		std::vector<SDL_GPUVertexBufferDescription> vertex_buffer_descriptions;
+		vertex_buffer_descriptions.emplace_back(0, sizeof(TextureVertex), SDL_GPU_VERTEXINPUTRATE_VERTEX, 0);
+
+		std::vector<SDL_GPUVertexAttribute> vertex_attributes;
+		vertex_attributes.emplace_back(0, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, 0);
+		vertex_attributes.emplace_back(1, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, 3 * sizeof(float));
 	
-	graphics_pipeline = std::make_unique<GpuGraphicsPipeline>(device, window.get(), *vertex_shader, *fragment_shader);
+		texture_graphics_pipeline = std::make_unique<GpuGraphicsPipeline>(device, window.get(), *text_vertex_shader, *texture_fragment_shader, vertex_buffer_descriptions, vertex_attributes);
+	}
 
 	texture_vertex_buffer = std::make_unique<GpuVertexBuffer>(device, MAX_OBJECTS * 4 * sizeof(TextureVertex), SDL_GPU_BUFFERUSAGE_VERTEX);
 	texture_index_buffer = std::make_unique<GpuVertexBuffer>(device, MAX_OBJECTS * 6 * sizeof(Uint16), SDL_GPU_BUFFERUSAGE_INDEX);
 	transfer_buffer = std::make_unique<GpuTransferBuffer<TextureVertex>>(
 		device, static_cast<Uint32>(MAX_OBJECTS * 4 * sizeof(TextureVertex) + MAX_OBJECTS * 6 * sizeof(Uint16)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD);
+
+	// Initialize texture index buffer
+	{
+		//GpuTransferBuffer<Uint16> transfer_buffer{ device, MAX_OBJECTS * 6 * sizeof(Uint16), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD };
+		auto* data = transfer_buffer->map();
+		Uint16* index_data = reinterpret_cast<Uint16*>(&data[MAX_OBJECTS * 4]);
+
+		for (int i = 0; i < MAX_OBJECTS; ++i)
+		{
+			index_data[i * 6 + 0] = static_cast<Uint16>(i * 4 + 0);
+			index_data[i * 6 + 1] = static_cast<Uint16>(i * 4 + 1);
+			index_data[i * 6 + 2] = static_cast<Uint16>(i * 4 + 2);
+			index_data[i * 6 + 3] = static_cast<Uint16>(i * 4 + 2);
+			index_data[i * 6 + 4] = static_cast<Uint16>(i * 4 + 3);
+			index_data[i * 6 + 5] = static_cast<Uint16>(i * 4 + 0);
+		}
+
+		transfer_buffer->unmap();
+
+		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
+		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
+		
+		SDL_GPUTransferBufferLocation transfer_info = {};
+		transfer_info.transfer_buffer = transfer_buffer->get();
+		transfer_info.offset = MAX_OBJECTS * sizeof(TextureVertex) * 4;
+		SDL_GPUBufferRegion buffer_region = {};
+		buffer_region.buffer = texture_index_buffer->get();
+		buffer_region.offset = 0;
+		buffer_region.size = MAX_OBJECTS * sizeof(Uint16) * 6;
+
+		SDL_UploadToGPUBuffer(copy_pass, &transfer_info, &buffer_region, false);
+	}
 }
 
 void graphics::GpuRenderer::updateBuffers()
 {
-	/*
 	if (!vertices.empty())
 	{
 
@@ -171,10 +227,7 @@ void graphics::GpuRenderer::updateBuffers()
 		SDL_UploadToGPUBuffer(copy_pass, &location, &region, true);
 
 		SDL_EndGPUCopyPass(copy_pass);
-
-		vertices.clear();
 	}
-	*/
 
 	if (!texture_objects.empty())
 	{
@@ -183,7 +236,7 @@ void graphics::GpuRenderer::updateBuffers()
 		//texture_index_buffer = std::make_unique<GpuVertexBuffer>(device, objects_size * 6 * sizeof(Uint16), SDL_GPU_BUFFERUSAGE_INDEX);
 
 		TextureVertex* data = transfer_buffer->map();
-
+		
 		//SDL_memcpy can be used instead
 		for (int i = 0; i < objects_size; ++i)
 		{
@@ -193,18 +246,7 @@ void graphics::GpuRenderer::updateBuffers()
 			data[i * 4 + 2] = texture_vertices[2];
 			data[i * 4 + 3] = texture_vertices[3];
 		}
-		size_t end = texture_objects.size() * 4;
-		Uint16* index_data = reinterpret_cast<Uint16*>(&data[end]);
-		for (int i = 0; i < objects_size; ++i)
-		{
-			index_data[i * 6 + 0] = static_cast<Uint16>(i * 4 + 0);
-			index_data[i * 6 + 1] = static_cast<Uint16>(i * 4 + 1);
-			index_data[i * 6 + 2] = static_cast<Uint16>(i * 4 + 2);
-			index_data[i * 6 + 3] = static_cast<Uint16>(i * 4 + 2);
-			index_data[i * 6 + 4] = static_cast<Uint16>(i * 4 + 3);
-			index_data[i * 6 + 5] = static_cast<Uint16>(i * 4 + 0);
-		}
-
+		
 		transfer_buffer->unmap();
 
 		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
@@ -220,17 +262,6 @@ void graphics::GpuRenderer::updateBuffers()
 		vertices_buffer_region.size = objects_size * sizeof(TextureVertex) * 4;
 
 		SDL_UploadToGPUBuffer(copy_pass, &vertices_transfer_info, &vertices_buffer_region, false);
-
-		// Upload indices
-		SDL_GPUTransferBufferLocation indices_transfer_info = {};
-		indices_transfer_info.transfer_buffer = transfer_buffer->get();
-		indices_transfer_info.offset = objects_size * sizeof(TextureVertex) * 4;
-		SDL_GPUBufferRegion indices_buffer_region = {};
-		indices_buffer_region.buffer = texture_index_buffer->get();
-		indices_buffer_region.offset = 0;
-		indices_buffer_region.size = objects_size * sizeof(Uint16) * 6;
-
-		SDL_UploadToGPUBuffer(copy_pass, &indices_transfer_info, &indices_buffer_region, false);
 
 		SDL_EndGPUCopyPass(copy_pass);
 	}
@@ -270,7 +301,7 @@ void graphics::GpuRenderer::update()
 
 		if (!texture_objects.empty())
 		{
-			SDL_BindGPUGraphicsPipeline(render_pass, graphics_pipeline->get());
+			SDL_BindGPUGraphicsPipeline(render_pass, texture_graphics_pipeline->get());
 
 			// Bind the vertex buffer
 			SDL_GPUBufferBinding buffer_bindings[2];
@@ -297,12 +328,12 @@ void graphics::GpuRenderer::update()
 				const auto& texture = textures.at(texture_object.texture_name);
 
 				SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
-				texture_sampler_binding.sampler = Samplers[0];
+				texture_sampler_binding.sampler = Samplers[2];
 				texture_sampler_binding.texture = texture->get();
 
 				texture_sampler_bindings.push_back(texture_sampler_binding);
 			}
-			SDL_BindGPUFragmentSamplers(render_pass, 0, texture_sampler_bindings.data(), 1);
+			SDL_BindGPUFragmentSamplers(render_pass, 0, texture_sampler_bindings.data(), texture_sampler_bindings.size());
 
 			//SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &screen_size_uniform, sizeof(ScreenSize));
 
@@ -313,10 +344,26 @@ void graphics::GpuRenderer::update()
 			//SDL_DrawGPUPrimitives(render_pass, 3, 1, 0, 0);
 		}
 
+		if (!vertices.empty())
+		{
+			SDL_BindGPUGraphicsPipeline(render_pass, vertex_graphics_pipeline->get());
+			
+			SDL_GPUBufferBinding buffer_bindings[1];
+			
+			buffer_bindings[0].buffer = vertex_buffer->get();
+			buffer_bindings[0].offset = 0;
+
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &screen_size_uniform, sizeof(ScreenSize));
+
+			SDL_BindGPUVertexBuffers(render_pass, 0, buffer_bindings, 1);
+			SDL_DrawGPUPrimitives(render_pass, vertices.size(), 1, 0, 0);
+		}
+
 		SDL_EndGPURenderPass(render_pass);
 	}
 	
 	texture_objects.clear();
+	vertices.clear();
 }
 
 void graphics::GpuRenderer::loadTexture(const std::filesystem::path& path, const std::string& name)
@@ -362,13 +409,13 @@ void graphics::GpuRenderer::renderTriangle(float x1, float y1, float x2, float y
 
 void graphics::GpuRenderer::renderRectangle1(float x1, float y1, float x2, float y2, SDL_FColor color)
 {
-	/*vertices.emplace_back(x1, y1, 0.0f, color.r, color.g, color.b, color.a);
+	vertices.emplace_back(x1, y1, 0.0f, color.r, color.g, color.b, color.a);
 	vertices.emplace_back(x1, y2, 0.0f, color.r, color.g, color.b, color.a);
 	vertices.emplace_back(x2, y2, 0.0f, color.r, color.g, color.b, color.a);
 
 	vertices.emplace_back(x2, y2, 0.0f, color.r, color.g, color.b, color.a);
 	vertices.emplace_back(x2, y1, 0.0f, color.r, color.g, color.b, color.a);
-	vertices.emplace_back(x1, y1, 0.0f, color.r, color.g, color.b, color.a);*/
+	vertices.emplace_back(x1, y1, 0.0f, color.r, color.g, color.b, color.a);
 }
 
 void graphics::GpuRenderer::renderRectangle2(float x, float y, float w, float h, SDL_FColor color)

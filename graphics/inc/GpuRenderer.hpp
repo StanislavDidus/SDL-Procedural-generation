@@ -83,7 +83,8 @@ namespace graphics
 		std::shared_ptr<SDL_GPUDevice> device = nullptr;
 
 		std::unique_ptr<WindowClaimer> window_claimer;
-		std::unique_ptr<GpuGraphicsPipeline> graphics_pipeline;
+		std::unique_ptr<GpuGraphicsPipeline> vertex_graphics_pipeline;
+		std::unique_ptr<GpuGraphicsPipeline> texture_graphics_pipeline;
 
 		//Buffers
 		//Vertex buffers
@@ -96,6 +97,8 @@ namespace graphics
 
 		std::unique_ptr<GpuShader> vertex_shader;
 		std::unique_ptr<GpuShader> fragment_shader;
+		std::unique_ptr<GpuShader> text_vertex_shader;
+		std::unique_ptr<GpuShader> texture_fragment_shader;
 
 		std::vector<Vertex> vertices;
 		//std::vector<TextureVertex> texture_vertices;
