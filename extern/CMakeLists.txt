@@ -8,9 +8,12 @@ set(SDLTTF_VENDORED ON)
 add_subdirectory(SDL_ttf EXCLUDE_FROM_ALL)
 #SDL_shadercross
 #set(SDLSHADERCROSS_DXC OFF CACHE BOOL "")
-#set(SDLSHADERCROSS_SHARED_DEFAULT OFF CACHE BOOL "Don't build SDL_shadecross shared" FORCE)
-#set(SDLSHADERCROSS_STATIC_DEFAULT ON CACHE BOOL "Build SDL_shadecross static" FORCE)
-#add_subdirectory(SDL_shadercross EXCLUDE_FROM_ALL)
+set(SDLSHADERCROSS_SHARED OFF CACHE BOOL "Don't build SDL_shadecross shared" FORCE)
+set(SDLSHADERCROSS_STATIC ON CACHE BOOL "Build SDL_shadecross static" FORCE)
+set(SDLSHADERCROSS_SPIRVCROSS_SHARED OFF CACHE BOOL "Build Spirvcross shared" FORCE)
+set(SDLSHADERCROSS_DXC OFF CACHE BOOL "Disable DXC compilation")
+set(SDLSHADERCROSS_VENDORED ON)
+add_subdirectory(SDL_shadercross EXCLUDE_FROM_ALL)
 #glm
 add_subdirectory(glm EXCLUDE_FROM_ALL)
 #tinyxml2
@@ -43,6 +46,7 @@ endmacro()
 
 set ( ALL_LIBS
     SDL3_ttf-static
+    SDL3_shadercross
     SDL3-static
     glm
     imgui

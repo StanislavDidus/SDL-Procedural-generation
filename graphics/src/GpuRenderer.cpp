@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "glm/mat4x4.hpp"
+#include <SDL3_shadercross/SDL_shadercross.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "Surface.hpp"
@@ -15,14 +16,7 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 {
 	//Create GPU
 
-	SDL_GPUShaderFormat shader_formats
-	{
-		SDL_GPU_SHADERFORMAT_SPIRV |
-		SDL_GPU_SHADERFORMAT_DXIL |
-		SDL_GPU_SHADERFORMAT_MSL
-	};
-
-	device = std::shared_ptr<SDL_GPUDevice>{ SDL_CreateGPUDevice(shader_formats, false, nullptr), SDL_DestroyGPUDevice };
+	device = std::shared_ptr<SDL_GPUDevice>{ SDL_CreateGPUDevice(SDL_ShaderCross_GetHLSLShaderFormats(), true, nullptr), SDL_DestroyGPUDevice };
 
 	if (!device)
 	{
@@ -47,10 +41,10 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	SDL_SetGPUSwapchainParameters(device.get(), window.get(), SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_IMMEDIATE);
 
 	// Init vertex shader
-	vertex_shader = std::make_unique<GpuShader>(device, "shaders/compiled/OnlyPosition.vert.spv", 0, 1);
-	fragment_shader = std::make_unique<GpuShader>(device, "shaders/compiled/SolidColor.frag.spv", 0, 0);
-	text_vertex_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.vert.spv", 0, 1);
-	texture_fragment_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.frag.spv", 1, 0);
+	vertex_shader = std::make_unique<GpuShader>(device, "shaders/OnlyPosition.vert.hlsl", 0, 1, 0, 0);
+	fragment_shader = std::make_unique<GpuShader>(device, "shaders/SolidColor.frag.hlsl", 0, 0, 0, 0);
+	text_vertex_shader = std::make_unique<GpuShader>(device, "shaders/TextureQuad.vert.hlsl", 0, 1, 0, 0);
+	texture_fragment_shader = std::make_unique<GpuShader>(device, "shaders/TextureQuad.frag.hlsl", 1, 0, 0, 0);
 
 	std::cout << "Shaders initialized." << std::endl;
 
@@ -83,8 +77,50 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	size_t texture_buffer_size = MAX_NUMBER_OBJECTS * sizeof(SpriteData);
 	texture_vertex_buffer = std::make_unique<GpuVertexBuffer>(device, texture_buffer_size, SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ);
 
-	transfer_buffer = std::make_unique<GpuTransferBuffer<SpriteData>>(
-		device, static_cast<Uint32>(texture_buffer_size), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD);
+	transfer_buffer = std::make_unique<GpuTransferBuffer<TextureVertex>>(
+		device, static_cast<Uint32>(texture_buffer_size + index_buffer_size), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD);
+
+	// Initialize texture index buffer
+	{
+		//GpuTransferBuffer<Uint16> transfer_buffer{ device, MAX_NUMBER_TEXTURE_OBJECTS * 6 * sizeof(Uint16), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD };
+		auto* data = transfer_buffer->map();
+		Uint16* index_data = reinterpret_cast<Uint16*>(&data[MAX_NUMBER_OBJECTS * 4]);
+
+		for (int i = 0; i < MAX_NUMBER_TEXTURE_OBJECTS; ++i)
+		{
+			index_data[i * 6 + 0] = static_cast<Uint16>(i * 4 + 0);
+			index_data[i * 6 + 1] = static_cast<Uint16>(i * 4 + 1);
+			index_data[i * 6 + 2] = static_cast<Uint16>(i * 4 + 2);
+			index_data[i * 6 + 3] = static_cast<Uint16>(i * 4 + 2);
+			index_data[i * 6 + 4] = static_cast<Uint16>(i * 4 + 3);
+			index_data[i * 6 + 5] = static_cast<Uint16>(i * 4 + 0);
+		}
+		index_data += MAX_NUMBER_TEXTURE_OBJECTS * 6;
+		for (int i = 0; i < MAX_NUMBER_UI_ELEMENTS; ++i)
+		{
+			index_data[i * 6 + 0] = static_cast<Uint16>(i * 4 + 0);
+			index_data[i * 6 + 1] = static_cast<Uint16>(i * 4 + 1);
+			index_data[i * 6 + 2] = static_cast<Uint16>(i * 4 + 2);
+			index_data[i * 6 + 3] = static_cast<Uint16>(i * 4 + 2);
+			index_data[i * 6 + 4] = static_cast<Uint16>(i * 4 + 3);
+			index_data[i * 6 + 5] = static_cast<Uint16>(i * 4 + 0);
+		}
+
+		transfer_buffer->unmap();
+
+		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
+		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
+
+		SDL_GPUTransferBufferLocation transfer_info = {};
+		transfer_info.transfer_buffer = transfer_buffer->get();
+		transfer_info.offset = texture_buffer_size;
+		SDL_GPUBufferRegion buffer_region = {};
+		buffer_region.buffer = texture_index_buffer->get();
+		buffer_region.offset = 0;
+		buffer_region.size =  index_buffer_size;
+
+		SDL_UploadToGPUBuffer(copy_pass, &transfer_info, &buffer_region, false);
+	}
 }
 
 

@@ -20,7 +20,7 @@ namespace graphics
 	{
 	public:
 		GpuShader() = default;
-		GpuShader(std::shared_ptr<SDL_GPUDevice> device, const std::filesystem::path& path, int sampler_count, int uniform_count);
+		GpuShader(std::shared_ptr<SDL_GPUDevice> device, const std::filesystem::path& path, int sampler_count, int uniform_count, int storage_buffer_count, int storage_texture_count);
 		~GpuShader();
 
 		template<typename Self>

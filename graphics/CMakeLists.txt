@@ -45,6 +45,6 @@ add_library(graphics STATIC ${GRAPHICS_ALL_FILES})
 
 target_include_directories(graphics PUBLIC inc)
 
-target_link_libraries(graphics PUBLIC SDL3::SDL3-static SDL3_ttf::SDL3_ttf-static glm::glm)
+target_link_libraries(graphics PUBLIC SDL3::SDL3-static SDL3_ttf::SDL3_ttf-static SDL3_shadercross::SDL3_shadercross-static glm::glm)
 
 target_compile_features(graphics PUBLIC cxx_std_23)
