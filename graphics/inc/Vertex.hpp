@@ -28,4 +28,12 @@ namespace graphics
 		std::string texture_name;
 		std::array<TextureVertex, 4> vertices;
 	};
+	struct SpriteData
+	{
+		float x, y, z;
+		float rotation;
+		float w, h;
+		float tex_u, tex_v, tex_w, tex_h;
+		float r, g, b, a;
+	};
 }

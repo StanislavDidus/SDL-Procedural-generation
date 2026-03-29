@@ -23,7 +23,8 @@ namespace graphics
 		/// You should not try to call it yourself unless you intend to copy it manually.
 		/// @param arr Array pointer.
 		/// @param size Array size;
-		void putAutomatically(MapType* arr, size_t size);
+		/// @param offset = 0
+		void putAutomatically(MapType* arr, size_t size, size_t offset = 0);
 
 		template<typename Self>
 		auto&& get(this Self&& self);
@@ -84,13 +85,11 @@ namespace graphics
 	}
 
 	template<typename MapType>
-	inline void GpuTransferBuffer<MapType>::putAutomatically(MapType* arr, size_t size)
+	inline void GpuTransferBuffer<MapType>::putAutomatically(MapType* arr, size_t size, size_t offset)
 	{
 		auto* data = map();
 
-		/*data[0] = vertices[0];
-		data[1] = vertices[1];
-		data[2] = vertices[2];*/
+		data += offset;
 
 		SDL_memcpy(data, arr, size);
 

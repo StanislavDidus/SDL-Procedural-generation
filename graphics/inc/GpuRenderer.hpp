@@ -92,8 +92,6 @@ namespace graphics
 		float getAngle() const;
 		glm::ivec2 getWindowSize() const;
 		std::vector<Vertex>& getVertices();
-		std::vector<TextureObject>& getTextureObjects();
-		std::vector<TextureObject>& getUIObjects();
 
 		//Setters
 		void setView(glm::vec2 view);
@@ -124,10 +122,8 @@ namespace graphics
 		//Vertex buffers
 		std::unique_ptr<GpuVertexBuffer> vertex_buffer;
 		std::unique_ptr<GpuVertexBuffer> texture_vertex_buffer;
-		//Index buffers
-		std::unique_ptr<GpuVertexBuffer> texture_index_buffer;
 		//Transfer buffer
-		std::unique_ptr<GpuTransferBuffer<TextureVertex>> transfer_buffer;
+		std::unique_ptr<GpuTransferBuffer<SpriteData>> transfer_buffer;
 
 		std::unique_ptr<GpuShader> vertex_shader;
 		std::unique_ptr<GpuShader> fragment_shader;
@@ -135,8 +131,8 @@ namespace graphics
 		std::unique_ptr<GpuShader> texture_fragment_shader;
 
 		std::vector<Vertex> vertices;
-		std::vector<TextureObject> texture_objects;
-		std::vector<TextureObject> ui_texture_objects;
+		std::vector<SpriteData> texture_objects;
+		std::vector<SpriteData> ui_texture_objects;
 
 		std::unordered_map<std::string, std::shared_ptr<GpuTexture>> textures;
 		std::vector<SDL_GPUTextureSamplerBinding> texture_sampler_bindings;

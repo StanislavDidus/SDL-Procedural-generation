@@ -111,7 +111,6 @@ namespace graphics
 
 	inline void drawScaledSprite(GpuRenderer& renderer, const Sprite& sprite, float x, float y, float w, float h, bool ignore_view_zoom = false)
 	{
-		auto& texture_objects = renderer.getTextureObjects();
 		
 		/*texture_objects.emplace_back(TextureObject
 			{
