@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "glm/mat4x4.hpp"
+#include <SDL3_shadercross/SDL_shadercross.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "Surface.hpp"
@@ -15,14 +16,7 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 {
 	//Create GPU
 
-	SDL_GPUShaderFormat shader_formats
-	{
-		SDL_GPU_SHADERFORMAT_SPIRV |
-		SDL_GPU_SHADERFORMAT_DXIL |
-		SDL_GPU_SHADERFORMAT_MSL
-	};
-
-	device = std::shared_ptr<SDL_GPUDevice>{ SDL_CreateGPUDevice(shader_formats, false, nullptr), SDL_DestroyGPUDevice };
+	device = std::shared_ptr<SDL_GPUDevice>{ SDL_CreateGPUDevice(SDL_ShaderCross_GetHLSLShaderFormats(), true, nullptr), SDL_DestroyGPUDevice };
 
 	if (!device)
 	{
@@ -47,10 +41,10 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	SDL_SetGPUSwapchainParameters(device.get(), window.get(), SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_IMMEDIATE);
 
 	// Init vertex shader
-	vertex_shader = std::make_unique<GpuShader>(device, "shaders/compiled/OnlyPosition.vert.spv", 0, 1);
-	fragment_shader = std::make_unique<GpuShader>(device, "shaders/compiled/SolidColor.frag.spv", 0, 0);
-	text_vertex_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.vert.spv", 0, 1);
-	texture_fragment_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.frag.spv", 1, 0);
+	vertex_shader = std::make_unique<GpuShader>(device, "shaders/OnlyPosition.vert.hlsl", 0, 1, 0, 0);
+	fragment_shader = std::make_unique<GpuShader>(device, "shaders/SolidColor.frag.hlsl", 0, 0, 0, 0);
+	text_vertex_shader = std::make_unique<GpuShader>(device, "shaders/TextureQuad.vert.hlsl", 0, 1, 0, 0);
+	texture_fragment_shader = std::make_unique<GpuShader>(device, "shaders/TextureQuad.frag.hlsl", 1, 0, 0, 0);
 
 	std::cout << "Shaders initialized." << std::endl;
 
@@ -128,6 +122,7 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 		buffer_region.size =  index_buffer_size;
 
 		SDL_UploadToGPUBuffer(copy_pass, &transfer_info, &buffer_region, false);
+		SDL_EndGPUCopyPass(copy_pass);
 	}
 }
 
