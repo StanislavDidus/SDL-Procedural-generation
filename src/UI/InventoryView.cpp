@@ -5,7 +5,7 @@
 #include "Color.hpp"
 #include "ResourceManager.hpp"
 #include "Surface.hpp"
-#include "RenderFunctions.hpp"
+#include "GpuRenderFunctions.hpp"
 #include "ECS/ComponentManager.hpp"
 #include "ItemManager.hpp"
 
@@ -205,7 +205,7 @@ void InventoryView::setTargetEntity(Entity entity)
 	}
 }
 
-void InventoryView::render(graphics::Renderer& screen)
+void InventoryView::render(graphics::GpuRenderer& screen)
 {
 	//Render inventory ui slots
 	for (int i = 0; i < rows * columns; i++)
@@ -269,7 +269,7 @@ void InventoryView::render(graphics::Renderer& screen)
 }
 
 
-void InventoryView::drawItem(graphics::Renderer& screen, Entity item, const glm::vec2& position, int index)
+void InventoryView::drawItem(graphics::GpuRenderer& screen, Entity item, const glm::vec2& position, int index)
 {
 	if (!inventory) return;
 

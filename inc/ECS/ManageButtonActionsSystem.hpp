@@ -8,7 +8,7 @@ class ManageButtonActionsSystem
 public:
 	ManageButtonActionsSystem(entt::registry& registry) : registry{registry} {}
 
-	void update(Entity target_entity, graphics::Renderer& screen)
+	void update(Entity target_entity, graphics::GpuRenderer& screen)
 	{
 		auto view = registry.view<Components::ButtonReleased, Components::CraftButton>();
 		for (const auto& [entity, craft_button_component] : view.each())

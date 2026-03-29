@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer.hpp"
+#include "GpuRenderer.hpp"
 #include "memory"
 
 #include "UIElement.hpp"
@@ -24,7 +24,7 @@ public:
 	bool isMouseCoveringInventory() const;
 
 	void update();
-	void render(graphics::Renderer& screen);
+	void render(graphics::GpuRenderer& screen);
 private:
 	std::vector<std::unique_ptr<UIElement>> elements;
 

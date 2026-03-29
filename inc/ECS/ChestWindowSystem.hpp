@@ -11,7 +11,7 @@ class ChestWindowSystem
 public:
 	ChestWindowSystem(entt::registry& registry, const graphics::Font* font) : registry{ registry }, font{ font } {}
 
-	void update(Entity target_entity, graphics::Renderer& screen)
+	void update(Entity target_entity, graphics::GpuRenderer& screen)
 	{
 		std::vector<Entity> to_destroy;
 
@@ -33,7 +33,7 @@ public:
 		}
 	}
 
-	void render(graphics::Renderer& screen)
+	void render(graphics::GpuRenderer& screen)
 	{
 		const auto& window_size = screen.getWindowSize();
 		auto view = registry.view<Components::Transform, Components::UI::ChestWindow, Components::UI::ParentWindow>();
@@ -103,7 +103,7 @@ public:
 		}
 	}
 private:
-	void createWindowIfAsked(const graphics::Renderer& screen, std::vector<Entity>& to_destroy)
+	void createWindowIfAsked(const graphics::GpuRenderer& screen, std::vector<Entity>& to_destroy)
 	{
 		auto window_view = registry.view<Components::UI::ChestWindow>();
 
@@ -162,7 +162,7 @@ private:
 		registry.destroy(entity);
 	}
 
-	void openChestWindow(const Components::UI::OpenChestWindow& chest_window_component, const graphics::Renderer& screen)
+	void openChestWindow(const Components::UI::OpenChestWindow& chest_window_component, const graphics::GpuRenderer& screen)
 	{
 		auto& player = chest_window_component.target;
 		auto& chest = chest_window_component.chest;

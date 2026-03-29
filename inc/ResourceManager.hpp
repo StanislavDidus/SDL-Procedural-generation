@@ -16,7 +16,7 @@ public:
 		return s;
 	}
 
-	void loadXml(const std::filesystem::path& path, graphics::Renderer& screen);
+	void loadXml(const std::filesystem::path& path, graphics::GpuRenderer& screen);
 
 	const graphics::Font* getFont(const std::string& name) const;
 	std::shared_ptr<graphics::SpriteSheet> getSpriteSheet(const std::string& name) const;
@@ -24,7 +24,7 @@ public:
 private:
 	ResourceManager() = default;
 
-	void addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path, const graphics::SpriteList& sprite_list, SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR);
+	void addSpriteSheet(const std::string& name, graphics::GpuRenderer& screen, const std::filesystem::path& path, const graphics::SpriteList& sprite_list, SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR);
 
 	void addFont(const std::string& name, const std::filesystem::path& path, int size);
 

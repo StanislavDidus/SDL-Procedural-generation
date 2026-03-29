@@ -3,7 +3,7 @@
 namespace graphics
 {
 
-	Sprite::Sprite(std::shared_ptr<SDL_Texture> texture, const SDL_FRect& rect) : texture(texture), rect(rect), color{Color::WHITE}
+	Sprite::Sprite(std::shared_ptr<GpuTexture> texture, const SDL_FRect& rect) : texture(texture), rect(rect), color{Color::WHITE}
 	{
 
 	}
@@ -13,7 +13,7 @@ namespace graphics
 		return rect;
 	}
 
-	std::shared_ptr<SDL_Texture> Sprite::getTexture() const
+	std::shared_ptr<GpuTexture> Sprite::getTexture() const
 	{
 		return texture;
 	}

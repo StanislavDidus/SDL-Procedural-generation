@@ -1,8 +1,11 @@
 #pragma once
 #include <filesystem>
 #include <memory>
+#include <iostream>
 
+#include "RenderFunctions.hpp"
 #include "SDL3/SDL_gpu.h"
+#include "SDL3/SDL_log.h"
 
 namespace graphics
 {

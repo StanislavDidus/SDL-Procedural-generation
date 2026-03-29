@@ -17,7 +17,7 @@ public:
 	CraftView(entt::registry& registry, Entity target_entity, int rows, int columns, float slot_size, const glm::vec2& position);
 
 	void update() override;
-	void render(graphics::Renderer& screen) override;
+	void render(graphics::GpuRenderer& screen) override;
 private:
 	int rows;
 	int columns;

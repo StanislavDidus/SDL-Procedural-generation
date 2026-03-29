@@ -12,6 +12,8 @@
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
+#include "ECS/ApplyArmorEffects.hpp"
+#include "ECS/ApplyArmorEffects.hpp"
 
 struct WorldOutput;
 
@@ -24,7 +26,7 @@ public:
 	~WorldRenderer() = default;
 	
 	void update();
-	void render(graphics::Renderer& screen, const glm::vec2& target);
+	void render(graphics::GpuRenderer& screen, const glm::vec2& target);
 
 	void spawnObjects();
 private:
@@ -108,7 +110,7 @@ void WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeight
 
 template <int WorldWidthTiles, int WorldHeightTiles, int TileWidthWorld, int TileHeightWorld>
 void WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeightWorld>::render(
-	graphics::Renderer& screen, const glm::vec2& target)
+	graphics::GpuRenderer& screen, const glm::vec2& target)
 {
 	vertices.clear();
 	indices.clear();
@@ -155,7 +157,7 @@ void WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeight
 				graphics::zoomPoint(screen, v2.position.x, v2.position.y);
 				graphics::zoomPoint(screen, v3.position.x, v3.position.y);
 
-				const auto& texture_size = SDL_FPoint{ static_cast<float>(sprite.getTexture()->w), static_cast<float>(sprite.getTexture()->h) };
+				const auto& texture_size = SDL_FPoint{ static_cast<float>(sprite.getTexture()->w()), static_cast<float>(sprite.getTexture()->h()) };
 				SDL_FPoint t(sprite_rect.x / texture_size.x, sprite_rect.y / texture_size.y);
 				SDL_FPoint t1((sprite_rect.x + sprite_rect.w) / texture_size.x, sprite_rect.y / texture_size.y);
 				SDL_FPoint t2((sprite_rect.x + sprite_rect.w) / texture_size.x, (sprite_rect.y + sprite_rect.h) / texture_size.y);
@@ -203,7 +205,7 @@ void WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeight
 	}
 
 	const auto& tile_set = ResourceManager::get().getSpriteSheet("tiles")->getTexture();
-	SDL_RenderGeometry(screen.get(), tile_set.get(), vertices.data(), vertices.size(), indices.data(), indices.size());
+	//SDL_RenderGeometry(screen.get(), tile_set.get(), vertices.data(), vertices.size(), indices.data(), indices.size());
 }
 
 template <int WorldWidthTiles, int WorldHeightTiles, int TileWidthWorld, int TileHeightWorld>

@@ -16,7 +16,7 @@ set(GRAPHICS_SOURCE_FILES
     )
 
 set(GRAPHICS_HEADER_FILES
-    "inc/Renderer.hpp"
+    #"inc/Renderer.hpp"
     "inc/GpuRenderer.hpp"
     "inc/Sprite.hpp"
     "inc/Surface.hpp"
@@ -26,7 +26,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/Font.hpp"
     "inc/Text.hpp"
     "inc/ViewportGuard.hpp"
-    "inc/RenderFunctions.hpp"
+    #"inc/RenderFunctions.hpp"
     "inc/SpriteAnimation.hpp"
     "inc/ColorModGuard.hpp"
     "inc/GpuShader.hpp"
@@ -35,6 +35,8 @@ set(GRAPHICS_HEADER_FILES
     "inc/GpuVertexBuffer.hpp"
     "inc/GpuTransferBuffer.hpp"
     "inc/GpuTexture.hpp"
+    "inc/GpuRenderFunctions.hpp"
+    #"inc/TextEngine.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})
@@ -43,6 +45,6 @@ add_library(graphics STATIC ${GRAPHICS_ALL_FILES})
 
 target_include_directories(graphics PUBLIC inc)
 
-target_link_libraries(graphics PUBLIC SDL3::SDL3-static SDL3_ttf::SDL3_ttf-static glm::glm)
+target_link_libraries(graphics PUBLIC SDL3::SDL3-static SDL3_ttf::SDL3_ttf-static SDL3_shadercross::SDL3_shadercross-static glm::glm)
 
 target_compile_features(graphics PUBLIC cxx_std_23)

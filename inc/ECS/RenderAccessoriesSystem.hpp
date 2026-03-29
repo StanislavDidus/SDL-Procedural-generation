@@ -17,7 +17,7 @@ public:
 	{
 	}
 
-	void update(Entity target_entity, graphics::Renderer& screen)
+	void update(Entity target_entity, graphics::GpuRenderer& screen)
 	{
 		using AccessoryRect = std::pair<Entity, SDL_FRect>;
 		std::vector<AccessoryRect> accessory_rect;

@@ -23,7 +23,7 @@ public:
 	//Getters
 	const std::vector<Entity>& getEnemies() const; 
 
-	void update(float dt, const glm::vec2& target_position, graphics::Renderer& screen); //TODO: Remove Renderer(used for debug purposes).
+	void update(float dt, const glm::vec2& target_position, graphics::GpuRenderer& screen); //TODO: Remove Renderer(used for debug purposes).
 
 	void setEnemySpawnTime(float time);
 	void setMaxEnemy(int number);

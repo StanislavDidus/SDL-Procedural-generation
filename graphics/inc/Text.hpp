@@ -9,13 +9,13 @@ struct SDL_Texture;
 
 namespace graphics
 {
-	class Renderer;
+	class GpuRenderer;
 	class Surface;
 
 	class  Text
 	{
 	public:
-		Text(const Font* font, graphics::Renderer& renderer, const std::string& text, Color color = Color::BLACK, std::optional<int> wrapped_width = std::nullopt);
+		Text(const Font* font, graphics::GpuRenderer& renderer, const std::string& text, Color color = Color::BLACK, std::optional<int> wrapped_width = std::nullopt);
 		~Text();
 
 		Text(const Text& other) = delete;
@@ -34,13 +34,13 @@ namespace graphics
 		void setText(const std::string& text);
 		void setWrappedWidth(int wrapped_width);
 
-		void updateText(graphics::Renderer& renderer);
+		void updateText(graphics::GpuRenderer& renderer);
 	private:
-		void loadTexture(graphics::Renderer& renderer, const Surface& surface);
-		void generateTextTexture(graphics::Renderer& renderer);
+		void loadTexture(graphics::GpuRenderer& renderer, const Surface& surface);
+		void generateTextTexture(graphics::GpuRenderer& renderer);
 
 		std::string text;
-		SDL_Texture* texture;
+		SDL_Texture* texture = nullptr;
 		const Font* font;
 		Color color;
 		std::optional<int> wrapped_width;

@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <vector>
 
 #include "SDL3/SDL_gpu.h"
 
@@ -11,7 +12,15 @@ namespace graphics
 	{
 	public:
 		GpuGraphicsPipeline() = default;
-		GpuGraphicsPipeline(std::shared_ptr<SDL_GPUDevice> device, SDL_Window* window, GpuShader& vertex_shader, GpuShader& fragment_shader);
+		GpuGraphicsPipeline
+		(
+			std::shared_ptr<SDL_GPUDevice> device,
+			SDL_Window* window,
+			GpuShader& vertex_shader,
+			GpuShader& fragment_shader,
+			const std::vector<SDL_GPUVertexBufferDescription>& vertex_buffer_descriptions,
+			const std::vector<SDL_GPUVertexAttribute>& vertex_attributes
+		);
 		~GpuGraphicsPipeline();
 
 		template<typename Self>

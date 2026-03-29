@@ -28,7 +28,7 @@ public:
 		
 	}
 
-	void render(graphics::Renderer& screen, Entity target_entity)
+	void render(graphics::GpuRenderer& screen, Entity target_entity)
 	{
 		//Render Craft Buttons
 		std::vector<Entity> buttons_craftable;
