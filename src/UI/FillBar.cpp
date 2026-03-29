@@ -1,5 +1,5 @@
 #include "UI/FillBar.hpp"
-#include "RenderFunctions.hpp"
+#include "GpuRenderFunctions.hpp"
 
 #include <algorithm>
 
@@ -11,7 +11,7 @@ void FillBar::update()
 	fill_percentage = std::max(0.f, fill_percentage);
 }
 
-void FillBar::render(graphics::Renderer& screen)
+void FillBar::render(graphics::GpuRenderer& screen)
 {
 	glm::vec2 updated_size;
 	if(horizonal) updated_size = glm::vec2{size.x * fill_percentage, size.y};

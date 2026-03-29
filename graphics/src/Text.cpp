@@ -3,26 +3,20 @@
 #include "Text.hpp"
 
 #include "Color.hpp"
-#include "Renderer.hpp"
+#include "GpuRenderer.hpp"
 #include "Surface.hpp"
 
 namespace graphics
 {
 
-	Text::Text(const Font* font, Renderer& renderer, const std::string& text, Color color, std::optional<int> wrapped_width) : text(text), font(font), color(color), wrapped_width(wrapped_width)
+	Text::Text(const Font* font, GpuRenderer& renderer, const std::string& text, Color color, std::optional<int> wrapped_width) : text(text), font(font), color(color), wrapped_width(wrapped_width)
 	{
-		generateTextTexture(renderer);
+		//TTF_Text* ttf_text = TTF_CreateText(renderer.getTextEngine()->get(), font->getFont(), text.c_str(), text.length());
+		
 	}
 
 	Text::~Text()
 	{
-		if (texture)
-			SDL_DestroyTexture(texture);
-	}
-
-	SDL_Texture* Text::getTexture() const
-	{
-		return texture;
 	}
 
 	const std::string& Text::getText() const
@@ -32,69 +26,36 @@ namespace graphics
 
 	glm::vec2 Text::getTextSize(const glm::vec2& scale) const
 	{
-		return
-		{
-			texture->w * scale.x,
-			texture->h * scale.y
-		};
+		return {};
 	}
 
 	void Text::setFont(const Font* font)
 	{
-		this->font = font;
-		is_dirty = true;
+		
 	}
+
 
 	void Text::setColor(Color color)
 	{
-		this->color = color;
-		is_dirty = true;
 	}
 
 	void Text::setText(const std::string& text)
 	{
-		this->text = text;
-		is_dirty = true;
 	}
 
 	void Text::setWrappedWidth(int wrapped_width)
 	{
-		this->wrapped_width = wrapped_width;
-		is_dirty = true;
 	}
 
-	void Text::updateText(Renderer& renderer)
+	void Text::updateText(graphics::GpuRenderer& renderer)
 	{
-		//If current text is equal to new text then we don't do anything
-		if (!is_dirty) return;
-
-		//If not then we generate new texture
-		generateTextTexture(renderer);
-
-		is_dirty = false;
 	}
 
-	void Text::loadTexture(Renderer& renderer, const Surface& surface)
+	void Text::loadTexture(graphics::GpuRenderer& renderer, const Surface& surface)
 	{
-		SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR;
-		texture = SDL_CreateTextureFromSurface(renderer.get(), surface.getSurface());
-
-		SDL_SetTextureScaleMode(texture, scale_mode);
-
-		if (!texture)
-		{
-			std::cerr << "ERROR: Could not load a texture: " << SDL_GetError() << std::endl;
-		}
 	}
 
-	void Text::generateTextTexture(Renderer& renderer)
+	void Text::generateTextTexture(graphics::GpuRenderer& renderer)
 	{
-		if (texture)
-			SDL_DestroyTexture(texture);
-
-		Surface surface{ font->getFont(), text, color, wrapped_width};
-
-		loadTexture(renderer, surface);
 	}
-
 } // namespace graphics

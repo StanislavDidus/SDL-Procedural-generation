@@ -12,13 +12,14 @@
 #include "imgui_impl_sdlrenderer3.h"
 
 #include "Window.hpp"
-#include "Renderer.hpp"
 #include "GpuRenderer.hpp"
 #include "Game.hpp"
 
 #include "InputManager.hpp"
 
 #include <entt/entt.hpp>
+
+#include "GpuRenderFunctions.hpp"
 
 constexpr int WINDOW_WIDTH = 960;
 constexpr int WINDOW_HEIGHT = 540;
@@ -45,9 +46,10 @@ int main()
     try
     {
         Window window{ "First SDL program", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE };
-        //graphics::Renderer renderer{ window };
+        //graphics::GpuRenderer renderer{ window };
         GpuRenderer gpu_renderer{ window };
         gpu_renderer.loadTexture("assets/Sprites/car.bmp", "Car");
+        gpu_renderer.loadTexture("assets/Sprites/ice-cream.bmp", "Ice-cream");
         //Game game{ renderer };
 
         InputManager input_manager;
@@ -109,8 +111,10 @@ int main()
             //game.tick(dt);
 
             //gpu_renderer.renderTriangle(0.0f, 0.0f, 480.0f, 540.0f, 960.0f, 0.0f, SDL_FColor{ 1.0f, 0.0,0.0f, 1.0f });
-            gpu_renderer.renderSprite("Car", 0.0f, 0.0f,960.0f, 540.0f);
-            gpu_renderer.renderRectangle2(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
+            gpu_renderer.renderSprite("Car", 100.0f, 0.0f,960.0f, 540.0f);
+            gpu_renderer.renderSprite("Ice-cream", 300.0f, 200.0f, 200.0f, 200.0f);
+            //gpu_renderer.renderRectangle2(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
+            drawRectangle(gpu_renderer, 100.0f, 100.0f, 200.0f, 200.0f, RenderType::FILL, Color::RED);
             gpu_renderer.update();
 
             //update(renderer);

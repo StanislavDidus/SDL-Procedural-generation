@@ -14,7 +14,7 @@ public:
 		
 	}
 
-	void update(float dt, graphics::Renderer& screen)
+	void update(float dt, graphics::GpuRenderer& screen)
 	{
 		auto view = registry.view<Components::Transform, Components::Chest, Components::DropItemChest>();
 		for (auto [entity, transform_component, chest_component, drop_item_chest_component ] : view.each())

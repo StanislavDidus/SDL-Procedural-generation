@@ -29,7 +29,7 @@ namespace
 	std::minstd_rand rng(rd());
 }
 
-Game::Game(graphics::Renderer& screen)
+Game::Game(graphics::GpuRenderer& screen)
 	: screen(screen)
 {
 	std::cout << "Game was created" << std::endl;
@@ -568,10 +568,10 @@ void Game::render(float dt) const
 	}
 	
 	//Set window base size to properly render imgui without scaling
-	SDL_SetRenderLogicalPresentation(screen.get(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
+	/*SDL_SetRenderLogicalPresentation(screen.getDevice(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
 	ImGui::Render();
-	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.get());
-	SDL_SetRenderLogicalPresentation(screen.get(), window_size.x, window_size.y, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+	ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), screen.getDevice());
+	SDL_SetRenderLogicalPresentation(screen.getDevice(), window_size.x, window_size.y, SDL_LOGICAL_PRESENTATION_LETTERBOX);*/
 }
 
 void Game::setState(GameState new_state)

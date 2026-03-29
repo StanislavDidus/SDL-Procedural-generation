@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer.hpp"
+#include "GpuRenderer.hpp"
 #include "SpriteSheet.hpp"
 #include "MapRange.hpp"
 #include "TileMap.hpp"
@@ -66,7 +66,7 @@ enum class GameState
 class Game
 {
 public:
-	explicit Game(graphics::Renderer& screen);
+	explicit Game(graphics::GpuRenderer& screen);
 	virtual ~Game();
 
 	void tick(float dt);
@@ -106,7 +106,7 @@ private:
 
 	float camera_move_speed = 1500.f;
 
-	graphics::Renderer& screen;
+	graphics::GpuRenderer& screen;
 
 	std::unique_ptr<TileMap> tilemap;
 

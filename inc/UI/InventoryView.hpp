@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "Button.hpp"
-#include "Button.hpp"
 #include "Text.hpp"
 #include "UISettings.hpp"
 #include "ECS/Entity.hpp"
@@ -62,7 +61,7 @@ public:
 	/// Renders inventory items on screen.
 	/// </summary>
 	/// <param name="screen">Takes renderer as a parameter to render things on the screen.</param>
-	void render(graphics::Renderer& screen) override;
+	void render(graphics::GpuRenderer& screen) override;
 private:
 	/// <summary>
 	/// Finds the inventory slot that is being covered by a mouse(if mouse is on the inventory UI).
@@ -89,7 +88,7 @@ private:
 	/// </summary>
 	void isMovingItems();
 
-	void drawItem(graphics::Renderer& screen, Entity item, const glm::vec2& position, int index);
+	void drawItem(graphics::GpuRenderer& screen, Entity item, const glm::vec2& position, int index);
 
 	int rows;
 	int columns;
@@ -107,7 +106,7 @@ private:
 	std::vector<std::unique_ptr<graphics::Text>> slot_text;
 	const graphics::SpriteSheet& item_sprites;
 
-	Inventory* inventory;
+	Inventory* inventory = nullptr;
 	Entity target_entity;
 	entt::registry& registry;
 };

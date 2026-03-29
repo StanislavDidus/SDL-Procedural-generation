@@ -2,15 +2,14 @@
 
 #include <iostream>
 
-#include "Renderer.hpp"
 #include "Surface.hpp"
 
 namespace graphics
 {
 
-	SpriteSheet::SpriteSheet(graphics::Renderer& renderer, const Surface& surface, const SpriteList& sprite_list, SDL_ScaleMode scale_mode)
+	SpriteSheet::SpriteSheet(graphics::GpuRenderer& renderer, const std::filesystem::path& path, const SpriteList& sprite_list, SDL_ScaleMode scale_mode)
 	{
-		loadTexture(renderer, surface, scale_mode);
+		texture = renderer.loadTexture(path, path.filename().string());
 
 		for (const auto& sprite : sprite_list)
 		{
@@ -20,7 +19,7 @@ namespace graphics
 	}
 
 	/*
-	SpriteSheet::SpriteSheet(graphics::Renderer& renderer, const Surface& surface, const glm::vec2& sprite_size, SDL_ScaleMode scale_mode)
+	SpriteSheet::SpriteSheet(graphics::GpuRenderer& renderer, const Surface& surface, const glm::vec2& sprite_size, SDL_ScaleMode scale_mode)
 	{
 		auto texture = loadTexture(renderer, surface, scale_mode);
 
@@ -40,23 +39,8 @@ namespace graphics
 	}
 	*/
 
-	Texture SpriteSheet::getTexture() const
+	std::shared_ptr<GpuTexture> SpriteSheet::getTexture() const
 	{
 		return texture;
 	}
-
-	void SpriteSheet::loadTexture(graphics::Renderer& renderer, const Surface& surface, SDL_ScaleMode scale_mode)
-	{
-		auto* sdl_texture = SDL_CreateTextureFromSurface(renderer.get(), surface.getSurface());
-
-		SDL_SetTextureScaleMode(sdl_texture, scale_mode);
-
-		if (!sdl_texture)
-		{
-			std::cerr << "ERROR: Could not load a texture: " << SDL_GetError() << std::endl;
-		}
-
-		texture = Texture{ sdl_texture, SDL_DestroyTexture };
-	}
-
 } // namespace graphics

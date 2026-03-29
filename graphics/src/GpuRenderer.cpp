@@ -4,12 +4,14 @@
 #include <iostream>
 
 #include "glm/mat4x4.hpp"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include "Surface.hpp"
+#include "glm/gtx/transform.hpp"
 #include "SDL3/SDL_gpu.h"
-	
-static SDL_GPUSampler* Samplers[std::size(graphics::SamplerNames)];
 
 graphics::GpuRenderer::GpuRenderer(Window& window)
-	: window{window}
+	: window{ window }
 {
 	//Create GPU
 
@@ -47,11 +49,91 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	// Init vertex shader
 	vertex_shader = std::make_unique<GpuShader>(device, "shaders/compiled/OnlyPosition.vert.spv", 0, 1);
 	fragment_shader = std::make_unique<GpuShader>(device, "shaders/compiled/SolidColor.frag.spv", 0, 0);
-	text_vertex_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.vert.spv", 0, 0);
+	text_vertex_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.vert.spv", 0, 1);
 	texture_fragment_shader = std::make_unique<GpuShader>(device, "shaders/compiled/TextureQuad.frag.spv", 1, 0);
 
 	std::cout << "Shaders initialized." << std::endl;
 
+	initSamplers();
+
+	// Vertex graphics pipeline
+	{
+		std::vector<SDL_GPUVertexBufferDescription> vertex_buffer_descriptions;
+		vertex_buffer_descriptions.emplace_back(0, sizeof(Vertex), SDL_GPU_VERTEXINPUTRATE_VERTEX, 0);
+
+		std::vector<SDL_GPUVertexAttribute> vertex_attributes;
+		vertex_attributes.emplace_back(0, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, 0);
+		vertex_attributes.emplace_back(1, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4, 3 * sizeof(float));
+
+		vertex_graphics_pipeline = std::make_unique<GpuGraphicsPipeline>(device, window.get(), *vertex_shader, *fragment_shader, vertex_buffer_descriptions, vertex_attributes);
+	}
+
+	// TextureVertex graphics pipeline
+	{
+		std::vector<SDL_GPUVertexBufferDescription> vertex_buffer_descriptions;
+		vertex_buffer_descriptions.emplace_back(0, sizeof(TextureVertex), SDL_GPU_VERTEXINPUTRATE_VERTEX, 0);
+
+		std::vector<SDL_GPUVertexAttribute> vertex_attributes;
+		vertex_attributes.emplace_back(0, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, 0);
+		vertex_attributes.emplace_back(1, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, 3 * sizeof(float));
+
+		texture_graphics_pipeline = std::make_unique<GpuGraphicsPipeline>(device, window.get(), *text_vertex_shader, *texture_fragment_shader, vertex_buffer_descriptions, vertex_attributes);
+	}
+
+	size_t texture_buffer_size = MAX_NUMBER_OBJECTS * 4 * sizeof(TextureVertex);
+	size_t index_buffer_size = MAX_NUMBER_OBJECTS * 6 * sizeof(Uint16);
+	texture_vertex_buffer = std::make_unique<GpuVertexBuffer>(device, texture_buffer_size, SDL_GPU_BUFFERUSAGE_VERTEX);
+	texture_index_buffer = std::make_unique<GpuVertexBuffer>(device, index_buffer_size, SDL_GPU_BUFFERUSAGE_INDEX);
+
+	transfer_buffer = std::make_unique<GpuTransferBuffer<TextureVertex>>(
+		device, static_cast<Uint32>(texture_buffer_size + index_buffer_size), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD);
+
+	// Initialize texture index buffer
+	{
+		//GpuTransferBuffer<Uint16> transfer_buffer{ device, MAX_NUMBER_TEXTURE_OBJECTS * 6 * sizeof(Uint16), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD };
+		auto* data = transfer_buffer->map();
+		Uint16* index_data = reinterpret_cast<Uint16*>(&data[MAX_NUMBER_OBJECTS * 4]);
+
+		for (int i = 0; i < MAX_NUMBER_TEXTURE_OBJECTS; ++i)
+		{
+			index_data[i * 6 + 0] = static_cast<Uint16>(i * 4 + 0);
+			index_data[i * 6 + 1] = static_cast<Uint16>(i * 4 + 1);
+			index_data[i * 6 + 2] = static_cast<Uint16>(i * 4 + 2);
+			index_data[i * 6 + 3] = static_cast<Uint16>(i * 4 + 2);
+			index_data[i * 6 + 4] = static_cast<Uint16>(i * 4 + 3);
+			index_data[i * 6 + 5] = static_cast<Uint16>(i * 4 + 0);
+		}
+		index_data += MAX_NUMBER_TEXTURE_OBJECTS * 6;
+		for (int i = 0; i < MAX_NUMBER_UI_ELEMENTS; ++i)
+		{
+			index_data[i * 6 + 0] = static_cast<Uint16>(i * 4 + 0);
+			index_data[i * 6 + 1] = static_cast<Uint16>(i * 4 + 1);
+			index_data[i * 6 + 2] = static_cast<Uint16>(i * 4 + 2);
+			index_data[i * 6 + 3] = static_cast<Uint16>(i * 4 + 2);
+			index_data[i * 6 + 4] = static_cast<Uint16>(i * 4 + 3);
+			index_data[i * 6 + 5] = static_cast<Uint16>(i * 4 + 0);
+		}
+
+		transfer_buffer->unmap();
+
+		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
+		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
+
+		SDL_GPUTransferBufferLocation transfer_info = {};
+		transfer_info.transfer_buffer = transfer_buffer->get();
+		transfer_info.offset = texture_buffer_size;
+		SDL_GPUBufferRegion buffer_region = {};
+		buffer_region.buffer = texture_index_buffer->get();
+		buffer_region.offset = 0;
+		buffer_region.size =  index_buffer_size;
+
+		SDL_UploadToGPUBuffer(copy_pass, &transfer_info, &buffer_region, false);
+	}
+}
+
+
+void graphics::GpuRenderer::initSamplers()
+{
 	// PointClamp
 	SDL_GPUSamplerCreateInfo pointClamp{};
 	pointClamp.min_filter = SDL_GPU_FILTER_NEAREST;
@@ -124,73 +206,12 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 
 	std::cout << "Samplers initialized." << std::endl;
 
-	// Vertex graphics pipeline
-	{
-		std::vector<SDL_GPUVertexBufferDescription> vertex_buffer_descriptions;
-		vertex_buffer_descriptions.emplace_back(0, sizeof(Vertex), SDL_GPU_VERTEXINPUTRATE_VERTEX, 0);
-
-		std::vector<SDL_GPUVertexAttribute> vertex_attributes;
-		vertex_attributes.emplace_back(0, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, 0);
-		vertex_attributes.emplace_back(1, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4, 3 * sizeof(float));
-
-		vertex_graphics_pipeline = std::make_unique<GpuGraphicsPipeline>(device, window.get(), *vertex_shader, *fragment_shader, vertex_buffer_descriptions, vertex_attributes);
-	}
-
-	// TextureVertex graphics pipeline
-	{
-		std::vector<SDL_GPUVertexBufferDescription> vertex_buffer_descriptions;
-		vertex_buffer_descriptions.emplace_back(0, sizeof(TextureVertex), SDL_GPU_VERTEXINPUTRATE_VERTEX, 0);
-
-		std::vector<SDL_GPUVertexAttribute> vertex_attributes;
-		vertex_attributes.emplace_back(0, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, 0);
-		vertex_attributes.emplace_back(1, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, 3 * sizeof(float));
-	
-		texture_graphics_pipeline = std::make_unique<GpuGraphicsPipeline>(device, window.get(), *text_vertex_shader, *texture_fragment_shader, vertex_buffer_descriptions, vertex_attributes);
-	}
-
-	texture_vertex_buffer = std::make_unique<GpuVertexBuffer>(device, MAX_OBJECTS * 4 * sizeof(TextureVertex), SDL_GPU_BUFFERUSAGE_VERTEX);
-	texture_index_buffer = std::make_unique<GpuVertexBuffer>(device, MAX_OBJECTS * 6 * sizeof(Uint16), SDL_GPU_BUFFERUSAGE_INDEX);
-	transfer_buffer = std::make_unique<GpuTransferBuffer<TextureVertex>>(
-		device, static_cast<Uint32>(MAX_OBJECTS * 4 * sizeof(TextureVertex) + MAX_OBJECTS * 6 * sizeof(Uint16)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD);
-
-	// Initialize texture index buffer
-	{
-		//GpuTransferBuffer<Uint16> transfer_buffer{ device, MAX_OBJECTS * 6 * sizeof(Uint16), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD };
-		auto* data = transfer_buffer->map();
-		Uint16* index_data = reinterpret_cast<Uint16*>(&data[MAX_OBJECTS * 4]);
-
-		for (int i = 0; i < MAX_OBJECTS; ++i)
-		{
-			index_data[i * 6 + 0] = static_cast<Uint16>(i * 4 + 0);
-			index_data[i * 6 + 1] = static_cast<Uint16>(i * 4 + 1);
-			index_data[i * 6 + 2] = static_cast<Uint16>(i * 4 + 2);
-			index_data[i * 6 + 3] = static_cast<Uint16>(i * 4 + 2);
-			index_data[i * 6 + 4] = static_cast<Uint16>(i * 4 + 3);
-			index_data[i * 6 + 5] = static_cast<Uint16>(i * 4 + 0);
-		}
-
-		transfer_buffer->unmap();
-
-		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
-		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
-		
-		SDL_GPUTransferBufferLocation transfer_info = {};
-		transfer_info.transfer_buffer = transfer_buffer->get();
-		transfer_info.offset = MAX_OBJECTS * sizeof(TextureVertex) * 4;
-		SDL_GPUBufferRegion buffer_region = {};
-		buffer_region.buffer = texture_index_buffer->get();
-		buffer_region.offset = 0;
-		buffer_region.size = MAX_OBJECTS * sizeof(Uint16) * 6;
-
-		SDL_UploadToGPUBuffer(copy_pass, &transfer_info, &buffer_region, false);
-	}
 }
 
 void graphics::GpuRenderer::updateBuffers()
 {
 	if (!vertices.empty())
 	{
-
 		// Create vertex buffer
 		vertex_buffer = std::make_unique<GpuVertexBuffer>(device, static_cast<Uint32>(vertices.size()) * sizeof(Vertex), SDL_GPU_BUFFERUSAGE_VERTEX);
 
@@ -236,7 +257,7 @@ void graphics::GpuRenderer::updateBuffers()
 		//texture_index_buffer = std::make_unique<GpuVertexBuffer>(device, objects_size * 6 * sizeof(Uint16), SDL_GPU_BUFFERUSAGE_INDEX);
 
 		TextureVertex* data = transfer_buffer->map();
-		
+
 		//SDL_memcpy can be used instead
 		for (int i = 0; i < objects_size; ++i)
 		{
@@ -246,12 +267,12 @@ void graphics::GpuRenderer::updateBuffers()
 			data[i * 4 + 2] = texture_vertices[2];
 			data[i * 4 + 3] = texture_vertices[3];
 		}
-		
+
 		transfer_buffer->unmap();
 
 		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
 		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
-		
+
 		// Upload vertices
 		SDL_GPUTransferBufferLocation vertices_transfer_info = {};
 		vertices_transfer_info.transfer_buffer = transfer_buffer->get();
@@ -259,6 +280,45 @@ void graphics::GpuRenderer::updateBuffers()
 		SDL_GPUBufferRegion vertices_buffer_region = {};
 		vertices_buffer_region.buffer = texture_vertex_buffer->get();
 		vertices_buffer_region.offset = 0;
+		vertices_buffer_region.size = objects_size * sizeof(TextureVertex) * 4;
+
+		SDL_UploadToGPUBuffer(copy_pass, &vertices_transfer_info, &vertices_buffer_region, false);
+
+		SDL_EndGPUCopyPass(copy_pass);
+	}
+
+	if (!ui_texture_objects.empty())
+	{
+		size_t objects_size = ui_texture_objects.size();
+		//texture_vertex_buffer = std::make_unique<GpuVertexBuffer>(device, objects_size * 4 * sizeof(TextureVertex), SDL_GPU_BUFFERUSAGE_VERTEX);
+		//texture_index_buffer = std::make_unique<GpuVertexBuffer>(device, objects_size * 6 * sizeof(Uint16), SDL_GPU_BUFFERUSAGE_INDEX);
+
+		TextureVertex* data = transfer_buffer->map();
+
+		data += MAX_NUMBER_TEXTURE_OBJECTS * 4;
+
+		//SDL_memcpy can be used instead
+		for (int i = 0; i < objects_size; ++i)
+		{
+			auto& texture_vertices = ui_texture_objects[i].vertices;
+			data[i * 4 + 0] = texture_vertices[0];
+			data[i * 4 + 1] = texture_vertices[1];
+			data[i * 4 + 2] = texture_vertices[2];
+			data[i * 4 + 3] = texture_vertices[3];
+		}
+
+		transfer_buffer->unmap();
+
+		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
+		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
+
+		// Upload vertices
+		SDL_GPUTransferBufferLocation vertices_transfer_info = {};
+		vertices_transfer_info.transfer_buffer = transfer_buffer->get();
+		vertices_transfer_info.offset = MAX_NUMBER_TEXTURE_OBJECTS * 4 * sizeof(TextureVertex);
+		SDL_GPUBufferRegion vertices_buffer_region = {};
+		vertices_buffer_region.buffer = texture_vertex_buffer->get();
+		vertices_buffer_region.offset = MAX_NUMBER_TEXTURE_OBJECTS * 4 * sizeof(TextureVertex);
 		vertices_buffer_region.size = objects_size * sizeof(TextureVertex) * 4;
 
 		SDL_UploadToGPUBuffer(copy_pass, &vertices_transfer_info, &vertices_buffer_region, false);
@@ -280,11 +340,36 @@ void graphics::GpuRenderer::update()
 
 	SDL_GPUTexture* swapchain_texture;
 	uint32_t width, height;
-	
+
 	if (!SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer.get(), window.get(), &swapchain_texture, &width, &height))
 	{
 		throw std::runtime_error{ std::format("SDL_WaitAndAcquireGPUSwapchainTexture failed: {}", SDL_GetError()) };
 	}
+	
+	//.........................//
+	//<Calculate object matrix>//
+	//.........................//
+	const auto& window_size = window.getWindowSize();
+	const auto& view_position = view;
+	glm::vec2 mid_screen = { window_size.x * 0.5f, window_size.y * 0.5f };
+
+	glm::mat4 view_matrix = glm::translate(glm::mat4{ 1.0f }, glm::vec3{ -view_position, 0.0f });
+	glm::mat4 to_origin = glm::translate(glm::mat4{ 1.0f }, glm::vec3{ -mid_screen, 0.0f });
+	glm::mat4 from_origin = glm::translate(glm::mat4{ 1.0f }, glm::vec3{ mid_screen, 0.0f });
+
+	glm::mat4 scale = glm::scale(glm::mat4{ 1.0f }, glm::vec3{zoom});
+	glm::mat4 rotation = glm::rotate(glm::mat4{ 1.0f }, glm::degrees(angle), glm::vec3{0.0f, 0.0f, 1.0f});
+
+	glm::mat4 projection = glm::ortho(
+		0.0f, static_cast<float>(window_size.x),
+		static_cast<float>(window_size.y), 0.0f
+	);
+	//.........................//
+	//<_______________________>//
+	//.........................//
+
+	glm::mat4 base_matrix = glm::transpose(projection);
+	glm::mat4 final_matrix = glm::transpose(projection * view_matrix * from_origin * rotation * scale * to_origin);
 
 	if (swapchain_texture)
 	{
@@ -299,57 +384,12 @@ void graphics::GpuRenderer::update()
 
 		SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
 
-		if (!texture_objects.empty())
-		{
-			SDL_BindGPUGraphicsPipeline(render_pass, texture_graphics_pipeline->get());
-
-			// Bind the vertex buffer
-			SDL_GPUBufferBinding buffer_bindings[2];
-			/*
-			buffer_bindings[0].buffer = vertex_buffer->get();
-			buffer_bindings[0].offset = 0;
-			*/
-
-			// Bind texture vertex buffer
-			buffer_bindings[0].buffer = texture_vertex_buffer->get();
-			buffer_bindings[0].offset = 0;
-			
-			// Bind texture indices buffer
-			buffer_bindings[1].buffer = texture_index_buffer->get();
-			buffer_bindings[1].offset = 0;
-
-			SDL_BindGPUVertexBuffers(render_pass, 0, &buffer_bindings[0], 1);
-			SDL_BindGPUIndexBuffer(render_pass, &buffer_bindings[1], SDL_GPU_INDEXELEMENTSIZE_16BIT);
-
-			// Bind texture samplers
-			std::vector<SDL_GPUTextureSamplerBinding> texture_sampler_bindings;
-			for (const auto& texture_object : texture_objects)
-			{
-				const auto& texture = textures.at(texture_object.texture_name);
-
-				SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
-				texture_sampler_binding.sampler = Samplers[2];
-				texture_sampler_binding.texture = texture->get();
-
-				texture_sampler_bindings.push_back(texture_sampler_binding);
-			}
-			SDL_BindGPUFragmentSamplers(render_pass, 0, texture_sampler_bindings.data(), texture_sampler_bindings.size());
-
-			//SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &screen_size_uniform, sizeof(ScreenSize));
-
-			//time_uniform.time = SDL_GetTicksNS() / 1e9f;
-			//SDL_PushGPUFragmentUniformData(command_buffer.get(), 0, &time_uniform, sizeof(Uniform));
-
-			SDL_DrawGPUIndexedPrimitives(render_pass, texture_objects.size() * 6, 1, 0, 0, 0);
-			//SDL_DrawGPUPrimitives(render_pass, 3, 1, 0, 0);
-		}
-
 		if (!vertices.empty())
 		{
 			SDL_BindGPUGraphicsPipeline(render_pass, vertex_graphics_pipeline->get());
-			
+
 			SDL_GPUBufferBinding buffer_bindings[1];
-			
+
 			buffer_bindings[0].buffer = vertex_buffer->get();
 			buffer_bindings[0].offset = 0;
 
@@ -359,22 +399,73 @@ void graphics::GpuRenderer::update()
 			SDL_DrawGPUPrimitives(render_pass, vertices.size(), 1, 0, 0);
 		}
 
+		if (!texture_objects.empty())
+		{
+			SDL_BindGPUGraphicsPipeline(render_pass, texture_graphics_pipeline->get());
+
+			// Bind the vertex buffer
+			SDL_GPUBufferBinding buffer_bindings[2];
+					
+			// Bind texture vertex buffer
+			buffer_bindings[0].buffer = texture_vertex_buffer->get();
+			buffer_bindings[0].offset = 0;
+
+			// Bind texture indices buffer
+			buffer_bindings[1].buffer = texture_index_buffer->get();
+			buffer_bindings[1].offset = 0;
+
+		
+			SDL_BindGPUVertexBuffers(render_pass, 0, &buffer_bindings[0], 1);
+			SDL_BindGPUIndexBuffer(render_pass, &buffer_bindings[1], SDL_GPU_INDEXELEMENTSIZE_16BIT);
+
+			SDL_BindGPUFragmentSamplers(render_pass, 0, texture_sampler_bindings.data(), texture_sampler_bindings.size());
+			
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &final_matrix, sizeof(glm::mat4));
+			SDL_DrawGPUIndexedPrimitives(render_pass, texture_objects.size() * 6, 1, 0, 0, 0);
+		}
+		
+		if (!ui_texture_objects.empty())
+		{
+			SDL_BindGPUGraphicsPipeline(render_pass, texture_graphics_pipeline->get());
+
+			// Bind the vertex buffer
+			SDL_GPUBufferBinding buffer_bindings[2];
+					
+			// Bind texture vertex buffer
+			buffer_bindings[0].buffer = texture_vertex_buffer->get();
+			buffer_bindings[0].offset = MAX_NUMBER_TEXTURE_OBJECTS * 4 * sizeof(TextureVertex);
+
+			// Bind texture indices buffer
+			buffer_bindings[1].buffer = texture_index_buffer->get();
+			buffer_bindings[1].offset = MAX_NUMBER_TEXTURE_OBJECTS * 6 * sizeof(Uint16);
+		
+			SDL_BindGPUVertexBuffers(render_pass, 0, &buffer_bindings[0], 1);
+			SDL_BindGPUIndexBuffer(render_pass, &buffer_bindings[1], SDL_GPU_INDEXELEMENTSIZE_16BIT);
+
+			SDL_BindGPUFragmentSamplers(render_pass, 0, texture_sampler_bindings.data(), texture_sampler_bindings.size());
+			
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &base_matrix, sizeof(glm::mat4));
+			SDL_DrawGPUIndexedPrimitives(render_pass, ui_texture_objects.size() * 6, 1,0, 0, 0);
+
+		}
+	
 		SDL_EndGPURenderPass(render_pass);
 	}
-	
+
 	texture_objects.clear();
+	ui_texture_objects.clear();
 	vertices.clear();
 }
 
-void graphics::GpuRenderer::loadTexture(const std::filesystem::path& path, const std::string& name)
+std::shared_ptr<graphics::GpuTexture> graphics::GpuRenderer::loadTexture(const std::filesystem::path& path, const std::string& name)
 {
 	auto texture = std::make_shared<GpuTexture>(device, path);
 	texture->setName(name);
 	textures[name] = texture;
 
 	// Upload texture on the GPU
-	GpuTransferBuffer<Uint8> texture_transfer_buffer {device, static_cast<Uint32>(texture->w() * texture->h() * 4), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD};
-	
+	GpuTransferBuffer<Uint8> texture_transfer_buffer{ device, static_cast<Uint32>(texture->w() * texture->h() * 4), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD };
+
 	std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
 	SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
 
@@ -398,9 +489,64 @@ void graphics::GpuRenderer::loadTexture(const std::filesystem::path& path, const
 
 	SDL_UploadToGPUTexture(copy_pass, &gpu_texture_transfer_info, &gpu_texture_region, false);
 	SDL_EndGPUCopyPass(copy_pass);
+
+	//Bind Sampler to a texture
+	texture_sampler_bindings.emplace_back(texture->get(), Samplers[2]);
+
+	return texture;
 }
 
-void graphics::GpuRenderer::renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color)
+glm::vec2 graphics::GpuRenderer::getView() const
+{
+	return view;
+}
+
+float graphics::GpuRenderer::getZoom() const
+{
+	return zoom;
+}
+
+float graphics::GpuRenderer::getAngle() const
+{
+	return angle;
+}
+
+glm::ivec2 graphics::GpuRenderer::getWindowSize() const
+{
+	return window.getWindowSize();
+}
+
+std::vector<graphics::Vertex>& graphics::GpuRenderer::getVertices()
+{
+	return vertices;
+}
+
+std::vector<graphics::TextureObject>& graphics::GpuRenderer::getTextureObjects()
+{
+	return texture_objects;
+}
+
+std::vector<graphics::TextureObject>& graphics::GpuRenderer::getUIObjects()
+{
+	return ui_texture_objects;
+}
+
+void graphics::GpuRenderer::setView(glm::vec2 view)
+{
+	this->view = view;
+}
+
+void graphics::GpuRenderer::setZoom(float zoom)
+{
+	this->zoom = zoom;
+}
+
+void graphics::GpuRenderer::setAngle(float angle)
+{
+	this->angle = angle;
+}
+
+/*void graphics::GpuRenderer::renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color)
 {
 	vertices.emplace_back(x1, y1, 0.0f, color.r, color.g, color.b, color.a);
 	vertices.emplace_back(x2, y2, 0.0f, color.r, color.g, color.b, color.a);
@@ -420,20 +566,47 @@ void graphics::GpuRenderer::renderRectangle1(float x1, float y1, float x2, float
 
 void graphics::GpuRenderer::renderRectangle2(float x, float y, float w, float h, SDL_FColor color)
 {
-	renderRectangle1(x, y, x + w, y + h, color);
+}*/
+
+void graphics::GpuRenderer::renderSprite(const std::string& texture_name, float x, float y, float w, float h, bool ignore_view_zoom)
+{
+	float angle = 0.0f;
+	glm::vec2 center = {x + w * 0.5f, y + h * 0.5f};
+	glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(center, 0.0f)) *
+		                  glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3{ 0.0f, 0.0f, 1.0f }) * 
+		                  glm::translate(glm::mat4(1.0f), glm::vec3(-center, 0.0f));
+
+	glm::vec2 pos1 = transform * glm::vec4{ x,y, 0.0f, 1.0f };
+	glm::vec2 pos2 = transform * glm::vec4{ x,y + h, 0.0f, 1.0f };
+	glm::vec2 pos3 = transform * glm::vec4{ x + w,y + h, 0.0f, 1.0f };
+	glm::vec2 pos4 = transform * glm::vec4{ x + w,y, 0.0f, 1.0f };
+
+
+	if (!ignore_view_zoom)
+		texture_objects.emplace_back(TextureObject
+			{
+				.texture_name = texture_name,
+				.vertices =
+				{
+					TextureVertex{x, y, 0.f, 0.0f, 0.0f},
+					TextureVertex{x, y + h, 0.0f, 0.0f, 1.0f},
+					TextureVertex{x + w, y + h, 0.0f, 1.0f, 1.0f},
+					TextureVertex{x + w, y, 0.0f, 1.0f, 0.0f}
+				}
+			});
+	else
+	{
+		ui_texture_objects.emplace_back(TextureObject
+			{
+				.texture_name = texture_name,
+				.vertices =
+				{
+					TextureVertex{pos1.x, pos1.y, 0.f, 0.0f, 0.0f},
+					TextureVertex{pos2.x, pos2.y, 0.0f, 0.0f, 1.0f},
+					TextureVertex{pos3.x, pos3.y, 0.0f, 1.0f, 1.0f},
+					TextureVertex{pos4.x, pos4.y, 0.0f, 1.0f, 0.0f}
+				}
+			});
+	}
 }
 
-void graphics::GpuRenderer::renderSprite(const std::string& texture_name, float x, float y, float w, float h)
-{
-	texture_objects.emplace_back(TextureObject
-	{
-		.texture_name = texture_name,
-		.vertices = 
-		{
-			TextureVertex{x, y, 0.f, 0.0f, 0.0f},
-			TextureVertex{x, y + h, 0.0f, 0.0f, 1.0f},
-			TextureVertex{x + w, y + h, 0.0f, 1.0f, 1.0f},
-			TextureVertex{x + w, y, 0.0f, 1.0f, 0.0f}
-		}
-	});
-}

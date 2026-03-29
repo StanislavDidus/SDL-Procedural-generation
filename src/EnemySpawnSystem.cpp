@@ -23,7 +23,7 @@ const std::vector<Entity>& EnemySpawnSystem::getEnemies() const
 	return enemies;
 }
 
-void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphics::Renderer& screen)
+void EnemySpawnSystem::update(float dt, const glm::vec2& target_position, graphics::GpuRenderer& screen)
 {
 	time += dt;
 

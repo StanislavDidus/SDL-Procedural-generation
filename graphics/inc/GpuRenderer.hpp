@@ -16,7 +16,17 @@
 
 namespace graphics
 {
-	constexpr int MAX_OBJECTS = 1'000;
+	constexpr int MAX_NUMBER_TEXTURE_OBJECTS = 1'000;
+	constexpr int MAX_NUMBER_UI_ELEMENTS = 100;
+	constexpr int MAX_NUMBER_OBJECTS = MAX_NUMBER_TEXTURE_OBJECTS + MAX_NUMBER_UI_ELEMENTS;
+	
+	enum class RenderType
+	{
+		NONE,
+		FILL,
+	};
+
+	constexpr bool IGNORE_VIEW_ZOOM = true;
 
 	struct GPUCommandBufferDeleter
 	{
@@ -62,6 +72,8 @@ namespace graphics
 	
 	static ScreenSize screen_size_uniform;
 	static Uniform time_uniform;
+
+	class TextEngine;
 	
 	class GpuRenderer
 	{
@@ -72,15 +84,37 @@ namespace graphics
 		void updateBuffers();
 		void update();
 
-		void loadTexture(const std::filesystem::path& path, const std::string& name);
+		std::shared_ptr<GpuTexture> loadTexture(const std::filesystem::path& path, const std::string& name);
 
-		void renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color);
-		void renderRectangle1(float x1, float y1, float x2, float y2, SDL_FColor color);
-		void renderRectangle2(float x, float y, float w, float h, SDL_FColor color);
-		void renderSprite(const std::string& texture_name, float x, float y, float w, float h);
+		//Getters
+		glm::vec2 getView() const;
+		float getZoom() const;
+		float getAngle() const;
+		glm::ivec2 getWindowSize() const;
+		std::vector<Vertex>& getVertices();
+		std::vector<TextureObject>& getTextureObjects();
+		std::vector<TextureObject>& getUIObjects();
+
+		//Setters
+		void setView(glm::vec2 view);
+		void setZoom(float zoom);
+		void setAngle(float angle);
+
+		template<typename Self>
+		auto&& getDevice(this Self&& self);
+
+		//void renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color);
+		void renderSprite(const std::string& texture_name, float x, float y, float w, float h, bool ignore_view_zoom = false);
 	private:
+		void initSamplers();
+
 		Window& window;
 		std::shared_ptr<SDL_GPUDevice> device = nullptr;
+
+		// <Render Parameters> //
+		glm::vec2 view = {0.0f, 0.0f};
+		float zoom = 1.0f;
+		float angle = 0.0f; ///< Degrees.
 
 		std::unique_ptr<WindowClaimer> window_claimer;
 		std::unique_ptr<GpuGraphicsPipeline> vertex_graphics_pipeline;
@@ -101,9 +135,18 @@ namespace graphics
 		std::unique_ptr<GpuShader> texture_fragment_shader;
 
 		std::vector<Vertex> vertices;
-		//std::vector<TextureVertex> texture_vertices;
 		std::vector<TextureObject> texture_objects;
+		std::vector<TextureObject> ui_texture_objects;
 
 		std::unordered_map<std::string, std::shared_ptr<GpuTexture>> textures;
+		std::vector<SDL_GPUTextureSamplerBinding> texture_sampler_bindings;
+
+		SDL_GPUSampler* Samplers[std::size(graphics::SamplerNames)];
 	};
+
+	template <typename Self>
+	auto&& graphics::GpuRenderer::getDevice(this Self&& self)
+	{
+		return self.device.get();
+	}
 }

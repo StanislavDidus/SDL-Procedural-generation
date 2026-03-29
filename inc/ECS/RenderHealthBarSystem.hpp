@@ -7,7 +7,7 @@ class RenderHealthBarSystem
 public:
 	RenderHealthBarSystem(entt::registry& registry) : registry{registry} {}
 
-	void render(graphics::Renderer& screen)
+	void render(graphics::GpuRenderer& screen)
 	{
 		auto view = registry.view<Components::HealthBar, Components::Health>();
 		for (auto [entity, health_bar_component, health_component] : view.each())

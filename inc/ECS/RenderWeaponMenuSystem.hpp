@@ -10,7 +10,7 @@ class RenderWeaponMenuSystem
 public:
 	RenderWeaponMenuSystem(entt::registry& registry, const UISettings& ui_setting) : registry{ registry }, ui_settings(ui_setting) {}
 
-	void render(graphics::Renderer& screen, Entity target_entity)
+	void render(graphics::GpuRenderer& screen, Entity target_entity)
 	{
 		const auto& window_size = screen.getWindowSize();
 		if (!registry.all_of<Components::Equipment>(target_entity)) return;

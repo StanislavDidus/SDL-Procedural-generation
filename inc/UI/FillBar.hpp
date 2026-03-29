@@ -9,7 +9,7 @@ public:
 	FillBar(const glm::vec2& position, const glm::vec2& size, const float& value, float max_value, graphics::Color color) : UIElement(position, size), value(value), max_value(max_value), color(color) {}
 
 	void update() override;
-	void render(graphics::Renderer& screen) override;
+	void render(graphics::GpuRenderer& screen) override;
 private:
 	bool horizonal = true; // false - vertical
 	const float& value;

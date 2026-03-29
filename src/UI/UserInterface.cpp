@@ -31,7 +31,7 @@ void UserInterface::update()
 	//inventory_view->update();
 }
 
-void UserInterface::render(graphics::Renderer& screen)
+void UserInterface::render(graphics::GpuRenderer& screen)
 {
 	for (const auto& element : elements)
 	{

@@ -3,9 +3,11 @@
 #include "Components.hpp"
 #include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
-#include "RenderFunctions.hpp"
+#include "GpuRenderFunctions.hpp"
 
 #include <queue>
+
+#include "ColorModGuard.hpp"
 
 struct RenderEntry
 {
@@ -56,7 +58,7 @@ public:
 		}
 	}
 
-	void render(graphics::Renderer& screen) const
+	void render(graphics::GpuRenderer& screen) const
 	{
 		std::priority_queue<RenderEntry, std::vector<RenderEntry>, std::greater<RenderEntry>> render_queue;
 
@@ -76,7 +78,7 @@ public:
 			const auto& position = transform_component.position;
 			const auto& size = transform_component.size;
 			
-			graphics::ColorModGuard colorModGuard{renderable_component.sprite.getTexture(), renderable_component.color};
+			//graphics::ColorModGuard colorModGuard{renderable_component.sprite.getTexture(), renderable_component.color};
 
 			graphics::drawRotatedSprite(screen, renderable_component.sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component.flip_mode, renderable_component.ignore_view_zoom);
 

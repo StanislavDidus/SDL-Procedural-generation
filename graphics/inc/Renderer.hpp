@@ -20,13 +20,7 @@ namespace graphics
 	class Sprite;
 	class Window;
 
-	constexpr bool IGNORE_VIEW_ZOOM = true;
 
-	enum class RenderType
-	{
-		NONE,
-		FILL,
-	};
 
 	class Renderer
 	{

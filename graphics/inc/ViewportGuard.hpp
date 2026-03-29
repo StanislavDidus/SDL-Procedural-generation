@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer.hpp"
+#include "GpuRenderer.hpp"
 
 namespace graphics
 {
@@ -11,7 +11,7 @@ namespace graphics
 	class ViewportGuard
 	{
 	public:
-		ViewportGuard(graphics::Renderer& renderer, const SDL_Rect& viewport_rect);
+		ViewportGuard(graphics::GpuRenderer& renderer, const SDL_Rect& viewport_rect);
 		~ViewportGuard();
 
 		ViewportGuard(const ViewportGuard& other) = delete;
@@ -20,7 +20,7 @@ namespace graphics
 		ViewportGuard& operator=(ViewportGuard&& other) noexcept = delete;
 
 	private:
-		graphics::Renderer& renderer;
+		graphics::GpuRenderer& renderer;
 	};
 
 	/*Usage example

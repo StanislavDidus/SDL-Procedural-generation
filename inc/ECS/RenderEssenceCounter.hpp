@@ -13,7 +13,7 @@ class RenderEssenceCounter
 public:
 	RenderEssenceCounter(const entt::registry& registry, const UISettings& ui_settings, const graphics::Font* font) : registry{ registry }, ui_settings{ ui_settings }, font { font } {}
 
-	void render(graphics::Renderer& screen, Entity target_entity)
+	void render(graphics::GpuRenderer& screen, Entity target_entity)
 	{
 		if (!registry.all_of<Components::EquipmentEssence>(target_entity)) return;
 

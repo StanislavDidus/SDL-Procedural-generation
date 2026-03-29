@@ -10,7 +10,7 @@
 using namespace graphics;
 using namespace tinyxml2;
 
-void ResourceManager::loadXml(const std::filesystem::path& path, graphics::Renderer& screen)
+void ResourceManager::loadXml(const std::filesystem::path& path, graphics::GpuRenderer& screen)
 {
 	XMLDocument doc;
 	doc.LoadFile(path.string().c_str());
@@ -86,10 +86,10 @@ std::shared_ptr<SpriteSheet> ResourceManager::getSpriteSheet(const std::string& 
 	return spritesheets.at(name);
 }
 
-void ResourceManager::addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path,
+void ResourceManager::addSpriteSheet(const std::string& name, graphics::GpuRenderer& screen, const std::filesystem::path& path,
                                      const SpriteList& sprite_list, SDL_ScaleMode scale_mode)
 {
-	spritesheets[name] = std::make_unique<SpriteSheet>(screen, Surface{ path }, sprite_list, scale_mode);
+	spritesheets[name] = std::make_unique<SpriteSheet>(screen, path, sprite_list, scale_mode);
 	//spritesheets[name] = std::move(SpriteSheet{ screen, Surface{path}, rects, scale_mode });
 }
 

@@ -1,3 +1,8 @@
+cbuffer UniformBlock : register(b0, space1)
+{
+    float4x4 MatrixTransform;
+};
+
 struct Input
 {
     float3 Position : TEXCOORD0;
@@ -14,11 +19,7 @@ Output main(Input input)
 {
     Output output;
     output.TexCoord = input.TexCoord;
-
-    output.Position.x = input.Position.x / float(960) * 2.0f - 1.0f;
-    output.Position.y = (input.Position.y / float(540) * 2.0f - 1.0f) * -1.0f;
-    output.Position.z = input.Position.z;
-    output.Position.w = 1.0f;
+    output.Position = mul(float4(input.Position.x, input.Position.y, input.Position.z, 1.0f), MatrixTransform);
 
     return output;
 }

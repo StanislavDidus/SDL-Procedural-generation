@@ -6,7 +6,7 @@
 #include "CraftingManager.hpp"
 #include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
-#include "RenderFunctions.hpp"
+#include "GpuRenderFunctions.hpp"
 #include "World.hpp"
 #include "Item.hpp"
 #include "RandomizedItem.hpp"
@@ -370,7 +370,7 @@ struct InputSystem
 {
 	InputSystem(entt::registry& registry) : registry{registry} {}
 
-	void update(const graphics::Renderer& screen, float dt)
+	void update(const graphics::GpuRenderer& screen, float dt)
 	{
 		//Calculate global mouse position
 		glm::vec2 mouse_global_position = graphics::getMouseGlobalPosition(screen, InputManager::getMouseState().position);
@@ -545,7 +545,7 @@ public:
 		}
 	}
 
-	void renderOutline(graphics::Renderer& screen) const
+	void renderOutline(graphics::GpuRenderer& screen) const
 	{
 		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
 		for (auto [entity, ts, mi, mining_ability_component] : view.each())
@@ -710,7 +710,7 @@ public:
 		}
 	}
 
-	void render(graphics::Renderer& screen)
+	void render(graphics::GpuRenderer& screen)
 	{
 		auto view = registry.view<Components::Transform, Components::MineIntent>();
 		for (auto [entity, ts, mi] : view.each())
@@ -1022,7 +1022,7 @@ class ButtonSystem
 public:
 	ButtonSystem(entt::registry& registry) : registry{registry} {}
 
-	void update(const graphics::Renderer& screen)
+	void update(const graphics::GpuRenderer& screen)
 	{
 		auto view = registry.view<Components::Transform, Components::Button>();
 		for (auto [entity, ts, button] : view.each())

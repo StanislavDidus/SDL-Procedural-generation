@@ -16,7 +16,7 @@ set(GRAPHICS_SOURCE_FILES
     )
 
 set(GRAPHICS_HEADER_FILES
-    "inc/Renderer.hpp"
+    #"inc/Renderer.hpp"
     "inc/GpuRenderer.hpp"
     "inc/Sprite.hpp"
     "inc/Surface.hpp"
@@ -26,7 +26,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/Font.hpp"
     "inc/Text.hpp"
     "inc/ViewportGuard.hpp"
-    "inc/RenderFunctions.hpp"
+    #"inc/RenderFunctions.hpp"
     "inc/SpriteAnimation.hpp"
     "inc/ColorModGuard.hpp"
     "inc/GpuShader.hpp"
@@ -35,6 +35,8 @@ set(GRAPHICS_HEADER_FILES
     "inc/GpuVertexBuffer.hpp"
     "inc/GpuTransferBuffer.hpp"
     "inc/GpuTexture.hpp"
+    "inc/GpuRenderFunctions.hpp"
+    #"inc/TextEngine.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})
