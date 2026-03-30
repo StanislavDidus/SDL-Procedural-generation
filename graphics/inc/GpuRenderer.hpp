@@ -11,8 +11,10 @@
 #include "GpuVertexBuffer.hpp"
 #include "GpuTexture.hpp"
 #include "GpuTransferBuffer.hpp"
+#include "GpuSampler.hpp"
 
 #include "Vertex.hpp"
+
 
 namespace graphics
 {
@@ -102,7 +104,7 @@ namespace graphics
 		auto&& getDevice(this Self&& self);
 
 		//void renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color);
-		void renderSprite(const std::string& texture_name, float x, float y, float w, float h, bool ignore_view_zoom = false);
+		void renderSprite(const std::string& texture_name, float x, float y, float w, float h, float angle, bool ignore_view_zoom = false);
 	private:
 		void initSamplers();
 
@@ -127,7 +129,7 @@ namespace graphics
 
 		std::unique_ptr<GpuShader> vertex_shader;
 		std::unique_ptr<GpuShader> fragment_shader;
-		std::unique_ptr<GpuShader> text_vertex_shader;
+		std::unique_ptr<GpuShader> texture_vertex_shader;
 		std::unique_ptr<GpuShader> texture_fragment_shader;
 
 		std::vector<Vertex> vertices;
@@ -137,7 +139,7 @@ namespace graphics
 		std::unordered_map<std::string, std::shared_ptr<GpuTexture>> textures;
 		std::vector<SDL_GPUTextureSamplerBinding> texture_sampler_bindings;
 
-		SDL_GPUSampler* Samplers[std::size(graphics::SamplerNames)];
+		std::array<std::unique_ptr<GpuSampler>, 6> samplers;
 	};
 
 	template <typename Self>

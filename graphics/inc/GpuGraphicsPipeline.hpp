@@ -19,7 +19,8 @@ namespace graphics
 			GpuShader& vertex_shader,
 			GpuShader& fragment_shader,
 			const std::vector<SDL_GPUVertexBufferDescription>& vertex_buffer_descriptions,
-			const std::vector<SDL_GPUVertexAttribute>& vertex_attributes
+			const std::vector<SDL_GPUVertexAttribute>& vertex_attributes,
+			bool test
 		);
 		~GpuGraphicsPipeline();
 

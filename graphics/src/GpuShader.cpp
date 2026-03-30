@@ -46,8 +46,8 @@ graphics::GpuShader::GpuShader(std::shared_ptr<SDL_GPUDevice> device, const std:
 
 	SDL_ShaderCross_GraphicsShaderResourceInfo shader_resource_info = {};
 	shader_resource_info.num_samplers = sampler_count;
-	shader_resource_info.num_storage_buffers = 0;
-	shader_resource_info.num_storage_textures = 0;
+	shader_resource_info.num_storage_buffers = storage_buffer_count;
+	shader_resource_info.num_storage_textures = storage_texture_count;
 	shader_resource_info.num_uniform_buffers = uniform_count;
 
 	shader = SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(device.get(), &spirv_info, &shader_resource_info, 0);

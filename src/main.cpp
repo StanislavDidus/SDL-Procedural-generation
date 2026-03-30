@@ -20,11 +20,14 @@
 #include <entt/entt.hpp>
 
 #include "GpuRenderFunctions.hpp"
+#include "SDL3_shadercross/SDL_shadercross.h"
 
 constexpr int WINDOW_WIDTH = 960;
 constexpr int WINDOW_HEIGHT = 540;
 
 using namespace graphics;
+
+static float angle = 0.0f;
 
 int main()
  {
@@ -37,6 +40,12 @@ int main()
     if (!TTF_Init())
     {
         std::cerr << "ERROR: Could not initialize TTF: " << SDL_GetError() << std::endl;
+        return SDL_APP_FAILURE;
+    }
+    if (!SDL_ShaderCross_Init())
+    {
+	    
+        std::cerr << "ERROR: Could not initialize SDL_ShaderCross: " << SDL_GetError() << std::endl;
         return SDL_APP_FAILURE;
     }
 
@@ -111,10 +120,11 @@ int main()
             //game.tick(dt);
 
             //gpu_renderer.renderTriangle(0.0f, 0.0f, 480.0f, 540.0f, 960.0f, 0.0f, SDL_FColor{ 1.0f, 0.0,0.0f, 1.0f });
-            gpu_renderer.renderSprite("Car", 100.0f, 0.0f,960.0f, 540.0f);
-            gpu_renderer.renderSprite("Ice-cream", 300.0f, 200.0f, 200.0f, 200.0f);
-            //gpu_renderer.renderRectangle2(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
-            drawRectangle(gpu_renderer, 100.0f, 100.0f, 200.0f, 200.0f, RenderType::FILL, Color::RED);
+            gpu_renderer.renderSprite("Car", 0.0f, 0.0f,960.0f, 540.0f, angle);
+            angle += 2.0f * dt;
+            //gpu_renderer.renderSprite("Ice-cream", 300.0f, 200.0f, 200.0f, 200.0f);
+            //gpu(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
+            //drawRectangle(gpu_renderer, 100.0f, 100.0f, 200.0f, 200.0f, RenderType::FILL, Color::RED);
             gpu_renderer.update();
 
             //update(renderer);

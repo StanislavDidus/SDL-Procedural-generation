@@ -47,6 +47,7 @@ endmacro()
 set ( ALL_LIBS
     SDL3_ttf-static
     SDL3_shadercross
+    SDL3_shadercross-static
     SDL3-static
     glm
     imgui
@@ -58,6 +59,25 @@ set ( ALL_LIBS
     SDL_uclibc
     SDL3_test
     EnTT
+    copy_assets
+    core_tables
+    DxcDisassembler
+    DxcOptimizer
+    XcilIntrinsicTables
+    DxilPIXPasses
+    DxilValidation
+    DxilIntrinsicTables
+    DxilValidationInc
+    extinst_tables
+    HCTGen
+    spirv-cross-c
+    spirv-cross-core
+    spirv-cross-cpp
+    spirv-cross-glsl
+    spirv-cross-hlsl
+    spirv-cross-msl
+    spirv-cross-reflect
+    spirv-tools-tables
 )
 
 set_targets_folder("${ALL_LIBS}" "externals")

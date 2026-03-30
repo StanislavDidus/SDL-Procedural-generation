@@ -4,7 +4,7 @@
 
 namespace graphics
 {
-	static const char* SamplerNames[] =
+	/*static const char* SamplerNames[] =
 	{
 		"PointClamp",
 		"PointWrap",
@@ -12,7 +12,7 @@ namespace graphics
 		"LinearWrap",
 		"AnisotropicClamp",
 		"AnisotropicWrap",
-	};
+	};*/
 	struct Vertex
 	{
 		float x, y, z;
@@ -28,11 +28,11 @@ namespace graphics
 		std::string texture_name;
 		std::array<TextureVertex, 4> vertices;
 	};
-	struct SpriteData
+	struct alignas(16) SpriteData
 	{
 		float x, y, z;
 		float rotation;
-		float w, h;
+		float w, h, padding_a, padding_b;
 		float tex_u, tex_v, tex_w, tex_h;
 		float r, g, b, a;
 	};

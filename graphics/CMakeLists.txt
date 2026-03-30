@@ -13,6 +13,7 @@ set(GRAPHICS_SOURCE_FILES
     "src/ColorModGuard.cpp"
     "src/GpuShader.cpp"
     "src/GpuGraphicsPipeline.cpp"
+    "src/GpuSampler.cpp"
     )
 
 set(GRAPHICS_HEADER_FILES
@@ -37,6 +38,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/GpuTexture.hpp"
     "inc/GpuRenderFunctions.hpp"
     #"inc/TextEngine.hpp"
+    "inc/GpuSampler.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})
