@@ -28,7 +28,7 @@ namespace graphics
 		std::string texture_name;
 		std::array<TextureVertex, 4> vertices;
 	};
-	struct alignas(16) SpriteData
+	struct SpriteData
 	{
 		float x, y, z;
 		float rotation;

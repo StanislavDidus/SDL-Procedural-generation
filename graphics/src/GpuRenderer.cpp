@@ -280,9 +280,11 @@ void graphics::GpuRenderer::update()
 
 			SDL_BindGPUVertexStorageBuffers(render_pass, 0, &texture_vertex_buffer->get(), 1);
 
-			SDL_BindGPUFragmentSamplers(render_pass, 0, texture_sampler_bindings.data(), 1);
+			SDL_BindGPUFragmentSamplers(render_pass, 0, texture_sampler_bindings.data(), texture_sampler_bindings.size());
+
+			//SDL_BindGPUFragmentSamplers(render_pass, 1, texture_sampler_bindings.data() + 1, 1);
 			
-			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &base_matrix, sizeof(glm::mat4));
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &final_matrix, sizeof(glm::mat4));
 			SDL_DrawGPUPrimitives(render_pass, texture_objects.size() * 6, 1, 0, 0);
 		}
 		
@@ -336,7 +338,6 @@ std::shared_ptr<graphics::GpuTexture> graphics::GpuRenderer::loadTexture(const s
 	gpu_texture_region.w = texture->w();
 	gpu_texture_region.h = texture->h();
 	gpu_texture_region.d = 1;
-	gpu_texture_region.layer = 0;
 
 	SDL_UploadToGPUTexture(copy_pass, &gpu_texture_transfer_info, &gpu_texture_region, false);
 	SDL_EndGPUCopyPass(copy_pass);
@@ -426,7 +427,7 @@ void graphics::GpuRenderer::renderSprite(const std::string& texture_name, float 
 			.r = 1.0f,
 			.g = 1.0f,
 			.b = 1.0f,
-			.a = 1.0f
+			.a = 1.0f,
 		}
 	);
 }

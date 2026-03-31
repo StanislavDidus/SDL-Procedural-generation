@@ -136,6 +136,7 @@ namespace graphics
 		std::vector<SpriteData> texture_objects;
 		std::vector<SpriteData> ui_texture_objects;
 
+		size_t number_textures = 0;
 		std::unordered_map<std::string, std::shared_ptr<GpuTexture>> textures;
 		std::vector<SDL_GPUTextureSamplerBinding> texture_sampler_bindings;
 
