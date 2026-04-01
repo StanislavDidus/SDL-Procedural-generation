@@ -8,20 +8,21 @@
 #include "Window.hpp"
 #include "GpuShader.hpp"
 #include "GpuGraphicsPipeline.hpp"
-#include "GpuVertexBuffer.hpp"
+#include "GpuBuffer.hpp"
 #include "GpuTexture.hpp"
 #include "GpuTransferBuffer.hpp"
 #include "GpuSampler.hpp"
+#include "Sprite.hpp"
 
 #include "Vertex.hpp"
 
 
 namespace graphics
 {
-	constexpr int MAX_NUMBER_TEXTURE_OBJECTS = 1'000;
-	constexpr int MAX_NUMBER_UI_ELEMENTS = 100;
-	constexpr int MAX_NUMBER_OBJECTS = MAX_NUMBER_TEXTURE_OBJECTS + MAX_NUMBER_UI_ELEMENTS;
-	
+	constexpr int ALLOCATED_NUMBER_OBJECTS = 1'000;
+	constexpr int ALLOCATED_NUMBER_UI_OBJECTS = ALLOCATED_NUMBER_OBJECTS;
+	constexpr int TOTAL_NUMBER_OBJECTS = ALLOCATED_NUMBER_OBJECTS + ALLOCATED_NUMBER_UI_OBJECTS;
+
 	enum class RenderType
 	{
 		NONE,
@@ -103,8 +104,10 @@ namespace graphics
 		template<typename Self>
 		auto&& getDevice(this Self&& self);
 
+
 		//void renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color);
-		void renderSprite(const std::string& texture_name, float x, float y, float w, float h, float angle, bool ignore_view_zoom = false);
+		void renderRectangle(float x, float y, float w, float h, RenderType render_type, Color color, bool ignore_view_zoom = false);
+		void renderSprite(const Sprite& sprite, float x, float y, float w, float h, float angle, SDL_FlipMode flip = SDL_FLIP_NONE, bool ignore_view_zoom = false);
 	private:
 		void initSamplers();
 
@@ -114,31 +117,34 @@ namespace graphics
 		// <Render Parameters> //
 		glm::vec2 view = {0.0f, 0.0f};
 		float zoom = 1.0f;
-		float angle = 0.0f; ///< Degrees.
+		float angle = 15.0f; ///< Degrees.
 
 		std::unique_ptr<WindowClaimer> window_claimer;
+		std::unique_ptr<GpuGraphicsPipeline> line_graphics_pipeline;
 		std::unique_ptr<GpuGraphicsPipeline> vertex_graphics_pipeline;
 		std::unique_ptr<GpuGraphicsPipeline> texture_graphics_pipeline;
 
 		//Buffers
 		//Vertex buffers
-		std::unique_ptr<GpuVertexBuffer> vertex_buffer;
-		std::unique_ptr<GpuVertexBuffer> texture_vertex_buffer;
+		std::unique_ptr<GpuBuffer> line_buffer;
+		std::unique_ptr<GpuBuffer> vertex_buffer;
+		std::unique_ptr<GpuBuffer> sprite_buffer;
 		//Transfer buffer
-		std::unique_ptr<GpuTransferBuffer<SpriteData>> transfer_buffer;
+		std::unique_ptr<GpuTransferBuffer> line_transfer_buffer;
+		std::unique_ptr<GpuTransferBuffer> vertex_transfer_buffer;
+		std::unique_ptr<GpuTransferBuffer> sprite_transfer_buffer;
 
 		std::unique_ptr<GpuShader> vertex_shader;
 		std::unique_ptr<GpuShader> fragment_shader;
 		std::unique_ptr<GpuShader> texture_vertex_shader;
 		std::unique_ptr<GpuShader> texture_fragment_shader;
 
+		std::vector<Vertex> lines;
+		std::vector<Vertex> ui_lines;
 		std::vector<Vertex> vertices;
-		std::vector<SpriteData> texture_objects;
-		std::vector<SpriteData> ui_texture_objects;
-
-		size_t number_textures = 0;
-		std::unordered_map<std::string, std::shared_ptr<GpuTexture>> textures;
-		std::vector<SDL_GPUTextureSamplerBinding> texture_sampler_bindings;
+		std::vector<Vertex> ui_vertices;
+		std::vector<GpuSprite> sprites;
+		std::vector<GpuSprite> ui_sprites;
 
 		std::array<std::unique_ptr<GpuSampler>, 6> samplers;
 	};

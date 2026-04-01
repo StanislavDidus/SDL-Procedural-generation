@@ -7,7 +7,6 @@ add_subdirectory(SDL EXCLUDE_FROM_ALL)
 set(SDLTTF_VENDORED ON)
 add_subdirectory(SDL_ttf EXCLUDE_FROM_ALL)
 #SDL_shadercross
-#set(SDLSHADERCROSS_DXC OFF CACHE BOOL "")
 set(SDLSHADERCROSS_SHARED OFF CACHE BOOL "Don't build SDL_shadecross shared" FORCE)
 set(SDLSHADERCROSS_STATIC ON CACHE BOOL "Build SDL_shadecross static" FORCE)
 set(SDLSHADERCROSS_SPIRVCROSS_SHARED OFF CACHE BOOL "Build Spirvcross shared" FORCE)

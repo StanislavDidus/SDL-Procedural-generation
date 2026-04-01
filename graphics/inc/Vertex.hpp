@@ -1,6 +1,9 @@
 #pragma once
 
 #include <array>
+#include <memory>
+
+#include "GpuTexture.hpp"
 
 namespace graphics
 {
@@ -32,8 +35,14 @@ namespace graphics
 	{
 		float x, y, z;
 		float rotation;
-		float w, h, padding_a, padding_b;
+		float w, h, padding_a = 0.0f, padding_b = 0.0f;
 		float tex_u, tex_v, tex_w, tex_h;
 		float r, g, b, a;
+		unsigned int flip;
+	};
+	struct GpuSprite
+	{
+		std::shared_ptr<GpuTexture> texture;
+		SpriteData data;
 	};
 }

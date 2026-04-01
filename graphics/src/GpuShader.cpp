@@ -25,7 +25,7 @@ graphics::GpuShader::GpuShader(std::shared_ptr<SDL_GPUDevice> device, const std:
 
 	if (!hlsl_vertex_code)
 	{
-		throw std::runtime_error{ std::format("Failed to load shared: {}", SDL_GetError()) };
+		throw std::runtime_error{ std::format("Failed to load shader: {}", SDL_GetError()) };
 	}
 
 	SDL_ShaderCross_HLSL_Info vertex_info = {};

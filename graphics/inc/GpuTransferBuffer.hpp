@@ -7,7 +7,6 @@
 
 namespace graphics
 {
-	template<typename MapType>
 	class GpuTransferBuffer
 	{
 	public:
@@ -15,6 +14,7 @@ namespace graphics
 		GpuTransferBuffer(std::shared_ptr<SDL_GPUDevice> device, Uint32 size, SDL_GPUTransferBufferUsage flags);
 		~GpuTransferBuffer() noexcept;
 
+		template<typename MapType>
 		MapType* map();
 		void unmap();
 		
@@ -24,6 +24,7 @@ namespace graphics
 		/// @param arr Array pointer.
 		/// @param size Array size;
 		/// @param offset = 0
+		template<typename MapType>
 		void putAutomatically(MapType* arr, size_t size, size_t offset = 0);
 
 		template<typename Self>
@@ -33,15 +34,7 @@ namespace graphics
 		SDL_GPUTransferBuffer* transfer_buffer;
 	};
 
-	template<typename MapType>
-	template <typename Self>
-	auto&& GpuTransferBuffer<MapType>::get(this Self&& self)
-	{
-		return self.transfer_buffer;
-	}
-
-	template<typename MapType>
-	inline GpuTransferBuffer<MapType>::GpuTransferBuffer(std::shared_ptr<SDL_GPUDevice> device, Uint32 size, SDL_GPUTransferBufferUsage flags)
+	inline GpuTransferBuffer::GpuTransferBuffer(std::shared_ptr<SDL_GPUDevice> device, Uint32 size, SDL_GPUTransferBufferUsage flags)
 		: device{device}
 	{
 		// Create transfer buffer
@@ -56,8 +49,7 @@ namespace graphics
 		}
 	}
 
-	template<typename MapType>
-	inline GpuTransferBuffer<MapType>::~GpuTransferBuffer() noexcept
+	inline GpuTransferBuffer::~GpuTransferBuffer() noexcept
 	{
 		if (transfer_buffer)
 		{
@@ -66,7 +58,7 @@ namespace graphics
 	}
 
 	template<typename MapType>
-	inline MapType* GpuTransferBuffer<MapType>::map() 
+	inline MapType* GpuTransferBuffer::map() 
 	{
 		MapType* data = static_cast<MapType*>(SDL_MapGPUTransferBuffer(device.get(), transfer_buffer, false));
 
@@ -78,21 +70,26 @@ namespace graphics
 		return data;
 	}
 
-	template<typename MapType>
-	inline void GpuTransferBuffer<MapType>::unmap()
+	inline void GpuTransferBuffer::unmap()
 	{
 		SDL_UnmapGPUTransferBuffer(device.get(), transfer_buffer);
 	}
 
 	template<typename MapType>
-	inline void GpuTransferBuffer<MapType>::putAutomatically(MapType* arr, size_t size, size_t offset)
+	inline void GpuTransferBuffer::putAutomatically(MapType* arr, size_t size, size_t offset)
 	{
-		auto* data = map();
+		MapType* data = map<MapType>();
 
 		data += offset;
 
 		SDL_memcpy(data, arr, size);
 
 		unmap();
+	}
+
+	template <typename Self>
+	auto&& GpuTransferBuffer::get(this Self&& self)
+	{
+		return self.transfer_buffer;
 	}
 }

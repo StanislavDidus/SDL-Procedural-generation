@@ -1,7 +1,9 @@
 #pragma once
 #include <memory>
+#include <optional>
 #include <vector>
 
+#include "Window.hpp"
 #include "SDL3/SDL_gpu.h"
 
 namespace graphics
@@ -15,12 +17,12 @@ namespace graphics
 		GpuGraphicsPipeline
 		(
 			std::shared_ptr<SDL_GPUDevice> device,
-			SDL_Window* window,
+			const Window& window,
 			GpuShader& vertex_shader,
 			GpuShader& fragment_shader,
-			const std::vector<SDL_GPUVertexBufferDescription>& vertex_buffer_descriptions,
-			const std::vector<SDL_GPUVertexAttribute>& vertex_attributes,
-			bool test
+			SDL_GPUPrimitiveType primitive_type,
+			std::optional<std::vector<SDL_GPUVertexBufferDescription>> vertex_buffer_descriptions = std::nullopt,
+			std::optional<const std::vector<SDL_GPUVertexAttribute>> vertex_attributes = std::nullopt
 		);
 		~GpuGraphicsPipeline();
 

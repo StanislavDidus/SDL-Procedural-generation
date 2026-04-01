@@ -5,12 +5,12 @@
 
 namespace graphics
 {
-	class GpuVertexBuffer
+	class GpuBuffer
 	{
 	public:
-		GpuVertexBuffer() = default;
-		GpuVertexBuffer(std::shared_ptr<SDL_GPUDevice> device, Uint32 size, SDL_GPUBufferUsageFlags flags);
-		~GpuVertexBuffer() noexcept;
+		GpuBuffer() = default;
+		GpuBuffer(std::shared_ptr<SDL_GPUDevice> device, Uint32 size, SDL_GPUBufferUsageFlags flags);
+		~GpuBuffer() noexcept;
 
 		template<typename Self>
 		auto&& get(this Self&& self);
@@ -20,12 +20,12 @@ namespace graphics
 	};
 
 	template <typename Self>
-	auto&& GpuVertexBuffer::get(this Self&& self)
+	auto&& GpuBuffer::get(this Self&& self)
 	{
 		return self.vertex_buffer;
 	}
 
-	inline GpuVertexBuffer::GpuVertexBuffer(std::shared_ptr<SDL_GPUDevice> device, Uint32 size, SDL_GPUBufferUsageFlags flags)
+	inline GpuBuffer::GpuBuffer(std::shared_ptr<SDL_GPUDevice> device, Uint32 size, SDL_GPUBufferUsageFlags flags)
 		: device{device}
 	{
 		SDL_GPUBufferCreateInfo buffer_info;
@@ -40,7 +40,7 @@ namespace graphics
 
 	}
 
-	inline GpuVertexBuffer::~GpuVertexBuffer() noexcept
+	inline GpuBuffer::~GpuBuffer() noexcept
 	{
 		if (vertex_buffer)
 		{

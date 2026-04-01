@@ -98,36 +98,17 @@ namespace graphics
 
 	inline void drawRectangle(GpuRenderer& renderer, float x, float y, float w, float h, RenderType type, const Color& color, bool ignore_view_zoom = false)
 	{
-		auto& vertices = renderer.getVertices();
-
-		vertices.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
-		vertices.emplace_back(x, y + h, 0.0f, color.r, color.g, color.b, color.a);
-		vertices.emplace_back(x + w, y + h, 0.0f, color.r, color.g, color.b, color.a);
-
-		vertices.emplace_back(x + w, y + h, 0.0f, color.r, color.g, color.b, color.a);
-		vertices.emplace_back(x + w, y, 0.0f, color.r, color.g, color.b, color.a);
-		vertices.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
+		renderer.renderRectangle(x, y, w, h, type, color, ignore_view_zoom);
 	}
 
 	inline void drawScaledSprite(GpuRenderer& renderer, const Sprite& sprite, float x, float y, float w, float h, bool ignore_view_zoom = false)
 	{
-		
-		/*texture_objects.emplace_back(TextureObject
-			{
-				.texture_name = texture_name,
-				.vertices =
-				{
-					TextureVertex{x, y, 0.f, 0.0f, 0.0f},
-					TextureVertex{x, y + h, 0.0f, 0.0f, 1.0f},
-					TextureVertex{x + w, y + h, 0.0f, 1.0f, 1.0f},
-					TextureVertex{x + w, y, 0.0f, 1.0f, 0.0f}
-				}
-			});*/
+		renderer.renderSprite(sprite, x, y, w, h, 0.0f, SDL_FLIP_NONE, ignore_view_zoom);
 	}
 
 	inline void drawRotatedSprite(GpuRenderer& renderer, const Sprite& sprite, float x, float y, float w, float h, float angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE, bool ignore_view_zoom = false)
 	{
-		
+		renderer.renderSprite(sprite, x, y, w, h, angle, flip_mode, ignore_view_zoom);
 	}
 
 	inline void printText(GpuRenderer& renderer, Text& text, float x, float y, float w, float h, bool ignore_view_zoom)

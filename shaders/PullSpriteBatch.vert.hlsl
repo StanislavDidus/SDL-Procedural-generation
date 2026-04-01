@@ -6,6 +6,7 @@ struct SpriteData
     float2 Padding;
     float TexU, TexV, TexW, TexH;
     float4 Color;
+    uint Flip;
 };
 
 struct Output
@@ -13,6 +14,7 @@ struct Output
     float2 Texcoord : TEXCOORD0;
     float4 Color : TEXCOORD1;
     float4 Position : SV_Position;
+    uint Flip : TEXCOORD2;
 };
 
 StructuredBuffer<SpriteData> DataBuffer : register(t0, space0);
@@ -61,6 +63,7 @@ Output main(uint id : SV_VertexID)
     output.Position = mul(float4(coordWithDepth, 1.0f), ViewProjectionMatrix);
     output.Texcoord = texcoord[vert];
     output.Color = sprite.Color;
+    output.Flip = sprite.Flip;
 
     return output;
 }

@@ -5,50 +5,47 @@
 #include "GpuShader.hpp"
 #include "Vertex.hpp"
 
-graphics::GpuGraphicsPipeline::GpuGraphicsPipeline
-(
-	std::shared_ptr<SDL_GPUDevice> device,
-	SDL_Window* window,
-	GpuShader& vertex_shader,
-	GpuShader& fragment_shader,
-	const std::vector<SDL_GPUVertexBufferDescription>& vertex_buffer_descriptions,
-	const std::vector<SDL_GPUVertexAttribute>& vertex_attributes,
-	bool test
-)
+graphics::GpuGraphicsPipeline::GpuGraphicsPipeline(
+		std::shared_ptr<SDL_GPUDevice> device,
+		const Window& window,
+		GpuShader& vertex_shader,
+		GpuShader& fragment_shader,
+		SDL_GPUPrimitiveType primitive_type,
+		std::optional<std::vector<SDL_GPUVertexBufferDescription>> vertex_buffer_descriptions,
+		std::optional<const std::vector<SDL_GPUVertexAttribute>> vertex_attributes)
 	: device{device}
 {
 	// Graphics pipeline
 	SDL_GPUGraphicsPipelineCreateInfo pipeline_info = {};
 	pipeline_info.vertex_shader = vertex_shader.get();
 	pipeline_info.fragment_shader = fragment_shader.get();
-	pipeline_info.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
+	pipeline_info.primitive_type = primitive_type;
 	pipeline_info.target_info = {};
 	//pipeline_info.vertex_input_state;
-	//pipeline_info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
-	//pipeline_info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
+	pipeline_info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+	pipeline_info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
 
-	if (!test)
+	if (vertex_buffer_descriptions.has_value())
 	{
-		pipeline_info.vertex_input_state.num_vertex_buffers = vertex_buffer_descriptions.size();
-		pipeline_info.vertex_input_state.vertex_buffer_descriptions = vertex_buffer_descriptions.data();
+		pipeline_info.vertex_input_state.num_vertex_buffers = vertex_buffer_descriptions->size();
+		pipeline_info.vertex_input_state.vertex_buffer_descriptions = vertex_buffer_descriptions->data();
+	}
+	else
+	{
+		pipeline_info.vertex_input_state.num_vertex_buffers = 0;
+		pipeline_info.vertex_input_state.vertex_buffer_descriptions = nullptr;
+	}
+
+	if (vertex_attributes.has_value())
+	{
+		pipeline_info.vertex_input_state.num_vertex_attributes = vertex_attributes->size();
+		pipeline_info.vertex_input_state.vertex_attributes = vertex_attributes->data();
 	}
 	else
 	{
 		
-		//pipeline_info.vertex_input_state.num_vertex_buffers = 0;
-		//pipeline_info.vertex_input_state.vertex_buffer_descriptions = nullptr;
-	}
-
-	if (!test)
-	{
-		pipeline_info.vertex_input_state.num_vertex_attributes = vertex_attributes.size();
-		pipeline_info.vertex_input_state.vertex_attributes = vertex_attributes.data();
-	}
-	else
-	{
-		
-		//pipeline_info.vertex_input_state.num_vertex_attributes = 0;
-		//pipeline_info.vertex_input_state.vertex_attributes = nullptr;
+		pipeline_info.vertex_input_state.num_vertex_attributes = 0;
+		pipeline_info.vertex_input_state.vertex_attributes = nullptr;
 	}
 
 	// Describe the color target
@@ -61,7 +58,7 @@ graphics::GpuGraphicsPipeline::GpuGraphicsPipeline
 	color_target_descriptions[0].blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
 	color_target_descriptions[0].blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
 	color_target_descriptions[0].blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-	color_target_descriptions[0].format = SDL_GetGPUSwapchainTextureFormat(device.get(), window);
+	color_target_descriptions[0].format = SDL_GetGPUSwapchainTextureFormat(device.get(), window.get());
 
 	if (color_target_descriptions[0].format == SDL_GPU_TEXTUREFORMAT_INVALID)
 	{

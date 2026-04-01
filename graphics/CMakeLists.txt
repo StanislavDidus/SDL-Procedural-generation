@@ -33,7 +33,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/GpuShader.hpp"
     "inc/GpuGraphicsPipeline.hpp"
     "inc/Vertex.hpp"
-    "inc/GpuVertexBuffer.hpp"
+    "inc/GpuBuffer.hpp"
     "inc/GpuTransferBuffer.hpp"
     "inc/GpuTexture.hpp"
     "inc/GpuRenderFunctions.hpp"
