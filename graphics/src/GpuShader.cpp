@@ -36,7 +36,14 @@ graphics::GpuShader::GpuShader(std::shared_ptr<SDL_GPUDevice> device, const std:
 	vertex_info.defines = nullptr;
 	vertex_info.shader_stage = stage;
 	
-	std::unique_ptr<void, VertexCodeDeleter> spirv_vertex_code { SDL_ShaderCross_CompileSPIRVFromHLSL(&vertex_info, &vertex_code_size) };
+	auto* result_vertex_code = SDL_ShaderCross_CompileSPIRVFromHLSL(&vertex_info, &vertex_code_size);
+
+	if (!result_vertex_code)
+	{	
+		throw std::runtime_error{ std::format("ShaderCross could not compile spirv shader from hlsl: {}", SDL_GetError()) };
+	}
+
+	std::unique_ptr<void, VertexCodeDeleter> spirv_vertex_code{ result_vertex_code };
 
 	SDL_ShaderCross_SPIRV_Info spirv_info = {};
 	spirv_info.bytecode = static_cast<Uint8*>(spirv_vertex_code.get());

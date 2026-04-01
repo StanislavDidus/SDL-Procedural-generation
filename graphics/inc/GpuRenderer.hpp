@@ -117,7 +117,7 @@ namespace graphics
 		// <Render Parameters> //
 		glm::vec2 view = {0.0f, 0.0f};
 		float zoom = 1.0f;
-		float angle = 15.0f; ///< Degrees.
+		float angle = 0.0f; ///< Degrees.
 
 		std::unique_ptr<WindowClaimer> window_claimer;
 		std::unique_ptr<GpuGraphicsPipeline> line_graphics_pipeline;

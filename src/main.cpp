@@ -123,9 +123,9 @@ int main()
 
             //gpu_renderer.renderTriangle(0.0f, 0.0f, 480.0f, 540.0f, 960.0f, 0.0f, SDL_FColor{ 1.0f, 0.0,0.0f, 1.0f });
             //gpu_renderer.renderSprite(sprite, 0.0f, 0.0f,960.0f, 540.0f, angle);
-            //gpu_renderer.renderRectangle(1.0f, 1.0f, 100.0f, 100.0f, RenderType::FILL, Color::YELLOW, IGNORE_VIEW_ZOOM);
-            //gpu_renderer.renderRectangle(200.0f, 200.0f, 100.0f, 100.0f, Color::BLUE, IGNORE_VIEW_ZOOM);
-            //gpu_renderer.renderSprite(Sprite{ ice_cream_texture, {0.0f, 0.0f, 100.0f, 100.0f} }, 0.0f, 0.0f, 100.0f, 100.0f, angle);
+            gpu_renderer.renderRectangle(1.0f, 1.0f, 100.0f, 100.0f, RenderType::NONE, Color::YELLOW, IGNORE_VIEW_ZOOM);
+            gpu_renderer.renderRectangle(200.0f, 200.0f, 100.0f, 100.0f, RenderType::FILL, Color::BLUE, IGNORE_VIEW_ZOOM);
+            gpu_renderer.renderSprite(Sprite{ ice_cream_texture, {0.0f, 0.0f, 100.0f, 100.0f} }, 0.0f, 0.0f, 100.0f, 100.0f, angle);
             //gpu_renderer.renderSprite(car_texture, 300.0f, 300.0f,200.0f, 200.0f, angle);
             //gpu_renderer.renderSprite("Ice-cream", 300.0f, 200.0f, 200.0f, 200.0f);
             //gpu(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
