@@ -1,10 +1,10 @@
 {
-    "version": 3,
+    "version": 5,
     "configurePresets": [
         {
             "name": "common_build",
             "hidden": true,
-            "generator": "Visual Studio 17 2022",
+            "generator": "Visual Studio 18 2026",
             "binaryDir": "build"
         },
         {
