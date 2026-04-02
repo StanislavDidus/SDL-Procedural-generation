@@ -32,10 +32,10 @@ static const float2 vertexPos[4] = {
     {1.0f, 0.0f}
 };
 
-Output main(uint id : SV_VertexID)
+Output main(uint id : SV_VertexID, uint instance_id : SV_InstanceID)
 {
-    uint spriteIndex = id / 6;
-    uint vert = triangleIndices[id % 6];
+    uint spriteIndex = instance_id;
+    uint vert = triangleIndices[id];
     SpriteData sprite = DataBuffer[spriteIndex];
 
     float2 texcoord[4] = {

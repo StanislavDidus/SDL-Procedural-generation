@@ -131,6 +131,7 @@ void graphics::GpuRenderer::updateBuffers()
 	{
 		line_transfer_buffer->putAutomatically<Vertex>(lines.data(), lines.size() * sizeof(Vertex));
 
+		
 		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
 
 		if (!command_buffer)
@@ -424,6 +425,7 @@ void graphics::GpuRenderer::update()
 
 		SDL_BindGPUGraphicsPipeline(render_pass, texture_graphics_pipeline->get());
 		SDL_BindGPUVertexStorageBuffers(render_pass, 0, &sprite_buffer->get(), 1);
+		/*
 		int i = 0;
 		for (const auto& sprite : sprites)
 		{
@@ -435,6 +437,14 @@ void graphics::GpuRenderer::update()
 			SDL_DrawGPUPrimitives(render_pass, 6, 1, 6 * i, 0);
 			++i;
 		}
+		*/
+
+		SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
+		texture_sampler_binding.texture = sprites[0].texture->get();
+		texture_sampler_binding.sampler = samplers[5]->get();
+		SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
+		SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &final_matrix, sizeof(glm::mat4));
+		SDL_DrawGPUPrimitives(render_pass, 6, sprites.size(), 0, 0);
 
 		if (!ui_vertices.empty())
 		{
@@ -451,7 +461,7 @@ void graphics::GpuRenderer::update()
 			SDL_DrawGPUPrimitives(render_pass, ui_vertices.size(), 1, 0, 0);
 		}
 
-		i = 0;
+		int i = 0;
 		for (const auto& sprite : ui_sprites)
 		{
 			SDL_GPUTextureSamplerBinding texture_sampler_binding = {};

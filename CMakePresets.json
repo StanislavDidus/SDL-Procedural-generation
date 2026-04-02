@@ -2,16 +2,15 @@
     "version": 3,
     "configurePresets": [
         {
-            "name": "common",
+            "name": "common_build",
             "hidden": true,
             "generator": "Visual Studio 17 2022",
-            "binaryDir": "build/${presetName}"
+            "binaryDir": "build"
         },
         {
             "name": "debug",
             "displayName": "Debug",
-            "generator": "Visual Studio 17 2022",
-            "binaryDir": "build",
+            "inherits": "common_build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
@@ -19,8 +18,7 @@
         {
             "name": "release",
             "displayName": "Release",
-            "generator": "Visual Studio 17 2022",
-            "binaryDir": "build",
+            "inherits": "common_build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
@@ -60,6 +58,12 @@
             "displayName": "App Debug Build",
             "configurePreset": "debug",
             "configuration": "Debug"
+        },
+        {
+            "name": "app_release",
+            "displayName": "App Release Build",
+            "configurePreset": "release",
+            "configuration": "Release"
         }
     ]
 }
