@@ -57,13 +57,16 @@ int main()
         Window window{ "First SDL program", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE };
         //graphics::GpuRenderer renderer{ window };
         GpuRenderer gpu_renderer{ window };
-        auto car_texture = gpu_renderer.loadTexture("assets/Sprites/car.bmp", "Car");
-        auto ice_cream_texture = gpu_renderer.loadTexture("assets/Sprites/ice-cream.bmp", "Ice-cream");
+        auto car_texture = gpu_renderer.loadTexture(Surface{"assets/Sprites/car.bmp"});
+        auto ice_cream_texture = gpu_renderer.loadTexture(Surface{ "assets/Sprites/ice-cream.bmp" });
 
         Sprite sprite{ car_texture, SDL_FRect{0.0f, 0.0f, 5184.0f, 3456.0f} };
-        //Game game{ renderer };
+        Game game{ gpu_renderer };
 
         InputManager input_manager;
+
+		ResourceManager::get().loadXml("data/assets.xml", gpu_renderer);
+        auto sprite1 = ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky");
 
         //Init ImGui
         /*
@@ -119,13 +122,15 @@ int main()
 
             input_manager.update();
 
-            //game.tick(dt);
+            game.tick(dt);
 
             //gpu_renderer.renderTriangle(0.0f, 0.0f, 480.0f, 540.0f, 960.0f, 0.0f, SDL_FColor{ 1.0f, 0.0,0.0f, 1.0f });
-            //gpu_renderer.renderSprite(sprite, 0.0f, 0.0f,960.0f, 540.0f, angle);
-            gpu_renderer.renderRectangle(1.0f, 1.0f, 100.0f, 100.0f, RenderType::NONE, Color::YELLOW, IGNORE_VIEW_ZOOM);
-            gpu_renderer.renderRectangle(200.0f, 200.0f, 100.0f, 100.0f, RenderType::FILL, Color::BLUE, IGNORE_VIEW_ZOOM);
-            gpu_renderer.renderSprite(sprite, 0.0f, 0.0f, 100.0f, 100.0f, angle);
+            //graphics::drawScaledSprite(gpu_renderer, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky"), 0.0f, 0.0f, 200.0f, 200.0f, IGNORE_VIEW_ZOOM);
+            //graphics::drawScaledSprite(gpu_renderer, sprite, 100.0f, 100.0f, 500.0f, 300.0f, IGNORE_VIEW_ZOOM);
+            //gpu_renderer.renderSprite(ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky"), 0.0f, 0.0f,960.0f, 540.0f, angle);
+            //gpu_renderer.renderRectangle(1.0f, 1.0f, 100.0f, 100.0f, RenderType::NONE, Color::YELLOW, IGNORE_VIEW_ZOOM);
+            //gpu_renderer.renderRectangle(200.0f, 200.0f, 100.0f, 100.0f, RenderType::FILL, Color::BLUE, IGNORE_VIEW_ZOOM);
+            //gpu_renderer.renderSprite(sprite, 0.0f, 0.0f, 100.0f, 100.0f, angle);
             //gpu_renderer.renderSprite(car_texture, 300.0f, 300.0f,200.0f, 200.0f, angle);
             //gpu_renderer.renderSprite("Ice-cream", 300.0f, 200.0f, 200.0f, 200.0f);
             //gpu(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });

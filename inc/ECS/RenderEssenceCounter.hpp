@@ -11,7 +11,7 @@
 class RenderEssenceCounter
 {
 public:
-	RenderEssenceCounter(const entt::registry& registry, const UISettings& ui_settings, const graphics::Font* font) : registry{ registry }, ui_settings{ ui_settings }, font { font } {}
+	RenderEssenceCounter(const entt::registry& registry, const UISettings& ui_settings, std::shared_ptr<graphics::Font> font) : registry{ registry }, ui_settings{ ui_settings }, font { font } {}
 
 	void render(graphics::GpuRenderer& screen, Entity target_entity)
 	{
@@ -32,7 +32,7 @@ public:
 
 			offset_x += size.x + space;
 
-			graphics::Text text{ font, screen, std::to_string(equipment_essence_component.common_essence) };	
+			graphics::Text text{ screen, font, std::to_string(equipment_essence_component.common_essence) };	
 			glm::vec2 text_size = text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
@@ -47,7 +47,7 @@ public:
 
 			offset_x += size.x + space;
 
-			graphics::Text text{ font, screen, std::to_string(equipment_essence_component.snow_essence) };	
+			graphics::Text text{screen, font, std::to_string(equipment_essence_component.snow_essence) };	
 			glm::vec2 text_size = text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
@@ -61,7 +61,7 @@ public:
 
 			offset_x += size.x + space;
 
-			graphics::Text text{ font, screen, std::to_string(equipment_essence_component.sand_essence) };	
+			graphics::Text text{ screen, font, std::to_string(equipment_essence_component.sand_essence) };	
 			glm::vec2 text_size = text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
@@ -73,5 +73,5 @@ public:
 private:
 	const entt::registry& registry;
 	const UISettings& ui_settings;
-	const graphics::Font* font;
+	std::shared_ptr<graphics::Font> font;
 };

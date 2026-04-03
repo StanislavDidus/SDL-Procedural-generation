@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "GpuTexture.hpp"
+#include "glm/vec4.hpp"
 
 namespace graphics
 {
@@ -31,14 +32,13 @@ namespace graphics
 		std::string texture_name;
 		std::array<TextureVertex, 4> vertices;
 	};
-	struct SpriteData
+	struct alignas(16) SpriteData
 	{
-		float x, y, z;
-		float rotation;
-		float w, h, padding_a = 0.0f, padding_b = 0.0f;
-		float tex_u, tex_v, tex_w, tex_h;
-		float r, g, b, a;
-		unsigned int flip;
+		glm::vec4 pos_rot; // Position3 and Rotation1
+		glm::vec4 size; //Size2 Padding2
+		glm::vec4 uv; // UV4
+		glm::vec4 color; // Color4
+		glm::vec4 flip; // Flip1 Padding3
 	};
 	struct GpuSprite
 	{

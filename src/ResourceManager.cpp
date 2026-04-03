@@ -76,9 +76,9 @@ void ResourceManager::loadXml(const std::filesystem::path& path, graphics::GpuRe
 	}
 }
 
-const Font* ResourceManager::getFont(const std::string& name) const
+std::shared_ptr<Font> ResourceManager::getFont(const std::string& name) const
 {
-	return fonts.at(name).get();
+	return fonts.at(name);
 }
 
 std::shared_ptr<SpriteSheet> ResourceManager::getSpriteSheet(const std::string& name) const
@@ -89,12 +89,11 @@ std::shared_ptr<SpriteSheet> ResourceManager::getSpriteSheet(const std::string& 
 void ResourceManager::addSpriteSheet(const std::string& name, graphics::GpuRenderer& screen, const std::filesystem::path& path,
                                      const SpriteList& sprite_list, SDL_ScaleMode scale_mode)
 {
-	spritesheets[name] = std::make_unique<SpriteSheet>(screen, path, sprite_list, scale_mode);
-	//spritesheets[name] = std::move(SpriteSheet{ screen, Surface{path}, rects, scale_mode });
+	spritesheets[name] = std::make_shared<SpriteSheet>(screen, path, sprite_list, scale_mode);
 }
 
 void ResourceManager::addFont(const std::string& name, const std::filesystem::path& path, int size)
 {
-	fonts[name] = std::make_unique<Font>(path, size);
+	fonts[name] = std::make_shared<Font>(path, size);
 }
 

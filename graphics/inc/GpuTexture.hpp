@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "RenderFunctions.hpp"
+#include "Surface.hpp"
 #include "SDL3/SDL_gpu.h"
 #include "SDL3/SDL_log.h"
 
@@ -13,7 +14,7 @@ namespace graphics
 	{
 	public:
 		GpuTexture() = default;
-		GpuTexture(std::shared_ptr<SDL_GPUDevice> device, const std::filesystem::path& path);
+		GpuTexture(std::shared_ptr<SDL_GPUDevice> device, const Surface& surface);
 		~GpuTexture();
 
 		void setName(const std::string& name);
@@ -30,7 +31,11 @@ namespace graphics
 	private:
 		std::shared_ptr<SDL_GPUDevice> device = nullptr;
 		SDL_GPUTexture* texture = nullptr;
-		SDL_Surface* image_data = nullptr;
+		
+		void* m_pixels = nullptr;
+		int m_width = 0;
+		int m_height = 0;
+		int m_pitch = 0;
 	};
 
 	template <typename Self>
@@ -39,24 +44,10 @@ namespace graphics
 		return self.texture;
 	}
 
-	inline GpuTexture::GpuTexture(std::shared_ptr<SDL_GPUDevice> device, const std::filesystem::path& path)
+	inline GpuTexture::GpuTexture(std::shared_ptr<SDL_GPUDevice> device, const Surface& surface)
 		: device{device}
 	{
-		image_data = SDL_LoadBMP(path.string().c_str());
-
-		if (!image_data)
-		{
-			throw std::runtime_error{ std::format("Could not load png image: {}", SDL_GetError()) };
-		}
-
-		SDL_PixelFormat format = SDL_PIXELFORMAT_ABGR8888;
-
-		if (format != image_data->format)
-		{
-			SDL_Surface* next = SDL_ConvertSurface(image_data, format);
-			SDL_DestroySurface(image_data);
-			image_data = next;
-		}
+		SDL_Surface* image_data = surface.getSurface();
 
 		SDL_GPUTextureCreateInfo texture_create_info = {};
 		texture_create_info.type = SDL_GPU_TEXTURETYPE_2D;
@@ -74,13 +65,16 @@ namespace graphics
 			throw std::runtime_error{ std::format("Could not create GPU texture: {}", SDL_GetError()) };
 		}
 
-		std::cout << std::format("Texture at path:{} was successfully loaded.", path.string()) << std::endl;
-		SDL_Log("Image format is: %u", image_data->format);
+		m_pixels = image_data->pixels;
+		m_width = image_data->w;
+		m_height = image_data->h;
+		m_pitch = image_data->pitch;
+
+		std::cout << std::format("Texture was successfully created.") << std::endl;
 	}
 
 	inline GpuTexture::~GpuTexture()
 	{
-		if (image_data) SDL_DestroySurface(image_data);
 		if (texture) SDL_ReleaseGPUTexture(device.get(), texture);
 	}
 
@@ -92,21 +86,21 @@ namespace graphics
 
 	inline void* GpuTexture::pixels()
 	{
-		return image_data->pixels;
+		return m_pixels;
 	}
 
 	inline int GpuTexture::w() const
 	{
-		return image_data->w;
+		return m_width;
 	}
 
 	inline int GpuTexture::h() const
 	{
-		return image_data->h;
+		return m_height;
 	}
 
 	inline int GpuTexture::pitch() const
 	{
-		return image_data->pitch;
+		return m_pitch;
 	}
 }

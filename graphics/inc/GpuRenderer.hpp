@@ -19,7 +19,7 @@
 
 namespace graphics
 {
-	constexpr int ALLOCATED_NUMBER_OBJECTS = 1'000;
+	constexpr int ALLOCATED_NUMBER_OBJECTS = 10'000;
 	constexpr int ALLOCATED_NUMBER_UI_OBJECTS = ALLOCATED_NUMBER_OBJECTS;
 	constexpr int TOTAL_NUMBER_OBJECTS = ALLOCATED_NUMBER_OBJECTS + ALLOCATED_NUMBER_UI_OBJECTS;
 
@@ -72,6 +72,11 @@ namespace graphics
 	{
 		float time;
 	};
+
+	struct alignas(16) SpriteUniform
+	{
+		uint32_t index;
+	};
 	
 	static ScreenSize screen_size_uniform;
 	static Uniform time_uniform;
@@ -87,7 +92,7 @@ namespace graphics
 		void updateBuffers();
 		void update();
 
-		std::shared_ptr<GpuTexture> loadTexture(const std::filesystem::path& path, const std::string& name);
+		std::shared_ptr<GpuTexture> loadTexture(const Surface& surface);
 
 		//Getters
 		glm::vec2 getView() const;
@@ -108,6 +113,7 @@ namespace graphics
 		//void renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color);
 		void renderRectangle(float x, float y, float w, float h, RenderType render_type, Color color, bool ignore_view_zoom = false);
 		void renderSprite(const Sprite& sprite, float x, float y, float w, float h, float angle, SDL_FlipMode flip = SDL_FLIP_NONE, bool ignore_view_zoom = false);
+		void renderTexture(std::shared_ptr<GpuTexture> texture, std::optional<SDL_FRect> source, std::optional<SDL_FRect> destination, SDL_FlipMode flip = SDL_FLIP_NONE, bool ignore_view_zoom = false);
 	private:
 		void initSamplers();
 

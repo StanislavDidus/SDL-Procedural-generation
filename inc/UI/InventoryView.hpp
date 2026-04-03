@@ -23,7 +23,7 @@ namespace tinyxml2
 class InventoryView : public UIElement
 {
 public:
-	InventoryView(entt::registry& registry, const graphics::Font* font, const graphics::SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings, Entity target_entity);
+	InventoryView(entt::registry& registry, std::shared_ptr<graphics::Font> font, const graphics::SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings, Entity target_entity);
 	~InventoryView() override = default;
 
 	/// <summary>
@@ -102,7 +102,7 @@ private:
 	const UISettings& ui_settings;
 
 	//Items
-	const graphics::Font* font;
+	std::shared_ptr<graphics::Font> font;
 	std::vector<std::unique_ptr<graphics::Text>> slot_text;
 	const graphics::SpriteSheet& item_sprites;
 

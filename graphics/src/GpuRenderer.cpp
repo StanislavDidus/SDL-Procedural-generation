@@ -21,7 +21,7 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 #if _DEBUG
 	debug = true;
 #endif
-	device = std::shared_ptr<SDL_GPUDevice>{ SDL_CreateGPUDevice(SDL_ShaderCross_GetHLSLShaderFormats(), debug, nullptr), SDL_DestroyGPUDevice };
+	device = std::shared_ptr<SDL_GPUDevice>{ SDL_CreateGPUDevice(SDL_ShaderCross_GetHLSLShaderFormats(), debug, nullptr), SDL_DestroyGPUDevice};
 
 	if (!device)
 	{
@@ -48,7 +48,7 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	// Init vertex shader
 	vertex_shader = std::make_unique<GpuShader>(device, "shaders/VertexPositionMatrix.vert.hlsl", 0, 1, 0, 0);
 	fragment_shader = std::make_unique<GpuShader>(device, "shaders/SolidColor.frag.hlsl", 0, 0, 0, 0);
-	texture_vertex_shader = std::make_unique<GpuShader>(device, "shaders/PullSpriteBatch.vert.hlsl", 0, 1, 1, 0);
+	texture_vertex_shader = std::make_unique<GpuShader>(device, "shaders/PullSpriteBatch.vert.hlsl", 0, 2, 1, 0);
 	texture_fragment_shader = std::make_unique<GpuShader>(device, "shaders/TextureQuadColor.frag.hlsl", 1, 0, 0, 0);
 
 	std::cout << "Shaders initialized." << std::endl;
@@ -425,26 +425,22 @@ void graphics::GpuRenderer::update()
 
 		SDL_BindGPUGraphicsPipeline(render_pass, texture_graphics_pipeline->get());
 		SDL_BindGPUVertexStorageBuffers(render_pass, 0, &sprite_buffer->get(), 1);
-		/*
+		SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &final_matrix, sizeof(glm::mat4));
+		SpriteUniform sprite_uniform{};
 		int i = 0;
 		for (const auto& sprite : sprites)
 		{
+			sprite_uniform.index = i;
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 1, &sprite_uniform, sizeof(SpriteUniform));
+
 			SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
 			texture_sampler_binding.texture = sprite.texture->get();
 			texture_sampler_binding.sampler = samplers[5]->get();
 			SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
-			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &final_matrix, sizeof(glm::mat4));
-			SDL_DrawGPUPrimitives(render_pass, 6, 1, 6 * i, 0);
+
+			SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
 			++i;
 		}
-		*/
-
-		SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
-		texture_sampler_binding.texture = sprites[0].texture->get();
-		texture_sampler_binding.sampler = samplers[5]->get();
-		SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
-		SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &final_matrix, sizeof(glm::mat4));
-		SDL_DrawGPUPrimitives(render_pass, 6, sprites.size(), 0, 0);
 
 		if (!ui_vertices.empty())
 		{
@@ -461,15 +457,21 @@ void graphics::GpuRenderer::update()
 			SDL_DrawGPUPrimitives(render_pass, ui_vertices.size(), 1, 0, 0);
 		}
 
-		int i = 0;
+		SDL_BindGPUGraphicsPipeline(render_pass, texture_graphics_pipeline->get());
+		SDL_BindGPUVertexStorageBuffers(render_pass, 0, &sprite_buffer->get(), 1);
+		i = 0;
 		for (const auto& sprite : ui_sprites)
 		{
+			sprite_uniform.index = ALLOCATED_NUMBER_OBJECTS + i;
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 1, &sprite_uniform, sizeof(SpriteUniform));
+
 			SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
 			texture_sampler_binding.texture = sprite.texture->get();
 			texture_sampler_binding.sampler = samplers[5]->get();
+
 			SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
 			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &base_matrix, sizeof(glm::mat4));
-			SDL_DrawGPUPrimitives(render_pass, 6, 1, 6 * i + ALLOCATED_NUMBER_OBJECTS * 6, 0);
+			SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
 			++i;
 		}
 
@@ -484,10 +486,9 @@ void graphics::GpuRenderer::update()
 	ui_vertices.clear();
 }
 
-std::shared_ptr<graphics::GpuTexture> graphics::GpuRenderer::loadTexture(const std::filesystem::path& path, const std::string& name)
+std::shared_ptr<graphics::GpuTexture> graphics::GpuRenderer::loadTexture(const Surface& surface)
 {
-	auto texture = std::make_shared<GpuTexture>(device, path);
-	texture->setName(name);
+	auto texture = std::make_shared<GpuTexture>(device, surface);
 
 	// Upload texture on the GPU
 	GpuTransferBuffer texture_transfer_buffer{ device, static_cast<Uint32>(texture->w() * texture->h() * 4), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD };
@@ -649,27 +650,26 @@ void graphics::GpuRenderer::renderRectangle(float x, float y, float w, float h, 
 
 void graphics::GpuRenderer::renderSprite(const Sprite& sprite, float x, float y, float w, float h, float angle, SDL_FlipMode flip, bool ignore_view_zoom)
 {
+	renderTexture(sprite.getTexture(), sprite.getRect(), SDL_FRect{ x,y,w,h }, flip, ignore_view_zoom);
+}
+
+void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, std::optional<SDL_FRect> source,
+                                          std::optional<SDL_FRect> destination, SDL_FlipMode flip, bool ignore_view_zoom)
+{
+	SDL_FRect src = source.value_or(SDL_FRect{ 0.0f, 0.0f, 1.0f, 1.0f });
+	SDL_FRect dst = destination.value_or(SDL_FRect{ 0.0f, 0.0f, static_cast<float>(getWindowSize().x), static_cast<float>(getWindowSize().y) });
+
 	if (!ignore_view_zoom)
 	{
 		sprites.emplace_back(
-			sprite.getTexture(),
+			texture,
 			SpriteData
 			{
-				.x = x,
-				.y = y,
-				.z = 0.0f,
-				.rotation = angle,
-				.w = w,
-				.h = h,
-				.tex_u = sprite.getRect().x,
-				.tex_v = sprite.getRect().y,
-				.tex_w = sprite.getRect().w,
-				.tex_h = sprite.getRect().h,
-				.r = 1.0f,
-				.g = 1.0f,
-				.b = 1.0f,
-				.a = 1.0f,
-				.flip = static_cast<unsigned int>(flip),
+				.pos_rot{dst.x, dst.y, 0.0f, angle},
+				.size{dst.w, dst.h, 0.0f, 0.0f},
+				.uv{src.x, src.y, src.w, src.h},
+				.color{1.0f, 1.0f, 1.0f, 1.0f},
+				.flip{static_cast<float>(static_cast<unsigned int>(flip)), 0.0f, 0.0f, 0.0f}
 			}
 			);
 
@@ -683,25 +683,15 @@ void graphics::GpuRenderer::renderSprite(const Sprite& sprite, float x, float y,
 	{
 
 		ui_sprites.emplace_back(
-			sprite.getTexture(),
+			texture,
 			SpriteData
 			{
-				.x = x,
-				.y = y,
-				.z = 0.0f,
-				.rotation = angle,
-				.w = w,
-				.h = h,
-				.tex_u = sprite.getRect().x,
-				.tex_v = sprite.getRect().y,
-				.tex_w = sprite.getRect().w,
-				.tex_h = sprite.getRect().h,
-				.r = 1.0f,
-				.g = 1.0f,
-				.b = 1.0f,
-				.a = 1.0f,
-				.flip = static_cast<unsigned int>(flip),
-				}
+				.pos_rot{dst.x, dst.y, 0.0f, angle},
+				.size{dst.w, dst.h, 0.0f, 0.0f},
+				.uv{src.x, src.y, src.w, src.h},
+				.color{1.0f, 1.0f, 1.0f, 1.0f},
+				.flip{static_cast<float>(static_cast<unsigned int>(flip)), 0.0f, 0.0f, 0.0f}
+			}
 			);
 
 		if (ui_sprites.size() > ALLOCATED_NUMBER_UI_OBJECTS)

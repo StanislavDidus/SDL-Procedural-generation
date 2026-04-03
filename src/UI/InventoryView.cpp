@@ -18,7 +18,7 @@ constexpr float RESOURCE_ICON_HEIGHT = 50.f;
 using namespace graphics;
 using namespace Components::InventoryItems;
 
-InventoryView::InventoryView(entt::registry& registry, const Font* font, const SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings, Entity target_entity)
+InventoryView::InventoryView(entt::registry& registry, std::shared_ptr<Font> font, const SpriteSheet& item_sprites, int rows, int columns, const glm::vec2& position, const UISettings& ui_settings, Entity target_entity)
 	: UIElement(position, { ui_settings.inventory_slot_width * columns
 		, ui_settings.inventory_slot_height * rows })
 		, font(font)
@@ -300,7 +300,7 @@ void InventoryView::drawItem(graphics::GpuRenderer& screen, Entity item, const g
 	}
 	else
 	{
-		text = std::make_unique<Text>( font, screen, std::to_string(item_info.stack_number) );
+		text = std::make_unique<Text>( screen, font, std::to_string(item_info.stack_number) );
 	}
 
 	int x = index % columns;

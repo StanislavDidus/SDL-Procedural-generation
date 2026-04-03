@@ -9,7 +9,7 @@ namespace graphics
 
 	SpriteSheet::SpriteSheet(graphics::GpuRenderer& renderer, const std::filesystem::path& path, const SpriteList& sprite_list, SDL_ScaleMode scale_mode)
 	{
-		texture = renderer.loadTexture(path, path.filename().string());
+		texture = renderer.loadTexture(Surface{path});
 
 		for (const auto& sprite : sprite_list)
 		{

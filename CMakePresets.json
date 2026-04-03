@@ -2,25 +2,59 @@
     "version": 5,
     "configurePresets": [
         {
-            "name": "common_build",
-            "hidden": true,
+            "name": "vs18-debug",
+            "displayName": "vs18-Debug",
             "generator": "Visual Studio 18 2026",
-            "binaryDir": "build"
-        },
-        {
-            "name": "debug",
-            "displayName": "Debug",
-            "inherits": "common_build",
+            "binaryDir": "build/vs18-debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
             }
         },
         {
-            "name": "release",
-            "displayName": "Release",
-            "inherits": "common_build",
+            "name": "vs18-release",
+            "displayName": "vs18-Release",
+            "generator": "Visual Studio 18 2026",
+            "binaryDir": "build/vs18-release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "vs17-debug",
+            "displayName": "vs17-Debug",
+            "generator": "Visual Studio 17 2022",
+            "binaryDir": "build/vs17-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "vs17-release",
+            "displayName": "vs17-Release",
+            "generator": "Visual Studio 17 2022",
+            "binaryDir": "build/vs17-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
             }
         },
         {
@@ -56,13 +90,13 @@
         {
             "name": "app_debug",
             "displayName": "App Debug Build",
-            "configurePreset": "debug",
+            "configurePreset": "vs18-debug",
             "configuration": "Debug"
         },
         {
             "name": "app_release",
             "displayName": "App Release Build",
-            "configurePreset": "release",
+            "configurePreset": "vs18-release",
             "configuration": "Release"
         }
     ]

@@ -34,14 +34,14 @@ Game::Game(graphics::GpuRenderer& screen)
 {
 	std::cout << "Game was created" << std::endl;
 
-	ResourceManager::get().loadXml("data/assets.xml", screen);
+	//ResourceManager::get().loadXml("data/assets.xml", screen);
 	ItemManager::get().loadXml(registry, "data/items.xml");
 	TileManager::get().loadXml("data/tiles.xml");
 	CraftingManager::get().loadXml(registry, "data/crafts.xml");
 	ObjectManager::get().loadXml("data/objects.xml");
 	EnemyManager::get().loadXml(registry, "data/enemies.xml");
 
-	
+	//setState(GameState::PLAY);
 }
 
 Game::~Game()
@@ -491,6 +491,9 @@ void Game::update(float dt)
 			enemy_spawn_manager->update(dt);
 			updateTilesDurability(world_output->grid);
 			world_renderer->update();
+
+			auto& ts = registry.get<Components::Transform>(player);
+			std::cout << ts.position.x << ", " << ts.position.y << std::endl;
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
 			const auto& player_pos = player_transform.position;
@@ -524,11 +527,13 @@ void Game::update(float dt)
 		break;
 	}
 
+	/*
 	ImGui_ImplSDLRenderer3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
+	*/
 
-	updateImGui(dt);
+	//updateImGui(dt);
 }
 
 void Game::render(float dt) const
@@ -542,10 +547,10 @@ void Game::render(float dt) const
 	case GameState::PLAYER_DEAD:
 	{
 		//Draw Sky
-		const auto& sky_sprite = ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky");
-		graphics::drawScaledSprite(screen, sky_sprite, 0.0f, 0.0f, static_cast<float>(window_size.x), static_cast<float>(window_size.y), graphics::IGNORE_VIEW_ZOOM);
+		//auto sky_sprite = ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky");
+		//graphics::drawScaledSprite(screen, sky_sprite, 0.0f, 0.0f, static_cast<float>(window_size.x), static_cast<float>(window_size.y), graphics::IGNORE_VIEW_ZOOM);
 
-		world_renderer->render(screen, world_target);
+		//world_renderer->render(screen, world_target);
 		//world->render(screen);
 		render_system->render(screen);
 		mining_tiles_system->renderOutline(screen);
@@ -599,7 +604,7 @@ void Game::enterState(GameState state)
 		initBiomes();
 		initChestLoot();
 
-		text = std::make_unique<Text>(ResourceManager::get().getFont("Main"), screen, "Player");
+		text = std::make_unique<Text>(screen, ResourceManager::get().getFont("Main"), "Player");
 		world = std::make_unique<World>(generation_data, registry, 500, 200);
 		world_output = world->generateWorld(0);
 		//spawnObjects(registry, *world_output, 20.0f, 20.0f);

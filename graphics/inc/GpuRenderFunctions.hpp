@@ -113,11 +113,12 @@ namespace graphics
 
 	inline void printText(GpuRenderer& renderer, Text& text, float x, float y, float w, float h, bool ignore_view_zoom)
 	{
-		//TTF_DrawRendererText(text.getTTFText(), x, y);
+		renderer.renderTexture(text.getTexture(), std::nullopt, SDL_FRect{ x,y,w,h }, SDL_FLIP_NONE, ignore_view_zoom);
 	}
 
 	inline void printTextScaled(GpuRenderer& renderer, Text& text, float x, float y, float scale_x, float scale_y, bool ignore_view_zoom)
 	{
-		//TTF_DrawRendererText(text.getTTFText(), x, y);
+		glm::vec2 texture_size = {text.getTexture()->w(), text.getTexture()->h()};
+		renderer.renderTexture(text.getTexture(), std::nullopt, SDL_FRect{ x,y,texture_size.x * scale_x, texture_size.y * scale_y }, SDL_FLIP_NONE, ignore_view_zoom);
 	}
 }

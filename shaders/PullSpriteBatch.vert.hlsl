@@ -1,12 +1,10 @@
 struct SpriteData
 {
-    float3 Position;
-    float Rotation;
-    float2 Scale;
-    float2 Padding;
-    float TexU, TexV, TexW, TexH;
+    float4 Position_Rotation;
+    float4 Size;
+    float4 UV;
     float4 Color;
-    uint Flip;
+    float4 Flip;
 };
 
 struct Output
@@ -24,6 +22,11 @@ cbuffer UniformBlock : register(b0, space1)
     float4x4 ViewProjectionMatrix;
 };
 
+cbuffer SpriteIndex : register(b1, space1)
+{
+    uint spriteIndex;
+};
+
 static const uint triangleIndices[6] = {0, 1, 2, 2, 3, 0};
 static const float2 vertexPos[4] = {
     {0.0f, 0.0f},
@@ -32,27 +35,26 @@ static const float2 vertexPos[4] = {
     {1.0f, 0.0f}
 };
 
-Output main(uint id : SV_VertexID, uint instance_id : SV_InstanceID)
+Output main(uint id : SV_VertexID)
 {
-    uint spriteIndex = instance_id;
-    uint vert = triangleIndices[id];
+    uint vert = triangleIndices[id % 6];
     SpriteData sprite = DataBuffer[spriteIndex];
 
     float2 texcoord[4] = {
-        {sprite.TexU,               sprite.TexV              },
-        {sprite.TexU,               sprite.TexV + sprite.TexH},
-        {sprite.TexU + sprite.TexW, sprite.TexV + sprite.TexH},
-        {sprite.TexU + sprite.TexW, sprite.TexV              }
+        {sprite.UV.x,               sprite.UV.y              },
+        {sprite.UV.x,               sprite.UV.y + sprite.UV.w},
+        {sprite.UV.x + sprite.UV.z, sprite.UV.y + sprite.UV.w},
+        {sprite.UV.x + sprite.UV.z, sprite.UV.y              }
     };
 
-    float c = cos(sprite.Rotation);
-    float s = sin(sprite.Rotation);
+    float c = cos(sprite.Position_Rotation.w);
+    float s = sin(sprite.Position_Rotation.w);
 
     float2 coord = vertexPos[vert];
-    coord *= sprite.Scale;
+    coord *= sprite.Size.xy;
 
-    float3 coordWithDepth = float3(coord + sprite.Position.xy, sprite.Position.z);
-    float3 centrePosition = float3(sprite.Position.x + sprite.Scale.x * 0.5f, sprite.Position.y + sprite.Scale.y * 0.5f, sprite.Position.z);
+    float3 coordWithDepth = float3(coord + sprite.Position_Rotation.xy, sprite.Position_Rotation.z);
+    float3 centrePosition = float3(sprite.Position_Rotation.x + sprite.Size.x * 0.5f, sprite.Position_Rotation.y + sprite.Size.y * 0.5f, sprite.Position_Rotation.z);
     coordWithDepth -= centrePosition;
     float2x2 rotation = {c,s,-s,c};
     coordWithDepth = float3(mul(float2(coordWithDepth.xy), rotation), coordWithDepth.z);
@@ -63,7 +65,8 @@ Output main(uint id : SV_VertexID, uint instance_id : SV_InstanceID)
     output.Position = mul(float4(coordWithDepth, 1.0f), ViewProjectionMatrix);
     output.Texcoord = texcoord[vert];
     output.Color = sprite.Color;
-    output.Flip = sprite.Flip;
+    output.Flip = uint(sprite.Flip.x);
+    output.Flip = 0;
 
     return output;
 }

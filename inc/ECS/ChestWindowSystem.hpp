@@ -9,7 +9,7 @@
 class ChestWindowSystem
 {
 public:
-	ChestWindowSystem(entt::registry& registry, const graphics::Font* font) : registry{ registry }, font{ font } {}
+	ChestWindowSystem(entt::registry& registry, std::shared_ptr<graphics::Font> font) : registry{ registry }, font{ font } {}
 
 	void update(Entity target_entity, graphics::GpuRenderer& screen)
 	{
@@ -58,7 +58,7 @@ public:
 			(screen, unlock_button_position.x, unlock_button_position.y, unlock_button_size.x, unlock_button_size.y, graphics::RenderType::FILL, graphics::Color::RED, graphics::IGNORE_VIEW_ZOOM);
 
 			std::string str = "Unlock";
-			graphics::Text unlock_text{ font, screen, str };
+			graphics::Text unlock_text{ screen, font, str };
 
 			graphics::printText(screen, unlock_text, unlock_button_position.x, unlock_button_position.y, unlock_button_size.x, unlock_button_size.y, graphics::IGNORE_VIEW_ZOOM);
 
@@ -326,7 +326,7 @@ private:
 	}
 
 	entt::registry& registry;
-	const graphics::Font* font;
+	std::shared_ptr<graphics::Font> font;
 
 	glm::vec2 icon_size = {80.0f,80.0f};
 	glm::vec2 menu_size = {300.0f, 300.0f};

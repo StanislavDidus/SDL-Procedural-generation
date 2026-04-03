@@ -9,14 +9,14 @@
 namespace graphics
 {
 
-	Text::Text(const Font* font, GpuRenderer& renderer, const std::string& text, Color color, std::optional<int> wrapped_width) : text(text), font(font), color(color), wrapped_width(wrapped_width)
+	Text::Text(GpuRenderer& renderer, std::shared_ptr<Font> font, const std::string& text, Color color, std::optional<int> wrapped_width) : text(text), font(font), color(color), wrapped_width(wrapped_width)
 	{
-		//TTF_Text* ttf_text = TTF_CreateText(renderer.getTextEngine()->get(), font->getFont(), text.c_str(), text.length());
-		
+		generateTextTexture(renderer);
 	}
 
-	Text::~Text()
+	std::shared_ptr<GpuTexture> Text::getTexture() const
 	{
+		return texture;
 	}
 
 	const std::string& Text::getText() const
@@ -26,36 +26,47 @@ namespace graphics
 
 	glm::vec2 Text::getTextSize(const glm::vec2& scale) const
 	{
-		return {};
+		return {texture->w() * scale.x, texture->h() * scale.y};
 	}
 
-	void Text::setFont(const Font* font)
+	void Text::setFont(std::shared_ptr<Font> font)
 	{
-		
+		this->font = font;
+		is_dirty = true;
 	}
 
 
 	void Text::setColor(Color color)
 	{
+		this->color = color;
+		is_dirty = true;
 	}
 
 	void Text::setText(const std::string& text)
 	{
+		this->text = text;
+		is_dirty = true;
 	}
 
 	void Text::setWrappedWidth(int wrapped_width)
 	{
+		this->wrapped_width = wrapped_width;
+		is_dirty = true;
 	}
 
 	void Text::updateText(graphics::GpuRenderer& renderer)
 	{
-	}
-
-	void Text::loadTexture(graphics::GpuRenderer& renderer, const Surface& surface)
-	{
+		if (is_dirty)
+		{
+			generateTextTexture(renderer);
+			is_dirty = false;
+		}
 	}
 
 	void Text::generateTextTexture(graphics::GpuRenderer& renderer)
 	{
+		Surface surface{ *font, text, color, wrapped_width };
+
+		texture = renderer.loadTexture(surface);
 	}
 } // namespace graphics
