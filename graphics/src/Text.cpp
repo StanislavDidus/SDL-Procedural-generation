@@ -65,7 +65,7 @@ namespace graphics
 
 	void Text::generateTextTexture(graphics::GpuRenderer& renderer)
 	{
-		Surface surface{ *font, text, color, wrapped_width };
+		Surface surface{ font, text, color, wrapped_width };
 
 		texture = renderer.loadTexture(surface);
 	}

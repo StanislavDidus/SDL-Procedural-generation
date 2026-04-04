@@ -364,7 +364,7 @@ void graphics::GpuRenderer::update()
 	//.........................//
 
 	glm::mat4 base_matrix = glm::transpose(projection);
-	glm::mat4 final_matrix = glm::transpose(projection * view_matrix * from_origin * rotation * scale * to_origin);
+	glm::mat4 final_matrix = glm::transpose(projection * from_origin * rotation * scale * to_origin * view_matrix);
 
 	if (swapchain_texture)
 	{
@@ -650,13 +650,13 @@ void graphics::GpuRenderer::renderRectangle(float x, float y, float w, float h, 
 
 void graphics::GpuRenderer::renderSprite(const Sprite& sprite, float x, float y, float w, float h, float angle, SDL_FlipMode flip, bool ignore_view_zoom)
 {
-	renderTexture(sprite.getTexture(), sprite.getRect(), SDL_FRect{ x,y,w,h }, flip, ignore_view_zoom);
+	renderTexture(sprite.getTexture(), sprite.getRect(), SDL_FRect{ x,y,w,h }, angle, flip, ignore_view_zoom);
 }
 
 void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, std::optional<SDL_FRect> source,
-                                          std::optional<SDL_FRect> destination, SDL_FlipMode flip, bool ignore_view_zoom)
+                                          std::optional<SDL_FRect> destination, float angle, SDL_FlipMode flip, bool ignore_view_zoom)
 {
-	SDL_FRect src = source.value_or(SDL_FRect{ 0.0f, 0.0f, 1.0f, 1.0f });
+	SDL_FRect src = source.value_or(SDL_FRect{ 0.0f, 0.0f, static_cast<float>(texture->w()), static_cast<float>(texture->h()) });
 	SDL_FRect dst = destination.value_or(SDL_FRect{ 0.0f, 0.0f, static_cast<float>(getWindowSize().x), static_cast<float>(getWindowSize().y) });
 
 	if (!ignore_view_zoom)

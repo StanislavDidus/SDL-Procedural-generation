@@ -9,7 +9,7 @@ namespace graphics
 		loadImage(path);
 	}
 
-	Surface::Surface(const Font& font, const std::string& text, Color color, std::optional<int> wrapped_width)
+	Surface::Surface(std::shared_ptr<Font> font, const std::string& text, Color color, std::optional<int> wrapped_width)
 	{
 		loadText(font, text, color, wrapped_width);
 	}
@@ -52,17 +52,33 @@ namespace graphics
 		}
 	}
 
-	void Surface::loadText(const Font& font, const std::string& text, Color color, std::optional<int> wrapped_length)
+	void Surface::loadText(std::shared_ptr<Font> font, const std::string& text, Color color, std::optional<int> wrapped_length)
 	{
 		if (wrapped_length.has_value())
-			surface = TTF_RenderText_Blended_Wrapped(font.getFont(), text.c_str(), text.size(), static_cast<SDL_Color>(color), wrapped_length.value());
+			surface = TTF_RenderText_Blended_Wrapped(font->getFont(), text.c_str(), text.size(), static_cast<SDL_Color>(color), wrapped_length.value());
 		else 
-			surface = TTF_RenderText_Blended(font.getFont(), text.c_str(), text.size(), static_cast<SDL_Color>(color));
+			surface = TTF_RenderText_Blended(font->getFont(), text.c_str(), text.size(), static_cast<SDL_Color>(color));
 
 		if (!surface)
 		{
 			throw std::runtime_error{ std::format("Could not create a text surface: {}", SDL_GetError()) };
 		}
+
+		SDL_PixelFormat format = SDL_PIXELFORMAT_ABGR8888;
+
+		if (format != surface->format)
+		{
+			SDL_Surface* next = SDL_ConvertSurface(surface, format);
+
+			if (!next)
+			{
+				throw std::runtime_error{ std::format("Could not convert surface to a desired format: {}", SDL_GetError()) };
+			}
+
+			SDL_DestroySurface(surface);
+			surface = next;
+		}
+
 	}
 
 	SDL_Surface* Surface::getSurface() const

@@ -40,7 +40,7 @@ namespace graphics
 		void generateTextTexture(graphics::GpuRenderer& renderer);
 
 		std::string text;
-		std::shared_ptr<GpuTexture> texture;
+		std::shared_ptr<GpuTexture> texture = nullptr;
 		std::shared_ptr<Font> font;
 		Color color;
 		std::optional<int> wrapped_width = std::nullopt;

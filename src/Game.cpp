@@ -669,6 +669,7 @@ void Game::updateTilemapTarget()
 		world_target = { player_position.x + player_size.x / 2.f, player_position.y + player_size.y / 2.f };
 		//glm::vec2 player_screen_position = world_target - static_cast<glm::vec2>(screen.getWindowSize()) / 2.f;
 		view_position = world_target;
+		view_position -= glm::vec2{screen.getWindowSize().x * 0.5f, screen.getWindowSize().y * 0.5f};
 	}
 	else
 	{

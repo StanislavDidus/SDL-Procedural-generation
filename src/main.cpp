@@ -57,16 +57,16 @@ int main()
         Window window{ "First SDL program", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE };
         //graphics::GpuRenderer renderer{ window };
         GpuRenderer gpu_renderer{ window };
-        auto car_texture = gpu_renderer.loadTexture(Surface{"assets/Sprites/car.bmp"});
-        auto ice_cream_texture = gpu_renderer.loadTexture(Surface{ "assets/Sprites/ice-cream.bmp" });
+		ResourceManager::get().loadXml("data/assets.xml", gpu_renderer);
+        //auto car_texture = gpu_renderer.loadTexture(Surface{"assets/Sprites/car.bmp"});
+        //auto ice_cream_texture = gpu_renderer.loadTexture(Surface{ ResourceManager::get().getFont("Main"), "Debug", Color::RED});
 
-        Sprite sprite{ car_texture, SDL_FRect{0.0f, 0.0f, 5184.0f, 3456.0f} };
+        //Sprite sprite{ car_texture, SDL_FRect{0.0f, 0.0f, 5184.0f, 3456.0f} };
         Game game{ gpu_renderer };
 
         InputManager input_manager;
 
-		ResourceManager::get().loadXml("data/assets.xml", gpu_renderer);
-        auto sprite1 = ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky");
+        //auto sprite1 = ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky");
 
         //Init ImGui
         /*
@@ -79,6 +79,7 @@ int main()
         ImGui::GetIO().FontGlobalScale = 1.5f;
         */
 
+    	Text debug_test{ gpu_renderer, ResourceManager::get().getFont("Main"), "Debug", Color::BLUE };
         float dt = 0.f;
         while (window)
         {
@@ -123,6 +124,10 @@ int main()
             input_manager.update();
 
             game.tick(dt);
+
+            //printText(gpu_renderer, debug_test, 0.0f, 0.0f, 200.0f, 200.0f, false);
+
+            //gpu_renderer.renderTexture(ice_cream_texture, std::nullopt, std::nullopt, 0.0f, SDL_FLIP_NONE);
 
             //gpu_renderer.renderTriangle(0.0f, 0.0f, 480.0f, 540.0f, 960.0f, 0.0f, SDL_FColor{ 1.0f, 0.0,0.0f, 1.0f });
             //graphics::drawScaledSprite(gpu_renderer, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky"), 0.0f, 0.0f, 200.0f, 200.0f, IGNORE_VIEW_ZOOM);

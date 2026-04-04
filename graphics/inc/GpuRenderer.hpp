@@ -113,7 +113,7 @@ namespace graphics
 		//void renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color);
 		void renderRectangle(float x, float y, float w, float h, RenderType render_type, Color color, bool ignore_view_zoom = false);
 		void renderSprite(const Sprite& sprite, float x, float y, float w, float h, float angle, SDL_FlipMode flip = SDL_FLIP_NONE, bool ignore_view_zoom = false);
-		void renderTexture(std::shared_ptr<GpuTexture> texture, std::optional<SDL_FRect> source, std::optional<SDL_FRect> destination, SDL_FlipMode flip = SDL_FLIP_NONE, bool ignore_view_zoom = false);
+		void renderTexture(std::shared_ptr<GpuTexture> texture, std::optional<SDL_FRect> source, std::optional<SDL_FRect> destination, float angle, SDL_FlipMode flip = SDL_FLIP_NONE, bool ignore_view_zoom = false);
 	private:
 		void initSamplers();
 

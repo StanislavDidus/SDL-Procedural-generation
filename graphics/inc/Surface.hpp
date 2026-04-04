@@ -13,11 +13,11 @@ namespace graphics
 	public:
 		Surface() = default;
 		Surface(const std::filesystem::path& path);
-		Surface(const Font& font, const std::string& text, Color color = Color::BLACK, std::optional<int> wrapped_width = std::nullopt);
+		Surface(std::shared_ptr<Font> font, const std::string& text, Color color = Color::BLACK, std::optional<int> wrapped_width = std::nullopt);
 		~Surface();
 
 		void loadImage(const std::filesystem::path& path);
-		void loadText(const Font& font, const std::string& text, Color color, std::optional<int> wrapped_length);
+		void loadText(std::shared_ptr<Font> font, const std::string& text, Color color, std::optional<int> wrapped_length);
 
 		//Getters	
 		SDL_Surface* getSurface() const;
