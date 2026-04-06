@@ -108,12 +108,9 @@ private:
 
 	graphics::GpuRenderer& screen;
 
-	std::unique_ptr<TileMap> tilemap;
-
 	glm::vec2 world_target;
 	std::shared_ptr<World> world;
 	std::shared_ptr<WorldOutput> world_output;
-	std::unique_ptr<WorldRenderer<500, 200, 20, 20>> world_renderer;
 
 	float tilemap_rows = 10.f;
 	float tilemap_columns = 10.f;
@@ -174,6 +171,9 @@ private:
 	Entity player;
 
 	GenerationData generation_data;
+
+	// TileMap
+	std::shared_ptr<graphics::TileMap> tilemap;
 
 	//Text
 	std::unique_ptr<graphics::Text> text;

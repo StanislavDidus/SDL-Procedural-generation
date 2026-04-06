@@ -490,10 +490,19 @@ void Game::update(float dt)
 			apply_effects_system->update(dt);
 			enemy_spawn_manager->update(dt);
 			updateTilesDurability(world_output->grid);
-			world_renderer->update();
+			//world_renderer->update();
+			
+			std::vector<Uint32> sprite_map;
+			for (int y = 0; y < 200; ++y)
+			{
+				for (int x = 0; x < 520; ++x)
+				{
+					int sprite_index = TileManager::get().getProperties(world_output->grid(x, y).id).sprite_index;
+					sprite_map.push_back(sprite_index);
+				}
+			}
+			tilemap->setSpriteMap(sprite_map);
 
-			auto& ts = registry.get<Components::Transform>(player);
-			std::cout << ts.position.x << ", " << ts.position.y << std::endl;
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
 			const auto& player_pos = player_transform.position;
@@ -552,6 +561,7 @@ void Game::render(float dt) const
 
 		//world_renderer->render(screen, world_target);
 		//world->render(screen);
+		screen.renderTileMap(tilemap, 0.0f, 0.0f);
 		render_system->render(screen);
 		mining_tiles_system->renderOutline(screen);
 		mining_objects_system->render(screen);
@@ -605,7 +615,7 @@ void Game::enterState(GameState state)
 		initChestLoot();
 
 		text = std::make_unique<Text>(screen, ResourceManager::get().getFont("Main"), "Player");
-		world = std::make_unique<World>(generation_data, registry, 500, 200);
+		world = std::make_unique<World>(generation_data, registry, 520, 200);
 		world_output = world->generateWorld(0);
 		//spawnObjects(registry, *world_output, 20.0f, 20.0f);
 
@@ -621,8 +631,7 @@ void Game::enterState(GameState state)
 		craft_view = std::make_unique<CraftView>(registry, player, 5, 5, 60.f, glm::vec2{ 660.f, 0.f });
 		inventory_view->setTargetEntity(player);
 
-		world_renderer = std::make_unique<WorldRenderer<500, 200, 20, 20>>(registry, *world_output);
-		world_renderer->spawnObjects();
+		//world_renderer->spawnObjects();
 
 		setState(GameState::PLAY);
 
@@ -647,6 +656,10 @@ void Game::enterState(GameState state)
 		registry.emplace<Components::EquipItem>(player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Astronaut_Suit"), 1));
 		//registry.emplace_or_replace<Components::EquipItem>(player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Common_Belt"), 1));
 		//accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
+
+		auto tilemap_texture = ResourceManager::get().getSpriteSheet("tiles")->getTexture();
+		tilemap = std::make_shared<TileMap>(screen.getDevice(), tilemap_texture, 520, 200, 20, 20, 26, 25);
+			
 		break;
 		}
 	case GameState::PLAYER_DEAD:

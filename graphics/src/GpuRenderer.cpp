@@ -9,6 +9,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "GpuSampler.hpp"
 #include "Surface.hpp"
+#include "TileMap.hpp"
 #include "glm/gtx/transform.hpp"
 #include "SDL3/SDL_gpu.h"
 
@@ -46,6 +47,7 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	SDL_SetGPUSwapchainParameters(device.get(), window.get(), SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_IMMEDIATE);
 
 	// Init vertex shader
+	tilemap_vertex_shader = std::make_unique<GpuShader>(device, "shaders/TileMap.vert.hlsl", 0, 2, 2, 0);
 	vertex_shader = std::make_unique<GpuShader>(device, "shaders/VertexPositionMatrix.vert.hlsl", 0, 1, 0, 0);
 	fragment_shader = std::make_unique<GpuShader>(device, "shaders/SolidColor.frag.hlsl", 0, 0, 0, 0);
 	texture_vertex_shader = std::make_unique<GpuShader>(device, "shaders/PullSpriteBatch.vert.hlsl", 0, 2, 1, 0);
@@ -54,6 +56,11 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	std::cout << "Shaders initialized." << std::endl;
 
 	initSamplers();
+
+	// TileMap graphics pipeline
+	{
+		tilemap_graphics_pipeline = std::make_unique<GpuGraphicsPipeline>(device, window, *tilemap_vertex_shader, *texture_fragment_shader, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST);
+	}
 
 	// Line graphics pipeline
 	{
@@ -109,18 +116,12 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 
 void graphics::GpuRenderer::initSamplers()
 {
-	// PointClamp
-	samplers[0] = std::make_unique<GpuSampler>(device, SDL_GPU_FILTER_NEAREST, SDL_GPU_SAMPLERMIPMAPMODE_NEAREST, SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE);
-	// PointWrap
-	samplers[1] = std::make_unique<GpuSampler>(device, SDL_GPU_FILTER_NEAREST, SDL_GPU_SAMPLERMIPMAPMODE_NEAREST, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
-	// LinearClamp
-	samplers[2] = std::make_unique<GpuSampler>(device, SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERMIPMAPMODE_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE);
-	// LinearWrap
-	samplers[3] = std::make_unique<GpuSampler>(device, SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERMIPMAPMODE_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
-	// AnisotropicClamp
-	samplers[4] = std::make_unique<GpuSampler>(device, SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERMIPMAPMODE_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE, 4);
-	// AnisotropicWrap
-	samplers[5] = std::make_unique<GpuSampler>(device, SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERMIPMAPMODE_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_REPEAT, 4);
+	createNewSampler("PointClamp", SDL_GPU_FILTER_NEAREST, SDL_GPU_SAMPLERMIPMAPMODE_NEAREST, SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE);
+	createNewSampler("PointWrap", SDL_GPU_FILTER_NEAREST, SDL_GPU_SAMPLERMIPMAPMODE_NEAREST, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
+	createNewSampler("LinearClamp", SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERMIPMAPMODE_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE);
+	createNewSampler("LinearWrap", SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERMIPMAPMODE_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_REPEAT);
+	createNewSampler("AnisotropicClamp", SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERMIPMAPMODE_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE, 4);
+	createNewSampler("AnisotropicWrap", SDL_GPU_FILTER_LINEAR, SDL_GPU_SAMPLERMIPMAPMODE_LINEAR, SDL_GPU_SAMPLERADDRESSMODE_REPEAT, 4);
 
 	std::cout << "Samplers initialized." << std::endl;
 }
@@ -139,7 +140,7 @@ void graphics::GpuRenderer::updateBuffers()
 			throw std::runtime_error{ std::format("SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError()) };
 		}
 
-		//std::cout << "Command buffer acquired." << std::endl;
+		//std::cout << "Command tile_buffer acquired." << std::endl;
 
 		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
 
@@ -171,7 +172,7 @@ void graphics::GpuRenderer::updateBuffers()
 			throw std::runtime_error{ std::format("SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError()) };
 		}
 
-		//std::cout << "Command buffer acquired." << std::endl;
+		//std::cout << "Command tile_buffer acquired." << std::endl;
 
 		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
 
@@ -203,7 +204,7 @@ void graphics::GpuRenderer::updateBuffers()
 			throw std::runtime_error{ std::format("SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError()) };
 		}
 
-		//std::cout << "Command buffer acquired." << std::endl;
+		//std::cout << "Command tile_buffer acquired." << std::endl;
 
 		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
 
@@ -235,7 +236,7 @@ void graphics::GpuRenderer::updateBuffers()
 			throw std::runtime_error{ std::format("SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError()) };
 		}
 
-		//std::cout << "Command buffer acquired." << std::endl;
+		//std::cout << "Command tile_buffer acquired." << std::endl;
 
 		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
 
@@ -379,6 +380,25 @@ void graphics::GpuRenderer::update()
 
 		SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
 
+		//Draw tilemap
+		for (auto& tilemap : tilemaps)
+		{
+			SDL_BindGPUGraphicsPipeline(render_pass, tilemap_graphics_pipeline->get());
+
+			SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
+			texture_sampler_binding.texture = tilemap->getTexture()->get();
+			texture_sampler_binding.sampler = tilemap->getTexture()->getSampler()->get();
+			SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
+
+			SDL_GPUBuffer* buffer = tilemap->getTileBuffer();
+			SDL_BindGPUVertexStorageBuffers(render_pass, 0, &buffer, 1);
+			SDL_GPUBuffer* sprite_buffer = tilemap->getSpriteBuffer();
+			SDL_BindGPUVertexStorageBuffers(render_pass, 1, &sprite_buffer, 1);
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &final_matrix, sizeof(glm::mat4));
+			SDL_DrawGPUPrimitives(render_pass, 6, tilemap->getSize(), 0, 0);
+			std::cout << "Tilemap drawn" << std::endl;
+		}
+
 		if (!lines.empty())
 		{
 			SDL_BindGPUGraphicsPipeline(render_pass, line_graphics_pipeline->get());
@@ -435,7 +455,7 @@ void graphics::GpuRenderer::update()
 
 			SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
 			texture_sampler_binding.texture = sprite.texture->get();
-			texture_sampler_binding.sampler = samplers[5]->get();
+			texture_sampler_binding.sampler = sprite.texture->getSampler()->get();
 			SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
 
 			SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
@@ -467,7 +487,7 @@ void graphics::GpuRenderer::update()
 
 			SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
 			texture_sampler_binding.texture = sprite.texture->get();
-			texture_sampler_binding.sampler = samplers[5]->get();
+			texture_sampler_binding.sampler = sprite.texture->getSampler()->get();
 
 			SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
 			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &base_matrix, sizeof(glm::mat4));
@@ -484,11 +504,12 @@ void graphics::GpuRenderer::update()
 	ui_sprites.clear();
 	vertices.clear();
 	ui_vertices.clear();
+	tilemaps.clear();
 }
 
 std::shared_ptr<graphics::GpuTexture> graphics::GpuRenderer::loadTexture(const Surface& surface)
 {
-	auto texture = std::make_shared<GpuTexture>(device, surface);
+	auto texture = std::make_shared<GpuTexture>(device, surface, samplers["PointClamp"]);
 
 	// Upload texture on the GPU
 	GpuTransferBuffer texture_transfer_buffer{ device, static_cast<Uint32>(texture->w() * texture->h() * 4), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD };
@@ -518,6 +539,20 @@ std::shared_ptr<graphics::GpuTexture> graphics::GpuRenderer::loadTexture(const S
 	SDL_EndGPUCopyPass(copy_pass);
 
 	return texture;
+}
+
+void graphics::GpuRenderer::createNewSampler(const std::string& name, SDL_GPUFilter filter,
+                                             SDL_GPUSamplerMipmapMode mipmap, SDL_GPUSamplerAddressMode address_mode, std::optional<int> anisotropy)
+{
+	auto it = samplers.find(name);
+	if (it != samplers.end())
+	{
+		throw std::runtime_error{ std::format("Sampler with this name already exists.") };
+	}
+	else
+	{
+		samplers[name] = std::make_shared<GpuSampler>(device, filter, mipmap, address_mode, anisotropy);
+	}
 }
 
 glm::vec2 graphics::GpuRenderer::getView() const
@@ -582,7 +617,7 @@ void graphics::GpuRenderer::renderRectangle2(float x, float y, float w, float h,
 {
 }*/
 
-void graphics::GpuRenderer::renderRectangle(float x, float y, float w, float h, RenderType render_type, Color color, bool ignore_view_zoom)
+void graphics::GpuRenderer::renderRectangle(float x, float y, float w, float h, RenderType render_type, glm::vec4 color, bool ignore_view_zoom)
 {
 	if (!ignore_view_zoom)
 	{
@@ -700,5 +735,10 @@ void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, s
 																"Increase the limit inside GpuRenderer.hpp file.") };
 		}
 	}
+}
+
+void graphics::GpuRenderer::renderTileMap(std::shared_ptr<TileMap> tilemap, float x, float y)
+{
+	tilemaps.push_back(tilemap);
 }
 

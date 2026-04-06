@@ -13,12 +13,14 @@
 #include "GpuTransferBuffer.hpp"
 #include "GpuSampler.hpp"
 #include "Sprite.hpp"
+#include "TileMap.hpp"
 
 #include "Vertex.hpp"
 
 
 namespace graphics
 {
+	class TileMap;
 	constexpr int ALLOCATED_NUMBER_OBJECTS = 10'000;
 	constexpr int ALLOCATED_NUMBER_UI_OBJECTS = ALLOCATED_NUMBER_OBJECTS;
 	constexpr int TOTAL_NUMBER_OBJECTS = ALLOCATED_NUMBER_OBJECTS + ALLOCATED_NUMBER_UI_OBJECTS;
@@ -93,6 +95,7 @@ namespace graphics
 		void update();
 
 		std::shared_ptr<GpuTexture> loadTexture(const Surface& surface);
+		void createNewSampler(const std::string& name, SDL_GPUFilter filter, SDL_GPUSamplerMipmapMode mipmap, SDL_GPUSamplerAddressMode address_mode, std::optional<int> anisotropy = std::nullopt);
 
 		//Getters
 		glm::vec2 getView() const;
@@ -109,11 +112,11 @@ namespace graphics
 		template<typename Self>
 		auto&& getDevice(this Self&& self);
 
-
 		//void renderTriangle(float x1, float y1, float x2, float y2, float x3, float y3, SDL_FColor color);
-		void renderRectangle(float x, float y, float w, float h, RenderType render_type, Color color, bool ignore_view_zoom = false);
+		void renderRectangle(float x, float y, float w, float h, RenderType render_type, glm::vec4 color, bool ignore_view_zoom = false);
 		void renderSprite(const Sprite& sprite, float x, float y, float w, float h, float angle, SDL_FlipMode flip = SDL_FLIP_NONE, bool ignore_view_zoom = false);
 		void renderTexture(std::shared_ptr<GpuTexture> texture, std::optional<SDL_FRect> source, std::optional<SDL_FRect> destination, float angle, SDL_FlipMode flip = SDL_FLIP_NONE, bool ignore_view_zoom = false);
+		void renderTileMap(std::shared_ptr<TileMap> tilemap, float x, float y);
 	private:
 		void initSamplers();
 
@@ -126,6 +129,7 @@ namespace graphics
 		float angle = 0.0f; ///< Degrees.
 
 		std::unique_ptr<WindowClaimer> window_claimer;
+		std::unique_ptr<GpuGraphicsPipeline> tilemap_graphics_pipeline;
 		std::unique_ptr<GpuGraphicsPipeline> line_graphics_pipeline;
 		std::unique_ptr<GpuGraphicsPipeline> vertex_graphics_pipeline;
 		std::unique_ptr<GpuGraphicsPipeline> texture_graphics_pipeline;
@@ -135,11 +139,12 @@ namespace graphics
 		std::unique_ptr<GpuBuffer> line_buffer;
 		std::unique_ptr<GpuBuffer> vertex_buffer;
 		std::unique_ptr<GpuBuffer> sprite_buffer;
-		//Transfer buffer
+		//Transfer tile_buffer
 		std::unique_ptr<GpuTransferBuffer> line_transfer_buffer;
 		std::unique_ptr<GpuTransferBuffer> vertex_transfer_buffer;
 		std::unique_ptr<GpuTransferBuffer> sprite_transfer_buffer;
 
+		std::unique_ptr<GpuShader> tilemap_vertex_shader;
 		std::unique_ptr<GpuShader> vertex_shader;
 		std::unique_ptr<GpuShader> fragment_shader;
 		std::unique_ptr<GpuShader> texture_vertex_shader;
@@ -151,13 +156,14 @@ namespace graphics
 		std::vector<Vertex> ui_vertices;
 		std::vector<GpuSprite> sprites;
 		std::vector<GpuSprite> ui_sprites;
+		std::vector<std::shared_ptr<TileMap>> tilemaps;
 
-		std::array<std::unique_ptr<GpuSampler>, 6> samplers;
+		std::unordered_map<std::string, std::shared_ptr<GpuSampler>> samplers;
 	};
 
 	template <typename Self>
 	auto&& graphics::GpuRenderer::getDevice(this Self&& self)
 	{
-		return self.device.get();
+		return self.device;
 	}
 }

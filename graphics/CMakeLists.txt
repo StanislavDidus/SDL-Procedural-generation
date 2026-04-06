@@ -14,6 +14,7 @@ set(GRAPHICS_SOURCE_FILES
     "src/GpuShader.cpp"
     "src/GpuGraphicsPipeline.cpp"
     "src/GpuSampler.cpp"
+    "src/TileMap.cpp"
     )
 
 set(GRAPHICS_HEADER_FILES
@@ -39,6 +40,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/GpuRenderFunctions.hpp"
     #"inc/TextEngine.hpp"
     "inc/GpuSampler.hpp"
+    "inc/TileMap.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})

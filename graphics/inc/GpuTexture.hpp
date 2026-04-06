@@ -3,6 +3,7 @@
 #include <memory>
 #include <iostream>
 
+#include "GpuSampler.hpp"
 #include "RenderFunctions.hpp"
 #include "Surface.hpp"
 #include "SDL3/SDL_gpu.h"
@@ -14,7 +15,7 @@ namespace graphics
 	{
 	public:
 		GpuTexture() = default;
-		GpuTexture(std::shared_ptr<SDL_GPUDevice> device, const Surface& surface);
+		GpuTexture(std::shared_ptr<SDL_GPUDevice> device, const Surface& surface, std::shared_ptr<GpuSampler> sampler);
 		~GpuTexture();
 
 		void setName(const std::string& name);
@@ -24,12 +25,14 @@ namespace graphics
 		int w() const;
 		int h() const;
 		int pitch() const;
+		std::shared_ptr<GpuSampler> getSampler() const;
 
 		template<typename Self>
 		auto&& get(this Self&& self);
 
 	private:
 		std::shared_ptr<SDL_GPUDevice> device = nullptr;
+		std::shared_ptr<GpuSampler> sampler = nullptr;
 		SDL_GPUTexture* texture = nullptr;
 		
 		void* m_pixels = nullptr;
@@ -44,8 +47,9 @@ namespace graphics
 		return self.texture;
 	}
 
-	inline GpuTexture::GpuTexture(std::shared_ptr<SDL_GPUDevice> device, const Surface& surface)
+	inline GpuTexture::GpuTexture(std::shared_ptr<SDL_GPUDevice> device, const Surface& surface, std::shared_ptr<GpuSampler> sampler)
 		: device{device}
+		, sampler{sampler}
 	{
 		SDL_Surface* image_data = surface.getSurface();
 
@@ -70,7 +74,7 @@ namespace graphics
 		m_height = image_data->h;
 		m_pitch = image_data->pitch;
 
-		std::cout << std::format("Texture was successfully created.") << std::endl;
+		//std::cout << std::format("Texture was successfully created.") << std::endl;
 	}
 
 	inline GpuTexture::~GpuTexture()
@@ -102,5 +106,10 @@ namespace graphics
 	inline int GpuTexture::pitch() const
 	{
 		return m_pitch;
+	}
+
+	inline std::shared_ptr<GpuSampler> GpuTexture::getSampler() const
+	{
+		return sampler;
 	}
 }

@@ -18,7 +18,7 @@ namespace graphics
 		MapType* map();
 		void unmap();
 		
-		/// Function will take a dynamic array pointer and copy its contents to the transfer buffer.
+		/// Function will take a dynamic array pointer and copy its contents to the transfer tile_buffer.
 		/// It will automatically map and unmap itself.
 		/// You should not try to call it yourself unless you intend to copy it manually.
 		/// @param arr Array pointer.
@@ -37,7 +37,7 @@ namespace graphics
 	inline GpuTransferBuffer::GpuTransferBuffer(std::shared_ptr<SDL_GPUDevice> device, Uint32 size, SDL_GPUTransferBufferUsage flags)
 		: device{device}
 	{
-		// Create transfer buffer
+		// Create transfer tile_buffer
 		SDL_GPUTransferBufferCreateInfo transfer_info;
 		transfer_info.size = size;
 		transfer_info.usage = flags;
@@ -45,7 +45,7 @@ namespace graphics
 
 		if (!transfer_buffer)
 		{
-			throw std::runtime_error{ std::format("Could not create GPU transfer buffer: {}", SDL_GetError()) };
+			throw std::runtime_error{ std::format("Could not create GPU transfer tile_buffer: {}", SDL_GetError()) };
 		}
 	}
 
@@ -64,7 +64,7 @@ namespace graphics
 
 		if (!data)
 		{
-			throw std::runtime_error{ std::format("Could not map GPU transfer buffer: {}", SDL_GetError()) };
+			throw std::runtime_error{ std::format("Could not map GPU transfer tile_buffer: {}", SDL_GetError()) };
 		}
 
 		return data;

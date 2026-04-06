@@ -98,7 +98,8 @@ namespace graphics
 
 	inline void drawRectangle(GpuRenderer& renderer, float x, float y, float w, float h, RenderType type, const Color& color, bool ignore_view_zoom = false)
 	{
-		renderer.renderRectangle(x, y, w, h, type, color, ignore_view_zoom);
+		glm::vec4 fcolor{ color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
+		renderer.renderRectangle(x, y, w, h, type, fcolor, ignore_view_zoom);
 	}
 
 	inline void drawScaledSprite(GpuRenderer& renderer, const Sprite& sprite, float x, float y, float w, float h, bool ignore_view_zoom = false)

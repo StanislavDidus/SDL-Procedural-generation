@@ -16,7 +16,6 @@ set(SOURCE_FILES
     "src/Game.cpp"
     "src/main.cpp" 
     "src/Biomes.cpp"
-    "src/TileMap.cpp"
     "src/Tile.cpp"
     "src/World.cpp"
     "src/Chunk.cpp"
@@ -50,7 +49,6 @@ set(SOURCE_FILES
 set(HEADER_FILES
     "inc/Game.hpp"
     "inc/Biomes.hpp"
-    "inc/TileMap.hpp"
     "inc/Tile.hpp"
     "inc/World.hpp"
     "inc/Chunk.hpp"
