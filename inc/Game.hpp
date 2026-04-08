@@ -4,7 +4,7 @@
 #include "SpriteSheet.hpp"
 #include "MapRange.hpp"
 #include "TileMap.hpp"
-#include "World.hpp"
+#include "WorldGenerator.hpp"
 #include "glm/vec2.hpp"
 #include "Item.hpp"
 #include "Font.hpp"
@@ -109,8 +109,8 @@ private:
 	graphics::GpuRenderer& screen;
 
 	glm::vec2 world_target;
-	std::shared_ptr<World> world;
-	std::shared_ptr<WorldOutput> world_output;
+	std::shared_ptr<WorldGenerator> world;
+	std::shared_ptr<World> world_output;
 
 	float tilemap_rows = 10.f;
 	float tilemap_columns = 10.f;

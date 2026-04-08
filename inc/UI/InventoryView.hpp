@@ -48,7 +48,7 @@ public:
 	/// <summary>
 	/// Get slot world size.
 	/// </summary>
-	/// <returns>World slot size.</returns>
+	/// <returns>WorldGenerator slot size.</returns>
 	glm::vec2 getSlotSize() const;
 
 	std::optional<Entity>getItem(int slot) const;

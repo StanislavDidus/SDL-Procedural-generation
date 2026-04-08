@@ -1,72 +1,43 @@
 #pragma once
+#include <vector>
 
-#include "glm/vec2.hpp"
+#include "Grid.hpp"
+#include "Object.hpp"
+#include "Tile.hpp"
 
-#include <memory>
-#include <array>
-#include <optional>
-#include <UI/Button.hpp>
-#include <UI/Button.hpp>
-#include <UI/Button.hpp>
-#include <UI/Button.hpp>
+// Information about objects that will be spawned
 
-#include "Biomes.hpp"
-#include "ValueNoise.hpp"
-#include "PerlynNoise.hpp"
-#include "MapRange.hpp"
-#include "Chunk.hpp"
-#include "ObjectManager.hpp"
-#include "TileManager.hpp"
-#include "GenerationData.hpp"
-#include "RenderFunctions.hpp"
-#include "ECS/Entity.hpp"
-#include "DrunkWalker.hpp"
-#include "ECS/ApplyArmorEffects.hpp"
-#include "ECS/ApplyArmorEffects.hpp"
-#include "ECS/ApplyArmorEffects.hpp"
-#include "WorldOutput.hpp"
-
-class TileCollisionSystem;
-
-struct TileChange
+struct ChestData
 {
-	size_t id;
-	glm::ivec2 position;
+	SDL_Rect grid_rect;
+
+	size_t base_item;
+	size_t common_item;
+	size_t snow_item;
+	size_t sand_item;
 };
 
-	
+struct ObjectData
+{
+	SDL_Rect grid_rect;
+	size_t properties_id;
+};
+
 class World
 {
 public:
-	World(
-		GenerationData& generation_data,
-		entt::registry& registry,
-		int world_width_tiles,
-		int world_height_tiles
-	);
+	World(const Grid<Tile>& grid, const std::vector<ObjectData>& objects, const std::vector<ChestData>& chests);
 	~World() = default;
 
-	[[nodiscard]] std::shared_ptr<WorldOutput> generateWorld(std::optional<int> seed);
+	// Getters
+	const std::vector<Uint32>& getSpriteMap() const;
+
+	void updateSpriteMap();
+
+	Grid<Tile> grid;
+	std::vector<ObjectData> objects;
+	std::vector<ChestData> chests;
 private:
-	void initSeeds(std::optional<int> seed_opt);
-	GenerationData& generation_data;
-	entt::registry& registry;
-
-	uint32_t master_seed;
-
-	void generateBase(Grid<Tile>& grid) const;
-	void addGrass(Grid<Tile>& grid) const;
-	void addDirt(Grid<Tile>& grid) const;
-	void addCaves(Grid<Tile>& grid) const;
-	void applyCellularAutomata(Grid<Tile>& grid);
-	void addWater(Grid<Tile>& grid) const;
-	void addBiomes(Grid<Tile>& grid) const;
-	void addObjects(std::vector<ObjectData>& objects, Grid<Tile>& grid);
-	void addChests(std::vector<ChestData>& chests, Grid<Tile>& grid);
-	void setTileDurability(Grid<Tile>& grid) const;
-
-	void removeTileCave(const glm::ivec2& position, Grid<Tile>& grid) const;
-
-	int world_width_tiles;
-	int world_height_tiles;
+	std::vector<Uint32> sprite_map;
 };
+

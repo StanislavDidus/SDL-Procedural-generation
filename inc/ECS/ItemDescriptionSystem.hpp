@@ -192,7 +192,9 @@ private:
 	{
 		float additional_height = ui_settings.item_description_label_height + additional_space_height * ui_settings.item_description_icon_height;
 
-		graphics::drawRectangle(screen, x, y, ui_settings.item_description_label_width, additional_height, graphics::RenderType::FILL, graphics::Color{ 0,125,200,200 }, graphics::IGNORE_VIEW_ZOOM);
+		//graphics::drawRectangle(screen, x, y, ui_settings.item_description_label_width, additional_height, graphics::RenderType::FILL, graphics::Color{ 0,125,200,200 }, graphics::IGNORE_VIEW_ZOOM);
+		auto& sprite = ResourceManager::get().getSpriteSheet("ui")->getSprite("TextBlock");
+		graphics::drawScaledSprite(screen, sprite, x, y, ui_settings.item_description_label_width, additional_height, graphics::IGNORE_VIEW_ZOOM);
 
 		const auto& item_properties = ItemManager::get().getProperties(item_info.id);
 		graphics::Text item_name_text{ screen, font, item_properties.name };

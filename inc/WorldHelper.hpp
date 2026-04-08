@@ -6,10 +6,10 @@
 #include <functional>
 
 #include "ResourceManager.hpp"
-#include "WorldOutput.hpp"
+#include "World.hpp"
 #include "ECS/Components.hpp"
 
-//This is a "WorldHelper" class that introduces static function that "World" class uses for its world generation.
+//This is a "WorldHelper" class that introduces static function that "WorldGenerator" class uses for its world generation.
 
 static int mapRange(int x, int inMin, float inMax, int outMin, int outMax)
 {

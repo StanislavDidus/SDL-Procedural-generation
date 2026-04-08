@@ -7,7 +7,7 @@
 #include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
 #include "GpuRenderFunctions.hpp"
-#include "World.hpp"
+#include "WorldGenerator.hpp"
 #include "Item.hpp"
 #include "RandomizedItem.hpp"
 

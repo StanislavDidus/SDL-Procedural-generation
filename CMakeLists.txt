@@ -17,7 +17,7 @@ set(SOURCE_FILES
     "src/main.cpp" 
     "src/Biomes.cpp"
     "src/Tile.cpp"
-    "src/World.cpp"
+    "src/WorldGenerator.cpp"
     "src/Chunk.cpp"
     "src/Player.cpp"
     "src/MapRange.cpp"
@@ -44,13 +44,14 @@ set(SOURCE_FILES
     "src/EnemyManager.cpp"
     "src/EnemySpawnSystem.cpp"
     "src/DrunkWalker.cpp"
+    "src/World.cpp"
     )
 
 set(HEADER_FILES
     "inc/Game.hpp"
     "inc/Biomes.hpp"
     "inc/Tile.hpp"
-    "inc/World.hpp"
+    "inc/WorldGenerator.hpp"
     "inc/Chunk.hpp"
     "inc/Player.hpp"
     "inc/MapRange.hpp"
@@ -118,7 +119,7 @@ set(HEADER_FILES
     "inc/ECS/RenderAccessoriesSystem.hpp"
     "inc/EnemySpawnManager.hpp"
     "inc/VertexBuffer.hpp"
-    "inc/WorldOutput.hpp"
+    "inc/World.hpp"
     "inc/WorldRenderer.hpp"
     )
 

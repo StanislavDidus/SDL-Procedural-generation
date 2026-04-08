@@ -492,16 +492,7 @@ void Game::update(float dt)
 			updateTilesDurability(world_output->grid);
 			//world_renderer->update();
 			
-			std::vector<Uint32> sprite_map;
-			for (int y = 0; y < 200; ++y)
-			{
-				for (int x = 0; x < 520; ++x)
-				{
-					int sprite_index = TileManager::get().getProperties(world_output->grid(x, y).id).sprite_index;
-					sprite_map.push_back(sprite_index);
-				}
-			}
-			tilemap->setSpriteMap(sprite_map);
+			tilemap->setSpriteMap(world_output->getSpriteMap());
 
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
@@ -615,7 +606,7 @@ void Game::enterState(GameState state)
 		initChestLoot();
 
 		text = std::make_unique<Text>(screen, ResourceManager::get().getFont("Main"), "Player");
-		world = std::make_unique<World>(generation_data, registry, 520, 200);
+		world = std::make_unique<WorldGenerator>(generation_data, registry, 520, 200);
 		world_output = world->generateWorld(0);
 		//spawnObjects(registry, *world_output, 20.0f, 20.0f);
 

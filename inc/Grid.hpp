@@ -32,15 +32,11 @@ public:
 	template<typename Self>
 	auto&& data(this Self&& self);
 	
-	const T& operator()(int x, int y) const
-	{
-		return array[x + y * columns];
-	}
+	template<typename Self>
+	auto&& operator()(this Self&& self, int x, int y);
 
-	T& operator()(int x, int y)
-	{
-		return array[x + y * columns];
-	}
+	template<typename Self>
+	auto&& operator()(this Self&& self, int index);
 
 private:
 	std::vector<T> array;
@@ -53,4 +49,18 @@ template <typename Self>
 auto&& Grid<T>::data(this Self&& self)
 {
 	return self.array;
+}
+
+template <typename T>
+template <typename Self>
+auto&& Grid<T>::operator()(this Self&& self, int x, int y)
+{
+	return self.array[x + y * self.columns];
+}
+
+template <typename T>
+template <typename Self>
+auto&& Grid<T>::operator()(this Self&& self, int index)
+{
+	return data[index];
 }

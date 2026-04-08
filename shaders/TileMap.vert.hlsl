@@ -38,10 +38,10 @@ Output main(uint id : SV_VertexID, uint instance_id : SV_InstanceID)
     uint sprite_id = SpriteMap[instance_id];
 
     float2 texcoord[4] = {
-        {tile.Size_UV.z * sprite_id,                 0.0f                                     },
-        {tile.Size_UV.z * sprite_id,                 16.0f                               },
-        {tile.Size_UV.z * (sprite_id + 1),           16.0f                                     },
-        {tile.Size_UV.z * (sprite_id + 1),           0.0f                                           }
+        {tile.Size_UV.z * sprite_id + 1.0f,                 0.0f                                     },
+        {tile.Size_UV.z * sprite_id + 1.0f,                 16.0f                               },
+        {tile.Size_UV.z * (sprite_id + 1) - 1.0f,           16.0f                                     },
+        {tile.Size_UV.z * (sprite_id + 1) - 1.0f,           0.0f                                           }
     };
 
     float2 coord = vertexPos[vert];

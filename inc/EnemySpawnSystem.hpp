@@ -5,7 +5,7 @@
 #include <UI/Button.hpp>
 #include <UI/Button.hpp>
 
-#include "World.hpp"
+#include "WorldGenerator.hpp"
 #include "ECS/Entity.hpp"
 #include <entt/entt.hpp>
 

@@ -5,7 +5,7 @@
 #include "Chunk.hpp"
 #include "ResourceManager.hpp"
 #include "WorldHelper.hpp"
-#include "WorldOutput.hpp"
+#include "World.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
@@ -15,14 +15,14 @@
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
 
-struct WorldOutput;
+struct World;
 
 template<int WorldWidthTiles, int WorldHeightTiles, int TileWidthWorld, int TileHeightWorld>
 class WorldRenderer
 {
 public:
 	WorldRenderer() = default;
-	WorldRenderer(entt::registry& registry, const WorldOutput& output);
+	WorldRenderer(entt::registry& registry, const World& output);
 	~WorldRenderer() = default;
 	
 	void update();
@@ -30,11 +30,11 @@ public:
 
 	void spawnObjects();
 private:
-	/// Const member function that takes <b>WorldOutput</b> as a param
+	/// Const member function that takes <b>World</b> as a param
 	/// and removes all objects from it that do not fit inside a chunk
 	/// completely.
 	/// @param output modifies the output by reference
-	//void adjustOutput(WorldOutput& output) const;
+	//void adjustOutput(World& output) const;
 
 	static constexpr int ScreenWidth = 960;
 	static constexpr int ScreenHeight = 540;
@@ -49,7 +49,7 @@ private:
 	static constexpr int WorldHeightChunks = WorldHeightTiles / ChunkHeightTiles;
 	static constexpr int World_Chunks = WorldWidthChunks * WorldHeightChunks;
 
-	const WorldOutput& output;
+	const World& output;
 	entt::registry& registry;
 
 	//std::array<SDL_Vertex, WorldWidthTiles * WorldHeightTiles * 4> vertices;
@@ -61,7 +61,7 @@ private:
 template <int WorldWidthTiles, int WorldHeightTiles, int TileWidthWorld, int TileHeightWorld>
 WorldRenderer<WorldWidthTiles, WorldHeightTiles, TileWidthWorld, TileHeightWorld>::WorldRenderer(
 	entt::registry& registry,
-	const WorldOutput& output)
+	const World& output)
 	: output{ output }
 	, registry(registry)
 {
