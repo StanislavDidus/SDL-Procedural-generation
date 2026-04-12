@@ -15,7 +15,7 @@ namespace graphics
 		~GpuTransferBuffer() noexcept;
 
 		template<typename MapType>
-		MapType* map();
+		MapType* map(bool cycle);
 		void unmap();
 		
 		/// Function will take a dynamic array pointer and copy its contents to the transfer tile_buffer.
@@ -24,8 +24,9 @@ namespace graphics
 		/// @param arr Array pointer.
 		/// @param size Array size;
 		/// @param offset = 0
+		/// @param cycle
 		template<typename MapType>
-		void putAutomatically(MapType* arr, size_t size, size_t offset = 0);
+		void putAutomatically(MapType* arr, size_t size, size_t offset, bool cycle = false);
 
 		template<typename Self>
 		auto&& get(this Self&& self);
@@ -58,9 +59,9 @@ namespace graphics
 	}
 
 	template<typename MapType>
-	inline MapType* GpuTransferBuffer::map() 
+	inline MapType* GpuTransferBuffer::map(bool cycle) 
 	{
-		MapType* data = static_cast<MapType*>(SDL_MapGPUTransferBuffer(device.get(), transfer_buffer, false));
+		MapType* data = static_cast<MapType*>(SDL_MapGPUTransferBuffer(device.get(), transfer_buffer, cycle));
 
 		if (!data)
 		{
@@ -76,9 +77,9 @@ namespace graphics
 	}
 
 	template<typename MapType>
-	inline void GpuTransferBuffer::putAutomatically(MapType* arr, size_t size, size_t offset)
+	inline void GpuTransferBuffer::putAutomatically(MapType* arr, size_t size, size_t offset, bool cycle)
 	{
-		MapType* data = map<MapType>();
+		MapType* data = map<MapType>(cycle);
 
 		data += offset;
 

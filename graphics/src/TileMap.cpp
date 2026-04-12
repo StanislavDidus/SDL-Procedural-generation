@@ -16,7 +16,7 @@ graphics::TileMap::TileMap(std::shared_ptr<SDL_GPUDevice> device, std::shared_pt
 {
 	GpuTransferBuffer transfer_buffer{ device, static_cast<Uint32>(world_width_tiles * world_height_tiles * sizeof(TileData)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD };
 	
-	TileData* data = transfer_buffer.map<TileData>();
+	TileData* data = transfer_buffer.map<TileData>(false);
 
 	int world_width_chunks = world_width_tiles / chunk_width_tiles;
 	int world_height_chunks = world_height_tiles / chunk_height_tiles;
@@ -94,7 +94,7 @@ int graphics::TileMap::getSize() const
 void graphics::TileMap::setSpriteMap(const std::vector<Uint32>& sprite_map)
 {
 	GpuTransferBuffer transfer_buffer{ device, static_cast<Uint32>(sprite_map.size() * sizeof(Uint32)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD };
-	Uint32* data = transfer_buffer.map<Uint32>();
+	Uint32* data = transfer_buffer.map<Uint32>(false);
 	SDL_memcpy(data, sprite_map.data(), sprite_map.size() * sizeof(Uint32));
 	transfer_buffer.unmap();
 

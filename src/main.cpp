@@ -9,7 +9,8 @@
 #include "Color.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
-#include "imgui_impl_sdlrenderer3.h"
+#include "imgui_impl_sdlgpu3.h"
+#include "imgui_impl_sdlgpu3_shaders.h"
 
 #include "Window.hpp"
 #include "GpuRenderer.hpp"
@@ -69,15 +70,19 @@ int main()
         //auto sprite1 = ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky");
 
         //Init ImGui
-        /*
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
 
-        ImGui_ImplSDL3_InitForSDLRenderer(window.get(), renderer.get() );
-        ImGui_ImplSDLRenderer3_Init(renderer.get());
+        ImGui_ImplSDL3_InitForSDLGPU(window.get());
+        ImGui_ImplSDLGPU3_InitInfo init_info = {};
+        init_info.Device = gpu_renderer.getDevice().get();
+        init_info.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(gpu_renderer.getDevice().get(), window.get());
+        init_info.MSAASamples = SDL_GPU_SAMPLECOUNT_1;
+        init_info.SwapchainComposition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR;
+        init_info.PresentMode = SDL_GPU_PRESENTMODE_IMMEDIATE;
+    	ImGui_ImplSDLGPU3_Init(&init_info);
         ImGui::GetIO().FontGlobalScale = 1.5f;
-        */
 
     	Text debug_test{ gpu_renderer, ResourceManager::get().getFont("Main"), "Debug", Color::BLUE };
         float dt = 0.f;
@@ -89,7 +94,7 @@ int main()
             SDL_Event event;
             while (window.pollEvent(event))
             {
-                //ImGui_ImplSDL3_ProcessEvent(&event);
+                ImGui_ImplSDL3_ProcessEvent(&event);
 
                 //Handle input
                 switch (event.type)
@@ -153,12 +158,9 @@ int main()
         }
 
         //Destroy imgui
-        /*
         ImGui_ImplSDL3_Shutdown();
-        ImGui_ImplSDLRenderer3_Shutdown();
+        ImGui_ImplSDLGPU3_Shutdown();
         ImGui::DestroyContext();
-
-    */
     }
     catch (const std::exception& e)
     {

@@ -130,6 +130,7 @@ Entity EnemySpawnSystem::createEntity(size_t id) const
 
 	auto& renderable = registry.emplace<Components::Renderable>(entity);
 	renderable.sprite = (*ResourceManager::get().getSpriteSheet("enemies"))[enemy_data.sprite_index];
+	renderable.priority = 1;
 
 	auto& physics = registry.emplace<Components::Physics>(entity);
 	physics.can_move_horizontal = true;

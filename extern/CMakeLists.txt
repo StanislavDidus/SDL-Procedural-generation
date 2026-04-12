@@ -28,7 +28,7 @@ add_library(imgui
     imgui/imgui_tables.cpp
     imgui/imgui_demo.cpp
     imgui/backends/imgui_impl_sdl3.cpp
-    imgui/backends/imgui_impl_sdlrenderer3.cpp
+    imgui/backends/imgui_impl_sdlgpu3.cpp
 )
 
 target_include_directories(imgui PUBLIC imgui imgui/backends)

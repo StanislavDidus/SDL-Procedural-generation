@@ -8,13 +8,14 @@ namespace graphics
 {
 	inline glm::vec2 getMouseGlobalPosition(const GpuRenderer& renderer, const glm::vec2& mouse_position)
 	{
-		const auto& view_position = renderer.getView();
+		const auto& view = renderer.getView();
 		const auto& zoom = renderer.getZoom();
 		const auto& window_size = renderer.getWindowSize();
 
-		glm::vec2 mid_screen = { window_size.x / 2.f, window_size.y / 2.f };
-		glm::vec2 view_centered = view_position + mid_screen;
-		return view_centered + (mouse_position - mid_screen) / zoom;
+		glm::vec2 mid_screen {window_size.x * 0.5f, window_size.y * 0.5f};
+
+		glm::vec2 result{ view + mid_screen + (mouse_position - mid_screen) / zoom };
+		return result;
 	}
 		
 	inline SDL_FRect getCameraRectFromTarget(const GpuRenderer& renderer, const glm::vec2 target) noexcept

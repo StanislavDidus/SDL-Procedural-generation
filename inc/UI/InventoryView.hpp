@@ -39,14 +39,14 @@ public:
 	std::optional<int> getCoveredSlotIndex() const;
 
 	/// <summary>
-	/// Converts slot index to its centre global position in the world according to inventory position and slot width and height.
+	/// Converts slot index to its centre global position in the world_generator according to inventory position and slot width and height.
 	/// </summary>
 	/// <param name="slot">Slot index.</param>
-	/// <returns>Centre global position in the world space.</returns>
+	/// <returns>Centre global position in the world_generator space.</returns>
 	glm::vec2 getSlotGlobalCoords(int slot) const;
 
 	/// <summary>
-	/// Get slot world size.
+	/// Get slot world_generator size.
 	/// </summary>
 	/// <returns>WorldGenerator slot size.</returns>
 	glm::vec2 getSlotSize() const;

@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "Object.hpp"
-#include "XMLParsing.hpp"
 #include <filesystem>
 
 /// <summary>

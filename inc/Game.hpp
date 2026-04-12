@@ -52,6 +52,7 @@
 #include "ECS/RenderAccessoriesSystem.hpp"
 #include "ECS/RenderEssenceCounter.hpp"
 #include "ECS/RenderHealthBarSystem.hpp"
+#include "UI/DynamicBackground.hpp"
 
 class ChangeMiningSizeSystem;
 class DeathSystem;
@@ -109,8 +110,8 @@ private:
 	graphics::GpuRenderer& screen;
 
 	glm::vec2 world_target;
-	std::shared_ptr<WorldGenerator> world;
-	std::shared_ptr<World> world_output;
+	std::shared_ptr<WorldGenerator> world_generator;
+	std::shared_ptr<World> world;
 
 	float tilemap_rows = 10.f;
 	float tilemap_columns = 10.f;
@@ -161,6 +162,8 @@ private:
 	UISettings ui_settings;
 
 	float ui_scale = 1.0f;
+
+	DynamicBackground background;
 
 	//Enemies
 	std::shared_ptr<EnemySpawnSystem> enemy_spawn_system;

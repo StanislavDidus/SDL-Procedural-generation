@@ -223,7 +223,7 @@ namespace Components
 		Entity item;
 	};
 
-	// Dropped item that exists in the world
+	// Dropped item that exists in the world_generator
 	struct DroppedItem
 	{
 		Entity item;

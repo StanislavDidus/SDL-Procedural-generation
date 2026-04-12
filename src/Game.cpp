@@ -4,7 +4,7 @@
 
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
-#include "imgui_impl_sdlrenderer3.h"
+#include "imgui_impl_sdlgpu3.h"
 
 #include "InputManager.hpp"
 #include "ResourceManager.hpp"
@@ -20,6 +20,7 @@
 #include "ECS/DeathSystem.hpp"
 #include "RenderFunctions.hpp"
 #include "ECS/ChangeMiningSizeSystem.hpp"
+#include "UI/DynamicBackground.hpp"
 
 using namespace graphics;
 
@@ -53,11 +54,11 @@ void Game::initSystems()
 {
 	physics_system = std::make_unique<PhysicsSystem>(registry);
 	input_system = std::make_unique<InputSystem>(registry);
-	collision_system = std::make_shared<TileCollisionSystem>(registry, world_output->grid);
+	collision_system = std::make_shared<TileCollisionSystem>(registry, world->grid);
 	jump_system = std::make_unique<JumpSystem>(registry);
-	mining_tiles_system = std::make_unique<MiningTilesSystem>(registry, world_output->grid, 20.f, 20.f);
-	mining_objects_system = std::make_unique<MiningObjectsSystem>(registry, world_output->grid, 20.f, 20.f);
-	place_system = std::make_unique<PlaceSystem>(registry, world_output->grid, 20.f, 20.f);
+	mining_tiles_system = std::make_unique<MiningTilesSystem>(registry, world->grid, 20.f, 20.f);
+	mining_objects_system = std::make_unique<MiningObjectsSystem>(registry, world->grid, 20.f, 20.f);
+	place_system = std::make_unique<PlaceSystem>(registry, world->grid, 20.f, 20.f);
 	item_usage_system = std::make_shared<ItemUsageSystem>(registry);
 	button_system = std::make_unique<ButtonSystem>(registry);
 	craft_system = std::make_unique<CraftSystem>(registry);
@@ -66,7 +67,7 @@ void Game::initSystems()
 	render_system = std::make_unique<RenderSystem>(registry);
 	render_weapon_menu_system = std::make_unique<RenderWeaponMenuSystem>(registry, ui_settings);
 	enemy_ai_system = std::make_unique<EnemyAISystem>(registry);
-	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(registry, world_output->grid, SpawnRadius{ 1500.0f,2000.0f });
+	enemy_spawn_system = std::make_shared<EnemySpawnSystem>(registry, world->grid, SpawnRadius{ 1500.0f,2000.0f });
 	player_combo_system = std::make_unique<PlayerComboSystem>(registry, enemy_spawn_system);
 	apply_damage_system = std::make_unique<ApplyDamageSystem>(registry);
 	display_hit_marks_system = std::make_unique<DisplayHitMarksSystem>(registry);
@@ -462,6 +463,7 @@ void Game::update(float dt)
 		break;
 	case GameState::PLAY:
 		{
+			background.update(screen.getView());
 			input_system->update(screen, dt);
 			jump_system->update(dt);
 			physics_system->update(dt);
@@ -489,10 +491,12 @@ void Game::update(float dt)
 			update_effects_system->update(dt);
 			apply_effects_system->update(dt);
 			enemy_spawn_manager->update(dt);
-			updateTilesDurability(world_output->grid);
+			updateTilesDurability(world->grid);
 			//world_renderer->update();
 			
-			tilemap->setSpriteMap(world_output->getSpriteMap());
+			world->update(registry);
+			world->updateSpriteMap();
+			tilemap->setSpriteMap(world->getSpriteMap());
 
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);
@@ -507,8 +511,8 @@ void Game::update(float dt)
 				mining_objects_system->update(dt);
 			}
 
-			//world->update(screen, dt, world_target);
-			//world->updateTiles();
+			//world_generator->update(screen, dt, world_target);
+			//world_generator->updateTiles();
 
 			inventory_view->update();
 
@@ -527,13 +531,11 @@ void Game::update(float dt)
 		break;
 	}
 
-	/*
-	ImGui_ImplSDLRenderer3_NewFrame();
+	ImGui_ImplSDLGPU3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
-	*/
 
-	//updateImGui(dt);
+	updateImGui(dt);
 }
 
 void Game::render(float dt) const
@@ -551,8 +553,9 @@ void Game::render(float dt) const
 		//graphics::drawScaledSprite(screen, sky_sprite, 0.0f, 0.0f, static_cast<float>(window_size.x), static_cast<float>(window_size.y), graphics::IGNORE_VIEW_ZOOM);
 
 		//world_renderer->render(screen, world_target);
-		//world->render(screen);
+		//world_generator->render(screen);
 		screen.renderTileMap(tilemap, 0.0f, 0.0f);
+		background.render(screen, screen.getView());
 		render_system->render(screen);
 		mining_tiles_system->renderOutline(screen);
 		mining_objects_system->render(screen);
@@ -568,7 +571,7 @@ void Game::render(float dt) const
 		render_health_bar_system->render(screen);
 		chest_window_system->render(screen);
 		render_accessories_system->update(player, screen);
-		//world->renderHelp(screen);
+		//world_generator->renderHelp(screen);
 	}
 	break;
 	}
@@ -606,9 +609,10 @@ void Game::enterState(GameState state)
 		initChestLoot();
 
 		text = std::make_unique<Text>(screen, ResourceManager::get().getFont("Main"), "Player");
-		world = std::make_unique<WorldGenerator>(generation_data, registry, 520, 200);
-		world_output = world->generateWorld(0);
-		//spawnObjects(registry, *world_output, 20.0f, 20.0f);
+		world_generator = std::make_unique<WorldGenerator>(generation_data, registry, 520, 200);
+		world = world_generator->generateWorld(0);
+		world->initWorld(registry, 20.0f, 20.0f);
+		//spawnObjects(registry, *world, 20.0f, 20.0f);
 
 		initUserInterface();
 		initSystems();
@@ -784,33 +788,33 @@ void Game::updateImGui(float dt)
 
 			ImGui::SameLine();
 
-			if (ImGui::Button("Generate world"))
+			if (ImGui::Button("Generate world_generator"))
 			{
-				world_output = (world->generateWorld(buffer));
+				world = (world_generator->generateWorld(buffer));
 			}
 
 			ImGui::SameLine();
 
-			if (ImGui::Button("Generate world with random seed"))
+			if (ImGui::Button("Generate world_generator with random seed"))
 			{
 				std::uniform_int_distribution dist(0, 10000000);
 				buffer = dist(rng);
-				world_output = std::move(world->generateWorld(buffer));
+				world = std::move(world_generator->generateWorld(buffer));
 			}
 
-			//ImGui::Checkbox("Use New Cave Generation Algorithm", &world->use_new_cave_generation);
-			//ImGui::Checkbox("Use Cellular Automata Algorithm", &world->use_cellular_automata);
+			//ImGui::Checkbox("Use New Cave Generation Algorithm", &world_generator->use_new_cave_generation);
+			//ImGui::Checkbox("Use Cellular Automata Algorithm", &world_generator->use_cellular_automata);
 
 
-			//ImGui::SliderFloat("scale", &world->scale, 0.f, 1.f);
-			//ImGui::SliderFloat("density_change", &world->density_change, 0.1f, 1.f);
-			//ImGui::SliderFloat("y_base", &world->y_base, -100.f, 100.f);
-			//ImGui::SliderFloat("sea_level", &world->sea_level, -100.f, 100.f);
+			//ImGui::SliderFloat("scale", &world_generator->scale, 0.f, 1.f);
+			//ImGui::SliderFloat("density_change", &world_generator->density_change, 0.1f, 1.f);
+			//ImGui::SliderFloat("y_base", &world_generator->y_base, -100.f, 100.f);
+			//ImGui::SliderFloat("sea_level", &world_generator->sea_level, -100.f, 100.f);
 
-			//ImGui::SliderFloat("cave_threshold_min", &world->cave_threshold_min, 0.1f, 1.0f);
-			//ImGui::SliderFloat("cave_threshold_max", &world->cave_threshold_max, 0.1f, 1.0f);
-			//ImGui::SliderFloat("cave_threshold_step", &world->cave_threshold_step, 0.0001f, 0.1f);
-			//ImGui::SliderFloat("cave_base_y", &world->cave_base_height, -100.f, 100.f);
+			//ImGui::SliderFloat("cave_threshold_min", &world_generator->cave_threshold_min, 0.1f, 1.0f);
+			//ImGui::SliderFloat("cave_threshold_max", &world_generator->cave_threshold_max, 0.1f, 1.0f);
+			//ImGui::SliderFloat("cave_threshold_step", &world_generator->cave_threshold_step, 0.0001f, 0.1f);
+			//ImGui::SliderFloat("cave_base_y", &world_generator->cave_base_height, -100.f, 100.f);
 
 			static int current = 0;
 			const char* items[] = { "Default", "PV", "Temperature", "Moisture", "Durability"};
@@ -820,34 +824,34 @@ void Game::updateImGui(float dt)
 			/*if (ImGui::CollapsingHeader("Terrain & Nature"))
 			{
 				ImGui::Text("PV");
-				ImGui::SliderInt("Octaves##PV", &world->peaks_and_valleys_settings.octaves, 1, 10);
-				ImGui::SliderFloat("Frequency##PV", &world->peaks_and_valleys_settings.frequency, 0.0001f, 2.f);
-				ImGui::SliderFloat("Amplitude##PV", &world->peaks_and_valleys_settings.amplitude, 0.0001f, 2.f);
+				ImGui::SliderInt("Octaves##PV", &world_generator->peaks_and_valleys_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##PV", &world_generator->peaks_and_valleys_settings.frequency, 0.0001f, 2.f);
+				ImGui::SliderFloat("Amplitude##PV", &world_generator->peaks_and_valleys_settings.amplitude, 0.0001f, 2.f);
 
 				ImGui::Text("Density");
-				ImGui::SliderInt("Octaves##Density", &world->density_settings.octaves, 1, 10);
-				ImGui::SliderFloat("Frequency##Density", &world->density_settings.frequency, 0.0001f, 2.f);
-				ImGui::SliderFloat("Amplitude##Density", &world->density_settings.amplitude, 0.0001f, 2.f);
+				ImGui::SliderInt("Octaves##Density", &world_generator->density_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##Density", &world_generator->density_settings.frequency, 0.0001f, 2.f);
+				ImGui::SliderFloat("Amplitude##Density", &world_generator->density_settings.amplitude, 0.0001f, 2.f);
 
 				ImGui::Text("Caves");
-				ImGui::SliderInt("Octaves##Caves", &world->cave_settings.octaves, 1, 10);
-				ImGui::SliderFloat("Frequency##Caves", &world->cave_settings.frequency, 0.0001f, 2.f);
-				ImGui::SliderFloat("Amplitude##Caves", &world->cave_settings.amplitude, 0.0001f, 2.f);
+				ImGui::SliderInt("Octaves##Caves", &world_generator->cave_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##Caves", &world_generator->cave_settings.frequency, 0.0001f, 2.f);
+				ImGui::SliderFloat("Amplitude##Caves", &world_generator->cave_settings.amplitude, 0.0001f, 2.f);
 
 				ImGui::Text("Tunnels");
-				ImGui::SliderInt("Octaves##Tunnels", &world->tunnel_settings.octaves, 1, 10);
-				ImGui::SliderFloat("Frequency##Tunnels", &world->tunnel_settings.frequency, 0.001f, 2.f);
-				ImGui::SliderFloat("Amplitude##Tunnels", &world->tunnel_settings.amplitude, 0.001f, 2.f);
+				ImGui::SliderInt("Octaves##Tunnels", &world_generator->tunnel_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##Tunnels", &world_generator->tunnel_settings.frequency, 0.001f, 2.f);
+				ImGui::SliderFloat("Amplitude##Tunnels", &world_generator->tunnel_settings.amplitude, 0.001f, 2.f);
 
 				ImGui::Text("Temperature");
-				ImGui::SliderInt("Octaves##Temperature", &world->temperature_settings.octaves, 1, 10);
-				ImGui::SliderFloat("Frequency##Temperature", &world->temperature_settings.frequency, 0.0001f, 2.f);
-				ImGui::SliderFloat("Amplitude##Temperature", &world->temperature_settings.amplitude, 0.0001f, 2.f);
+				ImGui::SliderInt("Octaves##Temperature", &world_generator->temperature_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##Temperature", &world_generator->temperature_settings.frequency, 0.0001f, 2.f);
+				ImGui::SliderFloat("Amplitude##Temperature", &world_generator->temperature_settings.amplitude, 0.0001f, 2.f);
 
 				ImGui::Text("Moisture");
-				ImGui::SliderInt("Octaves##Moisture", &world->moisture_settings.octaves, 1, 10);
-				ImGui::SliderFloat("Frequency##Moisture", &world->moisture_settings.frequency, 0.0001f, 2.f);
-				ImGui::SliderFloat("Amplitude##Moisture", &world->moisture_settings.amplitude, 0.0001f, 2.f);
+				ImGui::SliderInt("Octaves##Moisture", &world_generator->moisture_settings.octaves, 1, 10);
+				ImGui::SliderFloat("Frequency##Moisture", &world_generator->moisture_settings.frequency, 0.0001f, 2.f);
+				ImGui::SliderFloat("Amplitude##Moisture", &world_generator->moisture_settings.amplitude, 0.0001f, 2.f);
 			}*/
 		}
 		ImGui::End();

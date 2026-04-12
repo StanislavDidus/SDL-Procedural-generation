@@ -135,8 +135,21 @@
             <path>assets/Sprites/bg1.png</path>
             <scaleMode>NEAREST</scaleMode>
             <rectListing>
-                <rect x="0" y="0" w="320" h="180" name="Sky"/>
+                <rect x="0" y="0" w="640" h="480" name="bg1"/>
+                <rect x="640" y="0" w="640" h="480" name="bg2"/>
+                <rect x="1280" y="0" w="640" h="480" name="bg3"/>
+                <rect x="1920" y="0" w="640" h="480" name="bg4"/>
+                <rect x="2560" y="0" w="640" h="480" name="bg5"/>
             </rectListing> 
+        </sprite>
+        <sprite id="cave_backgrounds">
+            <path>assets/Sprites/bg2.png</path>
+            <scaleMode>NEAREST</scaleMode>
+            <rectListing>
+                <rect x="0" y="0" w="640" h="384" name="bg1"/>
+                <rect x="640" y="0" w="640" h="384" name="bg2"/>
+                <rect x="1280" y="0" w="640" h="384" name="bg3"/>
+            </rectListing>
         </sprite>
     </spriteListing>
     <fontListing>

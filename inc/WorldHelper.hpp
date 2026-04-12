@@ -9,7 +9,7 @@
 #include "World.hpp"
 #include "ECS/Components.hpp"
 
-//This is a "WorldHelper" class that introduces static function that "WorldGenerator" class uses for its world generation.
+//This is a "WorldHelper" class that introduces static function that "WorldGenerator" class uses for its world_generator generation.
 
 static int mapRange(int x, int inMin, float inMax, int outMin, int outMax)
 {
@@ -56,7 +56,7 @@ static bool checkTileSpace(const Grid<Tile>& grid, int x, int y, int w, int h)
 		//Set a small 1 tile offset for y loop because we want to check tiles above the ground
 		for (int j = 1; j <= h; ++j)
 		{
-			//Check the boundaries of thw world before getting a tile from the world_map
+			//Check the boundaries of thw world_generator before getting a tile from the world_map
 			int new_x = x + i;
 			int new_y = y - j;
 

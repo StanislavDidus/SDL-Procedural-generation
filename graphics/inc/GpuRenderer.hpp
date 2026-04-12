@@ -17,6 +17,8 @@
 
 #include "Vertex.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/transform.hpp"
 
 namespace graphics
 {
@@ -103,6 +105,7 @@ namespace graphics
 		float getAngle() const;
 		glm::ivec2 getWindowSize() const;
 		std::vector<Vertex>& getVertices();
+		const glm::mat4& getWorldMatrix() const;
 
 		//Setters
 		void setView(glm::vec2 view);
@@ -127,6 +130,7 @@ namespace graphics
 		glm::vec2 view = {0.0f, 0.0f};
 		float zoom = 1.0f;
 		float angle = 0.0f; ///< Degrees.
+		glm::mat4 world_matrix;
 
 		std::unique_ptr<WindowClaimer> window_claimer;
 		std::unique_ptr<GpuGraphicsPipeline> tilemap_graphics_pipeline;

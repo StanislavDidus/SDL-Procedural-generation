@@ -71,6 +71,7 @@ public:
 			ts.size = glm::vec2{ 35.0f, 35.0f };
 
 			registry.emplace<Components::Renderable>(drop_item, (*ResourceManager::get().getSpriteSheet("items"))[dropped_item_data.sprite_index]);
+			registry.emplace<Components::AlwaysRender>(drop_item);
 
 			float direction = dropped_item_data.flipped ? -1.0f : 1.0f;
 			auto& ph = registry.emplace<Components::Physics>(drop_item);

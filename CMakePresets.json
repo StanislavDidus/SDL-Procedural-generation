@@ -5,7 +5,7 @@
             "name": "vs18-debug",
             "displayName": "vs18-Debug",
             "generator": "Visual Studio 18 2026",
-            "binaryDir": "build/vs18-debug",
+            "binaryDir": "out/vs18-debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             },
@@ -19,7 +19,7 @@
             "name": "vs18-release",
             "displayName": "vs18-Release",
             "generator": "Visual Studio 18 2026",
-            "binaryDir": "build/vs18-release",
+            "binaryDir": "out/vs18-release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             },
@@ -33,7 +33,7 @@
             "name": "vs17-debug",
             "displayName": "vs17-Debug",
             "generator": "Visual Studio 17 2022",
-            "binaryDir": "build/vs17-debug",
+            "binaryDir": "out/vs17-debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             },
@@ -47,7 +47,7 @@
             "name": "vs17-release",
             "displayName": "vs17-Release",
             "generator": "Visual Studio 17 2022",
-            "binaryDir": "build/vs17-release",
+            "binaryDir": "out/vs17-release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             },
@@ -61,7 +61,7 @@
             "name": "xcode-debug",
             "displayName": "Debug (Xcode)",
             "generator": "Xcode",
-            "binaryDir": "build/xcode-debug",
+            "binaryDir": "out/xcode-debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             },
@@ -75,7 +75,7 @@
             "name": "xcode-release",
             "displayName": "Release (Xcode)",
             "generator": "Xcode",
-            "binaryDir": "build/xcode-release",
+            "binaryDir": "out/xcode-release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             },

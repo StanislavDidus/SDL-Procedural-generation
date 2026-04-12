@@ -22,7 +22,7 @@ struct ObjectProperties
 };
 
 /// <summary>
-/// Information about the conditions that the <b>world</b> must pass in order spawn the object.
+/// Information about the conditions that the <b>world_generator</b> must pass in order spawn the object.
 /// </summary>
 struct ObjectSpawnInfo
 {
@@ -35,7 +35,7 @@ struct ObjectSpawnInfo
 };
 
 /// <summary>
-/// Struct that represents a destroyable object in the world
+/// Struct that represents a destroyable object in the world_generator
 /// </summary>
 struct Object
 {

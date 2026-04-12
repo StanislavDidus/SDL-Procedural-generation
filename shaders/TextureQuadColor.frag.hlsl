@@ -6,26 +6,31 @@ struct Input
     float2 TexCoord : TEXCOORD0;
     float4 Color : TEXCOORD1;
     uint Flip : TEXCOORD2;
+    float4 UV : TEXCOORD3;
 };
 
 float4 main(Input input) : SV_TARGET0
 {
+    float2 texcoord = input.TexCoord;
+
     if(input.Flip == 1)
     {
-        input.TexCoord.x = 1 - input.TexCoord.x;
+        texcoord.x = input.UV.z - (texcoord.x - input.UV.x) + input.UV.x;
     }
     else if(input.Flip == 2)
     {
-        input.TexCoord.y = 1 - input.TexCoord.y;
+        texcoord.y = input.UV.w - (texcoord.y - input.UV.y) + input.UV.y;
     }
     else if(input.Flip == 3)
     {
-        input.TexCoord.x = 1 - input.TexCoord.x;
-        input.TexCoord.y = 1 - input.TexCoord.y;
+        texcoord.x = input.UV.z - (texcoord.x - input.UV.x) + input.UV.x;
+        texcoord.y = input.UV.w - (texcoord.y - input.UV.y) + input.UV.y;
     }
+
 
     float w;
     float h;
     Texture.GetDimensions(w,h);
-    return input.Color * Texture.Sample(Sampler, float2(input.TexCoord.x / w, input.TexCoord.y / h));
+    float2 uv = float2(texcoord.x / w, texcoord.y / h);
+    return input.Color * Texture.Sample(Sampler, uv);
 }

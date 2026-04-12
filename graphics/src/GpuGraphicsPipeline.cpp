@@ -23,6 +23,7 @@ graphics::GpuGraphicsPipeline::GpuGraphicsPipeline(
 	pipeline_info.target_info = {};
 	//pipeline_info.vertex_input_state;
 	pipeline_info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+	//pipeline_info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 	pipeline_info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
 
 	if (vertex_buffer_descriptions.has_value())

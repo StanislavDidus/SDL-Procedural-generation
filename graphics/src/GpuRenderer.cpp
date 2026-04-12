@@ -6,12 +6,18 @@
 #include "glm/mat4x4.hpp"
 #include <SDL3_shadercross/SDL_shadercross.h>
 
-#define GLM_ENABLE_EXPERIMENTAL
 #include "GpuSampler.hpp"
 #include "Surface.hpp"
 #include "TileMap.hpp"
-#include "glm/gtx/transform.hpp"
 #include "SDL3/SDL_gpu.h"
+#include "CommandBuffer.hpp"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/transform.hpp"
+
+#include "imgui.h"
+#include "imgui_impl_sdl3.h"
+#include "imgui_impl_sdlgpu3.h"
 
 graphics::GpuRenderer::GpuRenderer(Window& window)
 	: window{ window }
@@ -130,17 +136,9 @@ void graphics::GpuRenderer::updateBuffers()
 {
 	if (!lines.empty())
 	{
-		line_transfer_buffer->putAutomatically<Vertex>(lines.data(), lines.size() * sizeof(Vertex));
-
+		line_transfer_buffer->putAutomatically<Vertex>(lines.data(), lines.size() * sizeof(Vertex), 0, true);
 		
-		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
-
-		if (!command_buffer)
-		{
-			throw std::runtime_error{ std::format("SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError()) };
-		}
-
-		//std::cout << "Command tile_buffer acquired." << std::endl;
+		CommandBuffer command_buffer{ device };
 
 		SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
 
@@ -159,18 +157,15 @@ void graphics::GpuRenderer::updateBuffers()
 		SDL_UploadToGPUBuffer(copy_pass, &location, &region, true);
 
 		SDL_EndGPUCopyPass(copy_pass);
+
+		command_buffer.submit();
 	}
 	
 	if (!ui_lines.empty())
 	{
-		line_transfer_buffer->putAutomatically<Vertex>(ui_lines.data(), ui_lines.size() * sizeof(Vertex), ALLOCATED_NUMBER_OBJECTS * 8);
+		line_transfer_buffer->putAutomatically<Vertex>(ui_lines.data(), ui_lines.size() * sizeof(Vertex), ALLOCATED_NUMBER_OBJECTS * 8, false);
 
-		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
-
-		if (!command_buffer)
-		{
-			throw std::runtime_error{ std::format("SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError()) };
-		}
+		CommandBuffer command_buffer{ device };
 
 		//std::cout << "Command tile_buffer acquired." << std::endl;
 
@@ -188,14 +183,16 @@ void graphics::GpuRenderer::updateBuffers()
 		region.offset = ALLOCATED_NUMBER_OBJECTS * 8 * sizeof(Vertex);
 
 		// Upload
-		SDL_UploadToGPUBuffer(copy_pass, &location, &region, true);
+		SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
 
 		SDL_EndGPUCopyPass(copy_pass);
+
+		command_buffer.submit();
 	}
 
 	if (!vertices.empty())
 	{
-		vertex_transfer_buffer->putAutomatically(vertices.data(), vertices.size() * sizeof(Vertex), 0);
+		vertex_transfer_buffer->putAutomatically(vertices.data(), vertices.size() * sizeof(Vertex), 0, true);
 
 		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
 
@@ -227,7 +224,7 @@ void graphics::GpuRenderer::updateBuffers()
 
 	if (!ui_vertices.empty())
 	{
-		vertex_transfer_buffer->putAutomatically(ui_vertices.data(), ui_vertices.size() * sizeof(Vertex), ALLOCATED_NUMBER_OBJECTS * 4);
+		vertex_transfer_buffer->putAutomatically(ui_vertices.data(), ui_vertices.size() * sizeof(Vertex), ALLOCATED_NUMBER_OBJECTS * 4, false);
 
 		std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
 
@@ -252,7 +249,7 @@ void graphics::GpuRenderer::updateBuffers()
 		region.offset = ALLOCATED_NUMBER_OBJECTS * 4 * sizeof(Vertex);
 
 		// Upload
-		SDL_UploadToGPUBuffer(copy_pass, &location, &region, true);
+		SDL_UploadToGPUBuffer(copy_pass, &location, &region, false);
 
 		SDL_EndGPUCopyPass(copy_pass);
 	}
@@ -261,7 +258,7 @@ void graphics::GpuRenderer::updateBuffers()
 	{
 		size_t objects_size = sprites.size();
 
-		SpriteData* data = sprite_transfer_buffer->map<SpriteData>();
+		SpriteData* data = sprite_transfer_buffer->map<SpriteData>(true);
 
 		size_t i = 0;
 		for (const auto& sprite : sprites)
@@ -283,7 +280,7 @@ void graphics::GpuRenderer::updateBuffers()
 		vertices_buffer_region.offset = 0;
 		vertices_buffer_region.size = objects_size * sizeof(SpriteData);
 
-		SDL_UploadToGPUBuffer(copy_pass, &vertices_transfer_info, &vertices_buffer_region, false);
+		SDL_UploadToGPUBuffer(copy_pass, &vertices_transfer_info, &vertices_buffer_region, true);
 
 		SDL_EndGPUCopyPass(copy_pass);
 	}
@@ -292,7 +289,7 @@ void graphics::GpuRenderer::updateBuffers()
 	{
 		size_t objects_size = ui_sprites.size();
 
-		SpriteData* data = sprite_transfer_buffer->map<SpriteData>();
+		SpriteData* data = sprite_transfer_buffer->map<SpriteData>(false);
 
 		data += ALLOCATED_NUMBER_OBJECTS;
 
@@ -342,6 +339,11 @@ void graphics::GpuRenderer::update()
 		throw std::runtime_error{ std::format("SDL_WaitAndAcquireGPUSwapchainTexture failed: {}", SDL_GetError()) };
 	}
 
+	ImGui::Render();
+
+	ImDrawData* draw_data = ImGui::GetDrawData();
+	ImGui_ImplSDLGPU3_PrepareDrawData(draw_data, command_buffer.get());
+
 	//.........................//
 	//<Calculate object matrix>//
 	//.........................//
@@ -365,7 +367,7 @@ void graphics::GpuRenderer::update()
 	//.........................//
 
 	glm::mat4 base_matrix = glm::transpose(projection);
-	glm::mat4 final_matrix = glm::transpose(projection * from_origin * rotation * scale * to_origin * view_matrix);
+	world_matrix = glm::transpose(projection * from_origin * rotation * scale * to_origin * view_matrix);
 
 	if (swapchain_texture)
 	{
@@ -379,6 +381,40 @@ void graphics::GpuRenderer::update()
 		};
 
 		SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
+
+	
+		if (!lines.empty())
+		{
+			SDL_BindGPUGraphicsPipeline(render_pass, line_graphics_pipeline->get());
+
+			SDL_GPUBufferBinding buffer_binding[1];
+			buffer_binding[0].buffer = line_buffer->get();
+			buffer_binding[0].offset = 0;
+
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &world_matrix, sizeof(glm::mat4));
+
+			SDL_BindGPUVertexBuffers(render_pass, 0, buffer_binding, 1);
+			SDL_DrawGPUPrimitives(render_pass, lines.size(), 1, 0, 0);
+		}
+
+		SDL_BindGPUGraphicsPipeline(render_pass, texture_graphics_pipeline->get());
+		SDL_BindGPUVertexStorageBuffers(render_pass, 0, &sprite_buffer->get(), 1);
+		SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &world_matrix, sizeof(glm::mat4));
+		SpriteUniform sprite_uniform{};
+		int i = 0;
+		for (const auto& sprite : sprites)
+		{
+			sprite_uniform.index = i;
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 1, &sprite_uniform, sizeof(SpriteUniform));
+
+			SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
+			texture_sampler_binding.texture = sprite.texture->get();
+			texture_sampler_binding.sampler = sprite.texture->getSampler()->get();
+			SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
+
+			SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
+			++i;
+		}
 
 		//Draw tilemap
 		for (auto& tilemap : tilemaps)
@@ -394,25 +430,27 @@ void graphics::GpuRenderer::update()
 			SDL_BindGPUVertexStorageBuffers(render_pass, 0, &buffer, 1);
 			SDL_GPUBuffer* sprite_buffer = tilemap->getSpriteBuffer();
 			SDL_BindGPUVertexStorageBuffers(render_pass, 1, &sprite_buffer, 1);
-			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &final_matrix, sizeof(glm::mat4));
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &world_matrix, sizeof(glm::mat4));
 			SDL_DrawGPUPrimitives(render_pass, 6, tilemap->getSize(), 0, 0);
-			std::cout << "Tilemap drawn" << std::endl;
+			//std::cout << "Tilemap drawn" << std::endl;
 		}
-
-		if (!lines.empty())
+		
+		if (!vertices.empty())
 		{
-			SDL_BindGPUGraphicsPipeline(render_pass, line_graphics_pipeline->get());
+			SDL_BindGPUGraphicsPipeline(render_pass, vertex_graphics_pipeline->get());
 
-			SDL_GPUBufferBinding buffer_binding[1];
-			buffer_binding[0].buffer = line_buffer->get();
-			buffer_binding[0].offset = 0;
+			SDL_GPUBufferBinding buffer_bindings[1];
 
-			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &final_matrix, sizeof(glm::mat4));
+			buffer_bindings[0].buffer = vertex_buffer->get();
+			buffer_bindings[0].offset = 0;
 
-			SDL_BindGPUVertexBuffers(render_pass, 0, buffer_binding, 1);
-			SDL_DrawGPUPrimitives(render_pass, lines.size(), 1, 0, 0);
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &world_matrix, sizeof(glm::mat4));
+
+			SDL_BindGPUVertexBuffers(render_pass, 0, buffer_bindings, 1);
+			SDL_DrawGPUPrimitives(render_pass, vertices.size(), 1, 0, 0);
 		}
 
+		
 		if (!ui_lines.empty())
 		{
 			SDL_BindGPUGraphicsPipeline(render_pass, line_graphics_pipeline->get());
@@ -428,36 +466,20 @@ void graphics::GpuRenderer::update()
 		}
 
 
-		if (!vertices.empty())
-		{
-			SDL_BindGPUGraphicsPipeline(render_pass, vertex_graphics_pipeline->get());
-
-			SDL_GPUBufferBinding buffer_bindings[1];
-
-			buffer_bindings[0].buffer = vertex_buffer->get();
-			buffer_bindings[0].offset = 0;
-
-			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &final_matrix, sizeof(glm::mat4));
-
-			SDL_BindGPUVertexBuffers(render_pass, 0, buffer_bindings, 1);
-			SDL_DrawGPUPrimitives(render_pass, vertices.size(), 1, 0, 0);
-		}
-
 		SDL_BindGPUGraphicsPipeline(render_pass, texture_graphics_pipeline->get());
 		SDL_BindGPUVertexStorageBuffers(render_pass, 0, &sprite_buffer->get(), 1);
-		SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &final_matrix, sizeof(glm::mat4));
-		SpriteUniform sprite_uniform{};
-		int i = 0;
-		for (const auto& sprite : sprites)
+		i = 0;
+		for (const auto& sprite : ui_sprites)
 		{
-			sprite_uniform.index = i;
+			sprite_uniform.index = ALLOCATED_NUMBER_OBJECTS + i;
 			SDL_PushGPUVertexUniformData(command_buffer.get(), 1, &sprite_uniform, sizeof(SpriteUniform));
 
 			SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
 			texture_sampler_binding.texture = sprite.texture->get();
 			texture_sampler_binding.sampler = sprite.texture->getSampler()->get();
-			SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
 
+			SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
+			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &base_matrix, sizeof(glm::mat4));
 			SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
 			++i;
 		}
@@ -477,23 +499,9 @@ void graphics::GpuRenderer::update()
 			SDL_DrawGPUPrimitives(render_pass, ui_vertices.size(), 1, 0, 0);
 		}
 
-		SDL_BindGPUGraphicsPipeline(render_pass, texture_graphics_pipeline->get());
-		SDL_BindGPUVertexStorageBuffers(render_pass, 0, &sprite_buffer->get(), 1);
-		i = 0;
-		for (const auto& sprite : ui_sprites)
-		{
-			sprite_uniform.index = ALLOCATED_NUMBER_OBJECTS + i;
-			SDL_PushGPUVertexUniformData(command_buffer.get(), 1, &sprite_uniform, sizeof(SpriteUniform));
 
-			SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
-			texture_sampler_binding.texture = sprite.texture->get();
-			texture_sampler_binding.sampler = sprite.texture->getSampler()->get();
-
-			SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
-			SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &base_matrix, sizeof(glm::mat4));
-			SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
-			++i;
-		}
+		// Render ImGui
+		ImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer.get(), render_pass);
 
 		SDL_EndGPURenderPass(render_pass);
 	}
@@ -517,7 +525,7 @@ std::shared_ptr<graphics::GpuTexture> graphics::GpuRenderer::loadTexture(const S
 	std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
 	SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
 
-	Uint8* texture_data = texture_transfer_buffer.map<Uint8>();
+	Uint8* texture_data = texture_transfer_buffer.map<Uint8>(false);
 
 	SDL_memcpy(texture_data, texture->pixels(), texture->w() * texture->h() * 4);
 
@@ -578,6 +586,11 @@ glm::ivec2 graphics::GpuRenderer::getWindowSize() const
 std::vector<graphics::Vertex>& graphics::GpuRenderer::getVertices()
 {
 	return vertices;
+}
+
+const glm::mat4& graphics::GpuRenderer::getWorldMatrix() const
+{
+	return world_matrix;
 }
 
 void graphics::GpuRenderer::setView(glm::vec2 view)
@@ -691,6 +704,7 @@ void graphics::GpuRenderer::renderSprite(const Sprite& sprite, float x, float y,
 void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, std::optional<SDL_FRect> source,
                                           std::optional<SDL_FRect> destination, float angle, SDL_FlipMode flip, bool ignore_view_zoom)
 {
+	//flip = SDL_FLIP_HORIZONTAL;
 	SDL_FRect src = source.value_or(SDL_FRect{ 0.0f, 0.0f, static_cast<float>(texture->w()), static_cast<float>(texture->h()) });
 	SDL_FRect dst = destination.value_or(SDL_FRect{ 0.0f, 0.0f, static_cast<float>(getWindowSize().x), static_cast<float>(getWindowSize().y) });
 

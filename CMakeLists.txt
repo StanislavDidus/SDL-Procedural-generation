@@ -45,6 +45,7 @@ set(SOURCE_FILES
     "src/EnemySpawnSystem.cpp"
     "src/DrunkWalker.cpp"
     "src/World.cpp"
+    "src/UI/DynamicBackground.cpp"
     )
 
 set(HEADER_FILES
@@ -121,6 +122,7 @@ set(HEADER_FILES
     "inc/VertexBuffer.hpp"
     "inc/World.hpp"
     "inc/WorldRenderer.hpp"
+    "inc/UI/DynamicBackground.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

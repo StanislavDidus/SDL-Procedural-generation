@@ -13,6 +13,7 @@ struct Output
     float4 Color : TEXCOORD1;
     float4 Position : SV_Position;
     uint Flip : TEXCOORD2;
+    float4 UV : TEXCOORD3;
 };
 
 StructuredBuffer<SpriteData> DataBuffer : register(t0, space0);
@@ -66,7 +67,7 @@ Output main(uint id : SV_VertexID)
     output.Texcoord = texcoord[vert];
     output.Color = sprite.Color;
     output.Flip = uint(sprite.Flip.x);
-    output.Flip = 0;
+    output.UV = sprite.UV;
 
     return output;
 }
