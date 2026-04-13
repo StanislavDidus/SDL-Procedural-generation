@@ -96,7 +96,7 @@ void Game::initGenerationData()
 {
 	generation_data.chest_size = glm::ivec2{ 2,2 };
 	generation_data.y_base = 25.f;
-	generation_data.cave_y_base = 25.0f;
+	generation_data.cave_y_base = 30.0f;
 	generation_data.sea_y_base = 19.f;
 	generation_data.scale = 0.5f;
 	generation_data.density_threshold = 0.5f;
