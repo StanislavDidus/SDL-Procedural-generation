@@ -56,9 +56,9 @@ void Game::initSystems()
 	input_system = std::make_unique<InputSystem>(registry);
 	collision_system = std::make_shared<TileCollisionSystem>(registry, world->grid);
 	jump_system = std::make_unique<JumpSystem>(registry);
-	mining_tiles_system = std::make_unique<MiningTilesSystem>(registry, world->grid, 20.f, 20.f);
-	mining_objects_system = std::make_unique<MiningObjectsSystem>(registry, world->grid, 20.f, 20.f);
-	place_system = std::make_unique<PlaceSystem>(registry, world->grid, 20.f, 20.f);
+	mining_tiles_system = std::make_unique<MiningTilesSystem>(registry, world, 20.f, 20.f);
+	mining_objects_system = std::make_unique<MiningObjectsSystem>(registry, world, 20.f, 20.f);
+	place_system = std::make_unique<PlaceSystem>(registry, world, 20.f, 20.f);
 	item_usage_system = std::make_shared<ItemUsageSystem>(registry);
 	button_system = std::make_unique<ButtonSystem>(registry);
 	craft_system = std::make_unique<CraftSystem>(registry);
@@ -495,8 +495,7 @@ void Game::update(float dt)
 			//world_renderer->update();
 			
 			world->update(registry);
-			world->updateSpriteMap();
-			tilemap->setSpriteMap(world->getSpriteMap());
+			world->setSpriteMap(*tilemap);
 
 			
 			const auto& player_transform = registry.get<Components::Transform>(player);

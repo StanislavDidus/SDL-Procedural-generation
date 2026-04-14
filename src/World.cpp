@@ -11,14 +11,76 @@ World::World(const Grid<Tile>& grid, const std::vector<ObjectData>& objects, con
 	, chests{chests}
 {
 	sprite_map.resize(grid.getColumns() * grid.getRows());
-
-	updateSpriteMap();
 }
 
 void World::initWorld(entt::registry& registry, float tile_width, float tile_height)
 {
 	spawnObjects(registry, tile_width, tile_height);
 	spawnChests(registry, tile_width, tile_height);
+}
+
+void World::placeTile(int x, int y, int tile_id)
+{
+	float world_width_tiles = grid.getColumns();
+	float world_height_tiles = grid.getRows();
+
+	if (x < 0 || x > world_width_tiles - 1 || y < 0 || y > world_height_tiles - 1) return;
+
+	auto& tile = grid(x, y);
+	auto& tile_manager = TileManager::get();
+
+	if (auto& tile_properties = tile_manager.getProperties(tile.id); !tile_properties.is_solid)
+	{
+		//Check adjacent tiles
+		bool is_placement_allowed = false;
+		for (int i = -1; i < 2; ++i) for (int j = -1; j < 2; ++j)
+		{
+			//Don't check the middle tile (it is where we want to place a new tile)
+			if (i == 0 && j == 0) continue;
+
+			int new_x = x + i;
+			int new_y = y + j;
+
+			if (new_x < 0 || new_x >= world_width_tiles || new_y < 0 || new_y >= world_height_tiles) continue;
+
+			auto& tile_temp = grid(new_x, new_y);
+			auto& properties_temp = tile_manager.getProperties(tile_temp.id);
+			if (properties_temp.is_solid)
+			{
+				is_placement_allowed = true;
+				break;
+			}
+		}
+
+		if (is_placement_allowed)
+		{
+			tile.id = tile_id;
+			is_dirty = true;
+		}
+	}
+
+}
+
+void World::damageTile(int x, int y, float damage)
+{
+	float world_width_tiles = grid.getColumns();
+	float world_height_tiles = grid.getRows();
+
+	if (x < 0 || x > world_width_tiles - 1 || y < 0 || y > world_height_tiles - 1) return;
+
+	auto& tile = grid(x, y);
+
+	if (auto& tile_properties = TileManager::get().getProperties(tile.id); tile_properties.is_solid && !tile.attached)
+	{
+		tile.dealDamage(damage);
+
+		if (tile.is_destroyed)
+		{
+			tile.id = TileManager::get().getTileID("Sky");
+			tile.is_destroyed = false;
+			is_dirty = true;
+		}
+	}
 }
 
 const std::vector<Uint32>& World::getSpriteMap() const
@@ -44,8 +106,10 @@ void World::update(entt::registry& registry)
 	}
 }
 
-void World::updateSpriteMap()
+void World::setSpriteMap(graphics::TileMap& tilemap)
 {
+	if (!is_dirty) return;
+
 	for (int y = 0; y < grid.getRows(); ++y)
 	{
 		for (int x = 0; x < grid.getColumns(); ++x)
@@ -54,6 +118,10 @@ void World::updateSpriteMap()
 			sprite_map[x + y * grid.getColumns()] = sprite_index;
 		}
 	}
+
+	tilemap.setSpriteMap(sprite_map);
+
+	is_dirty = false;
 }
 
 void World::spawnObjects(entt::registry& registry, float tile_width, float tile_height)

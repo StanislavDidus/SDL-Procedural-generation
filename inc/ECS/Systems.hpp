@@ -492,10 +492,10 @@ private:
 class MiningTilesSystem
 {
 public:
-	MiningTilesSystem(entt::registry& registry, Grid<Tile>& grid, float tile_width, float tile_height)
+	MiningTilesSystem(entt::registry& registry, std::shared_ptr<World> world, float tile_width, float tile_height)
 		: tile_width(tile_width)
 		, tile_height(tile_height)
-		, grid{grid}
+		, world(world)
 		, registry(registry)
 	{
 
@@ -540,7 +540,7 @@ public:
 				float distance = glm::distance(tile_position_global, mid_position);
 
 					if (distance <= mining_radius)
-						damageTile(grid, tile_covered.x, tile_covered.y, mining_speed * dt); 
+						world->damageTile(tile_covered.x, tile_covered.y, mining_speed * dt); 
 			}
 		}
 	}
@@ -575,7 +575,7 @@ public:
 private:
 	entt::registry& registry;
 
-	Grid<Tile>& grid;
+	std::shared_ptr<World> world;
 
 	float tile_width = 1.f;
 	float tile_height = 1.f;
@@ -586,10 +586,10 @@ private:
 class PlaceSystem
 {
 public:
-	PlaceSystem(entt::registry& registry, Grid<Tile>& grid, float tile_width, float tile_height)
+	PlaceSystem(entt::registry& registry, std::shared_ptr<World> world, float tile_width, float tile_height)
 		: tile_width(tile_width)
 		, tile_height(tile_height)
-		, grid(grid)
+		, world(world)
 		, registry(registry)
 	{
 	}
@@ -621,13 +621,13 @@ public:
 			int tile_y = static_cast<int>(std::floor((mouse_global_position.y) / tile_height));
 
 			//TODO Temporary placed 0 instead of a tile id
-			placeTile(grid, tile_x, tile_y, 0);
+			world->placeTile(tile_x, tile_y, 0);
 		}
 	}
 
 private:
 	entt::registry& registry;
-	Grid<Tile>& grid;
+	std::shared_ptr<World> world;
 	float tile_width = 1.f;
 	float tile_height = 1.f;
 };
@@ -635,10 +635,10 @@ private:
 class MiningObjectsSystem
 {
 public:
-	MiningObjectsSystem(entt::registry& registry, Grid<Tile>& grid, float tile_width, float tile_height)
+	MiningObjectsSystem(entt::registry& registry, std::shared_ptr<World> world, float tile_width, float tile_height)
 		: tile_width(tile_width)
 		, tile_height(tile_height)
-		, grid(grid)
+		, world(world)
 		, registry(registry)
 	{
 
@@ -768,7 +768,7 @@ public:
 	}
 private:
 	entt::registry& registry;
-	Grid<Tile>& grid;
+	std::shared_ptr<World> world;
 
 	float tile_width = 1.f;
 	float tile_height = 1.f;

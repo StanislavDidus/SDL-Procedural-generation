@@ -2,6 +2,7 @@
 #include <vector>
 #include <entt/entity/registry.hpp>
 
+#include "TileMap.hpp"
 #include "Grid.hpp"
 #include "Object.hpp"
 #include "Tile.hpp"
@@ -33,11 +34,14 @@ public:
 
 	void initWorld(entt::registry& registry, float tile_width, float tile_height);
 
+	void placeTile(int x, int y, int tile_id);
+	void damageTile(int x, int y, float damage);
+
 	// Getters
 	const std::vector<Uint32>& getSpriteMap() const;
 
 	void update(entt::registry& registry);
-	void updateSpriteMap();
+	void setSpriteMap(graphics::TileMap& tilemap);
 
 	Grid<Tile> grid;
 	std::vector<ObjectData> objects;
@@ -50,5 +54,6 @@ private:
 	void spawnChests(entt::registry& registry, float tile_width, float tile_height);
 	
 	std::vector<Uint32> sprite_map;
+	bool is_dirty = true;
 };
 
