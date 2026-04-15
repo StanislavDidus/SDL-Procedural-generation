@@ -135,9 +135,9 @@ int main()
             //gpu_renderer.renderTexture(ice_cream_texture, std::nullopt, std::nullopt, 0.0f, SDL_FLIP_NONE);
 
             //gpu_renderer.renderTriangle(0.0f, 0.0f, 480.0f, 540.0f, 960.0f, 0.0f, SDL_FColor{ 1.0f, 0.0,0.0f, 1.0f });
-            //graphics::drawScaledSprite(gpu_renderer, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky"), 0.0f, 0.0f, 200.0f, 200.0f, IGNORE_VIEW_ZOOM);
             //graphics::drawScaledSprite(gpu_renderer, sprite, 100.0f, 100.0f, 500.0f, 300.0f, IGNORE_VIEW_ZOOM);
-            //gpu_renderer.renderSprite(ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky"), 0.0f, 0.0f,960.0f, 540.0f, angle);
+            //gpu_renderer.renderSprite(ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky"), 0.0f, 0.0f,200.0f, 200.0f, angle);
+            //gpu_renderer.renderSprite(ResourceManager::get().getSpriteSheet("objects")->getSprite("Tree"), 300.0f, 0.0f,200.0f, 200.0f, angle);
             //gpu_renderer.renderRectangle(1.0f, 1.0f, 100.0f, 100.0f, RenderType::NONE, Color::YELLOW, IGNORE_VIEW_ZOOM);
             //gpu_renderer.renderRectangle(200.0f, 200.0f, 100.0f, 100.0f, RenderType::FILL, Color::BLUE, IGNORE_VIEW_ZOOM);
             //gpu_renderer.renderSprite(sprite, 0.0f, 0.0f, 100.0f, 100.0f, angle);

@@ -15,6 +15,7 @@ set(GRAPHICS_SOURCE_FILES
     "src/GpuGraphicsPipeline.cpp"
     "src/GpuSampler.cpp"
     "src/TileMap.cpp"
+    "src/RenderBatch.cpp"
     )
 
 set(GRAPHICS_HEADER_FILES
@@ -42,6 +43,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/GpuSampler.hpp"
     "inc/TileMap.hpp"
     "inc/CommandBuffer.hpp"
+    "inc/RenderBatch.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})

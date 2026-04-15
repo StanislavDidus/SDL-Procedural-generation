@@ -95,7 +95,7 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 
 	// TextureVertex graphics pipeline
 	{
-		texture_graphics_pipeline = std::make_unique<GpuGraphicsPipeline>(device, window, *texture_vertex_shader, *texture_fragment_shader, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST);
+		texture_graphics_pipeline = std::make_shared<GpuGraphicsPipeline>(device, window, *texture_vertex_shader, *texture_fragment_shader, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST);
 	}
 
 	// Allocate enough memory in vertex buffers
@@ -117,6 +117,9 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 
 	vertex_transfer_buffer = std::make_unique<GpuTransferBuffer>(
 		device, static_cast<Uint32>(vertex_buffer_size), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD);
+
+	sprite_batch = std::make_unique<SpriteBatch>(device, texture_graphics_pipeline);
+	ui_sprite_batch = std::make_unique<SpriteBatch>(device, texture_graphics_pipeline);
 }
 
 
@@ -324,12 +327,7 @@ void graphics::GpuRenderer::update()
 {
 	updateBuffers();
 
-	std::unique_ptr<SDL_GPUCommandBuffer, GPUCommandBufferDeleter> command_buffer{ SDL_AcquireGPUCommandBuffer(device.get()) };
-
-	if (!command_buffer)
-	{
-		throw std::runtime_error{ std::format("SDL_AcquireGPUCommandBuffer failed: {}", SDL_GetError()) };
-	}
+	CommandBuffer command_buffer{ device };
 
 	SDL_GPUTexture* swapchain_texture;
 	uint32_t width, height;
@@ -377,13 +375,43 @@ void graphics::GpuRenderer::update()
 			.clear_color = {0.0f, 0.0f, 0.0f, 1.0f},
 			.load_op = SDL_GPU_LOADOP_CLEAR,
 			.store_op = SDL_GPU_STOREOP_STORE,
-			.cycle = true
+			.cycle = false
 		};
 
-		SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
+		//SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
 
 	
-		if (!lines.empty())
+		sprite_batch->setMatrix(world_matrix);
+		for (const auto& draw_data : draw_buffer)
+		{
+			if (draw_data.type == DrawData::Sprite)
+			{
+				if (!sprite_batch->canBatch(draw_data))
+				{
+					sprite_batch->flushBatch(command_buffer, target_info);
+				}
+				sprite_batch->addToBatch(draw_data.sprite_data, draw_data.texture);
+			}
+		}
+		sprite_batch->flushBatch(command_buffer, target_info);
+		sprite_batch->reset();
+		
+		ui_sprite_batch->setMatrix(base_matrix);
+		for (const auto& draw_data : ui_draw_buffer)
+		{
+			if (draw_data.type == DrawData::Sprite)
+			{
+				if (!ui_sprite_batch->canBatch(draw_data))
+				{
+					ui_sprite_batch->flushBatch(command_buffer, target_info);
+				}
+				ui_sprite_batch->addToBatch(draw_data.sprite_data, draw_data.texture);
+			}
+		}
+		ui_sprite_batch->flushBatch(command_buffer, target_info);
+		ui_sprite_batch->reset();
+
+		/*if (!lines.empty())
 		{
 			SDL_BindGPUGraphicsPipeline(render_pass, line_graphics_pipeline->get());
 
@@ -497,15 +525,17 @@ void graphics::GpuRenderer::update()
 
 			SDL_BindGPUVertexBuffers(render_pass, 0, buffer_bindings, 1);
 			SDL_DrawGPUPrimitives(render_pass, ui_vertices.size(), 1, 0, 0);
-		}
+		}*/
 
 
 		// Render ImGui
-		ImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer.get(), render_pass);
+		//ImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer.get(), render_pass);
 
-		SDL_EndGPURenderPass(render_pass);
+		//SDL_EndGPURenderPass(render_pass);
 	}
 
+	draw_buffer.clear();
+	ui_draw_buffer.clear();
 	lines.clear();
 	ui_lines.clear();
 	sprites.clear();
@@ -636,6 +666,11 @@ void graphics::GpuRenderer::renderRectangle(float x, float y, float w, float h, 
 	{
 		if (render_type == RenderType::FILL)
 		{
+			DrawData draw_data;
+			draw_data.type = DrawData::Rectangle;
+			draw_data.rectangle_data = RectangleData{ glm::vec2{x,y},glm::vec2{w,h}, color };
+			draw_buffer.push_back(draw_data);
+			/*
 			vertices.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
 			vertices.emplace_back(x, y + h, 0.0f, color.r, color.g, color.b, color.a);
 			vertices.emplace_back(x + w, y + h, 0.0f, color.r, color.g, color.b, color.a);
@@ -643,10 +678,16 @@ void graphics::GpuRenderer::renderRectangle(float x, float y, float w, float h, 
 			vertices.emplace_back(x + w, y + h, 0.0f, color.r, color.g, color.b, color.a);
 			vertices.emplace_back(x + w, y, 0.0f, color.r, color.g, color.b, color.a);
 			vertices.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
+		*/
 		}
 		else if (render_type == RenderType::NONE)
 		{
-			lines.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
+			DrawData draw_data;
+			draw_data.type = DrawData::Line;
+			draw_data.line_data = LineData{ x,y,x + w,y + h, color };
+			draw_buffer.push_back(draw_data);
+
+			/*lines.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
 			lines.emplace_back(x, y + h, 0.0f, color.r, color.g, color.b, color.a);
 			
 			lines.emplace_back(x, y + h, 0.0f, color.r, color.g, color.b, color.a);
@@ -656,7 +697,7 @@ void graphics::GpuRenderer::renderRectangle(float x, float y, float w, float h, 
 			lines.emplace_back(x + w, y, 0.0f, color.r, color.g, color.b, color.a);
 
 			lines.emplace_back(x + w, y, 0.0f, color.r, color.g, color.b, color.a);
-			lines.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
+			lines.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);*/
 		}
 
 		if (vertices.size() > ALLOCATED_NUMBER_OBJECTS)
@@ -666,17 +707,27 @@ void graphics::GpuRenderer::renderRectangle(float x, float y, float w, float h, 
 	else
 	{
 		if (render_type == RenderType::FILL)
-		{
-			ui_vertices.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
+		{	
+			DrawData draw_data;
+			draw_data.type = DrawData::Rectangle;
+			draw_data.rectangle_data = RectangleData{ glm::vec2{x,y},glm::vec2{w,h}, color };
+			ui_draw_buffer.push_back(draw_data);
+
+			/*ui_vertices.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
 			ui_vertices.emplace_back(x, y + h, 0.0f, color.r, color.g, color.b, color.a);
 			ui_vertices.emplace_back(x + w, y + h, 0.0f, color.r, color.g, color.b, color.a);
 
 			ui_vertices.emplace_back(x + w, y + h, 0.0f, color.r, color.g, color.b, color.a);
 			ui_vertices.emplace_back(x + w, y, 0.0f, color.r, color.g, color.b, color.a);
-			ui_vertices.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
+			ui_vertices.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);*/
 		}
 		else if (render_type == RenderType::NONE)
 		{
+			DrawData draw_data;
+			draw_data.type = DrawData::Line;
+			draw_data.line_data = LineData{ x,y,x + w,y + h, color };
+			ui_draw_buffer.push_back(draw_data);
+			/*
 			ui_lines.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
 			ui_lines.emplace_back(x, y + h, 0.0f, color.r, color.g, color.b, color.a);
 			
@@ -688,6 +739,7 @@ void graphics::GpuRenderer::renderRectangle(float x, float y, float w, float h, 
 
 			ui_lines.emplace_back(x + w, y, 0.0f, color.r, color.g, color.b, color.a);
 			ui_lines.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
+		*/
 		}
 
 		if (ui_vertices.size() > ALLOCATED_NUMBER_UI_OBJECTS)
@@ -710,17 +762,18 @@ void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, s
 
 	if (!ignore_view_zoom)
 	{
-		sprites.emplace_back(
-			texture,
-			SpriteData
-			{
-				.pos_rot{dst.x, dst.y, 0.0f, angle},
-				.size{dst.w, dst.h, 0.0f, 0.0f},
-				.uv{src.x, src.y, src.w, src.h},
-				.color{1.0f, 1.0f, 1.0f, 1.0f},
-				.flip{static_cast<float>(static_cast<unsigned int>(flip)), 0.0f, 0.0f, 0.0f}
-			}
-			);
+		DrawData draw_data;
+		draw_data.type = DrawData::Sprite;
+		draw_data.texture = texture;
+		draw_data.sprite_data = SpriteData
+		{
+			.pos_rot{dst.x, dst.y, 0.0f, angle},
+			.size{dst.w, dst.h, 0.0f, 0.0f},
+			.uv{src.x, src.y, src.w, src.h},
+			.color{1.0f, 1.0f, 1.0f, 1.0f},
+			.flip{static_cast<float>(static_cast<unsigned int>(flip)), 0.0f, 0.0f, 0.0f}
+		};
+		draw_buffer.push_back(draw_data);
 
 		if (sprites.size() > ALLOCATED_NUMBER_OBJECTS)
 		{
@@ -730,18 +783,18 @@ void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, s
 	}
 	else
 	{
-
-		ui_sprites.emplace_back(
-			texture,
-			SpriteData
-			{
-				.pos_rot{dst.x, dst.y, 0.0f, angle},
-				.size{dst.w, dst.h, 0.0f, 0.0f},
-				.uv{src.x, src.y, src.w, src.h},
-				.color{1.0f, 1.0f, 1.0f, 1.0f},
-				.flip{static_cast<float>(static_cast<unsigned int>(flip)), 0.0f, 0.0f, 0.0f}
-			}
-			);
+		DrawData draw_data;
+		draw_data.type = DrawData::Sprite;
+		draw_data.texture = texture;
+		draw_data.sprite_data = SpriteData
+		{
+			.pos_rot{dst.x, dst.y, 0.0f, angle},
+			.size{dst.w, dst.h, 0.0f, 0.0f},
+			.uv{src.x, src.y, src.w, src.h},
+			.color{1.0f, 1.0f, 1.0f, 1.0f},
+			.flip{static_cast<float>(static_cast<unsigned int>(flip)), 0.0f, 0.0f, 0.0f}
+		};
+		ui_draw_buffer.push_back(draw_data);
 
 		if (ui_sprites.size() > ALLOCATED_NUMBER_UI_OBJECTS)
 		{
@@ -753,6 +806,9 @@ void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, s
 
 void graphics::GpuRenderer::renderTileMap(std::shared_ptr<TileMap> tilemap, float x, float y)
 {
-	tilemaps.push_back(tilemap);
+	DrawData draw_data;
+	draw_data.type = DrawData::Tilemap;
+	draw_data.tilemap = tilemap;
+	draw_buffer.push_back(draw_data);
 }
 

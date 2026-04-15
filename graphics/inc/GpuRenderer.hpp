@@ -18,6 +18,7 @@
 #include "Vertex.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
+#include "RenderBatch.hpp"
 #include "glm/gtx/transform.hpp"
 
 namespace graphics
@@ -76,11 +77,6 @@ namespace graphics
 	{
 		float time;
 	};
-
-	struct alignas(16) SpriteUniform
-	{
-		uint32_t index;
-	};
 	
 	static ScreenSize screen_size_uniform;
 	static Uniform time_uniform;
@@ -126,17 +122,23 @@ namespace graphics
 		Window& window;
 		std::shared_ptr<SDL_GPUDevice> device = nullptr;
 
+		std::vector<DrawData> draw_buffer;
+		std::vector<DrawData> ui_draw_buffer;
+
 		// <Render Parameters> //
 		glm::vec2 view = {0.0f, 0.0f};
 		float zoom = 1.0f;
 		float angle = 0.0f; ///< Degrees.
 		glm::mat4 world_matrix;
 
+		std::unique_ptr<SpriteBatch> sprite_batch;
+		std::unique_ptr<SpriteBatch> ui_sprite_batch;
+
 		std::unique_ptr<WindowClaimer> window_claimer;
 		std::unique_ptr<GpuGraphicsPipeline> tilemap_graphics_pipeline;
 		std::unique_ptr<GpuGraphicsPipeline> line_graphics_pipeline;
 		std::unique_ptr<GpuGraphicsPipeline> vertex_graphics_pipeline;
-		std::unique_ptr<GpuGraphicsPipeline> texture_graphics_pipeline;
+		std::shared_ptr<GpuGraphicsPipeline> texture_graphics_pipeline;
 
 		//Buffers
 		//Vertex buffers

@@ -3,8 +3,10 @@
 #include <array>
 #include <memory>
 
+#include "TileMap.hpp"
 #include "GpuTexture.hpp"
 #include "glm/vec4.hpp"
+#include "glm/vec2.hpp"
 
 namespace graphics
 {
@@ -32,6 +34,24 @@ namespace graphics
 		std::string texture_name;
 		std::array<TextureVertex, 4> vertices;
 	};
+	struct RectangleData
+	{
+		glm::vec2 position;
+		glm::vec2 size;
+		glm::vec4 color;
+	};
+	struct LineData
+	{
+		float x1;
+		float y1;
+		float x2;
+		float y2;
+		glm::vec4 color;
+	};
+	struct TileMapData
+	{
+		std::shared_ptr<TileMap> tile_map;
+	};
 	struct alignas(16) SpriteData
 	{
 		glm::vec4 pos_rot; // Position3 and Rotation1
@@ -45,4 +65,23 @@ namespace graphics
 		std::shared_ptr<GpuTexture> texture;
 		SpriteData data;
 	};
+	struct DrawData
+	{
+		enum Type { Sprite, Rectangle, Line, Tilemap } type;
+
+		std::shared_ptr<GpuTexture> texture;
+		std::shared_ptr<TileMap> tilemap;
+
+		union
+		{
+			SpriteData sprite_data;
+			RectangleData rectangle_data;
+			LineData line_data;
+		};
+	};
+	struct alignas(16) SpriteUniform
+	{
+		uint32_t index;
+	};
+
 }

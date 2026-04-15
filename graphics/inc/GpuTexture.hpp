@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "GpuSampler.hpp"
-#include "RenderFunctions.hpp"
 #include "Surface.hpp"
 #include "SDL3/SDL_gpu.h"
 #include "SDL3/SDL_log.h"
