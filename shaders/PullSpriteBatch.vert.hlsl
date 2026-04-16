@@ -36,10 +36,10 @@ static const float2 vertexPos[4] = {
     {1.0f, 0.0f}
 };
 
-Output main(uint id : SV_VertexID)
+Output main(uint id : SV_VertexID, uint instance_id : SV_InstanceID)
 {
     uint vert = triangleIndices[id % 6];
-    SpriteData sprite = DataBuffer[spriteIndex];
+    SpriteData sprite = DataBuffer[spriteIndex + instance_id];
 
     float2 texcoord[4] = {
         {sprite.UV.x,               sprite.UV.y              },

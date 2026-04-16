@@ -2,6 +2,7 @@
 
 #include <array>
 #include <memory>
+#include <variant>
 
 #include "TileMap.hpp"
 #include "GpuTexture.hpp"
@@ -65,20 +66,9 @@ namespace graphics
 		std::shared_ptr<GpuTexture> texture;
 		SpriteData data;
 	};
-	struct DrawData
-	{
-		enum Type { Sprite, Rectangle, Line, Tilemap } type;
 
-		std::shared_ptr<GpuTexture> texture;
-		std::shared_ptr<TileMap> tilemap;
+	using DrawData = std::variant<GpuSprite, RectangleData, LineData, TileMapData>;
 
-		union
-		{
-			SpriteData sprite_data;
-			RectangleData rectangle_data;
-			LineData line_data;
-		};
-	};
 	struct alignas(16) SpriteUniform
 	{
 		uint32_t index;

@@ -56,13 +56,9 @@ void graphics::SpriteBatch::flushBatch(CommandBuffer& command_buffer, SDL_GPUCol
 	SDL_BindGPUGraphicsPipeline(render_pass, graphics_pipeline->get());
 	SDL_BindGPUVertexStorageBuffers(render_pass, 0, &storage_buffer.get(), 1);
 	SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &world_matrix, sizeof(glm::mat4));
-	for (int i = 0; i < sprites.size(); ++i)
-	{
-		sprite_uniform.index = i + sprite_offset;
-
-		SDL_PushGPUVertexUniformData(command_buffer.get(), 1, &sprite_uniform, sizeof(SpriteUniform));
-		SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
-	}
+	sprite_uniform.index = sprite_offset;
+	SDL_PushGPUVertexUniformData(command_buffer.get(), 1, &sprite_uniform, sizeof(SpriteUniform));
+	SDL_DrawGPUPrimitives(render_pass, 6, sprites.size(), 0, 0);
 
 	SDL_EndGPURenderPass(render_pass);
 
@@ -72,17 +68,13 @@ void graphics::SpriteBatch::flushBatch(CommandBuffer& command_buffer, SDL_GPUCol
 	sprites.clear();
 }
 
-bool graphics::SpriteBatch::canBatch(const DrawData& draw_data) const
+bool graphics::SpriteBatch::canBatch(const GpuSprite& gpu_sprite) const
 {
-	if (draw_data.type != DrawData::Type::Sprite)
-	{
-		return false;
-	}
 
 	if (sprites.empty())
 		return true;
 
-	return texture == draw_data.texture;
+	return texture == gpu_sprite.texture;
 }
 
 void graphics::SpriteBatch::reset()

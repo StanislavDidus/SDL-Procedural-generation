@@ -31,7 +31,7 @@ namespace graphics
 
 		void addToBatch(const SpriteData& sprite_data, std::shared_ptr<GpuTexture> texture);
 		void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info);
-		bool canBatch(const DrawData& draw_data) const;
+		bool canBatch(const GpuSprite& gpu_sprite) const;
 
 		void reset();
 
@@ -50,4 +50,35 @@ namespace graphics
 
 		glm::mat4 world_matrix;
 	};
+	
+	class RectangleBatch
+	{
+	public:
+		RectangleBatch() = default;
+		RectangleBatch(std::shared_ptr<SDL_GPUDevice> device, std::shared_ptr<GpuGraphicsPipeline> graphics_pipeline);
+		~RectangleBatch() = default;
+
+		void setMatrix(const glm::mat4& matrix);
+
+		void addToBatch(const RectangleData& rectangle_data);
+		void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info);
+		bool canBatch(const RectangleData& rectangle_data) const;
+
+		void reset();
+
+	private:
+		std::vector<RectangleData> rectangles;
+		std::shared_ptr<SDL_GPUDevice> device;
+		std::shared_ptr<GpuGraphicsPipeline> graphics_pipeline;
+
+		GpuBuffer vertices_buffer;
+		GpuBuffer indices_buffer;
+		GpuTransferBuffer transfer_buffer;
+
+		size_t offset;
+		bool first_draw = true;
+
+		glm::mat4 world_matrix;
+	};
+
 }

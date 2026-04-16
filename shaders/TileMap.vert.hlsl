@@ -38,9 +38,9 @@ Output main(uint id : SV_VertexID, uint instance_id : SV_InstanceID)
 
     float2 texcoord[4] = {
         {tile.Size_UV.z * sprite_id + 1.0f,                 0.0f                                     },
-        {tile.Size_UV.z * sprite_id + 1.0f,                 tile.Size_UV.z                               },
-        {tile.Size_UV.z * (sprite_id + 1) - 1.0f,           tile.Size_UV.z                                     },
-        {tile.Size_UV.z * (sprite_id + 1) - 1.0f,           0.0f                                           }
+        {tile.Size_UV.z * sprite_id + 1.0f,                 tile.Size_UV.z                           },
+        {tile.Size_UV.z * (sprite_id + 1) - 1.0f,           tile.Size_UV.z                           },
+        {tile.Size_UV.z * (sprite_id + 1) - 1.0f,           0.0f                                     }
     };
 
     float2 coord = vertexPos[vert];
