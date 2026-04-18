@@ -132,24 +132,3 @@ static std::optional<Components::Object> damageObject(entt::registry& registry, 
 	}
 	return std::nullopt;
 }
-
-static void updateTilesDurability(Grid<Tile>& grid)
-{
-	float world_width_tiles = grid.getColumns();
-	float world_height_tiles = grid.getRows();
-
-	const auto& tile_manager = TileManager::get();
-	for (int x = 0; x < world_width_tiles; ++x)
-	{
-		for (int y = 0; y < world_height_tiles; ++y)
-		{
-			auto& tile = grid(x, y);
-
-			if (tile.received_damage_last_frame == false)
-			{
-				tile.current_durability = tile_manager.getProperties(tile.id).max_durability;
-			}
-			tile.received_damage_last_frame = false;
-		}
-	}
-}

@@ -11,7 +11,16 @@
 class RenderEssenceCounter
 {
 public:
-	RenderEssenceCounter(const entt::registry& registry, const UISettings& ui_settings, std::shared_ptr<graphics::Font> font) : registry{ registry }, ui_settings{ ui_settings }, font { font } {}
+	RenderEssenceCounter(const entt::registry& registry, const UISettings& ui_settings, graphics::GpuRenderer& screen, std::shared_ptr<graphics::Font> font) 
+		: registry{ registry }
+		, ui_settings{ ui_settings }
+		, font { font }
+		, common_essence_text(screen, font, " ", graphics::Color::BLACK)
+		, snow_essence_text(screen, font, " ", graphics::Color::BLACK)
+		, sand_essence_text(screen, font, " ", graphics::Color::BLACK)
+	{
+		
+	}
 
 	void render(graphics::GpuRenderer& screen, Entity target_entity)
 	{
@@ -32,11 +41,16 @@ public:
 
 			offset_x += size.x + space;
 
-			graphics::Text text{ screen, font, std::to_string(equipment_essence_component.common_essence) };	
-			glm::vec2 text_size = text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
+			std::string string = std::to_string(equipment_essence_component.common_essence);
+			if (common_essence_text.getText() != string)
+			{
+				common_essence_text.setText(string);
+				common_essence_text.updateText(screen);
+			}
+			glm::vec2 text_size = common_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
-			graphics::printTextScaled(screen, text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, graphics::IGNORE_VIEW_ZOOM);	
+			graphics::printTextScaled(screen, common_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, graphics::IGNORE_VIEW_ZOOM);	
 			offset_x += text_size.x;
 		}
 
@@ -47,11 +61,16 @@ public:
 
 			offset_x += size.x + space;
 
-			graphics::Text text{screen, font, std::to_string(equipment_essence_component.snow_essence) };	
-			glm::vec2 text_size = text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
+			std::string string = std::to_string(equipment_essence_component.snow_essence);
+			if (snow_essence_text.getText() != string)
+			{
+				snow_essence_text.setText(string);
+				snow_essence_text.updateText(screen);
+			}
+			glm::vec2 text_size = snow_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
-			graphics::printTextScaled(screen, text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, graphics::IGNORE_VIEW_ZOOM);	
+			graphics::printTextScaled(screen,snow_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, graphics::IGNORE_VIEW_ZOOM);	
 			offset_x += text_size.x;
 		}
 		// Render Sand Essence
@@ -61,11 +80,17 @@ public:
 
 			offset_x += size.x + space;
 
-			graphics::Text text{ screen, font, std::to_string(equipment_essence_component.sand_essence) };	
-			glm::vec2 text_size = text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
+			std::string string = std::to_string(equipment_essence_component.sand_essence);
+			if (sand_essence_text.getText() != string)
+			{
+				sand_essence_text.setText(string);
+				sand_essence_text.updateText(screen);
+			}
+
+			glm::vec2 text_size = sand_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
-			graphics::printTextScaled(screen, text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, graphics::IGNORE_VIEW_ZOOM);	
+			graphics::printTextScaled(screen, sand_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, graphics::IGNORE_VIEW_ZOOM);	
 			offset_x += text_size.x;
 		}
 	}
@@ -74,4 +99,8 @@ private:
 	const entt::registry& registry;
 	const UISettings& ui_settings;
 	std::shared_ptr<graphics::Font> font;
+
+	graphics::Text common_essence_text;
+	graphics::Text snow_essence_text;
+	graphics::Text sand_essence_text;
 };

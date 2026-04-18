@@ -89,7 +89,7 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 		vertex_attributes.emplace_back(0u, 0u, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, 0u);
 		vertex_attributes.emplace_back(1u, 0u, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4, static_cast<Uint32>(3 * sizeof(float)));
 
-		vertex_graphics_pipeline = std::make_unique<GpuGraphicsPipeline>(device, window, *vertex_shader, *fragment_shader, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, vertex_buffer_descriptions, vertex_attributes);
+		vertex_graphics_pipeline = std::make_shared<GpuGraphicsPipeline>(device, window, *vertex_shader, *fragment_shader, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, vertex_buffer_descriptions, vertex_attributes);
 
 	}
 
@@ -120,6 +120,8 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 
 	sprite_batch = std::make_unique<SpriteBatch>(device, texture_graphics_pipeline);
 	ui_sprite_batch = std::make_unique<SpriteBatch>(device, texture_graphics_pipeline);
+	rectangle_batch = std::make_unique<RectangleBatch>(device, vertex_graphics_pipeline);
+	ui_rectangle_batch = std::make_unique<RectangleBatch>(device, vertex_graphics_pipeline);
 }
 
 
@@ -135,9 +137,93 @@ void graphics::GpuRenderer::initSamplers()
 	std::cout << "Samplers initialized." << std::endl;
 }
 
+void graphics::GpuRenderer::render
+(
+	CommandBuffer& command_buffer,
+	SDL_GPUColorTargetInfo& target_info,
+	glm::mat4& matrix,
+	const std::vector<DrawData>& draw_buffer_,
+	SpriteBatch& sprite_batch_,
+	RectangleBatch& rectangle_batch_, bool& first_render
+)
+{
+	sprite_batch_.setMatrix(matrix);
+	rectangle_batch_.setMatrix(matrix);
+	for (const auto& draw_data : draw_buffer_)
+	{
+		std::visit([&](auto&& data)
+		{
+			using T = std::decay_t<decltype(data)>;
+			if constexpr (std::is_same_v<T, GpuSprite>)
+			{
+				rectangle_batch_.flushBatch(command_buffer, target_info, first_render);
+
+				if (!sprite_batch_.canBatch(data))
+				{
+					sprite_batch_.flushBatch(command_buffer, target_info, first_render);
+				}
+				sprite_batch_.addToBatch(data.data, data.texture);
+			}
+			else if constexpr (std::is_same_v<T, RectangleData>)
+			{
+				sprite_batch_.flushBatch(command_buffer, target_info, first_render);
+				if (!rectangle_batch_.canBatch(data))
+				{
+					rectangle_batch_.flushBatch(command_buffer, target_info, first_render);
+				}
+				rectangle_batch_.addToBatch(data);
+			}
+			else if constexpr (std::is_same_v<T, TileMapData>)
+			{
+				sprite_batch_.flushBatch(command_buffer, target_info, first_render);
+				rectangle_batch_.flushBatch(command_buffer, target_info, first_render);
+				renderTileMap(data, command_buffer, target_info, matrix, first_render);
+			}
+		}, draw_data);
+	}
+	sprite_batch_.flushBatch(command_buffer, target_info, first_render);
+	sprite_batch_.reset();
+	rectangle_batch_.flushBatch(command_buffer, target_info, first_render);
+	rectangle_batch_.reset();
+
+}
+
+void graphics::GpuRenderer::renderTileMap(const TileMapData& tile_map_data, CommandBuffer& command_buffer,
+                                          SDL_GPUColorTargetInfo& target_info, const glm::mat4& matrix, bool& first_render) const
+{
+	if (first_render)
+	{
+		target_info.load_op = SDL_GPU_LOADOP_CLEAR;
+		first_render = false;
+	}
+	else
+	{
+		target_info.load_op = SDL_GPU_LOADOP_LOAD;
+	}
+
+	SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
+	//Draw tilemap
+	const auto& tilemap = tile_map_data.tile_map;
+	SDL_BindGPUGraphicsPipeline(render_pass, tilemap_graphics_pipeline->get());
+
+	SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
+	texture_sampler_binding.texture = tilemap->getTexture()->get();
+	texture_sampler_binding.sampler = tilemap->getTexture()->getSampler()->get();
+	SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
+
+	SDL_GPUBuffer* buffer = tilemap->getTileBuffer();
+	SDL_BindGPUVertexStorageBuffers(render_pass, 0, &buffer, 1);
+	SDL_GPUBuffer* sprite_buffer = tilemap->getSpriteBuffer();
+	SDL_BindGPUVertexStorageBuffers(render_pass, 1, &sprite_buffer, 1);
+	SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &matrix, sizeof(glm::mat4));
+	SDL_DrawGPUPrimitives(render_pass, 6, tilemap->getSize(), 0, 0);
+
+	SDL_EndGPURenderPass(render_pass);
+}
+
 void graphics::GpuRenderer::updateBuffers()
 {
-	if (!lines.empty())
+/*	if (!lines.empty())
 	{
 		line_transfer_buffer->putAutomatically<Vertex>(lines.data(), lines.size() * sizeof(Vertex), 0, true);
 		
@@ -320,7 +406,7 @@ void graphics::GpuRenderer::updateBuffers()
 		SDL_UploadToGPUBuffer(copy_pass, &vertices_transfer_info, &vertices_buffer_region, false);
 
 		SDL_EndGPUCopyPass(copy_pass);
-	}
+	}*/
 }
 
 void graphics::GpuRenderer::update()
@@ -378,45 +464,9 @@ void graphics::GpuRenderer::update()
 			.cycle = false
 		};
 
-		//SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
-
-	
-		sprite_batch->setMatrix(world_matrix);
-		for (const auto& draw_data : draw_buffer)
-		{
-			std::visit([&](auto&& data)
-			{
-				using T = std::decay_t<decltype(data)>;
-				if constexpr (std::is_same_v<T, GpuSprite>)
-				{
-					if (!sprite_batch->canBatch(data))
-					{
-						sprite_batch->flushBatch(command_buffer, target_info);
-					}
-					sprite_batch->addToBatch(data.data, data.texture);
-				}
-			}, draw_data);
-		}
-		sprite_batch->flushBatch(command_buffer, target_info);
-		sprite_batch->reset();
-		
-		ui_sprite_batch->setMatrix(base_matrix);
-		for (const auto& draw_data : ui_draw_buffer)
-		{
-			std::visit([&](auto&& data)
-			{
-				using T = std::decay_t<decltype(data)>;
-				if constexpr (std::is_same_v<T, GpuSprite>)
-				{
-					if (!ui_sprite_batch->canBatch(data))
-					{
-						ui_sprite_batch->flushBatch(command_buffer, target_info);
-					}
-					ui_sprite_batch->addToBatch(data.data, data.texture);
-				}
-			}, draw_data);		}
-		ui_sprite_batch->flushBatch(command_buffer, target_info);
-		ui_sprite_batch->reset();
+		bool first_render = true;
+		render(command_buffer, target_info, world_matrix, draw_buffer, *sprite_batch, *rectangle_batch, first_render);
+		render(command_buffer, target_info, base_matrix, ui_draw_buffer, *ui_sprite_batch, *ui_rectangle_batch, first_render);
 
 		/*if (!lines.empty())
 		{
@@ -673,7 +723,6 @@ void graphics::GpuRenderer::renderRectangle(float x, float y, float w, float h, 
 	{
 		if (render_type == RenderType::FILL)
 		{
-			DrawData draw_data;
 			draw_buffer.push_back(RectangleData{ glm::vec2{x,y},glm::vec2{w,h}, color });
 			/*
 			vertices.emplace_back(x, y, 0.0f, color.r, color.g, color.b, color.a);
@@ -802,6 +851,6 @@ void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, s
 
 void graphics::GpuRenderer::renderTileMap(std::shared_ptr<TileMap> tilemap, float x, float y)
 {
-	draw_buffer.push_back(TileMapData{tilemap});
+	draw_buffer.emplace_back(TileMapData{tilemap});
 }
 

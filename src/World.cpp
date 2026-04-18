@@ -90,20 +90,8 @@ const std::vector<Uint32>& World::getSpriteMap() const
 
 void World::update(entt::registry& registry)
 {
-	std::vector<Entity> to_destroy;
-	auto view = registry.view<Components::Object>();
-	for (auto [entity, object_component] : view.each())
-	{
-		if (object_component.current_durability <= 0.0f)
-		{
-			to_destroy.push_back(entity);
-		}
-	}
-
-	for (const auto& entity : to_destroy)
-	{
-		registry.destroy(entity);
-	}
+	updateObjectsDurability(registry);
+	//updateTilesDurability();
 }
 
 void World::setSpriteMap(graphics::TileMap& tilemap)
@@ -180,4 +168,44 @@ void World::spawnChests(entt::registry& registry, float tile_width, float tile_h
 
 		chest_entities.push_back(chest);
 	}
+}
+
+void World::updateObjectsDurability(entt::registry& registry)
+{
+	std::vector<Entity> to_destroy;
+	auto view = registry.view<Components::Object>();
+	for (auto [entity, object_component] : view.each())
+	{
+		if (object_component.current_durability <= 0.0f)
+		{
+			to_destroy.push_back(entity);
+		}
+	}
+
+	for (const auto& entity : to_destroy)
+	{
+		registry.destroy(entity);
+	}
+}
+
+void World::updateTilesDurability()
+{
+	float world_width_tiles = grid.getColumns();
+	float world_height_tiles = grid.getRows();
+
+	const auto& tile_manager = TileManager::get();
+	for (int x = 0; x < world_width_tiles; ++x)
+	{
+		for (int y = 0; y < world_height_tiles; ++y)
+		{
+			auto& tile = grid(x, y);
+
+			if (tile.received_damage_last_frame == false)
+			{
+				tile.current_durability = tile_manager.getProperties(tile.id).max_durability;
+			}
+			tile.received_damage_last_frame = false;
+		}
+	}
+
 }

@@ -52,6 +52,9 @@ public:
 private:
 	void spawnObjects(entt::registry& registry, float tile_width, float tile_height);
 	void spawnChests(entt::registry& registry, float tile_width, float tile_height);
+
+	static void updateObjectsDurability(entt::registry& registry);
+	void updateTilesDurability();
 	
 	std::vector<Uint32> sprite_map;
 	bool is_dirty = true;

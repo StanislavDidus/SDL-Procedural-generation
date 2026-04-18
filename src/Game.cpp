@@ -81,7 +81,7 @@ void Game::initSystems()
 	change_mining_size_system = std::make_unique<ChangeMiningSizeSystem>(registry);
 	manage_button_actions_system = std::make_unique<ManageButtonActionsSystem>(registry);
 	chest_window_system = std::make_unique<ChestWindowSystem>(registry, ResourceManager::get().getFont("Main"));
-	render_essence_counter = std::make_unique<RenderEssenceCounter>(registry, ui_settings, ResourceManager::get().getFont("Main"));
+	render_essence_counter = std::make_unique<RenderEssenceCounter>(registry, ui_settings, screen, ResourceManager::get().getFont("Main"));
 	collect_essence_system = std::make_unique<CollectEssenceSystem>(registry);
 	open_chest_system = std::make_unique<OpenChestSystem>(registry);
 	drop_chest_loot_system = std::make_unique<DropChestLootSystem>(registry);
@@ -491,7 +491,7 @@ void Game::update(float dt)
 			update_effects_system->update(dt);
 			apply_effects_system->update(dt);
 			enemy_spawn_manager->update(dt);
-			updateTilesDurability(world->grid);
+			//updateTilesDurability(world->grid);
 			//world_renderer->update();
 			
 			world->update(registry);
@@ -553,8 +553,8 @@ void Game::render(float dt) const
 
 		//world_renderer->render(screen, world_target);
 		//world_generator->render(screen);
-		screen.renderTileMap(tilemap, 0.0f, 0.0f);
 		background.render(screen, screen.getView());
+		screen.renderTileMap(tilemap, 0.0f, 0.0f);
 		render_system->render(screen);
 		mining_tiles_system->renderOutline(screen);
 		mining_objects_system->render(screen);
@@ -570,7 +570,6 @@ void Game::render(float dt) const
 		render_health_bar_system->render(screen);
 		chest_window_system->render(screen);
 		render_accessories_system->update(player, screen);
-		//world_generator->renderHelp(screen);
 	}
 	break;
 	}

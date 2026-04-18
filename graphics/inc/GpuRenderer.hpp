@@ -119,6 +119,11 @@ namespace graphics
 	private:
 		void initSamplers();
 
+		void render(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, glm::mat4& matrix, const std::vector<DrawData>&
+		                   draw_buffer_, SpriteBatch& sprite_batch_, RectangleBatch& rectangle_batch_, bool& first_render);
+		void renderTileMap(const TileMapData& tile_map_data, CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, const glm::mat4&
+		                   matrix, bool& first_render) const;
+
 		Window& window;
 		std::shared_ptr<SDL_GPUDevice> device = nullptr;
 
@@ -133,11 +138,13 @@ namespace graphics
 
 		std::unique_ptr<SpriteBatch> sprite_batch;
 		std::unique_ptr<SpriteBatch> ui_sprite_batch;
+		std::unique_ptr<RectangleBatch> rectangle_batch;
+		std::unique_ptr<RectangleBatch> ui_rectangle_batch;
 
 		std::unique_ptr<WindowClaimer> window_claimer;
 		std::unique_ptr<GpuGraphicsPipeline> tilemap_graphics_pipeline;
 		std::unique_ptr<GpuGraphicsPipeline> line_graphics_pipeline;
-		std::unique_ptr<GpuGraphicsPipeline> vertex_graphics_pipeline;
+		std::shared_ptr<GpuGraphicsPipeline> vertex_graphics_pipeline;
 		std::shared_ptr<GpuGraphicsPipeline> texture_graphics_pipeline;
 
 		//Buffers

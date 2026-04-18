@@ -58,6 +58,35 @@
             }
         },
         {
+            "name": "ninja-debug",
+            "displayName": "ninja-Debug",
+            "generator": "Ninja",
+            "binaryDir": "out/ninja-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "ninja-release",
+            "displayName": "ninja-Release",
+            "generator": "Ninja",
+            "binaryDir": "out/ninja-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "gcc-make-debug",
+            "displayName": "GCC + MakeFiles",
+            "generator": "Unix MakeFiles",
+            "binaryDir": "out/gcc-make-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++"
+            }
+        },
+        {
             "name": "xcode-debug",
             "displayName": "Debug (Xcode)",
             "generator": "Xcode",
@@ -88,16 +117,34 @@
     ],
     "buildPresets": [
         {
-            "name": "app_debug",
+            "name": "windows_app_debug",
             "displayName": "App Debug Build",
             "configurePreset": "vs18-debug",
             "configuration": "Debug"
         },
         {
-            "name": "app_release",
+            "name": "windows_app_release",
             "displayName": "App Release Build",
             "configurePreset": "vs18-release",
             "configuration": "Release"
+        },
+        {
+            "name": "ninja_debug",
+            "displayName": "Ninja Debug Build",
+            "configurePreset": "ninja-debug",
+            "configuration": "Debug"
+        },
+        {
+            "name": "ninja_release",
+            "displayName": "Ninja Release Build",
+            "configurePreset": "ninja-release",
+            "configuration": "Release"
+        },
+        {
+            "name": "gcc_debug",
+            "displayName": "GCC Debug Build",
+            "configurePreset": "gcc-make-debug",
+            "configuration": "Debug"
         }
     ]
 }
