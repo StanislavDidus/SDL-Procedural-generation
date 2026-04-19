@@ -5,6 +5,7 @@
 #include <filesystem>
 #include "Color.hpp"
 #include "Font.hpp"
+#include <optional>
 
 namespace graphics
 {

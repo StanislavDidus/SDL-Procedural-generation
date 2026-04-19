@@ -18,6 +18,10 @@
 
 #include <entt/entt.hpp>
 
+// Sounds
+#include "AudioDevice.hpp"
+#include "Sound.hpp"
+
 #include "GpuRenderFunctions.hpp"
 #include "SDL3_shadercross/SDL_shadercross.h"
 
@@ -30,7 +34,7 @@ static float angle = 0.0f;
 
 int main()
  {
-    if (!SDL_Init(SDL_INIT_VIDEO))
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
     {
         std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << std::endl;
         return SDL_APP_FAILURE;
@@ -53,6 +57,11 @@ int main()
 
     try
     {
+        audio::AudioDevice audio_device{};
+		audio::Sound sound{audio_device.getAudioDeviceID(), "assets/Sounds/sample.wav"};
+        sound.setVolume(1.0f);
+		sound.play();
+
         Window window{ "First SDL program", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE };
         //graphics::GpuRenderer renderer{ window };
         GpuRenderer gpu_renderer{ window };

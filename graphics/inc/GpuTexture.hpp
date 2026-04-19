@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <memory>
-#include <iostream>
+#include <format>
 
 #include "GpuSampler.hpp"
 #include "Surface.hpp"

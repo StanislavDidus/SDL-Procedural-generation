@@ -8,9 +8,10 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "Don't build shared libs" FORCE)
 
 set(CMAKE_BUILD_PARALLEL_LEVEL 8)
 
-add_subdirectory(EXTERN extern)
-add_subdirectory(GRAPHICS graphics)
-add_subdirectory(NOISE noise)
+add_subdirectory(extern)
+add_subdirectory(audio)
+add_subdirectory(graphics)
+add_subdirectory(noise)
 
 set(SOURCE_FILES 
     "src/Game.cpp"
@@ -148,6 +149,7 @@ target_link_libraries(
     graphics 
     glm::glm 
     noise
+    audio
     imgui
     tinyxml2
     EnTT::EnTT

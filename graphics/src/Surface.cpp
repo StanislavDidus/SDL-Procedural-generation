@@ -1,5 +1,5 @@
 #include "Surface.hpp"
-#include <iostream>
+#include <format>
 
 namespace graphics
 {

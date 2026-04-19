@@ -70,6 +70,25 @@ namespace graphics
 		GpuTransferBuffer transfer_buffer;
 	};
 
+	class LineBatch : public Batch
+	{
+	public:
+		LineBatch() = default;
+		LineBatch(std::shared_ptr<SDL_GPUDevice> device, std::shared_ptr<GpuGraphicsPipeline> graphics_pipeline);
+		~LineBatch() override = default;
+
+		void addToBatch(const LineData& line_data);
+		void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, bool& first_render) override;
+		bool canBatch(const LineData& line_data) const;
+
+		void reset() override;
+	private:
+		std::vector<Vertex> vertices;
+
+		GpuBuffer line_buffer;
+		GpuTransferBuffer transfer_buffer;
+	};
+
 	class TileMapBatch
 	{
 	public:
