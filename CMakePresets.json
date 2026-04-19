@@ -77,15 +77,48 @@
         },
         {
             "name": "gcc-make-debug",
-            "displayName": "GCC + MakeFiles",
-            "generator": "Unix MakeFiles",
+            "displayName": "GCC + MakeFiles Debug",
+            "generator": "Unix Makefiles",
             "binaryDir": "out/gcc-make-debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++"
             }
+        },  
+        {
+            "name": "gcc-make-release",
+            "displayName": "GCC + MakeFiles Release",
+            "generator": "Unix Makefiles",
+            "binaryDir": "out/gcc-make-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++"
+            }
         },
+        {
+            "name": "clang-make-debug",
+            "displayName": "Clang + MakeFiles Debug",
+            "generator": "Unix Makefiles",
+            "binaryDir": "out/clang-make-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++"
+            }
+        },  
+        {
+            "name": "clang-make-release",
+            "displayName": "Clang + MakeFiles Release",
+            "generator": "Unix Makefiles",
+            "binaryDir": "out/clang-make-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++"
+            }
+        },  
         {
             "name": "xcode-debug",
             "displayName": "Debug (Xcode)",
@@ -120,31 +153,57 @@
             "name": "windows_app_debug",
             "displayName": "App Debug Build",
             "configurePreset": "vs18-debug",
-            "configuration": "Debug"
+            "configuration": "Debug",
+            "jobs": 12
         },
         {
             "name": "windows_app_release",
             "displayName": "App Release Build",
             "configurePreset": "vs18-release",
-            "configuration": "Release"
+            "configuration": "Release",
+            "jobs": 12
         },
         {
             "name": "ninja_debug",
             "displayName": "Ninja Debug Build",
             "configurePreset": "ninja-debug",
-            "configuration": "Debug"
+            "configuration": "Debug",
+            "jobs": 12
         },
         {
             "name": "ninja_release",
             "displayName": "Ninja Release Build",
             "configurePreset": "ninja-release",
-            "configuration": "Release"
+            "configuration": "Release",
+            "jobs": 12
         },
         {
             "name": "gcc_debug",
             "displayName": "GCC Debug Build",
             "configurePreset": "gcc-make-debug",
-            "configuration": "Debug"
+            "configuration": "Debug",
+            "jobs": 12
+        },
+        {
+            "name": "gcc_release",
+            "displayName": "GCC Release Build",
+            "configurePreset": "gcc-make-release",
+            "configuration": "Release",
+            "jobs": 12
+        },
+        {
+            "name": "clang_debug",
+            "displayName": "Clang Debug Build",
+            "configurePreset": "clang-make-debug",
+            "configuration": "Debug",
+            "jobs": 12
+        },
+        {
+            "name": "clang_release",
+            "displayName": "Clang Release Build",
+            "configurePreset": "clang-make-release",
+            "configuration": "Release",
+            "jobs": 12
         }
     ]
 }
