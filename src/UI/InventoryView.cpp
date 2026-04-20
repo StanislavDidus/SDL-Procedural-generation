@@ -139,7 +139,8 @@ void InventoryView::isMovingItems()
 	else if (dragged_slot && !covered_slot && mouse.left == MouseButtonState::RELEASED && inventory)
 	{
 		//Drop item
-		const auto& item = *getItem(*dragged_slot);
+		auto& slot = *dragged_slot;
+		const auto item = getItem(slot).value();
 		const auto& item_info = registry.get<Item>(item);
 		if (!item_info.equipped)
 		{

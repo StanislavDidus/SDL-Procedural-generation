@@ -322,6 +322,8 @@ private:
 		case EssenceType::SAND:
 			equipment.sand_essence += number * sign;
 			break;
+		case EssenceType::NONE:
+			break;
 		}
 	}
 

@@ -1,5 +1,6 @@
 
 #SDL
+set(SDL_X11_XFIXES OFF CACHE BOOL "" FORCE)
 set(SDL_SHARED OFF CACHE BOOL "Don't build SDL shared" FORCE)
 set(SDL_STATIC ON CACHE BOOL "Build SDL static" FORCE)
 add_subdirectory(SDL EXCLUDE_FROM_ALL)

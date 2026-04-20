@@ -572,6 +572,8 @@ void Game::render(float dt) const
 		render_accessories_system->update(player, screen);
 	}
 	break;
+	case GameState::NONE:
+	break;
 	}
 	
 	//Set window base size to properly render imgui without scaling

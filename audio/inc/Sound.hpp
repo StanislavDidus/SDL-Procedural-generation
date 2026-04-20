@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL_audio.h>
 #include <filesystem>
+#include <vector>
 
 namespace audio
 {

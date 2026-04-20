@@ -30,7 +30,7 @@ public:
 	/// Check if a mouse is on the inventory.
 	/// </summary>
 	/// <returns>Returns true if the mouse intersects with the inventory bounds.</returns>
-	inline bool isMouseCoveringInventory() const;
+	bool isMouseCoveringInventory() const;
 
 	/// <summary>
 	/// Returns the index of the inventory slot that is being covered by a mouse.
