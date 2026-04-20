@@ -45,7 +45,7 @@ enum class LootType
 struct GenerationData
 {
 	std::vector<Biome> biomes;
-	std::unordered_map<NoiseType, NoiseSettings> noise_settings;
+	std::map<NoiseType, NoiseSettings> noise_settings;
 	std::unordered_map<MapRangeType, MapRange> maps;
 
 	glm::ivec2 chest_size = {2,2};
