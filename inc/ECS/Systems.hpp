@@ -162,6 +162,15 @@ struct PhysicsSystem
 			}
 
 			ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
+			
+			if (std::abs(ph.velocity.x) >= 1.5f)
+			{
+				ResourceManager::get().getSound("Walking")->play();
+			}
+			else
+			{
+				ResourceManager::get().getSound("Walking")->stop();
+			}
 
 		}
 	}
@@ -467,6 +476,8 @@ struct JumpSystem
 					ph.velocity.y = -j.jump_force;
 					j.jump_held = false;
 					ph.is_ground = false;
+					
+					ResourceManager::get().getSound("Jump")->play();
 				}
 			}
 			else if (j.jump_count - 1 >= 1)
@@ -478,6 +489,8 @@ struct JumpSystem
 					j.jump_pressed_this_frame = false;
 					ph.is_ground = false;
 					j.jump_count--;
+					
+					ResourceManager::get().getSound("Jump")->play();
 				}
 			}
 			  

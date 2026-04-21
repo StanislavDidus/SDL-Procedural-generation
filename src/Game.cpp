@@ -534,7 +534,8 @@ void Game::update(float dt)
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
 
-	updateImGui(dt);
+	ImGui::ShowDemoWindow();
+	//updateImGui(dt);
 }
 
 void Game::render(float dt) const
@@ -654,6 +655,8 @@ void Game::enterState(GameState state)
 
 		auto tilemap_texture = ResourceManager::get().getSpriteSheet("tiles")->getTexture();
 		tilemap = std::make_shared<TileMap>(screen.getDevice(), tilemap_texture, 520, 200, 20, 20, 26, 25);
+			
+			//ResourceManager::get().getSound("Sampler")->play();
 			
 		break;
 		}

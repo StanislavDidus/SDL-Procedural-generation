@@ -63,8 +63,8 @@ void ResourceManager::loadXml(const std::filesystem::path& path, graphics::GpuRe
 
 	}
 
-	const auto& font_listing_node = asset_listing_node->FirstChildElement("fontListing");
 	//Loop through fonts
+	const auto& font_listing_node = asset_listing_node->FirstChildElement("fontListing");
 	for (auto* font_node = font_listing_node->FirstChildElement("font"); font_node != nullptr; font_node = font_node->NextSiblingElement())
 	{
 		const char* font_name = font_node->Attribute("id");
@@ -73,6 +73,19 @@ void ResourceManager::loadXml(const std::filesystem::path& path, graphics::GpuRe
 		font_node->FirstChildElement("size")->QueryIntText(&size);
 
 		addFont(font_name, path, size);
+	}
+	
+	//Loop through sounds
+	const auto& sound_listing_node = asset_listing_node->FirstChildElement("soundListing");
+	for (auto* sound_node = sound_listing_node->FirstChildElement("sound"); sound_node != nullptr; sound_node = sound_node->NextSiblingElement())
+	{
+		const char* sound_name = sound_node->Attribute("id");
+		const char* path = sound_node->FirstChildElement("path")->GetText();
+		
+		float volume = 1.0f;
+		if (sound_node->FirstChildElement("volume") !=  nullptr)
+			volume = sound_node->FirstChildElement("volume")->FloatText();
+		addSound(sound_name, path, volume);
 	}
 }
 
@@ -86,6 +99,17 @@ std::shared_ptr<SpriteSheet> ResourceManager::getSpriteSheet(const std::string& 
 	return spritesheets.at(name);
 }
 
+std::shared_ptr<audio::Sound> ResourceManager::getSound(const std::string& name) const
+{
+	return sounds.at(name);
+}
+
+ResourceManager::ResourceManager()
+	: audio_device{}
+{
+	
+}
+
 void ResourceManager::addSpriteSheet(const std::string& name, graphics::GpuRenderer& screen, const std::filesystem::path& path,
                                      const SpriteList& sprite_list, SDL_ScaleMode scale_mode)
 {
@@ -95,5 +119,12 @@ void ResourceManager::addSpriteSheet(const std::string& name, graphics::GpuRende
 void ResourceManager::addFont(const std::string& name, const std::filesystem::path& path, int size)
 {
 	fonts[name] = std::make_shared<Font>(path, size);
+}
+
+void ResourceManager::addSound(const std::string name, const std::filesystem::path& path, float volume)
+{
+	auto sound = std::make_shared<audio::Sound>(audio_device.getAudioDeviceID(), path);
+	sound->setVolume(volume);
+	sounds[name] = sound;
 }
 

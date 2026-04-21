@@ -6,8 +6,6 @@ project(SDL_PRO_GEN VERSION 1.0
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Don't build shared libs" FORCE)
 
-set(CMAKE_BUILD_PARALLEL_LEVEL 8)
-
 add_subdirectory(extern)
 add_subdirectory(audio)
 add_subdirectory(graphics)
