@@ -21,10 +21,10 @@ graphics::SpriteBatch::SpriteBatch(std::shared_ptr<SDL_GPUDevice> device, std::s
 
 }
 
-void graphics::SpriteBatch::addToBatch(const GpuSprite& sprite)
+void graphics::SpriteBatch::addToBatch(const SpriteData& sprite_data, std::shared_ptr<GpuTexture> texture)
 {
-	sprites.push_back(sprite.data);
-	this->texture = sprite.texture;
+	sprites.push_back(sprite_data);
+	this->texture = texture;
 }
 
 void graphics::SpriteBatch::flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, bool& first_render)

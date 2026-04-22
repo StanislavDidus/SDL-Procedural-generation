@@ -158,43 +158,4 @@
             <size>32</size>
         </font>
     </fontListing>
-    <soundListing>
-        <sound id="Am">
-            <path>assets/Sounds/Am.wav</path>
-        </sound>
-        <sound id="D">
-            <path>assets/Sounds/D.wav</path>
-        </sound>
-        <sound id="Destroying Object">
-            <path>assets/Sounds/Destroying objects.wav</path>
-        </sound>
-        <sound id="Dm">
-            <path>assets/Sounds/Dm.wav</path>
-        </sound>
-        <sound id="Em">
-            <path>assets/Sounds/Em.wav</path>
-        </sound>
-        <sound id="Event">
-            <path>assets/Sounds/Event.wav</path>
-        </sound>
-        <sound id="Hit">
-            <path>assets/Sounds/Hit.wav</path>
-        </sound>
-        <sound id="Hit Enemy">
-            <path>assets/Sounds/Hit enemy.wav</path>
-        </sound>
-        <sound id="Jump">
-            <path>assets/Sounds/Jump.wav</path>
-        </sound>
-        <sound id="Pick up">
-            <path>assets/Sounds/Pick up.wav</path>
-        </sound>
-        <sound id="Place Tile">
-            <path>assets/Sounds/Place tile.wav</path>
-        </sound>
-        <sound id="Walking">
-            <path>assets/Sounds/Walking.wav</path>
-            <volume>0.3</volume>
-        </sound>
-    </soundListing>
 </assetListing>

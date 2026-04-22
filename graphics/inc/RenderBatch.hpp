@@ -36,7 +36,7 @@ namespace graphics
 		~SpriteBatch() override = default;
 
 
-		void addToBatch(const GpuSprite& sprite);
+		void addToBatch(const SpriteData& sprite_data, std::shared_ptr<GpuTexture> texture);
 		void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, bool& first_render) override;
 		bool canBatch(const GpuSprite& gpu_sprite) const;
 

@@ -17,6 +17,11 @@ namespace graphics
 
 	class TileMap
 	{
+		struct RenderEntry
+		{
+			int chunk_index_x;
+			int chunk_index_y;
+		};
 	public:
 		TileMap(std::shared_ptr<SDL_GPUDevice> device, std::shared_ptr<GpuTexture> texture, int world_width_tiles, int world_height_tiles,
 			int tile_width_world, int tile_height_world,

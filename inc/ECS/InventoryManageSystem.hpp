@@ -69,9 +69,6 @@ public:
 				if (result)
 				{
 					registry.destroy(source);
-					
-					// Play pick up sound
-					ResourceManager::get().getSound("Pick up")->play();
 				}
 				else if (!result)
 				{

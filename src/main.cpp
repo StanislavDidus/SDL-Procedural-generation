@@ -39,7 +39,7 @@ int main()
         std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << std::endl;
         return SDL_APP_FAILURE;
     }
-    
+
     if (!TTF_Init())
     {
         std::cerr << "ERROR: Could not initialize TTF: " << SDL_GetError() << std::endl;
@@ -57,17 +57,10 @@ int main()
 
     try
     {
-        /*
         audio::AudioDevice audio_device{};
 		audio::Sound sound{audio_device.getAudioDeviceID(), "assets/Sounds/sample.wav"};
-		audio::Sound sound1{audio_device.getAudioDeviceID(), "assets/Sounds/item_collected.wav"};
         sound.setVolume(1.0f);
 		sound.play();
-        sound.play();
-        sound.play();
-		sound1.setVolume(1.0f);
-		*/
-		//sound1.play();
 
         Window window{ "First SDL program", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE };
         //graphics::GpuRenderer renderer{ window };
