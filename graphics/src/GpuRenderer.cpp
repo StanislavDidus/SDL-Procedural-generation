@@ -50,7 +50,7 @@ graphics::GpuRenderer::GpuRenderer(Window& window)
 	std::cout << "Window was successfully claimed for current GPU device." << std::endl;
 
 	// Disable VSync
-	SDL_SetGPUSwapchainParameters(device.get(), window.get(), SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_IMMEDIATE);
+	SDL_SetGPUSwapchainParameters(device.get(), window.get(), SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_MAILBOX);
 
 	// Init vertex shader
 	tilemap_vertex_shader = std::make_unique<GpuShader>(device, "shaders/TileMap.vert.hlsl", 0, 2, 2, 0);
@@ -156,13 +156,16 @@ void graphics::GpuRenderer::render
 			using T = std::decay_t<decltype(data)>;
 			if constexpr (std::is_same_v<T, GpuSprite>)
 			{
+				//Flush the rest of the batches
 				rectangle_batch_.flushBatch(command_buffer, target_info, first_render);
-
+				
+				// If objects cannot be put in a batch we flush it
 				if (!sprite_batch_.canBatch(data))
 				{
 					sprite_batch_.flushBatch(command_buffer, target_info, first_render);
 				}
-				sprite_batch_.addToBatch(data.data, data.texture);
+				// Add to batch in the end
+				sprite_batch_.addToBatch(data);
 			}
 			else if constexpr (std::is_same_v<T, RectangleData>)
 			{
@@ -586,9 +589,10 @@ void graphics::GpuRenderer::update()
 
 
 		// Render ImGui
-		//ImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer.get(), render_pass);
+		SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
+		ImGui_ImplSDLGPU3_RenderDrawData(draw_data, command_buffer.get(), render_pass);
 
-		//SDL_EndGPURenderPass(render_pass);
+		SDL_EndGPURenderPass(render_pass);
 	}
 
 	draw_buffer.clear();

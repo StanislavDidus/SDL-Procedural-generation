@@ -29,6 +29,9 @@ public:
 			{
 				// Decrease health points
 				registry.get<Components::Health>(damage_component.target).current_health -= damage_component.value;
+				
+				// Play sound effect on hit
+				ResourceManager::get().getSound("Hit Enemy")->play();
 
 				//Hit the source if has Spike effect active
 				for (const auto& effect : getEffects<Components::Effects::Spike>(registry, damage_component.target))
