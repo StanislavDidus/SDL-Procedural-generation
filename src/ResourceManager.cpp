@@ -1,6 +1,7 @@
 #include "ResourceManager.hpp"
 
 #include <UI/Button.hpp>
+#include <UI/Button.hpp>
 
 
 #include "Surface.hpp"
@@ -9,10 +10,10 @@
 using namespace graphics;
 using namespace tinyxml2;
 
-void ResourceManager::loadXml(const std::filesystem::path& path_, graphics::GpuRenderer& screen)
+void ResourceManager::loadXml(const std::filesystem::path& path, graphics::GpuRenderer& screen)
 {
 	XMLDocument doc;
-	doc.LoadFile(path_.string().c_str());
+	doc.LoadFile(path.string().c_str());
 
 	const auto& asset_listing_node = doc.FirstChildElement("assetListing");
 	const auto& sprite_listing_node = asset_listing_node->FirstChildElement("spriteListing");
@@ -84,17 +85,7 @@ void ResourceManager::loadXml(const std::filesystem::path& path_, graphics::GpuR
 		float volume = 1.0f;
 		if (sound_node->FirstChildElement("volume") !=  nullptr)
 			volume = sound_node->FirstChildElement("volume")->FloatText();
-		
-		audio::Sound::PlayType type = audio::Sound::PlayType::STOP_ON_PLAY;
-		if (sound_node->FirstChildElement("type") != nullptr)
-		{
-			const char* type_text = sound_node->FirstChildElement("type")->GetText();
-			if (strcmp(type_text, "DONT_PLAY_WHEN_PLAYING") == 0)
-			{
-				type = audio::Sound::PlayType::DONT_PLAY_WHEN_PLAYING;
-			}
-		}
-		addSound(sound_name, path, volume, type);
+		addSound(sound_name, path, volume);
 	}
 }
 
@@ -111,15 +102,6 @@ std::shared_ptr<SpriteSheet> ResourceManager::getSpriteSheet(const std::string& 
 std::shared_ptr<audio::Sound> ResourceManager::getSound(const std::string& name) const
 {
 	return sounds.at(name);
-}
-
-void ResourceManager::setMasterVolume(float volume)
-{
-	for (auto& [name, sound] : sounds)
-	{
-		sound->setVolume(sound->getVolume() * volume);
-	}
-	master_volume = volume;
 }
 
 ResourceManager::ResourceManager()
@@ -139,11 +121,10 @@ void ResourceManager::addFont(const std::string& name, const std::filesystem::pa
 	fonts[name] = std::make_shared<Font>(path, size);
 }
 
-void ResourceManager::addSound(const std::string& name, const std::filesystem::path& path, float volume, audio::Sound::PlayType type)
+void ResourceManager::addSound(const std::string name, const std::filesystem::path& path, float volume)
 {
 	auto sound = std::make_shared<audio::Sound>(audio_device.getAudioDeviceID(), path);
-	sound->setVolume(volume * master_volume);
-	sound->setPlayType(type);
+	sound->setVolume(volume);
 	sounds[name] = sound;
 }
 

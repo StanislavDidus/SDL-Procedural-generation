@@ -1,19 +1,20 @@
 #pragma once
 
 #include <algorithm>
-#include <random>
 
 #include "Color.hpp"
 #include "CraftingManager.hpp"
+#include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
 #include "GpuRenderFunctions.hpp"
+#include "WorldGenerator.hpp"
+#include "Item.hpp"
 #include "RandomizedItem.hpp"
 
 #include "InputManager.hpp"
 #include "Inventory.hpp"
 #include "WorldHelper.hpp"
 #include "glm/gtc/random.hpp"
-#include "ObjectManager.hpp"
 
 constexpr float BASE_MINING_SPEED = 100.0f;
 constexpr float BASE_MINING_RADIUS = 100.0f;
@@ -335,7 +336,7 @@ private:
 
 	bool isSpaceAbove(const SDL_FRect& step, float height) const
 	{
-		//Components::Transform above = { {step.x + 1.f, step.y - height + 1.f}, {step.w - 2.f, height - 2.f} };
+		Components::Transform above = { {step.x + 1.f, step.y - height + 1.f}, {step.w - 2.f, height - 2.f} };
 		SDL_FRect above_rect = { step.x + 1.f, step.y - height + 1.f, step.w - 2.f, height - 2.f };
 
 		glm::vec2 mid_position = glm::vec2{ above_rect.x, above_rect.y } + glm::vec2{ above_rect.w, above_rect.h } * 0.5f;
@@ -786,30 +787,6 @@ private:
 	float tile_height = 1.f;
 };
 
-static void playRandomChord()
-{
-	std::random_device rng;
-
-	switch (int random_value = rng() % 4)
-	{
-	case 0:
-		ResourceManager::get().getSound("Dm")->play();
-		break;
-	case 1:
-		ResourceManager::get().getSound("D")->play();
-		break;
-	case 2:
-		ResourceManager::get().getSound("Am")->play();
-		break;
-	case 3:
-		ResourceManager::get().getSound("Em")->play();
-		break;
-	default:
-		break;
-	}
-}
-
-
 //Do it before this system, so that EquipItem Component is right of other systems as well
 //Note: I just need to send another event ex. ItemEquipped(Item) to notify my WeaponCircleSystem works correctly
 class ItemUsageSystem
@@ -940,8 +917,6 @@ public:
 			{
 				auto item_equipped_entity = registry.create();
 				registry.emplace<Components::ItemEquipped>(item_equipped_entity, equip_item_component.item, target);
-				
-				playRandomChord();
 			}
 			to_destroy.push_back(entity);
 		
@@ -1014,8 +989,6 @@ public:
 			{
 				auto item_unequipped = registry.create();
 				registry.emplace<Components::ItemUnequipped>(item_unequipped, unequip_item_component.item, target);
-				
-				playRandomChord();
 			}
 			to_destroy.push_back(entity);
 		}
@@ -1035,8 +1008,6 @@ public:
 				const auto& heal_component = registry.get<Components::InventoryItems::HealComponent>(item);
 				auto& health_component = registry.get<Components::Health>(target);
 				health_component.current_health = std::min(health_component.max_health, health_component.current_health + heal_component.value);
-				
-				playRandomChord();
 			}
 
 			to_destroy.push_back(entity);
@@ -1169,10 +1140,12 @@ public:
 
 			if (can_craft)
 			{
+				/*
+				inventory->addItem(recipe.item_id, 1);
+				*/
+
 				auto item_entity = registry.create();
 				registry.emplace<Components::AddItem>(item_entity, target_entity, ItemManager::get().createItem( registry,recipe.item_id, 1 ));
-				
-				ResourceManager::get().getSound("Craft")->play();
 				
 				for (const auto& required_craft_item : recipe.required_items)
 				{

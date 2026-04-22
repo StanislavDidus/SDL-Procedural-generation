@@ -75,10 +75,6 @@ int main()
 		ResourceManager::get().loadXml("data/assets.xml", gpu_renderer);
         //auto car_texture = gpu_renderer.loadTexture(Surface{"assets/Sprites/car.bmp"});
         //auto ice_cream_texture = gpu_renderer.loadTexture(Surface{ ResourceManager::get().getFont("Main"), "Debug", Color::RED});
-    
-        // Set Window Icon
-        Surface icon_surface{"assets/Sprites/icon.png"};
-        SDL_SetWindowIcon(window.get(), icon_surface.getSurface());
 
         //Sprite sprite{ car_texture, SDL_FRect{0.0f, 0.0f, 5184.0f, 3456.0f} };
         Game game{ gpu_renderer };

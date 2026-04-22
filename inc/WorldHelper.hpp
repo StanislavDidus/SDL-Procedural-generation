@@ -8,7 +8,6 @@
 #include "ResourceManager.hpp"
 #include "World.hpp"
 #include "ECS/Components.hpp"
-#include "TileManager.hpp"
 
 //This is a "WorldHelper" class that introduces static function that "WorldGenerator" class uses for its world_generator generation.
 
@@ -124,13 +123,10 @@ static std::optional<Components::Object> damageObject(entt::registry& registry, 
 		auto& object_component = registry.get<Components::Object>(entity);
 		object_component.current_durability -= damage;
 		object_component.received_damage_last_frame = true;
-		
-		ResourceManager::get().getSound("Destroying Object")->play();
 
 		if (object_component.current_durability <= 0.0f && !object_component.is_destroyed)
 		{
 			object_component.is_destroyed = true;
-			ResourceManager::get().getSound("Destroying Object")->stop();
 			return object_component;
 		}
 	}

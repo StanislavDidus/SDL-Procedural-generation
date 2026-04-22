@@ -89,6 +89,7 @@ namespace graphics
 		explicit GpuRenderer(Window& window);
 		~GpuRenderer() = default;
 
+		void updateBuffers();
 		void update();
 
 		std::shared_ptr<GpuTexture> loadTexture(const Surface& surface);
@@ -99,6 +100,7 @@ namespace graphics
 		float getZoom() const;
 		float getAngle() const;
 		glm::ivec2 getWindowSize() const;
+		std::vector<Vertex>& getVertices();
 		const glm::mat4& getWorldMatrix() const;
 
 		//Setters
@@ -118,7 +120,7 @@ namespace graphics
 		void initSamplers();
 
 		void render(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, glm::mat4& matrix, const std::vector<DrawData>&
-		            draw_buffer_, SpriteBatch& sprite_batch_, RectangleBatch& rectangle_batch_, LineBatch& line_batch_, bool& first_render);
+		                   draw_buffer_, SpriteBatch& sprite_batch_, RectangleBatch& rectangle_batch_, bool& first_render);
 		void renderTileMap(const TileMapData& tile_map_data, CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, const glm::mat4&
 		                   matrix, bool& first_render) const;
 
@@ -138,20 +140,36 @@ namespace graphics
 		std::unique_ptr<SpriteBatch> ui_sprite_batch;
 		std::unique_ptr<RectangleBatch> rectangle_batch;
 		std::unique_ptr<RectangleBatch> ui_rectangle_batch;
-		std::unique_ptr<LineBatch> line_batch;
-		std::unique_ptr<LineBatch> ui_line_batch;
 
 		std::unique_ptr<WindowClaimer> window_claimer;
 		std::unique_ptr<GpuGraphicsPipeline> tilemap_graphics_pipeline;
-		std::shared_ptr<GpuGraphicsPipeline> line_graphics_pipeline;
+		std::unique_ptr<GpuGraphicsPipeline> line_graphics_pipeline;
 		std::shared_ptr<GpuGraphicsPipeline> vertex_graphics_pipeline;
 		std::shared_ptr<GpuGraphicsPipeline> texture_graphics_pipeline;
+
+		//Buffers
+		//Vertex buffers
+		std::unique_ptr<GpuBuffer> line_buffer;
+		std::unique_ptr<GpuBuffer> vertex_buffer;
+		std::unique_ptr<GpuBuffer> sprite_buffer;
+		//Transfer tile_buffer
+		std::unique_ptr<GpuTransferBuffer> line_transfer_buffer;
+		std::unique_ptr<GpuTransferBuffer> vertex_transfer_buffer;
+		std::unique_ptr<GpuTransferBuffer> sprite_transfer_buffer;
 
 		std::unique_ptr<GpuShader> tilemap_vertex_shader;
 		std::unique_ptr<GpuShader> vertex_shader;
 		std::unique_ptr<GpuShader> fragment_shader;
 		std::unique_ptr<GpuShader> texture_vertex_shader;
 		std::unique_ptr<GpuShader> texture_fragment_shader;
+
+		std::vector<Vertex> lines;
+		std::vector<Vertex> ui_lines;
+		std::vector<Vertex> vertices;
+		std::vector<Vertex> ui_vertices;
+		std::vector<GpuSprite> sprites;
+		std::vector<GpuSprite> ui_sprites;
+		std::vector<std::shared_ptr<TileMap>> tilemaps;
 
 		std::unordered_map<std::string, std::shared_ptr<GpuSampler>> samplers;
 	};

@@ -161,23 +161,18 @@
     <soundListing>
         <sound id="Am">
             <path>assets/Sounds/Am.wav</path>
-            <volume>0.5</volume>
         </sound>
         <sound id="D">
             <path>assets/Sounds/D.wav</path>
-            <volume>0.5</volume>
         </sound>
         <sound id="Destroying Object">
             <path>assets/Sounds/Destroying objects.wav</path>
-            <type>DONT_PLAY_WHEN_PLAYING</type>
         </sound>
         <sound id="Dm">
             <path>assets/Sounds/Dm.wav</path>
-            <volume>0.5</volume>
         </sound>
         <sound id="Em">
             <path>assets/Sounds/Em.wav</path>
-            <volume>0.5</volume>
         </sound>
         <sound id="Event">
             <path>assets/Sounds/Event.wav</path>
@@ -200,16 +195,6 @@
         <sound id="Walking">
             <path>assets/Sounds/Walking.wav</path>
             <volume>0.3</volume>
-            <type>DONT_PLAY_WHEN_PLAYING</type>
-        </sound>
-        <sound id="Craft">
-            <path>assets/Sounds/Craft.wav</path>
-            <volume>0.21</volume>
-        </sound>
-        <sound id="Background Music">
-            <path>assets/Sounds/Background Music.wav</path>
-            <volume>0.35</volume>
-            <type>LOOP</type>
         </sound>
     </soundListing>
 </assetListing>

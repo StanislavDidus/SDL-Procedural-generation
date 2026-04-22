@@ -33,17 +33,6 @@ namespace audio
 	void Sound::setVolume(float percentage)
 	{
 		SDL_SetAudioStreamGain(stream, percentage);
-		volume = percentage;
-	}
-
-	void Sound::setPlayType(PlayType type)
-	{
-		play_type = type;
-	}
-
-	float Sound::getVolume() const
-	{
-		return volume;
 	}
 
 	void Sound::play()
