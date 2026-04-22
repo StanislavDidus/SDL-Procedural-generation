@@ -4,6 +4,10 @@ project(SDL_PRO_GEN VERSION 1.0
     DESCRIPTION "Small survival game with procedural generation made with SDL3"
     LANGUAGES C CXX)
 
+if(MSVC)
+    add_compile_options(/MP)
+endif(MSVC)
+
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Don't build shared libs" FORCE)
 
 add_subdirectory(extern)

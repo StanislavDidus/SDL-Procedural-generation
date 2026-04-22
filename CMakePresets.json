@@ -2,13 +2,10 @@
     "version": 5,
     "configurePresets": [
         {
-            "name": "vs18-debug",
-            "displayName": "vs18-Debug",
+            "name": "vs18",
+            "displayName": "Visual Studio 2026",
             "generator": "Visual Studio 18 2026",
-            "binaryDir": "out/vs18-debug",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            },
+            "binaryDir": "out/vs18",
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
@@ -16,27 +13,10 @@
             }
         },
         {
-            "name": "vs18-release",
-            "displayName": "vs18-Release",
-            "generator": "Visual Studio 18 2026",
-            "binaryDir": "out/vs18-release",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            },
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
-        },
-        {
-            "name": "vs17-debug",
-            "displayName": "vs17-Debug",
+            "name": "vs17",
+            "displayName": "Visual Studio 2022",
             "generator": "Visual Studio 17 2022",
-            "binaryDir": "out/vs17-debug",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            },
+            "binaryDir": "out/vs17",
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
@@ -44,36 +24,10 @@
             }
         },
         {
-            "name": "vs17-release",
-            "displayName": "vs17-Release",
-            "generator": "Visual Studio 17 2022",
-            "binaryDir": "out/vs17-release",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            },
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
-        },
-        {
-            "name": "ninja-debug",
-            "displayName": "ninja-Debug",
-            "generator": "Ninja",
-            "binaryDir": "out/ninja-debug",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
-        },
-        {
-            "name": "ninja-release",
-            "displayName": "ninja-Release",
-            "generator": "Ninja",
-            "binaryDir": "out/ninja-release",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
+            "name": "ninja",
+            "displayName": "Ninja",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "out/ninja"
         },
         {
             "name": "gcc-make-debug",
@@ -150,30 +104,28 @@
     ],
     "buildPresets": [
         {
-            "name": "windows_app_debug",
-            "displayName": "App Debug Build",
-            "configurePreset": "vs18-debug",
-            "configuration": "Debug",
-            "jobs": 12
+            "name": "vs18_app_debug",
+            "displayName": "Visual Studio 2026 Debug Build",
+            "configurePreset": "vs18",
+            "configuration": "Debug"
         },
         {
-            "name": "windows_app_release",
-            "displayName": "App Release Build",
-            "configurePreset": "vs18-release",
-            "configuration": "Release",
-            "jobs": 12
+            "name": "vs18_app_release",
+            "displayName": "Visual Studio 2026 Release Build",
+            "configurePreset": "vs18",
+            "configuration": "Release"
         },
         {
             "name": "ninja_debug",
             "displayName": "Ninja Debug Build",
-            "configurePreset": "ninja-debug",
+            "configurePreset": "ninja",
             "configuration": "Debug",
             "jobs": 12
         },
         {
             "name": "ninja_release",
             "displayName": "Ninja Release Build",
-            "configurePreset": "ninja-release",
+            "configurePreset": "ninja",
             "configuration": "Release",
             "jobs": 12
         },
