@@ -8,17 +8,21 @@ namespace audio
 {
 	class Sound
 	{
+	public:
 		enum class PlayType
 		{
 			STOP_ON_PLAY,
 			DONT_PLAY_WHEN_PLAYING
 		};
-	public:
+		
 		Sound() = default;
 		Sound(SDL_AudioDeviceID audio_device, const std::filesystem::path& path);
 		~Sound();
 
 		void setVolume(float percentage);
+		void setPlayType(PlayType type);
+		
+		float getVolume() const;
 
 		void play();
 		void stop();
@@ -27,7 +31,8 @@ namespace audio
 		Uint32 wav_data_len = 0;
 		SDL_AudioSpec spec;
 		SDL_AudioStream* stream = nullptr;
+		float volume = 1.0f;
 		
-		PlayType play_type = PlayType::DONT_PLAY_WHEN_PLAYING;
+		PlayType play_type = PlayType::STOP_ON_PLAY;
 	};
 }

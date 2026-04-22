@@ -52,7 +52,7 @@ std::shared_ptr<World> WorldGenerator::generateWorld(std::optional<int> seed)
 	addObjects(objects, grid);
 
 	std::vector<ChestData> chests;
-	addChests(chests, grid);
+	addChests(chests, objects, grid);
 
 	setTileDurability(grid);
 
@@ -496,7 +496,7 @@ void WorldGenerator::addObjects(std::vector<ObjectData>& objects, Grid<Tile>& gr
 	}
 }
 
-void WorldGenerator::addChests(std::vector<ChestData>& chests, Grid<Tile>& grid)
+void WorldGenerator::addChests(std::vector<ChestData>& chests, std::vector<ObjectData>& objects, Grid<Tile>& grid)
 {
 	std::mt19937 rng(master_seed);
 	std::uniform_int_distribution<int> chest_dist (0,100);
@@ -540,6 +540,37 @@ void WorldGenerator::addChests(std::vector<ChestData>& chests, Grid<Tile>& grid)
 				generation_data.chest_size.x,
 				generation_data.chest_size.y
 			};
+			
+			// Check if chest intersects with other chests
+			{
+				bool intersect = false;
+				for (const auto& chest : chests)
+				{
+					if (chest_grid_rect.x <= chest.grid_rect.x + chest.grid_rect.w && chest_grid_rect.x + chest_grid_rect.w >= chest.grid_rect.x &&
+					chest_grid_rect.y <= chest.grid_rect.y + chest.grid_rect.h && chest_grid_rect.y + chest_grid_rect.h >= chest.grid_rect.y )
+					{
+						intersect = true;
+						break;
+					}
+				}
+				if (intersect) continue;
+			}
+			
+			// Check if chest intersects with other objects
+			{
+				bool intersect = false;
+				for (const auto& object : objects)
+				{
+					if (chest_grid_rect.x <= object.grid_rect.x + object.grid_rect.w && chest_grid_rect.x + chest_grid_rect.w >= object.grid_rect.x &&
+					chest_grid_rect.y <= object.grid_rect.y + object.grid_rect.h && chest_grid_rect.y + chest_grid_rect.h >= object.grid_rect.y )
+					{
+						intersect = true;
+						break;
+					}
+				}
+
+				if (intersect) continue;
+			}
 
 			ChestData chest_data;
 			chest_data.grid_rect = chest_grid_rect;

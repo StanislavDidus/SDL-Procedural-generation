@@ -56,6 +56,8 @@ void World::placeTile(int x, int y, int tile_id)
 		{
 			tile.id = tile_id;
 			is_dirty = true;
+			
+			ResourceManager::get().getSound("Place Tile")->play();
 		}
 	}
 

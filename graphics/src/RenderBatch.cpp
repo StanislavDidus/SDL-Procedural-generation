@@ -195,17 +195,9 @@ void graphics::RectangleBatch::flushBatch(CommandBuffer& command_buffer, SDL_GPU
 
 	SDL_UploadToGPUBuffer(copy_pass, &vertices_transfer_info, &vertices_buffer_region, first_draw);
 	SDL_EndGPUCopyPass(copy_pass);
-
-	if (first_render)
-	{
-		target_info.load_op = SDL_GPU_LOADOP_CLEAR;
-		first_render = false;
-	}
-	else
-	{
-		target_info.load_op = SDL_GPU_LOADOP_LOAD;
-	}
+	
 	SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
+	target_info.load_op = SDL_GPU_LOADOP_LOAD;
 
 	SDL_BindGPUGraphicsPipeline(render_pass, graphics_pipeline->get());
 
@@ -234,4 +226,74 @@ void graphics::RectangleBatch::reset()
 	first_draw = true;
 	offset = 0;
 	vertices.clear();
+}
+
+graphics::LineBatch::LineBatch(std::shared_ptr<SDL_GPUDevice> device,
+	std::shared_ptr<GpuGraphicsPipeline> graphics_pipeline)
+	: Batch{device, graphics_pipeline}
+	, line_buffer{device, static_cast<Uint32>(1000 * 2 * sizeof(Vertex)), SDL_GPU_BUFFERUSAGE_VERTEX}
+	, transfer_buffer{device, static_cast<Uint32>(1000 * 2 * sizeof(Vertex)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD}
+{
+}
+
+void graphics::LineBatch::addToBatch(const LineData& line_data)
+{
+	vertices.emplace_back(line_data.x1, line_data.y1, 0.0f, line_data.color.r, line_data.color.g, line_data.color.b, line_data.color.a);
+	vertices.emplace_back(line_data.x2, line_data.y2, 0.0f, line_data.color.r, line_data.color.g, line_data.color.b, line_data.color.a);
+}
+
+void graphics::LineBatch::flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info,
+	bool& first_render)
+{
+	if (vertices.empty()) return;
+	
+	Vertex* data = transfer_buffer.map<Vertex>(first_draw);
+	data += offset;
+	SDL_memcpy(data, vertices.data(), vertices.size() * sizeof(Vertex));
+	transfer_buffer.unmap();
+		
+	SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(command_buffer.get());
+
+	// Upload vertices
+	SDL_GPUTransferBufferLocation vertices_transfer_info = {};
+	vertices_transfer_info.transfer_buffer = transfer_buffer.get();
+	vertices_transfer_info.offset = offset * sizeof(Vertex);
+	SDL_GPUBufferRegion vertices_buffer_region = {};
+	vertices_buffer_region.buffer = line_buffer.get();
+	vertices_buffer_region.offset = offset * sizeof(Vertex);
+	vertices_buffer_region.size = vertices.size() * sizeof(Vertex);
+
+	SDL_UploadToGPUBuffer(copy_pass, &vertices_transfer_info, &vertices_buffer_region, first_draw);
+	SDL_EndGPUCopyPass(copy_pass);
+	
+	SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
+	target_info.load_op = SDL_GPU_LOADOP_LOAD;
+
+	SDL_BindGPUGraphicsPipeline(render_pass, graphics_pipeline->get());
+
+	SDL_GPUBufferBinding buffer_binding{};
+	buffer_binding.offset = offset * sizeof(Vertex);
+	buffer_binding.buffer = line_buffer.get();
+	SDL_BindGPUVertexBuffers(render_pass, 0, &buffer_binding , 1);
+	SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &matrix, sizeof(glm::mat4));
+	SDL_DrawGPUPrimitives(render_pass, vertices.size(), 1, 0, 0);
+
+	SDL_EndGPURenderPass(render_pass);
+
+	offset += vertices.size();
+
+	first_draw = false;
+	vertices.clear();
+}
+
+bool graphics::LineBatch::canBatch(const LineData& line_data) const
+{
+	return true;
+}
+
+void graphics::LineBatch::reset()
+{
+	offset = 0;
+	vertices.clear();
+	first_draw = true;
 }
