@@ -60,6 +60,7 @@ struct GenerationData
 	float density_threshold = 0.5f;
 	float chest_threshold = 0.5f;
 	float drunk_walker_threshold = 0.3f;
+	int drunk_walker_target_number = 200;
 
 	bool use_cellular_automata = true;
 	int cellular_automata_iterations = 2;

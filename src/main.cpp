@@ -12,6 +12,7 @@
 
 #include "Window.hpp"
 #include "GpuRenderer.hpp"
+#include "RenderBatch.hpp"
 #include "Game.hpp"
 
 #include "InputManager.hpp"
@@ -31,6 +32,14 @@ constexpr int WINDOW_HEIGHT = 540;
 using namespace graphics;
 
 static float angle = 0.0f;
+
+namespace graphics
+{
+    int MAX_SPRITES_IN_BATCH = 2000;
+    int MAX_RECTANGLES_IN_BATCH = 100;
+    int MAX_LINES_IN_BATCH = 1000;
+    int MAX_TILEMAPS_IN_BATCH = 100;
+}
 
 int main()
  {
@@ -54,7 +63,7 @@ int main()
 
     //Initialize randomizer
     srand(time(0));
-
+    
     try
     {
         /*
@@ -118,10 +127,10 @@ int main()
                 switch (event.type)
                 {
                 case SDL_EVENT_KEY_DOWN:
-                    input_manager.buttonPressed(event.key.scancode);
+                    input_manager.buttonPressed(event.key.key);
                     break;
                 case SDL_EVENT_KEY_UP:
-                    input_manager.buttonUp(event.key.scancode);
+                    input_manager.buttonUp(event.key.key);
                     break;
                 case SDL_EVENT_MOUSE_WHEEL:
                     input_manager.setMouseWheel({ event.wheel.x, event.wheel.y });
@@ -134,7 +143,10 @@ int main()
             //Update mouse input
             float mouse_x, mouse_y = 0.f;
             SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-            //SDL_RenderCoordinatesFromWindow(renderer.get(), mouse_x, mouse_y, &mouse_x, &mouse_y);
+            glm::vec2 resolution_scale = gpu_renderer.getRenderResolution() / static_cast<glm::vec2>(gpu_renderer.getStandardWindowSize());
+            resolution_scale = static_cast<glm::vec2>(gpu_renderer.getStandardWindowSize()) / gpu_renderer.getRenderResolution();
+            mouse_x *= resolution_scale.x;
+            mouse_y *= resolution_scale.y;
 
             input_manager.setMouseState(
                 { mouse_x, mouse_y },

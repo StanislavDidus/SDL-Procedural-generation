@@ -222,9 +222,8 @@ void graphics::GpuRenderer::update()
 	CommandBuffer command_buffer{ device };
 
 	SDL_GPUTexture* swapchain_texture;
-	uint32_t width, height;
 
-	if (!SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer.get(), window.get(), &swapchain_texture, &width, &height))
+	if (!SDL_WaitAndAcquireGPUSwapchainTexture(command_buffer.get(), window.get(), &swapchain_texture, &render_resolution_width, &render_resolution_height))
 	{
 		throw std::runtime_error{ std::format("SDL_WaitAndAcquireGPUSwapchainTexture failed: {}", SDL_GetError()) };
 	}
@@ -269,6 +268,8 @@ void graphics::GpuRenderer::update()
 			.store_op = SDL_GPU_STOREOP_STORE,
 			.cycle = false
 		};
+		
+		//std::cout << std::format("Width: {}, Height: {}", width, height) << std::endl;
 
 		bool first_render = true;
 		render(command_buffer, target_info, world_matrix, draw_buffer, *sprite_batch, *rectangle_batch, *line_batch, first_render);
@@ -348,7 +349,7 @@ float graphics::GpuRenderer::getAngle() const
 	return angle;
 }
 
-glm::ivec2 graphics::GpuRenderer::getWindowSize() const
+glm::ivec2 graphics::GpuRenderer::getStandardWindowSize() const
 {
 	return window.getWindowSize();
 }
@@ -356,6 +357,11 @@ glm::ivec2 graphics::GpuRenderer::getWindowSize() const
 const glm::mat4& graphics::GpuRenderer::getWorldMatrix() const
 {
 	return world_matrix;
+}
+
+glm::vec2 graphics::GpuRenderer::getRenderResolution() const
+{
+	return glm::vec2{static_cast<float>(render_resolution_width), static_cast<float>(render_resolution_height)};
 }
 
 void graphics::GpuRenderer::setView(glm::vec2 view)
@@ -417,7 +423,7 @@ void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, s
 {
 	//flip = SDL_FLIP_HORIZONTAL;
 	SDL_FRect src = source.value_or(SDL_FRect{ 0.0f, 0.0f, static_cast<float>(texture->w()), static_cast<float>(texture->h()) });
-	SDL_FRect dst = destination.value_or(SDL_FRect{ 0.0f, 0.0f, static_cast<float>(getWindowSize().x), static_cast<float>(getWindowSize().y) });
+	SDL_FRect dst = destination.value_or(SDL_FRect{ 0.0f, 0.0f, static_cast<float>(getStandardWindowSize().x), static_cast<float>(getStandardWindowSize().y) });
 
 	if (!ignore_view_zoom)
 	{

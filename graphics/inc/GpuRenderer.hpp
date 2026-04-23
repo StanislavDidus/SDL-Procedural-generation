@@ -98,8 +98,9 @@ namespace graphics
 		glm::vec2 getView() const;
 		float getZoom() const;
 		float getAngle() const;
-		glm::ivec2 getWindowSize() const;
+		glm::ivec2 getStandardWindowSize() const;
 		const glm::mat4& getWorldMatrix() const;
+		glm::vec2 getRenderResolution() const;
 
 		//Setters
 		void setView(glm::vec2 view);
@@ -133,6 +134,8 @@ namespace graphics
 		float zoom = 1.0f;
 		float angle = 0.0f; ///< Degrees.
 		glm::mat4 world_matrix;
+		Uint32 render_resolution_width;
+		Uint32 render_resolution_height;
 
 		std::unique_ptr<SpriteBatch> sprite_batch;
 		std::unique_ptr<SpriteBatch> ui_sprite_batch;

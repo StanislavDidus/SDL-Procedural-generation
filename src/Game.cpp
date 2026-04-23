@@ -45,13 +45,24 @@ Game::Game(graphics::GpuRenderer& screen)
     button_system = std::make_unique<ButtonSystem>(registry);
     manage_button_actions_system = std::make_unique<ManageButtonActionsSystem>(registry);
 
-    Entity start_button = registry.create();
-    auto& ts = registry.emplace<Components::Transform>(start_button);
-    ts.position = glm::vec2{0.0f, 0.0f};
-    ts.size = glm::vec2{960.0f, 270.0f};
-    auto& button = registry.emplace<Components::Button>(start_button);
-    auto& func = registry.emplace<Components::ButtonFunction>(start_button);
-    func.command = [&]{setState(GameState::PLAY); };
+    {
+        Entity start_button = registry.create();
+        auto& ts = registry.emplace<Components::Transform>(start_button);
+        ts.position = glm::vec2{0.0f, 0.0f};
+        ts.size = glm::vec2{960.0f, 270.0f};
+        auto& button = registry.emplace<Components::Button>(start_button);
+        auto& func = registry.emplace<Components::ButtonFunction>(start_button);
+        func.command = [&]{setState(GameState::PLAY); };
+    }
+    {
+        Entity exit_button = registry.create();
+        auto& ts = registry.emplace<Components::Transform>(exit_button);
+        ts.position = glm::vec2{0.0f, 270.0f};
+        ts.size = glm::vec2{960.0f, 270.0f};
+        auto& button = registry.emplace<Components::Button>(exit_button);
+        auto& func = registry.emplace<Components::ButtonFunction>(exit_button);
+        func.command = [&]{std::exit(0); };
+    }
 }
 
 Game::~Game()
@@ -111,7 +122,7 @@ void Game::initGenerationData()
     generation_data.scale = 0.5f;
     generation_data.density_threshold = 0.5f;
     generation_data.chest_threshold = 0.05f;
-    generation_data.drunk_walker_threshold = 0.3f;
+    generation_data.drunk_walker_threshold = 0.2f;
 }
 
 void Game::initNoiseSettings()
@@ -144,8 +155,8 @@ void Game::initNoiseSettings()
     {
         NoiseSettings& settings = generation_data.noise_settings[NoiseType::CAVE];
         settings.octaves = 8;
-        settings.frequency = 0.1f;
-        settings.amplitude = 1.0f;
+        settings.frequency = 0.15f;
+        settings.amplitude = 1.2f;
     }
 
     //Tunnel
@@ -192,16 +203,16 @@ void Game::initNoiseSettings()
     {
         NoiseSettings& settings = generation_data.noise_settings[NoiseType::DRUNK_WALKER];
         settings.octaves = 2;
-        settings.frequency = 0.75f;
-        settings.amplitude = 1.0f;
+        settings.frequency = 0.85f;
+        settings.amplitude = 1.2f;
     }
 
     //Drunk Walker Movement
     {
         NoiseSettings& settings = generation_data.noise_settings[NoiseType::DRUNK_WALKER_MOVEMENT];
-        settings.octaves = 2;
-        settings.frequency = 1.0f;
-        settings.amplitude = 1.0f;
+        settings.octaves = 3;
+        settings.frequency = 1.1f;
+        settings.amplitude = 1.2f;
     }
 
     //Objects
@@ -238,8 +249,8 @@ void Game::initMapRanges()
 
     //CAVE_SIZE_CHANGE
     {
-        MapRange map{generation_data.cave_y_base, generation_data.cave_y_base + 150.0f, 300.0f, 1200.0f};
-        map.addPoint(generation_data.cave_y_base + 30.0f, 800.0f);
+        MapRange map{generation_data.cave_y_base, generation_data.cave_y_base + 150.0f, 400.0f, 1500.0f};
+        map.addPoint(generation_data.cave_y_base + 30.0f, 950.0f);
 
         generation_data.maps[MapRangeType::CAVE_SIZE_CHANGE] = map;
     }
@@ -331,7 +342,7 @@ void Game::initBiomes()
 
 void Game::initPlayer()
 {
-    const auto& window_size = screen.getWindowSize();
+    const auto& window_size = screen.getStandardWindowSize();
     player = registry.create();
 
     auto& base = registry.emplace<Components::BaseValues>(player);
@@ -342,6 +353,7 @@ void Game::initPlayer()
 
     auto& ts = registry.emplace<Components::Transform>(player);
     ts.position = glm::vec2{400.0f, -500.f};
+    ts.position.x += 1000.0f * 20.0f;
     ts.size = glm::vec2{35.0f, 40.0f};
     base.size = ts.size;
 
@@ -563,11 +575,16 @@ void Game::update(float dt)
 
 void Game::render(float dt) const
 {
-    const auto& window_size = screen.getWindowSize();
+    const auto& window_size = screen.getStandardWindowSize();
     const auto& view_position = screen.getView();
 
     switch (current_state)
     {
+    case GameState::NONE:
+        graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg1"), 0.0f, 0.0f, 960.0f, 540.0f);
+        graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), 0.0f, 0.0f, 960.0f, 540.0f);
+        graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg3"), 0.0f, 0.0f, 960.0f, 540.0f);
+        break;
     case GameState::PLAY:
     case GameState::PLAYER_DEAD:
         {
@@ -595,8 +612,6 @@ void Game::render(float dt) const
             chest_window_system->render(screen);
             render_accessories_system->update(player, screen);
         }
-        break;
-    case GameState::NONE:
         break;
     }
 
@@ -628,6 +643,18 @@ void Game::enterState(GameState state)
         }
     case GameState::PLAY:
         {
+           // Destroy all menu buttons
+            std::vector<Entity> buttons;
+            auto view = registry.view<Components::Button>();
+            for (auto [entity, button] : view.each())
+            {
+                buttons.push_back(entity);
+            }
+            for (const auto& button : buttons)
+            {
+                registry.destroy(button);
+            }
+            
             initNoiseSettings();
             initMapRanges();
             initGenerationData();
@@ -635,7 +662,7 @@ void Game::enterState(GameState state)
             initChestLoot();
 
             text = std::make_unique<Text>(screen, ResourceManager::get().getFont("Main"), "Player");
-            world_generator = std::make_unique<WorldGenerator>(generation_data, registry, 520, 200);
+            world_generator = std::make_unique<WorldGenerator>(generation_data, registry, 2000, 350);
             world = world_generator->generateWorld(0);
             world->initWorld(registry, 20.0f, 20.0f);
             //spawnObjects(registry, *world, 20.0f, 20.0f);
@@ -680,7 +707,7 @@ void Game::enterState(GameState state)
             //accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
 
             auto tilemap_texture = ResourceManager::get().getSpriteSheet("tiles")->getTexture();
-            tilemap = std::make_shared<TileMap>(screen.getDevice(), tilemap_texture, 520, 200, 20, 20, 26, 25);
+            tilemap = std::make_shared<TileMap>(screen.getDevice(), tilemap_texture, 2000, 350, 20, 20, 26, 25, 0.0f, 0.0f);
 
             ResourceManager::get().getSound("Background Music")->play();
 
@@ -706,11 +733,11 @@ void Game::updateTilemapTarget()
         world_target = {player_position.x + player_size.x / 2.f, player_position.y + player_size.y / 2.f};
         //glm::vec2 player_screen_position = world_target - static_cast<glm::vec2>(screen.getWindowSize()) / 2.f;
         view_position = world_target;
-        view_position -= glm::vec2{screen.getWindowSize().x * 0.5f, screen.getWindowSize().y * 0.5f};
+        view_position -= glm::vec2{screen.getStandardWindowSize().x * 0.5f, screen.getStandardWindowSize().y * 0.5f};
     }
     else
     {
-        const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
+        const auto& window_size = static_cast<glm::vec2>(screen.getStandardWindowSize());
 
         glm::vec2 view_center = {view_position.x + window_size.x / 2.f, view_position.y + window_size.y / 2.f};
 
@@ -722,29 +749,29 @@ void Game::updateInput(float dt)
 {
     if (!lock_camera)
     {
-        if (InputManager::isKey(SDL_SCANCODE_D))
+        if (InputManager::isKey(SDLK_D))
         {
             view_position.x += camera_move_speed * dt;
         }
-        if (InputManager::isKey(SDL_SCANCODE_A))
+        if (InputManager::isKey(SDLK_A))
         {
             view_position.x -= camera_move_speed * dt;
         }
-        if (InputManager::isKey(SDL_SCANCODE_W))
+        if (InputManager::isKey(SDLK_W))
         {
             view_position.y -= camera_move_speed * dt;
         }
-        if (InputManager::isKey(SDL_SCANCODE_S))
+        if (InputManager::isKey(SDLK_S))
         {
             view_position.y += camera_move_speed * dt;
         }
     }
-    if (InputManager::isKey(SDL_SCANCODE_Q))
+    if (InputManager::isKey(SDLK_Q))
     {
         zoom -= 2.f * dt;
         zoom = std::clamp(zoom, min_zoom, max_zoom);
     }
-    if (InputManager::isKey(SDL_SCANCODE_E))
+    if (InputManager::isKey(SDLK_E))
     {
         zoom += 2.f * dt;
         zoom = std::clamp(zoom, min_zoom, max_zoom);

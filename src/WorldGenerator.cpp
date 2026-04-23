@@ -226,12 +226,11 @@ void WorldGenerator::addCaves(Grid<Tile>& grid) const
 			}
 		}
 
-		int target_number = 50;
 		int current_number = 0;
 
 		size_t sky_tile_id = TileManager::get().getTileID("Sky");
 		//std::cout << drunk_walker_position.size() << std::endl;
-		while (current_number < target_number && !drunk_walker_position.empty())
+		while (current_number < generation_data.drunk_walker_target_number && !drunk_walker_position.empty())
 		{
 			std::uniform_int_distribution<int> pos_dist(0, drunk_walker_position.size() - 1);
 			int index = pos_dist(rng);

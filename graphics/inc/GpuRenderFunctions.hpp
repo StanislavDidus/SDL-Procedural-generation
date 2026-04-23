@@ -10,7 +10,7 @@ namespace graphics
 	{
 		const auto& view = renderer.getView();
 		const auto& zoom = renderer.getZoom();
-		const auto& window_size = renderer.getWindowSize();
+		const auto& window_size = renderer.getStandardWindowSize();
 
 		glm::vec2 mid_screen {window_size.x * 0.5f, window_size.y * 0.5f};
 
@@ -20,7 +20,7 @@ namespace graphics
 		
 	inline SDL_FRect getCameraRectFromTarget(const GpuRenderer& renderer, const glm::vec2 target) noexcept
 	{
-		const auto& window_size = renderer.getWindowSize();
+		const auto& window_size = renderer.getStandardWindowSize();
 		const auto& view_position = renderer.getView();
 		auto zoom = renderer.getZoom();
 
@@ -52,8 +52,8 @@ namespace graphics
 	inline void zoomPoint(const GpuRenderer& renderer, float& x, float& y) noexcept
 	{
 		const glm::vec2 mid_screen{
-			static_cast<float>(renderer.getWindowSize().x) / 2.f,
-			static_cast<float>(renderer.getWindowSize().y) / 2.f
+			static_cast<float>(renderer.getStandardWindowSize().x) / 2.f,
+			static_cast<float>(renderer.getStandardWindowSize().y) / 2.f
 		};
 
 		const float zoom = renderer.getZoom();
@@ -74,8 +74,8 @@ namespace graphics
 	inline void zoomRect(const GpuRenderer& renderer, SDL_FRect& rect) noexcept
 	{
 		const glm::vec2 mid_screen{
-			static_cast<float>(renderer.getWindowSize().x) / 2.f,
-			static_cast<float>(renderer.getWindowSize().y) / 2.f
+			static_cast<float>(renderer.getStandardWindowSize().x) / 2.f,
+			static_cast<float>(renderer.getStandardWindowSize().y) / 2.f
 		};
 		const float zoom = renderer.getZoom();
 

@@ -10,6 +10,11 @@
 
 namespace graphics
 {
+	extern int MAX_SPRITES_IN_BATCH;
+	extern int MAX_RECTANGLES_IN_BATCH;
+	extern int MAX_LINES_IN_BATCH;
+	extern int MAX_TILEMAPS_IN_BATCH;
+	
 	class Batch
 	{
 	public:

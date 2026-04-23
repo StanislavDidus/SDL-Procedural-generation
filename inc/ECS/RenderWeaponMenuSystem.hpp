@@ -12,7 +12,7 @@ public:
 
 	void render(graphics::GpuRenderer& screen, Entity target_entity)
 	{
-		const auto& window_size = screen.getWindowSize();
+		const auto& window_size = screen.getStandardWindowSize();
 		if (!registry.all_of<Components::Equipment>(target_entity)) return;
 
 		const auto& ui = ui_settings;

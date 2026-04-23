@@ -88,6 +88,16 @@
                 <rect x="32" y="16" w="16" h="16" name="TextBlock" />
             </rectListing>
         </sprite>
+        <sprite id="menu">
+            <path>assets/Sprites/Menu.png</path>
+            <scaleMode>NEAREST</scaleMode>
+            <rectListing>
+                <rect x="0" y="0" w="59" h="21" name="START" />
+                <rect x="64" y="0" w="40" h="17" name="EXIT" />
+                <rect x="0" y="22" w="64" h="19" name="START_MENU" />
+                <rect x="64" y="17" w="47" h="15" name="EXIT_MENU" />
+            </rectListing>
+        </sprite>
         <sprite id="icons">
             <path>assets/Sprites/icons.png</path>
             <scaleMode>NEAREST</scaleMode>
@@ -190,6 +200,7 @@
         </sound>
         <sound id="Jump">
             <path>assets/Sounds/Jump.wav</path>
+            <volume>0.5</volume>
         </sound>
         <sound id="Pick up">
             <path>assets/Sounds/Pick up.wav</path>

@@ -4,6 +4,7 @@
 
 #include "GpuBuffer.hpp"
 #include "GpuTexture.hpp"
+#include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
 
 namespace graphics
@@ -20,7 +21,8 @@ namespace graphics
 	public:
 		TileMap(std::shared_ptr<SDL_GPUDevice> device, std::shared_ptr<GpuTexture> texture, int world_width_tiles, int world_height_tiles,
 			int tile_width_world, int tile_height_world,
-			int chunk_width_tile, int chunk_height_tile);
+			int chunk_width_tile, int chunk_height_tile,
+			float offset_x, float offset_y);
 		~TileMap() = default;
 
 		// Getters

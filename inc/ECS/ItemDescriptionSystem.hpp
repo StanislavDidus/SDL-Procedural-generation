@@ -48,7 +48,7 @@ public:
 		int number_item_properties = 0;
 		countProperties(item_component.id, number_item_properties);
 
-		const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
+		const auto& window_size = static_cast<glm::vec2>(screen.getStandardWindowSize());
 
 		//Clamp the position to a screen
 		float draw_x = std::max(0.f, x);
@@ -114,7 +114,7 @@ public:
 					int number_item_properties = 0;
 					countProperties(item_id, number_item_properties);
 
-					const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
+					const auto& window_size = static_cast<glm::vec2>(screen.getStandardWindowSize());
 
 					//Clamp the position to a screen
 					x = std::max(0.f, x);

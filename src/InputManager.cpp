@@ -5,17 +5,17 @@ std::bitset<BITSET_SIZE> InputManager::pressed{};
 std::bitset<BITSET_SIZE> InputManager::released{};
 std::bitset<BITSET_SIZE> InputManager::held{};
 
-bool InputManager::isKeyDown(SDL_Scancode key)
+bool InputManager::isKeyDown(SDL_Keycode key)
 {
 	return pressed[key];
 }
 
-bool InputManager::isKey(SDL_Scancode key)
+bool InputManager::isKey(SDL_Keycode key)
 {
 	return held[key];
 }
 
-bool InputManager::isKeyUp(SDL_Scancode key)
+bool InputManager::isKeyUp(SDL_Keycode key)
 {
 	return released[key];
 
@@ -26,12 +26,12 @@ const MouseState& InputManager::getMouseState()
 	return mouse_state;
 }
 
-void InputManager::buttonUp(SDL_Scancode key)
+void InputManager::buttonUp(SDL_Keycode key)
 {
 	if (key < BITSET_SIZE) keys.reset(key);
 }
 
-void InputManager::buttonPressed(SDL_Scancode key)
+void InputManager::buttonPressed(SDL_Keycode key)
 {
 	if (key < BITSET_SIZE) keys.set(key);
 }

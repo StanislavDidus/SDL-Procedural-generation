@@ -17,7 +17,7 @@ using namespace graphics;
 	{
 		backgrounds.emplace_back(glm::vec2{ 0.0f, -540.0f * i }, 0.80f, glm::vec2{ 960.0f,540.0f }, spritesheet->getSprite("bg1"));
 	}
-	for (int i = 1; i < 8; ++i)
+	for (int i = 1; i < 13; ++i)
 	{
 		backgrounds.emplace_back(glm::vec2{ 0.0f, 540.0f * i }, 0.80f, glm::vec2{ 960.0f,540.0f }, spritesheet1->getSprite("bg1"));
 		backgrounds.emplace_back(glm::vec2{ 0.0f, 540.0f * i }, 0.50f, glm::vec2{ 960.0f,540.0f }, spritesheet1->getSprite("bg2"));
@@ -40,7 +40,7 @@ void DynamicBackground::update(const glm::vec2& camera_position)
 
 void DynamicBackground::render(GpuRenderer& screen, const glm::vec2& camera_position) const
 {
-	const auto& window_size = static_cast<glm::vec2>(screen.getWindowSize());
+	const auto& window_size = static_cast<glm::vec2>(screen.getStandardWindowSize());
 	for (const auto& background : backgrounds)
 	{
 		glm::vec2 distance = camera_position * background.parallax_effect;

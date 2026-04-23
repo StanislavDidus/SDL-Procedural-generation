@@ -35,7 +35,7 @@ public:
 
 	void render(graphics::GpuRenderer& screen)
 	{
-		const auto& window_size = screen.getWindowSize();
+		const auto& window_size = screen.getStandardWindowSize();
 		auto view = registry.view<Components::Transform, Components::UI::ChestWindow, Components::UI::ParentWindow>();
 		for (auto [entity, transform_component, chest_window_component, parent_window_component] : view.each())
 		{
@@ -168,7 +168,7 @@ private:
 		auto& chest = chest_window_component.chest;
 
 
-		const auto& window_size = screen.getWindowSize();
+		const auto& window_size = screen.getStandardWindowSize();
 
 		// Create window
 		auto chest_window = registry.create();

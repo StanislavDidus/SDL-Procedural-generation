@@ -75,7 +75,7 @@ public:
 			}
 		}
 
-		float craft_button_position_x = screen.getWindowSize().x - ui_settings.craft_button_columns * ui_settings.craft_button_width;
+		float craft_button_position_x = screen.getStandardWindowSize().x - ui_settings.craft_button_columns * ui_settings.craft_button_width;
 		float craft_button_position_y = 0.0f;
 
 		int i = 0;
