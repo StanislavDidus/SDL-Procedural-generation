@@ -26,12 +26,14 @@ namespace audio
 
 		void play();
 		void stop();
+		void update();
 	private:
 		Uint8* wav_data = nullptr;
 		Uint32 wav_data_len = 0;
 		SDL_AudioSpec spec;
 		SDL_AudioStream* stream = nullptr;
 		float volume = 1.0f;
+		bool playing = false;
 		
 		PlayType play_type = PlayType::STOP_ON_PLAY;
 	};

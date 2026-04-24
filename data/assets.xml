@@ -93,9 +93,19 @@
             <scaleMode>NEAREST</scaleMode>
             <rectListing>
                 <rect x="0" y="0" w="59" h="21" name="START" />
+                <rect x="0" y="0" w="11" h="20" name="START1" />
+                <rect x="11" y="0" w="11" h="20" name="START2" />
+                <rect x="23" y="0" w="11" h="20" name="START3" />
+                <rect x="34" y="0" w="11" h="23" name="START4" />
+                <rect x="45" y="0" w="16" h="21" name="START5" />
                 <rect x="64" y="0" w="40" h="17" name="EXIT" />
-                <rect x="0" y="22" w="64" h="19" name="START_MENU" />
-                <rect x="64" y="17" w="47" h="15" name="EXIT_MENU" />
+                <rect x="64" y="0" w="9" h="15" name="EXIT1" />
+                <rect x="73" y="0" w="9" h="15" name="EXIT2" />
+                <rect x="83" y="0" w="5" h="15" name="EXIT3" />
+                <rect x="89" y="0" w="16" h="15" name="EXIT4" />
+                <rect x="0" y="20" w="65" h="19" name="START_MENU" />
+                <rect x="65" y="15" w="47" h="15" name="EXIT_MENU" />
+                <rect x="0" y="39" w="52" h="62" name="LOGO" />
             </rectListing>
         </sprite>
         <sprite id="icons">
@@ -200,13 +210,14 @@
         </sound>
         <sound id="Jump">
             <path>assets/Sounds/Jump.wav</path>
-            <volume>0.5</volume>
+            <volume>0.2</volume>
         </sound>
         <sound id="Pick up">
             <path>assets/Sounds/Pick up.wav</path>
         </sound>
         <sound id="Place Tile">
             <path>assets/Sounds/Place tile.wav</path>
+            <volume>0.5</volume>
         </sound>
         <sound id="Walking">
             <path>assets/Sounds/Walking.wav</path>
@@ -221,6 +232,13 @@
             <path>assets/Sounds/Background Music.wav</path>
             <volume>0.35</volume>
             <type>LOOP</type>
+            <loop>true</loop>
+        </sound>
+        <sound id="Menu Music">
+            <path>assets/Sounds/Menu Music.wav</path>
+            <volume>0.35</volume>
+            <type>LOOP</type>
+            <loop>true</loop>
         </sound>
     </soundListing>
 </assetListing>

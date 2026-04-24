@@ -34,35 +34,15 @@ Game::Game(graphics::GpuRenderer& screen)
     : screen(screen)
 {
     std::cout << "Game was created" << std::endl;
-
-    //ResourceManager::get().loadXml("data/assets.xml", screen);
+    
     ItemManager::get().loadXml(registry, "data/items.xml");
     TileManager::get().loadXml("data/tiles.xml");
     CraftingManager::get().loadXml(registry, "data/crafts.xml");
     ObjectManager::get().loadXml("data/objects.xml");
     EnemyManager::get().loadXml(registry, "data/enemies.xml");
 
-    button_system = std::make_unique<ButtonSystem>(registry);
-    manage_button_actions_system = std::make_unique<ManageButtonActionsSystem>(registry);
+    setState(GameState::MENU);
 
-    {
-        Entity start_button = registry.create();
-        auto& ts = registry.emplace<Components::Transform>(start_button);
-        ts.position = glm::vec2{0.0f, 0.0f};
-        ts.size = glm::vec2{960.0f, 270.0f};
-        auto& button = registry.emplace<Components::Button>(start_button);
-        auto& func = registry.emplace<Components::ButtonFunction>(start_button);
-        func.command = [&]{setState(GameState::PLAY); };
-    }
-    {
-        Entity exit_button = registry.create();
-        auto& ts = registry.emplace<Components::Transform>(exit_button);
-        ts.position = glm::vec2{0.0f, 270.0f};
-        ts.size = glm::vec2{960.0f, 270.0f};
-        auto& button = registry.emplace<Components::Button>(exit_button);
-        auto& func = registry.emplace<Components::ButtonFunction>(exit_button);
-        func.command = [&]{std::exit(0); };
-    }
 }
 
 Game::~Game()
@@ -84,7 +64,6 @@ void Game::initSystems()
     render_crafting_ui_system = std::make_unique<RenderCraftingUISystem>(registry, ui_settings);
     item_description_system = std::make_shared<ItemDescriptionSystem>(registry, ResourceManager::get().getFont("Main"),
                                                                       inventory_view, ui_settings);
-    render_system = std::make_unique<RenderSystem>(registry);
     render_weapon_menu_system = std::make_unique<RenderWeaponMenuSystem>(registry, ui_settings);
     enemy_ai_system = std::make_unique<EnemyAISystem>(registry);
     enemy_spawn_system = std::make_shared<EnemySpawnSystem>(registry, world->grid, SpawnRadius{1500.0f, 2000.0f});
@@ -469,6 +448,8 @@ void Game::initUserInterface()
 
 void Game::tick(float dt)
 {
+    time += dt;
+    
     //Update
     update(dt);
 
@@ -494,6 +475,8 @@ void Game::update(float dt)
             setState(GameState::PLAY);
         }
         */
+        break;
+    case GameState::MENU:
         button_system->update(screen);
         manage_button_actions_system->update(player, screen);
         break;
@@ -573,6 +556,10 @@ void Game::update(float dt)
     updateImGui(dt);
 }
 
+float menu_background_position_x1 = 0.0f;
+float menu_background_position_x2 = 0.0f;
+float menu_background_position_x3 = 0.0f;
+
 void Game::render(float dt) const
 {
     const auto& window_size = screen.getStandardWindowSize();
@@ -581,9 +568,92 @@ void Game::render(float dt) const
     switch (current_state)
     {
     case GameState::NONE:
-        graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg1"), 0.0f, 0.0f, 960.0f, 540.0f);
-        graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), 0.0f, 0.0f, 960.0f, 540.0f);
-        graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg3"), 0.0f, 0.0f, 960.0f, 540.0f);
+        break;
+    case GameState::MENU:
+        {
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1, 0.0f, 960.0f, 540.0f);
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1 + 960.0f, 0.0f, 960.0f, 540.0f);
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1 - 960.0f, 0.0f, 960.0f, 540.0f);
+            menu_background_position_x1 += 25.0f * dt;
+            if (menu_background_position_x1 >= 960.0f)
+                menu_background_position_x1 -= 960.0f;
+            //
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg3"), menu_background_position_x2, 0.0f, 960.0f, 540.0f);
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg3"), menu_background_position_x2 + 960.0f, 0.0f, 960.0f, 540.0f);
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg3"), menu_background_position_x2 - 960.0f, 0.0f, 960.0f, 540.0f);
+            menu_background_position_x2 += 50.0f * dt;
+            if (menu_background_position_x2 >= 960.0f)
+                menu_background_position_x2 -= 960.0f;
+            //
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg4"), menu_background_position_x3, 0.0f, 960.0f, 540.0f);
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg4"), menu_background_position_x3 + 960.0f, 0.0f, 960.0f, 540.0f);
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg4"), menu_background_position_x3 - 960.0f, 0.0f, 960.0f, 540.0f);
+            menu_background_position_x3 += 75.0f * dt;
+            if (menu_background_position_x3 >= 960.0f)
+                menu_background_position_x3 -= 960.0f;
+        
+            render_system->render(screen);
+        
+            float start_button_text_offset = 0.0f;
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("menu")->getSprite("START1"),
+                ui_settings.menu_start_button_position.x + start_button_text_offset,
+                ui_settings.menu_start_button_position.y + 10.f + std::sin(time * 2.0f) * ui_settings.letter_bouncing * 1.0f,
+                50.0f,
+                80.0f);
+            start_button_text_offset += 55.0f;
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("menu")->getSprite("START2"),
+                ui_settings.menu_start_button_position.x + start_button_text_offset,
+                ui_settings.menu_start_button_position.y + 10.f + std::sin(time * 2.0f) * ui_settings.letter_bouncing * 0.6f,
+                50.0f,
+                80.0f);
+            start_button_text_offset += 55.0f;
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("menu")->getSprite("START3"),
+                ui_settings.menu_start_button_position.x + start_button_text_offset,
+                ui_settings.menu_start_button_position.y + 10.f + std::sin(time * 2.0f) * ui_settings.letter_bouncing * 0.25f,
+                50.0f,
+                80.0f);
+            start_button_text_offset += 55.0f;
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("menu")->getSprite("START4"),
+                ui_settings.menu_start_button_position.x + start_button_text_offset,
+                ui_settings.menu_start_button_position.y + 10.f + std::sin(time * 2.0f) * ui_settings.letter_bouncing * 0.1f,
+                50.0f,
+                80.0f);
+            start_button_text_offset += 55.0f;
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("menu")->getSprite("START5"),
+                ui_settings.menu_start_button_position.x + start_button_text_offset,
+                ui_settings.menu_start_button_position.y + 10.f + std::sin(time * 2.0f) * ui_settings.letter_bouncing * 0.6f,
+                50.0f,
+                80.0f);
+            
+            float exit_button_text_offset = 20.0f;
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("menu")->getSprite("EXIT1"),
+                ui_settings.menu_exit_button_position.x + exit_button_text_offset,
+                ui_settings.menu_exit_button_position.y + 15.f + std::sin(time) * ui_settings.letter_bouncing * 0.8f,
+                48.0f,
+                75.0f);
+            exit_button_text_offset += 51.0f;
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("menu")->getSprite("EXIT2"),
+                ui_settings.menu_exit_button_position.x + exit_button_text_offset,
+                ui_settings.menu_exit_button_position.y + 15.f + std::sin(time) * ui_settings.letter_bouncing * 0.3f,
+                48.0f,
+                75.0f);
+            exit_button_text_offset += 51.0f;
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("menu")->getSprite("EXIT3"),
+                ui_settings.menu_exit_button_position.x + exit_button_text_offset,
+                ui_settings.menu_exit_button_position.y + 15.f + std::sin(time) * ui_settings.letter_bouncing * 0.1f,
+                43.0f,
+                70.0f);
+            exit_button_text_offset += 50.0f;
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("menu")->getSprite("EXIT4"),
+                ui_settings.menu_exit_button_position.x + exit_button_text_offset,
+                ui_settings.menu_exit_button_position.y + 15.f + std::sin(time) * ui_settings.letter_bouncing * 0.7f,
+                55.0f,
+                75.0f);
+            
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("menu")->getSprite("LOGO"),
+                ui_settings.logo_position.x, ui_settings.logo_position.y,
+                ui_settings.logo_size.x, ui_settings.logo_size.y);
+        }
         break;
     case GameState::PLAY:
     case GameState::PLAYER_DEAD:
@@ -641,6 +711,41 @@ void Game::enterState(GameState state)
         {
            
         }
+        break;
+    case GameState::MENU:
+        {
+            button_system = std::make_unique<ButtonSystem>(registry);
+            manage_button_actions_system = std::make_unique<ManageButtonActionsSystem>(registry);
+            render_system = std::make_unique<RenderSystem>(registry);
+            
+            ResourceManager::get().getSound("Menu Music")->play();
+
+            {
+                Entity start_button = registry.create();
+                auto& ts = registry.emplace<Components::Transform>(start_button);
+                ts.position = ui_settings.menu_start_button_position;
+                ts.size = ui_settings.menu_start_button_size;
+                auto& button = registry.emplace<Components::Button>(start_button);
+                auto& func = registry.emplace<Components::ButtonFunction>(start_button);
+                func.command = [&]{setState(GameState::PLAY); };
+                auto& render = registry.emplace<Components::Renderable>(start_button);
+                render.sprite = ResourceManager::get().getSpriteSheet("menu")->getSprite("START_MENU");
+                registry.emplace<Components::AlwaysRender>(start_button);
+            }
+            {
+                Entity exit_button = registry.create();
+                auto& ts = registry.emplace<Components::Transform>(exit_button);
+                ts.position = ui_settings.menu_exit_button_position;
+                ts.size = ui_settings.menu_exit_button_size;
+                auto& button = registry.emplace<Components::Button>(exit_button);
+                auto& func = registry.emplace<Components::ButtonFunction>(exit_button);
+                func.command = [&]{std::exit(0); };
+                auto& render = registry.emplace<Components::Renderable>(exit_button);
+                render.sprite = ResourceManager::get().getSpriteSheet("menu")->getSprite("EXIT_MENU");
+                registry.emplace<Components::AlwaysRender>(exit_button);
+            }
+        }
+        break;
     case GameState::PLAY:
         {
            // Destroy all menu buttons
@@ -720,6 +825,18 @@ void Game::enterState(GameState state)
 
 void Game::exitState(GameState state)
 {
+    switch (state)
+    {
+    case GameState::NONE:
+        break;
+    case GameState::MENU:
+        ResourceManager::get().getSound("Menu Music")->stop();
+        break;
+    case GameState::PLAY:
+            break;
+    case GameState::PLAYER_DEAD:
+        break;
+    }
 }
 
 void Game::updateTilemapTarget()
@@ -783,6 +900,8 @@ void Game::updateImGui(float dt)
     switch (current_state)
     {
     case GameState::NONE:
+        break;
+    case GameState::MENU:
         break;
     case GameState::PLAY:
     case GameState::PLAYER_DEAD:

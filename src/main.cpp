@@ -66,6 +66,7 @@ int main()
     
     try
     {
+        //AudioManager audio_manager{};
         /*
         audio::AudioDevice audio_device{};
 		audio::Sound sound{audio_device.getAudioDeviceID(), "assets/Sounds/sample.wav"};
@@ -78,7 +79,7 @@ int main()
 		*/
 		//sound1.play();
 
-        Window window{ "First SDL program", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE };
+        Window window{ "RaTe-02", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE };
         //graphics::GpuRenderer renderer{ window };
         GpuRenderer gpu_renderer{ window };
 		ResourceManager::get().loadXml("data/assets.xml", gpu_renderer);
@@ -178,6 +179,9 @@ int main()
             gpu_renderer.update();
 
             //update(renderer);
+            
+            // Update sounds
+            ResourceManager::get().updateSounds();
 
             // Reset mousewheel state
             input_manager.setMouseWheel(glm::vec2{ 0.0f });

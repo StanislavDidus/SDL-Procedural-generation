@@ -94,7 +94,13 @@ void ResourceManager::loadXml(const std::filesystem::path& path_, graphics::GpuR
 				type = audio::Sound::PlayType::DONT_PLAY_WHEN_PLAYING;
 			}
 		}
-		addSound(sound_name, path, volume, type);
+		
+		bool loop = false;
+		if (sound_node->FirstChildElement("loop"))
+		{
+			loop = sound_node->FirstChildElement("loop")->BoolText();
+		}
+		addSound(sound_name, path, volume, type, loop);
 	}
 }
 
@@ -122,6 +128,14 @@ void ResourceManager::setMasterVolume(float volume)
 	master_volume = volume;
 }
 
+void ResourceManager::updateSounds()
+{
+	for (auto& sound : looped_sounds)
+	{
+		sound->update();
+	}
+}
+
 ResourceManager::ResourceManager()
 	: audio_device{}
 {
@@ -139,11 +153,14 @@ void ResourceManager::addFont(const std::string& name, const std::filesystem::pa
 	fonts[name] = std::make_shared<Font>(path, size);
 }
 
-void ResourceManager::addSound(const std::string& name, const std::filesystem::path& path, float volume, audio::Sound::PlayType type)
+void ResourceManager::addSound(const std::string& name, const std::filesystem::path& path, float volume, audio::Sound::PlayType type, bool loop)
 {
 	auto sound = std::make_shared<audio::Sound>(audio_device.getAudioDeviceID(), path);
 	sound->setVolume(volume * master_volume);
 	sound->setPlayType(type);
 	sounds[name] = sound;
+	
+	if (loop)
+		looped_sounds.push_back(sound);
 }
 

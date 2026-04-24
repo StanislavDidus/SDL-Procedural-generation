@@ -60,6 +60,7 @@ class DeathSystem;
 enum class GameState
 {
 	NONE,
+	MENU,
 	PLAY,
 	PLAYER_DEAD,
 };
@@ -98,6 +99,8 @@ private:
 	GameState current_state = GameState::NONE;
 
 	bool lock_camera = true;
+	
+	float time = 0.0f;
 
 	glm::vec2 view_position = { 0.f, 0.f };
 

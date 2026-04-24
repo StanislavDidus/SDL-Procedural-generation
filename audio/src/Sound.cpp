@@ -52,11 +52,21 @@ namespace audio
 			SDL_ClearAudioStream(stream);
 		
 		if (SDL_GetAudioStreamQueued(stream) < static_cast<int>(wav_data_len))
+		{
 			SDL_PutAudioStreamData(stream, wav_data, static_cast<int>(wav_data_len));
+			playing = true;
+		}
 	}
 
 	void Sound::stop()
 	{
 		SDL_ClearAudioStream(stream);
+		playing = false;
+	}
+
+	void Sound::update()
+	{
+		if (playing && SDL_GetAudioStreamQueued(stream) < static_cast<int>(wav_data_len))
+			SDL_PutAudioStreamData(stream, wav_data, static_cast<int>(wav_data_len));
 	}
 }

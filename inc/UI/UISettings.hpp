@@ -77,4 +77,38 @@ struct UISettings
 
 	int accessories_rows = 2;
 	int accessories_columns = 5;
+	
+	// Menu buttons
+	glm::vec2 menu_start_button_position
+	{
+		600.0f, 215.0f
+	};
+	
+	glm::vec2 menu_start_button_size
+	{
+		230.0f, 110.0f
+	};
+	
+	glm::vec2 menu_exit_button_position
+	{
+		600.0f, 350.0f
+	};
+	
+	glm::vec2 menu_exit_button_size
+	{
+		230.0f, 110.0f
+	};
+	
+	float letter_bouncing = 10.0f;
+	
+	glm::vec2 logo_size
+	{
+		350.0f, 400.0f,
+	};
+	
+	glm::vec2 logo_position
+	{
+		50.0f,
+		50.0f
+	};
 };

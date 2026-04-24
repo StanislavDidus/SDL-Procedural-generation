@@ -476,7 +476,8 @@ struct JumpSystem
 					j.jump_held = false;
 					ph.is_ground = false;
 					
-					ResourceManager::get().getSound("Jump")->play();
+					if (registry.all_of<Components::Player>(entity))
+						ResourceManager::get().getSound("Jump")->play();
 				}
 			}
 			else if (j.jump_count - 1 >= 1)
@@ -489,7 +490,8 @@ struct JumpSystem
 					ph.is_ground = false;
 					j.jump_count--;
 					
-					ResourceManager::get().getSound("Jump")->play();
+					if (registry.all_of<Components::Player>(entity))
+						ResourceManager::get().getSound("Jump")->play();
 				}
 			}
 			  
