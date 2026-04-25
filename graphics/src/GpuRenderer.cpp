@@ -413,13 +413,13 @@ void graphics::GpuRenderer::renderRectangle(float x, float y, float w, float h, 
 	}
 }
 
-void graphics::GpuRenderer::renderSprite(const Sprite& sprite, float x, float y, float w, float h, float angle, SDL_FlipMode flip, bool ignore_view_zoom)
+void graphics::GpuRenderer::renderSprite(const Sprite& sprite, float x, float y, float w, float h, float angle, SDL_FlipMode flip, bool ignore_view_zoom, graphics::Color color)
 {
-	renderTexture(sprite.getTexture(), sprite.getRect(), SDL_FRect{ x,y,w,h }, angle, flip, ignore_view_zoom);
+	renderTexture(sprite.getTexture(), sprite.getRect(), SDL_FRect{ x,y,w,h }, angle, flip, ignore_view_zoom, color);
 }
 
 void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, std::optional<SDL_FRect> source,
-                                          std::optional<SDL_FRect> destination, float angle, SDL_FlipMode flip, bool ignore_view_zoom)
+                                          std::optional<SDL_FRect> destination, float angle, SDL_FlipMode flip, bool ignore_view_zoom, graphics::Color color)
 {
 	//flip = SDL_FLIP_HORIZONTAL;
 	SDL_FRect src = source.value_or(SDL_FRect{ 0.0f, 0.0f, static_cast<float>(texture->w()), static_cast<float>(texture->h()) });
@@ -435,7 +435,7 @@ void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, s
 			.pos_rot{dst.x, dst.y, 0.0f, angle},
 			.size{dst.w, dst.h, 0.0f, 0.0f},
 			.uv{src.x, src.y, src.w, src.h},
-			.color{1.0f, 1.0f, 1.0f, 1.0f},
+			.color{color.r, color.g, color.b, color.a},
 			.flip{static_cast<float>(static_cast<unsigned int>(flip)), 0.0f, 0.0f, 0.0f}
 			}
 		});
@@ -450,7 +450,7 @@ void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, s
 			.pos_rot{dst.x, dst.y, 0.0f, angle},
 			.size{dst.w, dst.h, 0.0f, 0.0f},
 			.uv{src.x, src.y, src.w, src.h},
-			.color{1.0f, 1.0f, 1.0f, 1.0f},
+			.color{color.r, color.g, color.b, color.a},
 			.flip{static_cast<float>(static_cast<unsigned int>(flip)), 0.0f, 0.0f, 0.0f}
 			}
 		});

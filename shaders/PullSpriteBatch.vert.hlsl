@@ -65,7 +65,7 @@ Output main(uint id : SV_VertexID, uint instance_id : SV_InstanceID)
 
     output.Position = mul(float4(coordWithDepth, 1.0f), ViewProjectionMatrix);
     output.Texcoord = texcoord[vert];
-    output.Color = sprite.Color;
+    output.Color = sprite.Color / 255.0f;
     output.Flip = uint(sprite.Flip.x);
     output.UV = sprite.UV;
 

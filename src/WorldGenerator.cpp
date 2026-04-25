@@ -31,10 +31,14 @@ std::shared_ptr<World> WorldGenerator::generateWorld(std::optional<int> seed)
 {
 	Grid<Tile> grid(world_height_tiles, world_width_tiles);
 
-	//Remove all chests
-	auto view = registry.view<Components::Chest>();
+	//Remove all objects, chests and portals
 	std::vector<Entity> to_destroy;
+	auto view = registry.view<Components::Chest>();
 	for (const auto& [entity, chest] : view.each()) to_destroy.emplace_back(entity);
+	auto view1 = registry.view<Components::Object>();
+	for (const auto& [entity, object] : view1.each()) to_destroy.emplace_back(entity);
+	auto view2 = registry.view<Components::Portal>();
+	for (const auto& [entity] : view2.each()) to_destroy.emplace_back(entity);
 	for (const auto& entity : to_destroy) registry.destroy(entity);
 
 	initSeeds(seed);

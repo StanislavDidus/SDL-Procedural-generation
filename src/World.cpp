@@ -141,6 +141,8 @@ void World::spawnPortals(entt::registry& registry, float tile_width, float tile_
 		
 		auto& button_exit = registry.emplace<Components::ButtonExitSprite>(entity);
 		button_exit.sprite = ResourceManager::get().getSpriteSheet("objects")->getSprite("Portal");
+		
+		registry.emplace<Components::Portal>(entity);
 	}
 }
 

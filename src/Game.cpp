@@ -997,7 +997,8 @@ void Game::updateImGui(float dt)
 
             if (ImGui::Button("Generate world_generator"))
             {
-                world = (world_generator->generateWorld(buffer));
+                world = world_generator->generateWorld(buffer);
+                world->initWorld(registry, 20.0f, 20.0f);
             }
 
             ImGui::SameLine();
@@ -1006,7 +1007,8 @@ void Game::updateImGui(float dt)
             {
                 std::uniform_int_distribution dist(0, 10000000);
                 buffer = dist(rng);
-                world = std::move(world_generator->generateWorld(buffer));
+                world = world_generator->generateWorld(buffer);
+                world->initWorld(registry, 20.0f, 20.0f);
             }
 
             //ImGui::Checkbox("Use New Cave Generation Algorithm", &world_generator->use_new_cave_generation);

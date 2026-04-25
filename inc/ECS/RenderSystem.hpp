@@ -80,7 +80,7 @@ public:
 			
 			//graphics::ColorModGuard colorModGuard{renderable_component.sprite.getTexture(), renderable_component.color};
 
-			graphics::drawRotatedSprite(screen, renderable_component.sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component.flip_mode, renderable_component.ignore_view_zoom);
+			graphics::drawRotatedSprite(screen, renderable_component.sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component.flip_mode, renderable_component.ignore_view_zoom, renderable_component.color);
 
 			render_queue.pop();
 		}

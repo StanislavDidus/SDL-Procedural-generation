@@ -395,6 +395,11 @@ namespace Components
 	{
 		
 	};
+	
+	struct Portal
+	{
+		
+	};
 
 	struct Object
 	{

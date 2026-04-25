@@ -108,9 +108,9 @@ namespace graphics
 		renderer.renderSprite(sprite, x, y, w, h, 0.0f, SDL_FLIP_NONE, ignore_view_zoom);
 	}
 
-	inline void drawRotatedSprite(GpuRenderer& renderer, const Sprite& sprite, float x, float y, float w, float h, float angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE, bool ignore_view_zoom = false)
+	inline void drawRotatedSprite(GpuRenderer& renderer, const Sprite& sprite, float x, float y, float w, float h, float angle, SDL_FlipMode flip_mode = SDL_FLIP_NONE, bool ignore_view_zoom = false, graphics::Color color = graphics::Color::WHITE)
 	{
-		renderer.renderSprite(sprite, x, y, w, h, angle, flip_mode, ignore_view_zoom);
+		renderer.renderSprite(sprite, x, y, w, h, angle, flip_mode, ignore_view_zoom, color);
 	}
 
 	inline void printText(GpuRenderer& renderer, Text& text, float x, float y, float w, float h, bool ignore_view_zoom = false)
