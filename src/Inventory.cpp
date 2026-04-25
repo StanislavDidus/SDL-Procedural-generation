@@ -35,7 +35,9 @@ void Inventory::useItem(int slot, Entity target_entity, entt::registry& registry
 	{
 		auto use_item_entity = registry.create();
 		registry.emplace<Components::UseItem>(use_item_entity, item_info.id, target_entity);
-		item_info.stack_number--;
+			
+			if (item_properties.waste)
+				item_info.stack_number--;
 
 		if (item_info.stack_number <= 0)
 		{
@@ -63,39 +65,60 @@ void Inventory::useItem(int slot, Entity target_entity, entt::registry& registry
 	}
 }
 
-bool Inventory::addItem(size_t id, int number)
+std::optional<Inventory::ItemLeftover> Inventory::addItem(size_t id, int number)
 {
 	auto item = ItemManager::get().createItem(registry, id, number);
 	return addItem(item);
 }
 
-bool Inventory::addItem(Entity item_)
+std::optional<Inventory::ItemLeftover> Inventory::addItem(Entity item_)
 {
+	const auto& item_properties2 = ItemManager::get().getProperties(registry, item_);
 	for (auto& item : items)
 	{
 		if (item)
 		{
 			//Stack two items if they are the same and can stack
 			const auto& item_properties = ItemManager::get().getProperties(registry, *item);
-			const auto& item_properties2 = ItemManager::get().getProperties(registry, item_);
 			if (item_properties.name == item_properties2.name && item_properties.can_stack)
 			{
 				auto& item_component = registry.get<Components::InventoryItems::Item>(*item);
 				const auto& item_component2 = registry.get<Components::InventoryItems::Item>(item_);
 				item_component.stack_number += item_component2.stack_number;
-				return true;
+				return std::nullopt;
 			}
 		}
 	}
 
+	int added = 0;
 	//Otherwise put the item in an empty slot
-	if (!free_slots.empty())
+	if (item_properties2.can_stack)
 	{
-		if (auto free_slot = findFreeSlot()) items[*free_slot] = item_;
-		return true;
+		if (!free_slots.empty())
+		{
+			if (auto free_slot = findFreeSlot()) items[*free_slot] = item_;
+			return std::nullopt;
+		}
 	}
-
-	return false;
+	else
+	{
+		for (int i = 0; i < registry.get<Components::InventoryItems::Item>(item_).stack_number; ++i)
+		{
+			if (!free_slots.empty())
+			{
+				if (auto free_slot = findFreeSlot())
+				{
+					auto new_item = ItemManager::get().createItem(registry, registry.get<Components::InventoryItems::Item>(item_).id, 1);
+					items[*free_slot] = new_item;
+					++added;
+				}
+			}
+		}
+	}
+	
+	if (added == registry.get<Components::InventoryItems::Item>(item_).stack_number) return std::nullopt;
+	
+	return ItemLeftover{registry.get<Components::InventoryItems::Item>(item_).id, registry.get<Components::InventoryItems::Item>(item_).stack_number - added};
 }
 
 void Inventory::removeItemAtSlot(size_t slot)

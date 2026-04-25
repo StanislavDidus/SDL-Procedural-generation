@@ -1040,6 +1040,18 @@ public:
 				
 				playRandomChord();
 			}
+			if (registry.all_of<Components::InventoryItems::JumpComponent>(item))
+			{
+				if (registry.all_of<Components::Physics>(target))
+				{
+					auto& jump_component = registry.get<Components::InventoryItems::JumpComponent>(item);
+					if (jump_component.timer >= jump_component.time)
+					{
+						registry.get<Components::Physics>(target).velocity.y += jump_component.y_force;
+						jump_component.timer = 0.0f;
+					}
+				}
+			}
 
 			to_destroy.push_back(entity);
 		}
@@ -1074,6 +1086,8 @@ public:
 			//Remove CraftItem components from the last frame
 			registry.remove<Components::CraftItem>(entity);
 			registry.remove<Components::ButtonReleased>(entity);
+			registry.remove<Components::ButtonEntered>(entity);
+			registry.remove<Components::ButtonExit>(entity);
 
 			const auto& mouse_state = InputManager::getMouseState();
 			const auto& mouse_position = button.global ? graphics::getMouseGlobalPosition(screen, mouse_state.position) : mouse_state.position;

@@ -1,12 +1,15 @@
 #include "World.hpp"
 
+#include <UI/Button.hpp>
+
 #include "ObjectManager.hpp"
 #include "ResourceManager.hpp"
 #include "TileManager.hpp"
 #include "ECS/Components.hpp"
 
-World::World(const Grid<Tile>& grid, const std::vector<ObjectData>& objects, const std::vector<ChestData>& chests)
+World::World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, const std::vector<ObjectData>& objects, const std::vector<ChestData>& chests)
 	: grid{grid}
+	, portals{portals}
 	, objects{objects}
 	, chests{chests}
 {
@@ -15,6 +18,7 @@ World::World(const Grid<Tile>& grid, const std::vector<ObjectData>& objects, con
 
 void World::initWorld(entt::registry& registry, float tile_width, float tile_height)
 {
+	spawnPortals(registry, tile_width, tile_height);
 	spawnObjects(registry, tile_width, tile_height);
 	spawnChests(registry, tile_width, tile_height);
 }
@@ -112,6 +116,32 @@ void World::setSpriteMap(graphics::TileMap& tilemap)
 	tilemap.setSpriteMap(sprite_map);
 
 	is_dirty = false;
+}
+
+void World::spawnPortals(entt::registry& registry, float tile_width, float tile_height)
+{
+	for (const auto& portal : portals)
+	{
+		Entity entity = registry.create();
+		auto& ts = registry.emplace<Components::Transform>(entity);
+		ts.position.x = portal.grid_rect.x * tile_width;
+		ts.position.y = portal.grid_rect.y * tile_height;
+		ts.size.x = portal.grid_rect.w * tile_width;
+		ts.size.y = portal.grid_rect.h * tile_height;
+		
+		auto& renderable = registry.emplace<Components::Renderable>(entity);
+		renderable.sprite = ResourceManager::get().getSpriteSheet("objects")->getSprite("Portal");
+		registry.emplace<Components::AlwaysRender>(entity);
+		
+		auto& button = registry.emplace<Components::Button>(entity);
+		button.global = true;
+		
+		auto& button_entered = registry.emplace<Components::ButtonEnteredSprite>(entity);
+		button_entered.sprite = ResourceManager::get().getSpriteSheet("objects")->getSprite("Portal_Outlined");
+		
+		auto& button_exit = registry.emplace<Components::ButtonExitSprite>(entity);
+		button_exit.sprite = ResourceManager::get().getSpriteSheet("objects")->getSprite("Portal");
+	}
 }
 
 void World::spawnObjects(entt::registry& registry, float tile_width, float tile_height)

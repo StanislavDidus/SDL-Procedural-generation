@@ -40,10 +40,13 @@
 #include "ECS/RenderWeaponCircle.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ApplyEffects.hpp"
+#include "ECS/ButtonSoundSystem.hpp"
+#include "ECS/ButtonSpriteSystem.hpp"
 #include "ECS/UpdateEffects.hpp"
 #include "ECS/ChestWindowSystem.hpp"
 #include "ECS/CollectEssenceSystem.hpp"
 #include "ECS/DropChestLootSystem.hpp"
+#include "ECS/FallDamageSystem.hpp"
 #include "ECS/HealthRegenerationSystem.hpp"
 #include "ECS/ManageButtonActionsSystem.hpp"
 #include "ECS/ManageInvincibleStatusSystem.hpp"
@@ -158,6 +161,11 @@ private:
 	std::unique_ptr<UpdateEffects> update_effects_system;
 	std::unique_ptr<ApplyEffects> apply_effects_system;
 	std::unique_ptr<RenderAccessoriesSystem> render_accessories_system;
+	std::unique_ptr<ButtonSoundSystem> button_sound_system;
+	std::unique_ptr<ButtonSpriteSystem> button_sprite_system;
+	std::unique_ptr<FallDamageSystem> fall_damage_system;
+	
+	void updateTimer(float dt);
 
 	//UI
 	std::unique_ptr<CraftView> craft_view;

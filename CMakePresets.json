@@ -119,15 +119,13 @@
             "name": "ninja_debug",
             "displayName": "Ninja Debug Build",
             "configurePreset": "ninja",
-            "configuration": "Debug",
-            "jobs": 12
+            "configuration": "Debug"
         },
         {
             "name": "ninja_release",
             "displayName": "Ninja Release Build",
             "configurePreset": "ninja",
-            "configuration": "Release",
-            "jobs": 12
+            "configuration": "Release"
         },
         {
             "name": "gcc_debug",

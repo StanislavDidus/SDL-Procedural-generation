@@ -90,6 +90,7 @@ void Game::initSystems()
     render_accessories_system = std::make_unique<RenderAccessoriesSystem>(
         registry, ui_settings, item_description_system);
     enemy_spawn_manager = std::make_unique<EnemySpawnManager>(enemy_spawn_system);
+    fall_damage_system = std::make_unique<FallDamageSystem>(registry);
 }
 
 void Game::initGenerationData()
@@ -403,6 +404,10 @@ void Game::initPlayer()
     health_bar.position = glm::vec2{0.0f, static_cast<float>(window_size.y) - 70.0f};
     health_bar.size = glm::vec2{250.0f, 70.0f};
     health_bar.color = graphics::Color::RED;
+    
+    auto& fall_damage = registry.emplace<Components::FallDamage>(player);
+    fall_damage.fall_damage_threshold = 200.0f;
+    fall_damage.damage_per_height = 0.1f;
 
     //Add player a double jump
     //registry.emplace<Components::Effects::DoubleJump>(player);
@@ -478,6 +483,8 @@ void Game::update(float dt)
         break;
     case GameState::MENU:
         button_system->update(screen);
+        button_sound_system->update();
+        button_sprite_system->update();
         manage_button_actions_system->update(player, screen);
         break;
     case GameState::PLAY:
@@ -488,6 +495,8 @@ void Game::update(float dt)
             physics_system->update(dt);
             collision_system->update(dt);
             button_system->update(screen);
+            button_sound_system->update();
+            button_sprite_system->update();
             manage_button_actions_system->update(player, screen);
             craft_system->update(player);
             enemy_ai_system->update(dt, player);
@@ -510,6 +519,9 @@ void Game::update(float dt)
             update_effects_system->update(dt);
             apply_effects_system->update(dt);
             enemy_spawn_manager->update(dt);
+            button_sound_system->update();
+            fall_damage_system->update();
+            updateTimer(dt);
             //updateTilesDurability(world->grid);
             //world_renderer->update();
 
@@ -717,6 +729,8 @@ void Game::enterState(GameState state)
             button_system = std::make_unique<ButtonSystem>(registry);
             manage_button_actions_system = std::make_unique<ManageButtonActionsSystem>(registry);
             render_system = std::make_unique<RenderSystem>(registry);
+            button_sound_system = std::make_unique<ButtonSoundSystem>(registry);
+            button_sprite_system = std::make_unique<ButtonSpriteSystem>(registry);
             
             ResourceManager::get().getSound("Menu Music")->play();
 
@@ -731,6 +745,10 @@ void Game::enterState(GameState state)
                 auto& render = registry.emplace<Components::Renderable>(start_button);
                 render.sprite = ResourceManager::get().getSpriteSheet("menu")->getSprite("START_MENU");
                 registry.emplace<Components::AlwaysRender>(start_button);
+                registry.emplace<Components::ButtonReleasedSound>(start_button, ResourceManager::get().getSound("Button Released"));
+                registry.emplace<Components::ButtonEnteredSound>(start_button, ResourceManager::get().getSound("Button Entered"));
+                registry.emplace<Components::ButtonEnteredSprite>(start_button, ResourceManager::get().getSpriteSheet("menu")->getSprite("START_MENU_ENTER"));
+                registry.emplace<Components::ButtonExitSprite>(start_button, ResourceManager::get().getSpriteSheet("menu")->getSprite("START_MENU"));
             }
             {
                 Entity exit_button = registry.create();
@@ -743,6 +761,10 @@ void Game::enterState(GameState state)
                 auto& render = registry.emplace<Components::Renderable>(exit_button);
                 render.sprite = ResourceManager::get().getSpriteSheet("menu")->getSprite("EXIT_MENU");
                 registry.emplace<Components::AlwaysRender>(exit_button);
+                registry.emplace<Components::ButtonReleasedSound>(exit_button, ResourceManager::get().getSound("Button Released"));
+                registry.emplace<Components::ButtonEnteredSound>(exit_button, ResourceManager::get().getSound("Button Entered"));
+                registry.emplace<Components::ButtonEnteredSprite>(exit_button, ResourceManager::get().getSpriteSheet("menu")->getSprite("EXIT_MENU_ENTER"));
+                registry.emplace<Components::ButtonExitSprite>(exit_button, ResourceManager::get().getSpriteSheet("menu")->getSprite("EXIT_MENU"));
             }
         }
         break;
@@ -801,7 +823,7 @@ void Game::enterState(GameState state)
             inventory->addItem(ItemManager::get().getItemID("Fast_Helmet"), 1);
             inventory->addItem(ItemManager::get().getItemID("Snow_Bow"), 1);
             inventory->addItem(ItemManager::get().getItemID("Dagger_With_Poison"), 1);
-            inventory->addItem(ItemManager::get().getItemID("War_Hammer"), 1);
+            inventory->addItem(ItemManager::get().getItemID("Jumper"), 1);
 
 
             //Test accessories
@@ -836,6 +858,17 @@ void Game::exitState(GameState state)
             break;
     case GameState::PLAYER_DEAD:
         break;
+    }
+}
+
+void Game::updateTimer(float dt)
+{
+    {
+        auto view = registry.view<Components::InventoryItems::JumpComponent>();
+        for (auto [entity, jump_component] : view.each())
+        {
+            jump_component.timer += dt;
+        }
     }
 }
 

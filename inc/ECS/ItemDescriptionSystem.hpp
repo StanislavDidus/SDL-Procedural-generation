@@ -186,6 +186,10 @@ private:
 		{
 			number_properties += 1;
 		}
+		if (registry.all_of<Components::InventoryItems::JumpComponent>(item))
+		{
+			number_properties += 1;
+		}
 	}
 
 	void renderDescriptionLabel(graphics::GpuRenderer& screen, float x, float y, const Components::InventoryItems::Item& item_info, int additional_space_height) const
@@ -328,6 +332,10 @@ private:
 		{
 			const auto& increase = registry.get<Components::Effects::IncreaseWeaponSlots>(item);
 			renderItemDescription(screen, x, y, "Increases maximum weapon carry capacity by {}", increase.value);
+		}
+		else if (registry.all_of<Components::InventoryItems::JumpComponent>(item))
+		{
+			renderItemDescription(screen, x, y, "Makes you jump");
 		}
 	}
 

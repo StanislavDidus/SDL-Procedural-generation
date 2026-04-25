@@ -61,8 +61,9 @@ private:
 	void applyCellularAutomata(Grid<Tile>& grid);
 	void addWater(Grid<Tile>& grid) const;
 	void addBiomes(Grid<Tile>& grid) const;
-	void addObjects(std::vector<ObjectData>& objects, Grid<Tile>& grid);
-	void addChests(std::vector<ChestData>& chests, std::vector<ObjectData>& objects, Grid<Tile>& grid);
+	void addPortals(std::vector<PortalData>& portals, Grid<Tile>& grid);
+	void addObjects(std::vector<ObjectData>& objects, const std::vector<PortalData>& portals, Grid<Tile>& grid);
+	void addChests(std::vector<ChestData>& chests, const std::vector<ObjectData>& objects, const std::vector<PortalData>& portals, Grid<Tile>& grid);
 	void setTileDurability(Grid<Tile>& grid) const;
 
 	void removeTileCave(const glm::ivec2& position, Grid<Tile>& grid) const;

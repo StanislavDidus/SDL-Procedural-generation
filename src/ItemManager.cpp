@@ -47,8 +47,15 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 		{
 			action = ItemAction::NONE;
 		}
+		
+		// Waste
+		bool waste = true;
+		if (item_node->FirstChildElement("waste"))
+		{
+			waste = item_node->FirstChildElement("waste")->BoolText();
+		}
 
-		auto item = registerItem(registry, { can_stack, sprite_index, item_name, action, description});
+		auto item = registerItem(registry, { can_stack, sprite_index, item_name, action, waste, description});
 
 		const auto& components_node = item_node->FirstChildElement("components");
 		if (!components_node) continue;
@@ -148,6 +155,11 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 				float duration = component_node->FloatAttribute("duration");
 				registry.emplace_or_replace<Components::WeaponEffects::Stun>(item);
 				registry.emplace_or_replace<Components::WeaponEffects::EffectDuration>(item, duration);
+			}
+			else if (strcmp(component_name, "Jump_Component") == 0)
+			{
+				float force = component_node->FloatAttribute("value");
+				registry.emplace_or_replace<Components::InventoryItems::JumpComponent>(item, -force);
 			}
 		}
 	}

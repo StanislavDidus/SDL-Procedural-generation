@@ -144,4 +144,105 @@
             </spawnTiles>
         </spawnInfo>
     </object>
+    <object id="Diamond">
+        <properties>
+            <sprite>10</sprite>
+            <durability>2500</durability>
+            <drop>
+            </drop>
+        </properties>
+        <spawnInfo>
+            <size x="3" y="3" />
+            <noiseSettings octaves="1" frequency="0.9" amplitude="0.8" />
+            <noiseThreshold>5</noiseThreshold>
+            <spawnTiles>
+                <tile ref="Stone"/>
+            </spawnTiles>
+        </spawnInfo>
+    </object>
+    <object id="Slime">
+    <properties>
+        <sprite>11</sprite>
+        <durability>100</durability>
+        <drop>
+        </drop>
+    </properties>
+    <spawnInfo>
+        <size x="2" y="2" />
+        <noiseSettings octaves="1" frequency="0.5" amplitude="0.8" />
+        <noiseThreshold>10</noiseThreshold>
+        <spawnTiles>
+            <tile ref="Stone"/>
+        </spawnTiles>
+    </spawnInfo>
+</object>
+    <object id="Rainbow">
+        <properties>
+            <sprite>12</sprite>
+            <durability>1000</durability>
+            <drop>
+            </drop>
+        </properties>
+        <spawnInfo>
+            <size x="6" y="4" />
+            <noiseSettings octaves="2" frequency="1.5" amplitude="0.8" />
+            <noiseThreshold>10</noiseThreshold>
+            <spawnTiles>
+                <tile ref="Grass"/>
+                <tile ref="Sand"/>
+                <tile ref="Snow_Grass"/>
+            </spawnTiles>
+        </spawnInfo>
+    </object>
+    <object id="Small_Stones">
+        <properties>
+            <sprite>13</sprite>
+            <durability>100</durability>
+            <drop>
+            </drop>
+        </properties>
+        <spawnInfo>
+            <size x="2" y="2" />
+            <noiseSettings octaves="1" frequency="1.1" amplitude="1.1" />
+            <noiseThreshold>20</noiseThreshold>
+            <spawnTiles>
+                <tile ref="Stone"/>
+                <tile ref="Grass"/>
+                <tile ref="Sand"/>
+                <tile ref="Snow_Grass"/>
+            </spawnTiles>
+        </spawnInfo>
+    </object>
+    <object id="Sand_Tree">
+        <properties>
+            <sprite>14</sprite>
+            <durability>150</durability>
+            <drop>
+            </drop>
+        </properties>
+        <spawnInfo>
+            <size x="2" y="4" />
+            <noiseSettings octaves="1" frequency="0.8" amplitude="1.2" />
+            <noiseThreshold>50</noiseThreshold>
+            <spawnTiles>
+                <tile ref="Sand"/>
+            </spawnTiles>
+        </spawnInfo>
+    </object>
+    <object id="Snow_Ball">
+        <properties>
+            <sprite>15</sprite>
+            <durability>100</durability>
+            <drop>
+            </drop>
+        </properties>
+        <spawnInfo>
+            <size x="3" y="3" />
+            <noiseSettings octaves="1" frequency="1.0" amplitude="1.2" />
+            <noiseThreshold>40</noiseThreshold>
+            <spawnTiles>
+                <tile ref="Snow_Grass"/>
+            </spawnTiles>
+        </spawnInfo>
+    </object>
 </objectListing>

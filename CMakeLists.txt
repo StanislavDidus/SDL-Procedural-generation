@@ -126,6 +126,9 @@ set(HEADER_FILES
     "inc/World.hpp"
     "inc/WorldRenderer.hpp"
     "inc/UI/DynamicBackground.hpp"
+    "inc/ECS/ButtonSoundSystem.hpp"
+    "inc/ECS/ButtonSpriteSystem.hpp"
+    "inc/ECS/FallDamageSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

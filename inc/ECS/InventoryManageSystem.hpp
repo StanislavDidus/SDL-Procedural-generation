@@ -19,7 +19,7 @@ public:
 			//if (inventory_component.inventory->full()) continue;
 			if (registry.all_of<Components::HasInventory>(target))
 			{
-				bool drop_item = true;
+				std::optional<Inventory::ItemLeftover> drop_item;
 				if (registry.all_of<Components::InventoryItems::Accessory>(item))
 				{
 					// Check if player has enough space for new accessory
@@ -31,23 +31,24 @@ public:
 					}
 					else
 					{
-						drop_item = false;
+						drop_item = Inventory::ItemLeftover{registry.get<Components::InventoryItems::Item>(item).id, 1};
 					}
 					to_destroy.emplace_back(entity);
 				}
 				else
 				{
 					auto& inventory_component = registry.get<Components::HasInventory>(target);
-					if (!inventory_component.inventory->addItem(item)) drop_item = false;
+					drop_item = inventory_component.inventory->addItem(item);
 					to_destroy.emplace_back(entity);
 				}
 				
 				// If adding an item to the inventory failed
 				// We drop it
-				if (drop_item == false)
+				if (drop_item)
 				{
 					auto drop_entity = registry.create();
-					registry.emplace<Components::DropItem>(drop_entity, target, item);
+					auto new_item = ItemManager::get().createItem(registry, drop_item->item_id, drop_item->stack_number);
+					registry.emplace<Components::DropItem>(drop_entity, target, new_item);
 				}
 			}
 		}
@@ -63,17 +64,17 @@ public:
 			if (registry.all_of<Components::HasInventory>(target))
 			{
 				auto& inventory_component = registry.get<Components::HasInventory>(target);
-				bool result = inventory_component.inventory->addItem(item);
+				std::optional<Inventory::ItemLeftover> result = inventory_component.inventory->addItem(item);
 				to_destroy.emplace_back(entity);
 
-				if (result)
+				if (!result)
 				{
 					registry.destroy(source);
 					
 					// Play pick up sound
 					ResourceManager::get().getSound("Pick up")->play();
 				}
-				else if (!result)
+				else if (result)
 				{
 					registry.erase<Components::PickUpItem>(entity);
 				}

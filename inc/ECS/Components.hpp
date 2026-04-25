@@ -1,6 +1,7 @@
 #pragma once
 #include "Entity.hpp"
 #include "RandomizedItem.hpp"
+#include "Sound.hpp"
 #include "SpriteAnimation.hpp"
 
 class Inventory;
@@ -146,6 +147,13 @@ namespace Components
 		float max_health;
 		float current_health;
 	};
+	
+	struct FallDamage
+	{
+		float fall_damage_threshold;
+		float damage_per_height;
+		glm::vec2 last_position;
+	};
 
 	struct Regeneration
 	{
@@ -271,6 +279,26 @@ namespace Components
 	struct ButtonReleased
 	{
 
+	};
+	
+	struct ButtonEnteredSound
+	{
+		std::shared_ptr<audio::Sound> sound;
+	};
+	
+	struct ButtonReleasedSound
+	{
+		std::shared_ptr<audio::Sound> sound;
+	};
+	
+	struct ButtonEnteredSprite
+	{
+		graphics::Sprite sprite;
+	};
+	
+	struct ButtonExitSprite
+	{
+		graphics::Sprite sprite;
 	};
 
 	struct CraftButton
@@ -557,6 +585,7 @@ namespace Components
 			int sprite_index;
 			std::string name;
 			ItemAction action = ItemAction::NONE;
+			bool waste;
 			std::string description;
 		};
 
@@ -578,6 +607,13 @@ namespace Components
 		struct HealComponent
 		{
 			float value;
+		};
+		
+		struct JumpComponent
+		{
+			float y_force;
+			float time = 3.0f;
+			float timer = 3.0f;
 		};
 
 		struct PickaxeComponent

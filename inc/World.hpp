@@ -26,10 +26,15 @@ struct ObjectData
 	size_t properties_id;
 };
 
+struct PortalData
+{
+	SDL_FRect grid_rect;
+};
+
 class World
 {
 public:
-	World(const Grid<Tile>& grid, const std::vector<ObjectData>& objects, const std::vector<ChestData>& chests);
+	World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, const std::vector<ObjectData>& objects, const std::vector<ChestData>& chests);
 	~World() = default;
 
 	void initWorld(entt::registry& registry, float tile_width, float tile_height);
@@ -44,12 +49,14 @@ public:
 	void setSpriteMap(graphics::TileMap& tilemap);
 
 	Grid<Tile> grid;
+	std::vector<PortalData> portals;
 	std::vector<ObjectData> objects;
 	std::vector<ChestData> chests;
 
 	std::vector<Entity> object_entities;
 	std::vector<Entity> chest_entities;
 private:
+	void spawnPortals(entt::registry& registry, float tile_width, float tile_height);
 	void spawnObjects(entt::registry& registry, float tile_width, float tile_height);
 	void spawnChests(entt::registry& registry, float tile_width, float tile_height);
 

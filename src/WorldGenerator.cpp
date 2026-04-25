@@ -47,16 +47,19 @@ std::shared_ptr<World> WorldGenerator::generateWorld(std::optional<int> seed)
 		for (int i = 0; i < generation_data.cellular_automata_iterations; i++) applyCellularAutomata(grid);
 	//addWater();
 	addBiomes(grid);
+	
+	std::vector<PortalData> portals;
+	addPortals(portals, grid);
 
 	std::vector<ObjectData> objects;
-	addObjects(objects, grid);
+	addObjects(objects, portals, grid);
 
 	std::vector<ChestData> chests;
-	addChests(chests, objects, grid);
+	addChests(chests, objects, portals, grid);
 
 	setTileDurability(grid);
 
-	return std::make_shared<World>( grid, objects, chests );
+	return std::make_shared<World>( grid, portals, objects, chests );
 }
 
 void WorldGenerator::initSeeds(std::optional<int> seed_opt)
@@ -393,7 +396,68 @@ void WorldGenerator::addBiomes(Grid<Tile>& grid) const
 	}
 }
 
-void WorldGenerator::addObjects(std::vector<ObjectData>& objects, Grid<Tile>& grid)
+void WorldGenerator::addPortals(std::vector<PortalData>& portals, Grid<Tile>& grid)
+{
+	int portal_width = 7;
+	int portal_height = 5;
+	
+	glm::vec2 target_position {static_cast<float>(world_width_tiles) * 0.5f, 0.0f};
+	
+	std::vector<glm::vec2> potential_positions;
+	
+	for (int x = 0; x < world_width_tiles; x++)
+	{
+		float position_x = static_cast<float>(x);
+		for (int y = 0; y < world_height_tiles; y++)
+		{
+			float position_y = static_cast<float>(y);
+
+				bool check_floor = checkTileFloor(grid, x, y, portal_width, [&] (const Tile& tile)
+				{
+					return TileManager::get().getProperties(tile.id).is_solid && tile.id != TileManager::get().getTileID("Stone");
+				});
+
+				if (!check_floor) continue;
+
+				//Object Size
+				glm::vec2 object_size = {portal_width, portal_height};
+
+				bool is_space_free = checkTileSpace(grid, x, y, object_size.x, object_size.y);
+
+				if (!is_space_free) continue;
+
+				potential_positions.emplace_back(position_x, position_y);
+
+		}
+	}
+	
+	int index = -1;
+	float closest_distance = std::numeric_limits<float>::max();
+	
+	for (int i = 0; const auto& position : potential_positions)
+	{
+		float distance = glm::distance(position, target_position);
+		
+		if (distance < closest_distance)
+		{
+			closest_distance = distance;
+			index = i;
+		}
+		
+		++i;
+	}
+	
+	if (index == -1)
+	{
+		throw std::runtime_error{std::format("Could not spawn the Portal.")};
+	}
+	
+	const auto& position = potential_positions[index];
+	portals.emplace_back(SDL_FRect(position.x, position.y - portal_height, portal_width, portal_height));
+	
+}
+
+void WorldGenerator::addObjects(std::vector<ObjectData>& objects, const std::vector<PortalData>& portals, Grid<Tile>& grid)
 {
 	std::mt19937 rng(master_seed);
 	float scale = generation_data.scale;
@@ -447,6 +511,22 @@ void WorldGenerator::addObjects(std::vector<ObjectData>& objects, Grid<Tile>& gr
 				}
 
 				if (intersect) continue;
+				
+				// Check if object intersects with portals
+				bool intersect1 = false;
+				
+				for (const auto& portal : portals)
+				{
+					
+					if (object_grid_rect.x <= portal.grid_rect.x + portal.grid_rect.w && object_grid_rect.x + object_grid_rect.w >= portal.grid_rect.x &&
+					object_grid_rect.y <= portal.grid_rect.y + portal.grid_rect.h && object_grid_rect.y + object_grid_rect.h >= portal.grid_rect.y )
+					{
+						intersect1 = true;
+						break;
+					}
+				}
+				
+				if (intersect1) continue;
 
 				potential_objects_to_spawn.push_back(spawn_info);
 			}
@@ -495,7 +575,7 @@ void WorldGenerator::addObjects(std::vector<ObjectData>& objects, Grid<Tile>& gr
 	}
 }
 
-void WorldGenerator::addChests(std::vector<ChestData>& chests, std::vector<ObjectData>& objects, Grid<Tile>& grid)
+void WorldGenerator::addChests(std::vector<ChestData>& chests, const std::vector<ObjectData>& objects, const std::vector<PortalData>& portals, Grid<Tile>& grid)
 {
 	std::mt19937 rng(master_seed);
 	std::uniform_int_distribution<int> chest_dist (0,100);
@@ -562,6 +642,22 @@ void WorldGenerator::addChests(std::vector<ChestData>& chests, std::vector<Objec
 				{
 					if (chest_grid_rect.x <= object.grid_rect.x + object.grid_rect.w && chest_grid_rect.x + chest_grid_rect.w >= object.grid_rect.x &&
 					chest_grid_rect.y <= object.grid_rect.y + object.grid_rect.h && chest_grid_rect.y + chest_grid_rect.h >= object.grid_rect.y )
+					{
+						intersect = true;
+						break;
+					}
+				}
+
+				if (intersect) continue;
+			}
+			
+			// Check if chest intersects with portals
+			{
+				bool intersect = false;
+				for (const auto& portal : portals)
+				{
+					if (chest_grid_rect.x <= portal.grid_rect.x + portal.grid_rect.w && chest_grid_rect.x + chest_grid_rect.w >= portal.grid_rect.x &&
+					chest_grid_rect.y <= portal.grid_rect.y + portal.grid_rect.h && chest_grid_rect.y + chest_grid_rect.h >= portal.grid_rect.y )
 					{
 						intersect = true;
 						break;

@@ -58,7 +58,7 @@
         <action>NONE</action>
     </item>
     <item id="Rope">
-        <canStack>true</canStack>
+        <canStack>false</canStack>
         <spriteIndex>8</spriteIndex>
         <action>NONE</action>
     </item>
@@ -220,4 +220,13 @@
             <component id="IncreaseWeaponSlots" value="2" />
         </components>
     </item>
+    <item id="Jumper">
+    <canStack>false</canStack>
+    <spriteIndex>28</spriteIndex>
+    <action>USE</action>
+        <waste>false</waste>
+    <components>
+        <component id="Jump_Component" value="1200"></component>
+    </components>
+</item>
 </itemListing>

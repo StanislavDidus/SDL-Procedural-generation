@@ -20,6 +20,12 @@ namespace graphics
 class Inventory
 {
 public:
+	struct ItemLeftover
+	{
+		size_t item_id;
+		int stack_number;
+	};
+	
 	Inventory(
 		entt::registry& registry,
 		int size = 0
@@ -37,9 +43,9 @@ public:
 	/// </summary>
 	/// <param name="id">ID of the item.</param>
 	/// <param name="number">Quantity.</param> 
-	bool addItem(size_t id, int number = 1);
+	std::optional<ItemLeftover> addItem(size_t id, int number = 1);
 	// Function overloading for addItem(size_t id, int number);
-	bool addItem(Entity item_);
+	std::optional<ItemLeftover> addItem(Entity item_);
 
 	/// <summary>
 	/// Doesn't destroy an item just clears the slot

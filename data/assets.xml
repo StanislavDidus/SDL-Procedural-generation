@@ -54,6 +54,7 @@
                 <rect x="144" y="0" w="34" h="34" name="Fire_Emblem" />
                 <rect x="128" y="32" w="48" h="48" name="Astronaut_Suit" />
                 <rect x="0" y="80" w="35" h="32" name="War_Hammer" />
+                <rect x="80" y="80" w="32" h="32" name="Up_Jump" />
             </rectListing>
             <scaleMode>NEAREST</scaleMode>
         </sprite>
@@ -71,6 +72,14 @@
                 <rect x="0" y="48" w="48" h="32" name="Golden_Stone" /> 
                 <rect x="48" y="48" w="32" h="32" name="Chest" />
                 <rect x="80" y="48" w="32" h="32" name="Opened_Chest" />
+                <rect x="0" y="80" w="32" h="32" name="Diamond" />
+                <rect x="32" y="80" w="32" h="32" name="Slime" />
+                <rect x="64" y="80" w="64" h="32" name="Rainbow" />
+                <rect x="128" y="80" w="32" h="32" name="Small_Stones" />
+                <rect x="160" y="80" w="16" h="32" name="Sand_Tree" />
+                <rect x="128" y="48" w="32" h="32" name="Snow_Ball" />
+                <rect x="128" y="0" w="64" h="48" name="Portal" />
+                <rect x="192" y="0" w="64" h="48" name="Portal_Outlined" />
             </rectListing>
         </sprite>
         <sprite id="ui">
@@ -96,7 +105,7 @@
                 <rect x="0" y="0" w="11" h="20" name="START1" />
                 <rect x="11" y="0" w="11" h="20" name="START2" />
                 <rect x="23" y="0" w="11" h="20" name="START3" />
-                <rect x="34" y="0" w="11" h="23" name="START4" />
+                <rect x="34" y="0" w="11" h="20" name="START4" />
                 <rect x="45" y="0" w="16" h="21" name="START5" />
                 <rect x="64" y="0" w="40" h="17" name="EXIT" />
                 <rect x="64" y="0" w="9" h="15" name="EXIT1" />
@@ -104,7 +113,9 @@
                 <rect x="83" y="0" w="5" h="15" name="EXIT3" />
                 <rect x="89" y="0" w="16" h="15" name="EXIT4" />
                 <rect x="0" y="20" w="65" h="19" name="START_MENU" />
+                <rect x="63" y="40" w="64" h="19" name="START_MENU_ENTER" />
                 <rect x="65" y="15" w="47" h="15" name="EXIT_MENU" />
+                <rect x="64" y="60" w="47" h="15" name="EXIT_MENU_ENTER" />
                 <rect x="0" y="39" w="52" h="62" name="LOGO" />
             </rectListing>
         </sprite>
@@ -228,6 +239,14 @@
             <path>assets/Sounds/Craft.wav</path>
             <volume>0.21</volume>
         </sound>
+        <sound id="Button Entered">
+            <path>assets/Sounds/Button Entered.wav</path>
+            <volume>1</volume>
+        </sound>
+        <sound id="Button Released">
+            <path>assets/Sounds/Button Released.wav</path>
+            <volume>1</volume>
+        </sound>
         <sound id="Background Music">
             <path>assets/Sounds/Background Music.wav</path>
             <volume>0.35</volume>
@@ -236,7 +255,7 @@
         </sound>
         <sound id="Menu Music">
             <path>assets/Sounds/Menu Music.wav</path>
-            <volume>0.35</volume>
+            <volume>0.2</volume>
             <type>LOOP</type>
             <loop>true</loop>
         </sound>
