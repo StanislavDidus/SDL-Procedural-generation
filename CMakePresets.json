@@ -41,18 +41,6 @@
             }
         },
         {
-            "name": "gcc-make-debug-profile",
-            "displayName": "GCC + MakeFiles Profile Debug",
-            "generator": "Unix Makefiles",
-            "binaryDir": "out/gcc-make-debug-profile",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_C_COMPILER": "gcc",
-                "CMAKE_CXX_COMPILER": "g++",
-                "CMAKE_CXX_FLAGS": "-pg"
-            }
-        },
-        {
             "name": "gcc-make-release",
             "displayName": "GCC + MakeFiles Release",
             "generator": "Unix Makefiles",
@@ -84,7 +72,18 @@
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++"
             }
-        },  
+        },
+        {
+            "name": "clang-make-relwithdebinfo",
+            "displayName": "Clang + MakeFiles RelWithDebInfo",
+            "generator": "Unix Makefiles",
+            "binaryDir": "out/clang-make-relwithdebinfo",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++"
+            }
+        },
         {
             "name": "xcode-debug",
             "displayName": "Debug (Xcode)",
@@ -144,35 +143,35 @@
             "displayName": "GCC Debug Build",
             "configurePreset": "gcc-make-debug",
             "configuration": "Debug",
-            "jobs": 12
-        },
-        {
-            "name": "gcc_debug_profile",
-            "displayName": "GCC Debug Profile Build",
-            "configurePreset": "gcc-make-debug-profile",
-            "configuration": "Debug",
-            "jobs": 12
+            "jobs": 0
         },
         {
             "name": "gcc_release",
             "displayName": "GCC Release Build",
             "configurePreset": "gcc-make-release",
             "configuration": "Release",
-            "jobs": 12
+            "jobs": 0
         },
         {
             "name": "clang_debug",
             "displayName": "Clang Debug Build",
             "configurePreset": "clang-make-debug",
             "configuration": "Debug",
-            "jobs": 12
+            "jobs": 0
         },
         {
             "name": "clang_release",
             "displayName": "Clang Release Build",
             "configurePreset": "clang-make-release",
             "configuration": "Release",
-            "jobs": 12
+            "jobs": 0
+        },
+        {
+            "name": "clang_relwithdebinfo",
+            "displayName": "Clang RelWithDebInfo Build",
+            "configurePreset": "clang-make-relwithdebinfo",
+            "configuration": "RelWithDebInfo",
+            "jobs": 0
         }
     ]
 }

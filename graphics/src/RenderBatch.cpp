@@ -81,7 +81,7 @@ namespace graphics
 		if (sprites.empty())
 			return true;
 
-		if (MAX_SPRITES_IN_BATCH >= sprites.size())
+		if (MAX_SPRITES_IN_BATCH <= sprites.size())
 			return false;
 		
 		return texture == gpu_sprite.texture;
@@ -215,7 +215,7 @@ namespace graphics
 
 	bool graphics::RectangleBatch::canBatch(const RectangleData& rectangle_data) const
 	{
-		return MAX_RECTANGLES_IN_BATCH * 4 < vertices.size();
+		return MAX_RECTANGLES_IN_BATCH * 4 >= vertices.size();
 	}
 
 	void graphics::RectangleBatch::reset()
@@ -285,7 +285,7 @@ namespace graphics
 
 	bool graphics::LineBatch::canBatch(const LineData& line_data) const
 	{
-		return MAX_LINES_IN_BATCH * 2 < vertices.size();
+		return MAX_LINES_IN_BATCH * 2 >= vertices.size();
 	}
 
 	void graphics::LineBatch::reset()
