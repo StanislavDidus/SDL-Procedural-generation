@@ -91,6 +91,7 @@ void Game::initSystems()
         registry, ui_settings, item_description_system);
     enemy_spawn_manager = std::make_unique<EnemySpawnManager>(enemy_spawn_system);
     fall_damage_system = std::make_unique<FallDamageSystem>(registry);
+    object_durability_display = std::make_unique<ObjectDurabilityDisplay>(registry);
 }
 
 void Game::initGenerationData()
@@ -521,6 +522,7 @@ void Game::update(float dt)
             enemy_spawn_manager->update(dt);
             button_sound_system->update();
             fall_damage_system->update();
+            object_durability_display->update();
             updateTimer(dt);
             //updateTilesDurability(world->grid);
             //world_renderer->update();
@@ -679,6 +681,7 @@ void Game::render(float dt) const
             background.render(screen, screen.getView());
             screen.renderTileMap(tilemap, 0.0f, 0.0f);
             render_system->render(screen);
+            world->render(screen, 20.0f, 20.0f);
             mining_tiles_system->renderOutline(screen);
             mining_objects_system->render(screen);
             render_weapon_circle_system->render(screen);
@@ -899,29 +902,29 @@ void Game::updateInput(float dt)
 {
     if (!lock_camera)
     {
-        if (InputManager::isKey(SDLK_D))
+        if (InputManager::isKey(SDL_SCANCODE_D))
         {
             view_position.x += camera_move_speed * dt;
         }
-        if (InputManager::isKey(SDLK_A))
+        if (InputManager::isKey(SDL_SCANCODE_A))
         {
             view_position.x -= camera_move_speed * dt;
         }
-        if (InputManager::isKey(SDLK_W))
+        if (InputManager::isKey(SDL_SCANCODE_W))
         {
             view_position.y -= camera_move_speed * dt;
         }
-        if (InputManager::isKey(SDLK_S))
+        if (InputManager::isKey(SDL_SCANCODE_S))
         {
             view_position.y += camera_move_speed * dt;
         }
     }
-    if (InputManager::isKey(SDLK_Q))
+    if (InputManager::isKey(SDL_SCANCODE_Q))
     {
         zoom -= 2.f * dt;
         zoom = std::clamp(zoom, min_zoom, max_zoom);
     }
-    if (InputManager::isKey(SDLK_E))
+    if (InputManager::isKey(SDL_SCANCODE_E))
     {
         zoom += 2.f * dt;
         zoom = std::clamp(zoom, min_zoom, max_zoom);

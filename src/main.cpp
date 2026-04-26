@@ -128,10 +128,10 @@ int main()
                 switch (event.type)
                 {
                 case SDL_EVENT_KEY_DOWN:
-                    input_manager.buttonPressed(event.key.key);
+                    input_manager.buttonPressed(event.key.scancode);
                     break;
                 case SDL_EVENT_KEY_UP:
-                    input_manager.buttonUp(event.key.key);
+                    input_manager.buttonUp(event.key.scancode);
                     break;
                 case SDL_EVENT_MOUSE_WHEEL:
                     input_manager.setMouseWheel({ event.wheel.x, event.wheel.y });

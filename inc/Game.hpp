@@ -50,6 +50,7 @@
 #include "ECS/HealthRegenerationSystem.hpp"
 #include "ECS/ManageButtonActionsSystem.hpp"
 #include "ECS/ManageInvincibleStatusSystem.hpp"
+#include "ECS/ObjectDurabilityDisplay.hpp"
 #include "ECS/OpenChestSystem.hpp"
 #include "ECS/PlayerCollisionSystem.hpp"
 #include "ECS/RenderAccessoriesSystem.hpp"
@@ -164,6 +165,7 @@ private:
 	std::unique_ptr<ButtonSoundSystem> button_sound_system;
 	std::unique_ptr<ButtonSpriteSystem> button_sprite_system;
 	std::unique_ptr<FallDamageSystem> fall_damage_system;
+	std::unique_ptr<ObjectDurabilityDisplay> object_durability_display;
 	
 	void updateTimer(float dt);
 

@@ -30,6 +30,14 @@ namespace graphics
 					static_cast<uint8_t>(a - operand.a)
 			};
 		}
+		Color operator* (float operand) const
+		{
+			return { static_cast<uint8_t>(r * operand),
+					static_cast<uint8_t>(g * operand),
+					static_cast<uint8_t>(b * operand),
+					a
+			};
+		}
 		Color operator/ (float operand) const
 		{
 			return { static_cast<uint8_t>(r / operand),

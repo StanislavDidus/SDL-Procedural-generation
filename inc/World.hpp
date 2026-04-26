@@ -2,6 +2,7 @@
 #include <vector>
 #include <entt/entity/registry.hpp>
 
+#include "GpuRenderer.hpp"
 #include "TileMap.hpp"
 #include "Grid.hpp"
 #include "Object.hpp"
@@ -34,6 +35,12 @@ struct PortalData
 class World
 {
 public:
+	struct DamagedTile
+	{
+		float durability_percentage;
+		glm::ivec2 grid_position;
+	};
+	
 	World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, const std::vector<ObjectData>& objects, const std::vector<ChestData>& chests);
 	~World() = default;
 
@@ -46,6 +53,7 @@ public:
 	const std::vector<Uint32>& getSpriteMap() const;
 
 	void update(entt::registry& registry);
+	void render(graphics::GpuRenderer& screen, float tile_width_world, float tile_height_world) const;
 	void setSpriteMap(graphics::TileMap& tilemap);
 
 	Grid<Tile> grid;
@@ -62,6 +70,8 @@ private:
 
 	static void updateObjectsDurability(entt::registry& registry);
 	void updateTilesDurability();
+	
+	std::vector<DamagedTile> damaged_tiles;
 	
 	std::vector<Uint32> sprite_map;
 	bool is_dirty = true;

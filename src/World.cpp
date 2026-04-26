@@ -79,6 +79,14 @@ void World::damageTile(int x, int y, float damage)
 	if (auto& tile_properties = TileManager::get().getProperties(tile.id); tile_properties.is_solid && !tile.attached)
 	{
 		tile.dealDamage(damage);
+		
+		// Render break animations
+		
+		float current_durability = tile.current_durability;
+		float max_durability = tile_properties.max_durability;
+		float percentage = 1.0f - current_durability / max_durability;
+		
+		damaged_tiles.emplace_back(percentage, glm::ivec2{x, y});
 
 		if (tile.is_destroyed)
 		{
@@ -98,6 +106,51 @@ void World::update(entt::registry& registry)
 {
 	updateObjectsDurability(registry);
 	//updateTilesDurability();
+	
+	damaged_tiles.clear();
+}
+
+void World::render(graphics::GpuRenderer& screen, float tile_width_world, float tile_height_world) const
+{
+	for (const auto& tile : damaged_tiles)
+	{
+		if (tile.durability_percentage <= 0.25f)	
+			graphics::drawScaledSprite(
+				screen,
+				ResourceManager::get().getSpriteSheet("tile_break_anim")->getSprite("TileBreak0"),
+				tile.grid_position.x * tile_width_world,
+				tile.grid_position.y * tile_height_world,
+				tile_width_world,
+				tile_height_world
+				);
+		else if (tile.durability_percentage <= 0.50f)	
+			graphics::drawScaledSprite(
+				screen,
+				ResourceManager::get().getSpriteSheet("tile_break_anim")->getSprite("TileBreak1"),
+				tile.grid_position.x * tile_width_world,
+				tile.grid_position.y * tile_height_world,
+				tile_width_world,
+				tile_height_world
+				);
+		else if (tile.durability_percentage <= 0.75f)	
+			graphics::drawScaledSprite(
+				screen,
+				ResourceManager::get().getSpriteSheet("tile_break_anim")->getSprite("TileBreak2"),
+				tile.grid_position.x * tile_width_world,
+				tile.grid_position.y * tile_height_world,
+				tile_width_world,
+				tile_height_world
+				);
+		else if (tile.durability_percentage <= 1.0f)	
+			graphics::drawScaledSprite(
+				screen,
+				ResourceManager::get().getSpriteSheet("tile_break_anim")->getSprite("TileBreak3"),
+				tile.grid_position.x * tile_width_world,
+				tile.grid_position.y * tile_height_world,
+				tile_width_world,
+				tile_height_world
+				);
+	}	
 }
 
 void World::setSpriteMap(graphics::TileMap& tilemap)

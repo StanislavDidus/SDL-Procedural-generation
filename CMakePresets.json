@@ -39,7 +39,19 @@
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++"
             }
-        },  
+        },
+        {
+            "name": "gcc-make-debug-profile",
+            "displayName": "GCC + MakeFiles Profile Debug",
+            "generator": "Unix Makefiles",
+            "binaryDir": "out/gcc-make-debug-profile",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++",
+                "CMAKE_CXX_FLAGS": "-pg"
+            }
+        },
         {
             "name": "gcc-make-release",
             "displayName": "GCC + MakeFiles Release",
@@ -131,6 +143,13 @@
             "name": "gcc_debug",
             "displayName": "GCC Debug Build",
             "configurePreset": "gcc-make-debug",
+            "configuration": "Debug",
+            "jobs": 12
+        },
+        {
+            "name": "gcc_debug_profile",
+            "displayName": "GCC Debug Profile Build",
+            "configurePreset": "gcc-make-debug-profile",
             "configuration": "Debug",
             "jobs": 12
         },
