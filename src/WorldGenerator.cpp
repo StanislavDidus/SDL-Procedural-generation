@@ -11,6 +11,7 @@
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
 #include "VertexBuffer.hpp"
+#include <map>
 
 WorldGenerator::WorldGenerator
 (

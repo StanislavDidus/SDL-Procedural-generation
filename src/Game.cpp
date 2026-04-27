@@ -251,7 +251,6 @@ void Game::initChestLoot()
 {
     tinyxml2::XMLDocument doc;
     doc.LoadFile("data/chestLoot.xml");
-
     const auto& loot_listing_node = doc.FirstChildElement("lootListing");
 
     const auto& base_loot_node = loot_listing_node->FirstChildElement("baseLoot");
@@ -837,7 +836,7 @@ void Game::enterState(GameState state)
             //accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
 
             auto tilemap_texture = ResourceManager::get().getSpriteSheet("tiles")->getTexture();
-            tilemap = std::make_shared<TileMap>(screen.getDevice(), tilemap_texture, 2000, 350, 20, 20, 26, 25, 0.0f, 0.0f);
+            tilemap = std::make_shared<TileMap>(screen.getDevice(), tilemap_texture, 2000, 350, 20, 20, 26, 25);
 
             ResourceManager::get().getSound("Background Music")->play();
 

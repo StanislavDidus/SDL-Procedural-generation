@@ -1,5 +1,6 @@
 #include "GpuRenderer.hpp"
 #include "Window.hpp"
+#include "GpuRenderFunctions.hpp"
 
 #include <iostream>
 
@@ -174,13 +175,13 @@ void graphics::GpuRenderer::render
 				}
 				line_batch_.addToBatch(data);
 			}
-			else if constexpr (std::is_same_v<T, TileMapData>)
+			else if constexpr (std::is_same_v<T, ChunkData>)
 			{
 				sprite_batch_.flushBatch(command_buffer, target_info);
 				rectangle_batch_.flushBatch(command_buffer, target_info);
 				line_batch_.flushBatch(command_buffer, target_info);
 				
-				renderTileMap(data, command_buffer, target_info, matrix);
+				renderChunk(data, command_buffer, target_info, matrix);
 			}
 		}, draw_data);
 	}
@@ -192,26 +193,25 @@ void graphics::GpuRenderer::render
 	line_batch_.reset();
 }
 
-void graphics::GpuRenderer::renderTileMap(const TileMapData& tile_map_data, CommandBuffer& command_buffer,
+void graphics::GpuRenderer::renderChunk(const ChunkData& chunk_data, CommandBuffer& command_buffer,
                                           SDL_GPUColorTargetInfo& target_info, const glm::mat4& matrix) const
 {
 	SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
 	target_info.load_op = SDL_GPU_LOADOP_LOAD;
-	//Draw tilemap
-	const auto& tilemap = tile_map_data.tile_map;
+	const auto& chunk = chunk_data.chunk;
 	SDL_BindGPUGraphicsPipeline(render_pass, tilemap_graphics_pipeline->get());
 
 	SDL_GPUTextureSamplerBinding texture_sampler_binding = {};
-	texture_sampler_binding.texture = tilemap->getTexture()->get();
-	texture_sampler_binding.sampler = tilemap->getTexture()->getSampler()->get();
+	texture_sampler_binding.texture = chunk->getTexture()->get();
+	texture_sampler_binding.sampler = chunk->getTexture()->getSampler()->get();
 	SDL_BindGPUFragmentSamplers(render_pass, 0, &texture_sampler_binding, 1);
 
-	SDL_GPUBuffer* buffer = tilemap->getTileBuffer();
+	SDL_GPUBuffer* buffer = chunk->getTileBuffer();
 	SDL_BindGPUVertexStorageBuffers(render_pass, 0, &buffer, 1);
-	SDL_GPUBuffer* sprite_buffer = tilemap->getSpriteBuffer();
+	SDL_GPUBuffer* sprite_buffer = chunk->getSpriteBuffer();
 	SDL_BindGPUVertexStorageBuffers(render_pass, 1, &sprite_buffer, 1);
 	SDL_PushGPUVertexUniformData(command_buffer.get(), 0, &matrix, sizeof(glm::mat4));
-	SDL_DrawGPUPrimitives(render_pass, 6, tilemap->getSize(), 0, 0);
+	SDL_DrawGPUPrimitives(render_pass, 6, chunk->getSize(), 0, 0);
 
 	SDL_EndGPURenderPass(render_pass);
 }
@@ -457,6 +457,14 @@ void graphics::GpuRenderer::renderTexture(std::shared_ptr<GpuTexture> texture, s
 
 void graphics::GpuRenderer::renderTileMap(std::shared_ptr<TileMap> tilemap, float x, float y)
 {
-	draw_buffer.emplace_back(TileMapData{tilemap});
+	SDL_FRect camera_rect = graphics::getCameraRect(*this);
+	
+	for (const auto& chunk : tilemap->getChunks())
+	{
+		if (SDL_HasRectIntersectionFloat(&chunk->getRect(), &camera_rect))
+		{
+			draw_buffer.emplace_back(ChunkData{chunk});
+		}
+	}
 }
 

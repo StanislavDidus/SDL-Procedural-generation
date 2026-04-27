@@ -5,6 +5,7 @@
 #include "Noise.hpp"
 #include "MapRange.hpp"
 #include "RandomizedItem.hpp"
+#include <map>
 
 class TileManager;
 class ObjectManager;

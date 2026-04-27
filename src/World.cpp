@@ -14,6 +14,7 @@ World::World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, con
 	, chests{chests}
 {
 	sprite_map.resize(grid.getColumns() * grid.getRows());
+	chunks.resize((grid.getColumns() / chunk_width_tiles) * (grid.getRows() / chunk_height_tiles));
 }
 
 void World::initWorld(entt::registry& registry, float tile_width, float tile_height)
@@ -59,7 +60,7 @@ void World::placeTile(int x, int y, int tile_id)
 		if (is_placement_allowed)
 		{
 			tile.id = tile_id;
-			is_dirty = true;
+			//is_dirty = true;
 			
 			ResourceManager::get().getSound("Place Tile")->play();
 		}
@@ -92,7 +93,7 @@ void World::damageTile(int x, int y, float damage)
 		{
 			tile.id = TileManager::get().getTileID("Sky");
 			tile.is_destroyed = false;
-			is_dirty = true;
+			//is_dirty = true;
 		}
 	}
 }
@@ -155,20 +156,29 @@ void World::render(graphics::GpuRenderer& screen, float tile_width_world, float 
 
 void World::setSpriteMap(graphics::TileMap& tilemap)
 {
-	if (!is_dirty) return;
-
-	for (int y = 0; y < grid.getRows(); ++y)
+	for (const auto& chunk : tilemap.getChunks())
 	{
-		for (int x = 0; x < grid.getColumns(); ++x)
+		int world_height_chunks = grid.getColumns() / chunk_width_tiles;
+		int index = chunk->getIndex();
+		int index_x = index % world_height_chunks;
+		int index_y = index / world_height_chunks;
+		
+		if (chunks[index].is_dirty)
 		{
-			int sprite_index = TileManager::get().getProperties(grid(x, y).id).sprite_index;
-			sprite_map[x + y * grid.getColumns()] = sprite_index;
+			std::vector<Uint32> sprite_map;
+			sprite_map.resize(chunk->getSize());
+			for (int y = 0; y < chunk->getHeight(); ++y)
+			{
+				for (int x = 0; x < chunk->getWidth(); ++x)
+				{
+					int sprite_index = TileManager::get().getProperties(grid(index_x * chunk->getWidth() + x, index_y * chunk->getHeight() + y).id).sprite_index;
+					sprite_map[x + y * chunk->getWidth()] = sprite_index;
+				}
+			}
+			chunk->setSpriteMap(sprite_map);
+			chunks[index].is_dirty = false;
 		}
 	}
-
-	tilemap.setSpriteMap(sprite_map);
-
-	is_dirty = false;
 }
 
 void World::spawnPortals(entt::registry& registry, float tile_width, float tile_height)

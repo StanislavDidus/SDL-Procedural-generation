@@ -16,6 +16,7 @@ set(GRAPHICS_SOURCE_FILES
     "src/GpuSampler.cpp"
     "src/TileMap.cpp"
     "src/RenderBatch.cpp"
+    "src/Chunk.cpp"
     )
 
 set(GRAPHICS_HEADER_FILES
@@ -44,6 +45,7 @@ set(GRAPHICS_HEADER_FILES
     "inc/TileMap.hpp"
     "inc/CommandBuffer.hpp"
     "inc/RenderBatch.hpp"
+    "inc/Chunk.hpp"
     )
 
 set(GRAPHICS_ALL_FILES ${GRAPHICS_SOURCE_FILES} ${GRAPHICS_HEADER_FILES})

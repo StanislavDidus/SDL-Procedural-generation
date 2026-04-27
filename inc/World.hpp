@@ -41,6 +41,11 @@ public:
 		glm::ivec2 grid_position;
 	};
 	
+	struct Chunk
+	{
+		bool is_dirty = true;	
+	};
+	
 	World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, const std::vector<ObjectData>& objects, const std::vector<ChestData>& chests);
 	~World() = default;
 
@@ -74,6 +79,8 @@ private:
 	std::vector<DamagedTile> damaged_tiles;
 	
 	std::vector<Uint32> sprite_map;
-	bool is_dirty = true;
+	std::vector<Chunk> chunks;
+	float chunk_width_tiles = 26.0f;
+	float chunk_height_tiles = 25.0f;
 };
 

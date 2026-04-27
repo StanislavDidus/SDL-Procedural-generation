@@ -53,6 +53,10 @@ namespace graphics
 	{
 		std::shared_ptr<TileMap> tile_map;
 	};
+	struct ChunkData
+	{
+		std::shared_ptr<Chunk> chunk;
+	};
 	struct alignas(16) SpriteData
 	{
 		glm::vec4 pos_rot; // Position3 and Rotation1
@@ -67,7 +71,7 @@ namespace graphics
 		SpriteData data;
 	};
 
-	using DrawData = std::variant<GpuSprite, RectangleData, LineData, TileMapData>;
+	using DrawData = std::variant<GpuSprite, RectangleData, LineData, ChunkData>;
 
 	struct alignas(16) SpriteUniform
 	{

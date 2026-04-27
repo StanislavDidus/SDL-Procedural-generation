@@ -18,35 +18,23 @@ namespace graphics
 		return result;
 	}
 		
-	inline SDL_FRect getCameraRectFromTarget(const GpuRenderer& renderer, const glm::vec2 target) noexcept
+	inline SDL_FRect getCameraRect(const GpuRenderer& renderer) noexcept
 	{
 		const auto& window_size = renderer.getStandardWindowSize();
-		const auto& view_position = renderer.getView();
+		const auto& view = renderer.getView();
 		auto zoom = renderer.getZoom();
+		
+		float world_width = window_size.x / zoom;
+		float world_height = window_size.y / zoom;
+		
+		float offset_x = (window_size.x - world_width) * 0.5f;
+		float offset_y = (window_size.y - world_height) * 0.5f;
 
-		float halfW = (window_size.x * 0.5f) / zoom;
-		float halfH = (window_size.y * 0.5f) / zoom;
-
-		//
-		//glm::vec2 mid_view_position = view_position + static_cast<glm::vec2>(window_size) * 0.5f;
-		//
-
-		float left_world = target.x - halfW;
-		float right_world = target.x + halfW;
-		int begin_x = static_cast<int>(std::floor(left_world / 20.f));
-		int end_x = static_cast<int>(std::ceil(right_world / 20.f));
-
-		float up_world = target.y - halfH;
-		float down_world = target.y + halfH;
-		int begin_y = static_cast<int>(std::floor(up_world / 20.f));
-		int end_y = static_cast<int>(std::ceil(down_world / 20.f));
-
-		SDL_FRect camera_rect;
-		camera_rect.x = left_world;
-		camera_rect.y = up_world;
-		camera_rect.w = right_world - left_world;
-		camera_rect.h = down_world - up_world;
-		return camera_rect;
+		return SDL_FRect{
+        view.x + offset_x,
+        view.y + offset_y,
+        world_width	,
+        world_height};
 	}
 
 	inline void zoomPoint(const GpuRenderer& renderer, float& x, float& y) noexcept

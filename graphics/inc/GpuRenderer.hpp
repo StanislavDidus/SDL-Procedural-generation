@@ -120,7 +120,7 @@ namespace graphics
 
 		void render(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, glm::mat4& matrix, const std::vector<DrawData>&
 		            draw_buffer_, SpriteBatch& sprite_batch_, RectangleBatch& rectangle_batch_, LineBatch& line_batch_);
-		void renderTileMap(const TileMapData& tile_map_data, CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, const glm::mat4&
+		void renderChunk(const ChunkData& chunk_data, CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, const glm::mat4&
 		                   matrix) const;
 
 		Window& window;

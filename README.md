@@ -3,4 +3,3 @@ Small procedural generation project on SDL
 
 
 sprites - https://biggermanjd.itch.io/platformer-tileset-pixelart-grasslands
-sounds - https://pixabay.com/sound-effects/kick-drum-acoustic-sample-455285/
