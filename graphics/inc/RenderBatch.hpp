@@ -10,10 +10,10 @@
 
 namespace graphics
 {
-	extern int MAX_SPRITES_IN_BATCH;
-	extern int MAX_RECTANGLES_IN_BATCH;
-	extern int MAX_LINES_IN_BATCH;
-	extern int MAX_TILEMAPS_IN_BATCH;
+	extern int MAX_SPRITES_RENDERED;
+	extern int MAX_RECTANGLES_RENDERED;
+	extern int MAX_LINES_RENDERED;
+	extern int MAX_TILEMAPS_RENDERED;
 	
 	class Batch
 	{
@@ -23,7 +23,7 @@ namespace graphics
 		virtual ~Batch() = default;
 
 		void setMatrix(const glm::mat4& matrix);
-		virtual void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, bool& first_render) = 0;
+		virtual void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info) = 0;
 		virtual void reset() = 0;
 	protected:
 		std::shared_ptr<SDL_GPUDevice> device;
@@ -42,7 +42,7 @@ namespace graphics
 
 
 		void addToBatch(const GpuSprite& sprite);
-		void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, bool& first_render) override;
+		void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info) override;
 		bool canBatch(const GpuSprite& gpu_sprite) const;
 
 		void reset() override;
@@ -64,7 +64,7 @@ namespace graphics
 		~RectangleBatch() override = default;
 
 		void addToBatch(const RectangleData& rectangle_data);
-		void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, bool& first_render) override;
+		void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info) override;
 		bool canBatch(const RectangleData& rectangle_data) const;
 
 		void reset() override;
@@ -83,7 +83,7 @@ namespace graphics
 		~LineBatch() override = default;
 
 		void addToBatch(const LineData& line_data);
-		void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, bool& first_render) override;
+		void flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info) override;
 		bool canBatch(const LineData& line_data) const;
 
 		void reset() override;

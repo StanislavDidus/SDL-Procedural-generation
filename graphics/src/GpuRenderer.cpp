@@ -127,8 +127,7 @@ void graphics::GpuRenderer::render
 	const std::vector<DrawData>& draw_buffer_,
 	SpriteBatch& sprite_batch_,
 	RectangleBatch& rectangle_batch_,
-	LineBatch& line_batch_,
-	bool& first_render
+	LineBatch& line_batch_
 )
 {
 	sprite_batch_.setMatrix(matrix);
@@ -142,59 +141,59 @@ void graphics::GpuRenderer::render
 			if constexpr (std::is_same_v<T, GpuSprite>)
 			{
 				//Flush the rest of the batches
-				rectangle_batch_.flushBatch(command_buffer, target_info, first_render);
-				line_batch_.flushBatch(command_buffer, target_info, first_render);
+				rectangle_batch_.flushBatch(command_buffer, target_info);
+				line_batch_.flushBatch(command_buffer, target_info);
 				
 				// If objects cannot be put in a batch we flush it
 				if (!sprite_batch_.canBatch(data))
 				{
-					sprite_batch_.flushBatch(command_buffer, target_info, first_render);
+					sprite_batch_.flushBatch(command_buffer, target_info);
 				}
 				// Add to batch in the end
 				sprite_batch_.addToBatch(data);
 			}
 			else if constexpr (std::is_same_v<T, RectangleData>)
 			{
-				sprite_batch_.flushBatch(command_buffer, target_info, first_render);
-				line_batch_.flushBatch(command_buffer, target_info, first_render);
+				sprite_batch_.flushBatch(command_buffer, target_info);
+				line_batch_.flushBatch(command_buffer, target_info);
 				
 				if (!rectangle_batch_.canBatch(data))
 				{
-					rectangle_batch_.flushBatch(command_buffer, target_info, first_render);
+					rectangle_batch_.flushBatch(command_buffer, target_info);
 				}
 				rectangle_batch_.addToBatch(data);
 			}
 			else if constexpr (std::is_same_v<T, LineData>)
 			{
-				rectangle_batch_.flushBatch(command_buffer, target_info, first_render)	;
-				sprite_batch_.flushBatch(command_buffer, target_info, first_render);
+				rectangle_batch_.flushBatch(command_buffer, target_info)	;
+				sprite_batch_.flushBatch(command_buffer, target_info);
 				
 				if (!line_batch_.canBatch(data))
 				{
-					line_batch_.flushBatch(command_buffer, target_info, first_render);
+					line_batch_.flushBatch(command_buffer, target_info);
 				}
 				line_batch_.addToBatch(data);
 			}
 			else if constexpr (std::is_same_v<T, TileMapData>)
 			{
-				sprite_batch_.flushBatch(command_buffer, target_info, first_render);
-				rectangle_batch_.flushBatch(command_buffer, target_info, first_render);
-				line_batch_.flushBatch(command_buffer, target_info, first_render);
+				sprite_batch_.flushBatch(command_buffer, target_info);
+				rectangle_batch_.flushBatch(command_buffer, target_info);
+				line_batch_.flushBatch(command_buffer, target_info);
 				
-				renderTileMap(data, command_buffer, target_info, matrix, first_render);
+				renderTileMap(data, command_buffer, target_info, matrix);
 			}
 		}, draw_data);
 	}
-	sprite_batch_.flushBatch(command_buffer, target_info, first_render);
+	sprite_batch_.flushBatch(command_buffer, target_info);
 	sprite_batch_.reset();
-	rectangle_batch_.flushBatch(command_buffer, target_info, first_render);
+	rectangle_batch_.flushBatch(command_buffer, target_info);
 	rectangle_batch_.reset();
-	line_batch_.flushBatch(command_buffer, target_info, first_render);
+	line_batch_.flushBatch(command_buffer, target_info);
 	line_batch_.reset();
 }
 
 void graphics::GpuRenderer::renderTileMap(const TileMapData& tile_map_data, CommandBuffer& command_buffer,
-                                          SDL_GPUColorTargetInfo& target_info, const glm::mat4& matrix, bool& first_render) const
+                                          SDL_GPUColorTargetInfo& target_info, const glm::mat4& matrix) const
 {
 	SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);
 	target_info.load_op = SDL_GPU_LOADOP_LOAD;
@@ -271,9 +270,8 @@ void graphics::GpuRenderer::update()
 		
 		//std::cout << std::format("Width: {}, Height: {}", width, height) << std::endl;
 
-		bool first_render = true;
-		render(command_buffer, target_info, world_matrix, draw_buffer, *sprite_batch, *rectangle_batch, *line_batch, first_render);
-		render(command_buffer, target_info, base_matrix, ui_draw_buffer, *ui_sprite_batch, *ui_rectangle_batch, *ui_line_batch, first_render);
+		render(command_buffer, target_info, world_matrix, draw_buffer, *sprite_batch, *rectangle_batch, *line_batch);
+		render(command_buffer, target_info, base_matrix, ui_draw_buffer, *ui_sprite_batch, *ui_rectangle_batch, *ui_line_batch);
 
 		// Render ImGui
 		SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(command_buffer.get(), &target_info, 1, nullptr);

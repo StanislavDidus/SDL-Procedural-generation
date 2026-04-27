@@ -35,10 +35,10 @@ static float angle = 0.0f;
 
 namespace graphics
 {
-    int MAX_SPRITES_IN_BATCH = 10000;
-    int MAX_RECTANGLES_IN_BATCH = 10000;
-    int MAX_LINES_IN_BATCH = 10000;
-    int MAX_TILEMAPS_IN_BATCH = 1000;
+    int MAX_SPRITES_RENDERED = 3000;
+    int MAX_RECTANGLES_RENDERED = 1000;
+    int MAX_LINES_RENDERED = 1000;
+    int MAX_TILEMAPS_RENDERED = 100;
 }
 
 int main()

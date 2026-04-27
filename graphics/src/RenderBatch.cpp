@@ -17,8 +17,8 @@ namespace graphics
 
 	graphics::SpriteBatch::SpriteBatch(std::shared_ptr<SDL_GPUDevice> device, std::shared_ptr<GpuGraphicsPipeline> graphics_pipeline)
 		: Batch{ device, graphics_pipeline } 
-	, storage_buffer{device, static_cast<Uint32>(MAX_SPRITES_IN_BATCH * sizeof(SpriteData)), SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ}
-	, transfer_buffer{device, static_cast<Uint32>(MAX_SPRITES_IN_BATCH * sizeof(SpriteData)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD}
+	, storage_buffer{device, static_cast<Uint32>(MAX_SPRITES_RENDERED * sizeof(SpriteData)), SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ}
+	, transfer_buffer{device, static_cast<Uint32>(MAX_SPRITES_RENDERED * sizeof(SpriteData)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD}
 	{
 
 	}
@@ -29,7 +29,7 @@ namespace graphics
 		this->texture = sprite.texture;
 	}
 
-	void graphics::SpriteBatch::flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, bool& first_render)
+	void graphics::SpriteBatch::flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info)
 	{
 		if (sprites.empty()) return;
 
@@ -81,7 +81,7 @@ namespace graphics
 		if (sprites.empty())
 			return true;
 
-		if (MAX_SPRITES_IN_BATCH <= sprites.size())
+		if (MAX_SPRITES_RENDERED <= sprites.size())
 			return false;
 		
 		return texture == gpu_sprite.texture;
@@ -97,8 +97,8 @@ namespace graphics
 	graphics::RectangleBatch::RectangleBatch(std::shared_ptr<SDL_GPUDevice> device,
 		std::shared_ptr<GpuGraphicsPipeline> graphics_pipeline)	
 		: Batch{device, graphics_pipeline}
-	, vertices_buffer{device, static_cast<Uint32>(MAX_RECTANGLES_IN_BATCH * 6 * sizeof(Vertex)), SDL_GPU_BUFFERUSAGE_VERTEX}
-	, transfer_buffer{device, static_cast<Uint32>(MAX_RECTANGLES_IN_BATCH * 6 * sizeof(Vertex)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD}
+	, vertices_buffer{device, static_cast<Uint32>(MAX_RECTANGLES_RENDERED * 6 * sizeof(Vertex)), SDL_GPU_BUFFERUSAGE_VERTEX}
+	, transfer_buffer{device, static_cast<Uint32>(MAX_RECTANGLES_RENDERED * 6 * sizeof(Vertex)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD}
 	{
 
 	}
@@ -170,7 +170,7 @@ namespace graphics
 		);
 	}
 
-	void graphics::RectangleBatch::flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info, bool& first_render)
+	void graphics::RectangleBatch::flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info)
 	{
 		if (vertices.empty()) return;
 
@@ -215,7 +215,7 @@ namespace graphics
 
 	bool graphics::RectangleBatch::canBatch(const RectangleData& rectangle_data) const
 	{
-		return MAX_RECTANGLES_IN_BATCH * 4 >= vertices.size();
+		return MAX_RECTANGLES_RENDERED * 4 >= vertices.size();
 	}
 
 	void graphics::RectangleBatch::reset()
@@ -228,8 +228,8 @@ namespace graphics
 	graphics::LineBatch::LineBatch(std::shared_ptr<SDL_GPUDevice> device,
 		std::shared_ptr<GpuGraphicsPipeline> graphics_pipeline)
 		: Batch{device, graphics_pipeline}
-	, line_buffer{device, static_cast<Uint32>(MAX_LINES_IN_BATCH * 2 * sizeof(Vertex)), SDL_GPU_BUFFERUSAGE_VERTEX}
-	, transfer_buffer{device, static_cast<Uint32>(MAX_LINES_IN_BATCH * 2 * sizeof(Vertex)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD}
+	, line_buffer{device, static_cast<Uint32>(MAX_LINES_RENDERED * 2 * sizeof(Vertex)), SDL_GPU_BUFFERUSAGE_VERTEX}
+	, transfer_buffer{device, static_cast<Uint32>(MAX_LINES_RENDERED * 2 * sizeof(Vertex)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD}
 	{
 	}
 
@@ -239,8 +239,7 @@ namespace graphics
 		vertices.emplace_back(line_data.x2, line_data.y2, 0.0f, line_data.color.r, line_data.color.g, line_data.color.b, line_data.color.a);
 	}
 
-	void graphics::LineBatch::flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info,
-		bool& first_render)
+	void graphics::LineBatch::flushBatch(CommandBuffer& command_buffer, SDL_GPUColorTargetInfo& target_info)
 	{
 		if (vertices.empty()) return;
 	
@@ -285,7 +284,7 @@ namespace graphics
 
 	bool graphics::LineBatch::canBatch(const LineData& line_data) const
 	{
-		return MAX_LINES_IN_BATCH * 2 >= vertices.size();
+		return MAX_LINES_RENDERED * 2 >= vertices.size();
 	}
 
 	void graphics::LineBatch::reset()
