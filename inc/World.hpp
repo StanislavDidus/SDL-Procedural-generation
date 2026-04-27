@@ -73,6 +73,7 @@ private:
 	void spawnObjects(entt::registry& registry, float tile_width, float tile_height);
 	void spawnChests(entt::registry& registry, float tile_width, float tile_height);
 
+	int getChunkIndexByTilePosition(int x, int y) const;
 	static void updateObjectsDurability(entt::registry& registry);
 	void updateTilesDurability();
 	

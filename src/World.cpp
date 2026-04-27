@@ -6,6 +6,7 @@
 #include "ResourceManager.hpp"
 #include "TileManager.hpp"
 #include "ECS/Components.hpp"
+#include "glm/gtx/io.hpp"
 
 World::World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, const std::vector<ObjectData>& objects, const std::vector<ChestData>& chests)
 	: grid{grid}
@@ -60,7 +61,7 @@ void World::placeTile(int x, int y, int tile_id)
 		if (is_placement_allowed)
 		{
 			tile.id = tile_id;
-			//is_dirty = true;
+			chunks[getChunkIndexByTilePosition(x, y)].is_dirty = true;
 			
 			ResourceManager::get().getSound("Place Tile")->play();
 		}
@@ -93,7 +94,7 @@ void World::damageTile(int x, int y, float damage)
 		{
 			tile.id = TileManager::get().getTileID("Sky");
 			tile.is_destroyed = false;
-			//is_dirty = true;
+			chunks[getChunkIndexByTilePosition(x, y)].is_dirty = true;
 		}
 	}
 }
@@ -265,6 +266,15 @@ void World::spawnChests(entt::registry& registry, float tile_width, float tile_h
 
 		chest_entities.push_back(chest);
 	}
+}
+
+int World::getChunkIndexByTilePosition(int x, int y) const
+{
+	int chunk_x = x / chunk_width_tiles;
+	int chunk_y = y / chunk_height_tiles;
+	int world_world_chunks = grid.getColumns() / chunk_width_tiles;
+	int world_height_chunks = grid.getRows() / chunk_height_tiles;
+	return chunk_x + chunk_y * world_world_chunks;
 }
 
 void World::updateObjectsDurability(entt::registry& registry)
