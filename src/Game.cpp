@@ -791,7 +791,7 @@ void Game::enterState(GameState state)
             initChestLoot();
 
             text = std::make_unique<Text>(screen, ResourceManager::get().getFont("Main"), "Player");
-            world_generator = std::make_unique<WorldGenerator>(generation_data, registry, 2000, 350);
+            world_generator = std::make_unique<WorldGenerator>(generation_data, registry, 2000,500);
             world = world_generator->generateWorld(0);
             world->initWorld(registry, 20.0f, 20.0f);
             //spawnObjects(registry, *world, 20.0f, 20.0f);
@@ -836,7 +836,7 @@ void Game::enterState(GameState state)
             //accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
 
             auto tilemap_texture = ResourceManager::get().getSpriteSheet("tiles")->getTexture();
-            tilemap = std::make_shared<TileMap>(screen.getDevice(), tilemap_texture, 2000, 350, 20, 20, 26, 25);
+            tilemap = std::make_shared<TileMap>(screen.getDevice(), tilemap_texture, 2000,500, 20, 20, 50, 50);
 
             ResourceManager::get().getSound("Background Music")->play();
 

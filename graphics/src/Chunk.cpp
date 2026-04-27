@@ -12,15 +12,15 @@ namespace graphics
         float offset_x, float offset_y,
         int index
         )
-        : tile_buffer{device, static_cast<Uint32>(width_tiles * height_tiles * sizeof(TileData)), SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ}
+    : tile_buffer{device, static_cast<Uint32>(width_tiles * height_tiles * sizeof(TileData)), SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ}
     , sprite_buffer{device, static_cast<Uint32>(width_tiles * height_tiles * sizeof(Uint32)), SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ}
-    , texture{texture}
-    , device{device}
-    , size{width_tiles * height_tiles}
     , rect{offset_x, offset_y, width_tiles * tile_width_world, height_tiles * tile_height_world}
-    , index{index}
+    , device{device}
+    , texture{texture}
     , width_tiles{width_tiles}
     , height_tiles{height_tiles}
+    , size{width_tiles * height_tiles}
+    , index{index}
     {
         GpuTransferBuffer transfer_buffer{ device, static_cast<Uint32>(size * sizeof(TileData)), SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD };
 	

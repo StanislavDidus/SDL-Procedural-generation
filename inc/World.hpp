@@ -80,7 +80,7 @@ private:
 	
 	std::vector<Uint32> sprite_map;
 	std::vector<Chunk> chunks;
-	float chunk_width_tiles = 26.0f;
-	float chunk_height_tiles = 25.0f;
+	float chunk_width_tiles = 50.0f;
+	float chunk_height_tiles = 50.0f;
 };
 
