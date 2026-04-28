@@ -56,6 +56,7 @@
 #include "ECS/RenderAccessoriesSystem.hpp"
 #include "ECS/RenderEssenceCounter.hpp"
 #include "ECS/RenderHealthBarSystem.hpp"
+#include "ECS/ShowMessageSystem.hpp"
 #include "UI/DynamicBackground.hpp"
 
 class ChangeMiningSizeSystem;
@@ -108,8 +109,8 @@ private:
 
 	glm::vec2 view_position = { 0.f, 0.f };
 
-	float min_zoom = 0.1f; //0.5f
-	float max_zoom = 5.f; // 2.0f
+	float min_zoom = 0.5f; //0.5f
+	float max_zoom = 2.0f; // 2.0f
 	float zoom = 1.f;
 
 	float camera_move_speed = 1500.f;
@@ -166,6 +167,7 @@ private:
 	std::unique_ptr<ButtonSpriteSystem> button_sprite_system;
 	std::unique_ptr<FallDamageSystem> fall_damage_system;
 	std::unique_ptr<ObjectDurabilityDisplay> object_durability_display;
+	std::unique_ptr<ShowMessageSystem> show_message_system;
 	
 	void updateTimer(float dt);
 

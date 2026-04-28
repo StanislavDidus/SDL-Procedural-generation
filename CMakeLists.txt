@@ -128,6 +128,7 @@ set(HEADER_FILES
     "inc/ECS/ButtonSpriteSystem.hpp"
     "inc/ECS/FallDamageSystem.hpp"
     "inc/ECS/ObjectDurabilityDisplay.hpp"
+    "inc/ECS/ShowMessageSystem.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})

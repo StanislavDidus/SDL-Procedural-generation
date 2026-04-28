@@ -12,16 +12,19 @@
 struct RenderEntry
 {
 	int priority;
-	Components::Transform transform;
-	Components::Renderable renderable;
+	Components::Transform* transform;
+	Components::Renderable* renderable;
 
-	bool operator>(const RenderEntry& rhs) const { return this->priority > rhs.priority; }
+	bool operator<(const RenderEntry& rhs) const { return this->priority < rhs.priority; }
 };
 
 class RenderSystem
 {
 public:
-	RenderSystem(entt::registry& registry) : registry{registry} {}
+	RenderSystem(entt::registry& registry) : registry{registry}
+	{
+		render_entries.reserve(graphics::MAX_SPRITES_RENDERED);
+	}
 
 	// Update animations
 	// NOTE: Move it to another system?
@@ -58,35 +61,33 @@ public:
 		}
 	}
 
-	void render(graphics::GpuRenderer& screen) const
+	void render(graphics::GpuRenderer& screen)
 	{
-		std::priority_queue<RenderEntry, std::vector<RenderEntry>, std::greater<RenderEntry>> render_queue;
-
 		auto view = registry.view<Components::Transform, Components::Renderable, Components::AlwaysRender>();
 		for (auto [entity, transform_component, renderable_component] : view.each())
 		{
-			render_queue.push({ renderable_component.priority, transform_component, renderable_component });
+			render_entries.emplace_back(renderable_component.priority, &transform_component, &renderable_component);
 		}
+		
+		std::sort(render_entries.begin(), render_entries.end());
 
-		while (render_queue.empty() == false)
+		for (const auto& render : render_entries)
 		{
-			auto& render = render_queue.top();
-
 			const auto& transform_component = render.transform;
 			const auto& renderable_component = render.renderable;
 
-			const auto& position = transform_component.position;
-			const auto& size = transform_component.size;
+			const auto& position = transform_component->position;
+			const auto& size = transform_component->size;
 			
-			//graphics::ColorModGuard colorModGuard{renderable_component.sprite.getTexture(), renderable_component.color};
-
-			graphics::drawRotatedSprite(screen, renderable_component.sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component.flip_mode, renderable_component.ignore_view_zoom, renderable_component.color);
-
-			render_queue.pop();
+			graphics::drawRotatedSprite(screen, renderable_component->sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component->flip_mode, renderable_component->ignore_view_zoom, renderable_component->color);
 		}
+		
+		render_entries.clear();
 	}
 
 
 private:
 	entt::registry& registry;
+	
+	std::vector<RenderEntry> render_entries;
 };

@@ -548,6 +548,13 @@ namespace Components
 
 	namespace UI
 	{
+		struct ShowMessage
+		{
+			std::string text;
+			float time;
+			float timer = 0.0f;
+		};
+		
 		struct OpenChestWindow
 		{
 			Entity target = entt::null;

@@ -92,6 +92,7 @@ void Game::initSystems()
     enemy_spawn_manager = std::make_unique<EnemySpawnManager>(enemy_spawn_system);
     fall_damage_system = std::make_unique<FallDamageSystem>(registry);
     object_durability_display = std::make_unique<ObjectDurabilityDisplay>(registry);
+    show_message_system = std::make_unique<ShowMessageSystem>(registry);
 }
 
 void Game::initGenerationData()
@@ -333,7 +334,7 @@ void Game::initPlayer()
 
     auto& ts = registry.emplace<Components::Transform>(player);
     ts.position = glm::vec2{400.0f, -500.f};
-    ts.position.x += 1000.0f * 20.0f;
+    ts.position.x += 500.0f * 20.0f;
     ts.size = glm::vec2{35.0f, 40.0f};
     base.size = ts.size;
 
@@ -522,6 +523,7 @@ void Game::update(float dt)
             button_sound_system->update();
             fall_damage_system->update();
             object_durability_display->update();
+            show_message_system->update(dt);
             updateTimer(dt);
             //updateTilesDurability(world->grid);
             //world_renderer->update();
@@ -687,6 +689,7 @@ void Game::render(float dt) const
             drop_chest_loot_system->update(dt, screen);
 
             //UI
+            show_message_system->render(screen);
             inventory_view->render(screen);
             render_essence_counter->render(screen, player);
             render_crafting_ui_system->render(screen, player);
@@ -791,7 +794,7 @@ void Game::enterState(GameState state)
             initChestLoot();
 
             text = std::make_unique<Text>(screen, ResourceManager::get().getFont("Main"), "Player");
-            world_generator = std::make_unique<WorldGenerator>(generation_data, registry, 2000,500);
+            world_generator = std::make_unique<WorldGenerator>(generation_data, registry, 1000, 300);
             world = world_generator->generateWorld(0);
             world->initWorld(registry, 20.0f, 20.0f);
             //spawnObjects(registry, *world, 20.0f, 20.0f);
@@ -836,9 +839,11 @@ void Game::enterState(GameState state)
             //accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
 
             auto tilemap_texture = ResourceManager::get().getSpriteSheet("tiles")->getTexture();
-            tilemap = std::make_shared<TileMap>(screen.getDevice(), tilemap_texture, 2000,500, 20, 20, 50, 50);
+            tilemap = std::make_shared<TileMap>(screen.getDevice(), tilemap_texture, 1000,300, 20, 20, 50, 50);
 
             ResourceManager::get().getSound("Background Music")->play();
+            
+            registry.emplace<Components::UI::ShowMessage>(player, "Where am I?", 10.0f);
 
             break;
         }

@@ -95,6 +95,7 @@
                 <rect x="128" y="0" w="16" h="16" name="Sand_Essence" />
                 <rect x="0" y="16" w="32" h="32" name="ChestUI" />
                 <rect x="32" y="16" w="16" h="16" name="TextBlock" />
+                <rect x="48" y="16" w="48" h="32" name="Dialogue_Window" />
             </rectListing>
         </sprite>
         <sprite id="menu">
