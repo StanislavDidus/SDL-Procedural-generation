@@ -200,4 +200,9 @@ private:
 	std::shared_ptr<graphics::SpriteAnimation> running_animation;
 	std::shared_ptr<graphics::SpriteAnimation> jump_animation;
 	std::shared_ptr<graphics::SpriteAnimation> fall_animation;
+	
+	// Fps counter
+	int fps_tick = 0;
+	std::unique_ptr<graphics::Text> fps_text;
+	float fps_last_check = 0.0f;
 };

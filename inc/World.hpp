@@ -44,6 +44,7 @@ public:
 	struct Chunk
 	{
 		bool is_dirty = true;	
+		bool damaged_tile = false;
 	};
 	
 	World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, const std::vector<ObjectData>& objects, const std::vector<ChestData>& chests);

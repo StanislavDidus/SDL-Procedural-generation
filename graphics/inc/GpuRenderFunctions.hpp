@@ -17,6 +17,13 @@ namespace graphics
 		glm::vec2 result{ view + mid_screen + (mouse_position - mid_screen) / zoom };
 		return result;
 	}
+	
+	inline glm::vec2 getScreenPositionForWorld(const graphics::GpuRenderer& screen, const glm::vec2& world_position)
+	{
+		const auto& world_matrix = screen.getWorldMatrix();
+		glm::vec4 result{ glm::vec4{world_position, 0.0f, 1.0f} * world_matrix};
+		return {result.x, result.y};
+	}
 		
 	inline SDL_FRect getCameraRect(const GpuRenderer& renderer) noexcept
 	{

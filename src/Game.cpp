@@ -19,6 +19,7 @@
 
 #include "ECS/DeathSystem.hpp"
 #include "RenderFunctions.hpp"
+#include "../extern/SDL_shadercross/external/SPIRV-Cross/spirv_cross.hpp"
 #include "ECS/ChangeMiningSizeSystem.hpp"
 #include "UI/DynamicBackground.hpp"
 
@@ -562,6 +563,19 @@ void Game::update(float dt)
         }
         break;
     }
+    
+    ++fps_tick;
+    
+    float diff = time - fps_last_check;
+    if (diff >= 1.0f)
+    {
+        fps_last_check = time;
+        
+        fps_text->setText(std::to_string(std::floor(static_cast<float>(fps_tick) / diff)));
+        fps_text->updateText(screen);
+        
+        fps_tick = 0;
+    }
 
     ImGui_ImplSDLGPU3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
@@ -701,7 +715,9 @@ void Game::render(float dt) const
         }
         break;
     }
-
+    
+    printTextScaled(screen, *fps_text, 0.0f, 0.0f, 1.0f, 1.0f, IGNORE_VIEW_ZOOM);
+    
     //Set window base size to properly render imgui without scaling
     /*SDL_SetRenderLogicalPresentation(screen.getDevice(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
     ImGui::Render();
@@ -736,6 +752,8 @@ void Game::enterState(GameState state)
             render_system = std::make_unique<RenderSystem>(registry);
             button_sound_system = std::make_unique<ButtonSoundSystem>(registry);
             button_sprite_system = std::make_unique<ButtonSpriteSystem>(registry);
+            
+            fps_text = std::make_unique<graphics::Text>(screen, ResourceManager::get().getFont("Main"), "0", Color::GREEN);
             
             ResourceManager::get().getSound("Menu Music")->play();
 
@@ -843,7 +861,8 @@ void Game::enterState(GameState state)
 
             ResourceManager::get().getSound("Background Music")->play();
             
-            registry.emplace<Components::UI::ShowMessage>(player, "Where am I?", 10.0f);
+            //show_message_system->message(player, "Use <H> and <K> to move horizontally. <U> for jump.", 15.0f);
+            //show_message_system->message(player, "Left Mouse Button to mine and Right to place.", 15.0f);
 
             break;
         }

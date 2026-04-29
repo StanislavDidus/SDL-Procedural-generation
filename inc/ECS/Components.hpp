@@ -550,6 +550,7 @@ namespace Components
 	{
 		struct ShowMessage
 		{
+			Entity target;
 			std::string text;
 			float time;
 			float timer = 0.0f;

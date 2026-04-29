@@ -61,6 +61,7 @@ void World::placeTile(int x, int y, int tile_id)
 		if (is_placement_allowed)
 		{
 			tile.id = tile_id;
+			tile.current_durability = TileManager::get().getProperties(tile.id).max_durability;
 			chunks[getChunkIndexByTilePosition(x, y)].is_dirty = true;
 			
 			ResourceManager::get().getSound("Place Tile")->play();
@@ -81,6 +82,8 @@ void World::damageTile(int x, int y, float damage)
 	if (auto& tile_properties = TileManager::get().getProperties(tile.id); tile_properties.is_solid && !tile.attached)
 	{
 		tile.dealDamage(damage);
+		
+		chunks[getChunkIndexByTilePosition(x, y)].damaged_tile = true;
 		
 		// Render break animations
 		
@@ -107,7 +110,7 @@ const std::vector<Uint32>& World::getSpriteMap() const
 void World::update(entt::registry& registry)
 {
 	updateObjectsDurability(registry);
-	//updateTilesDurability();
+	updateTilesDurability();
 	
 	damaged_tiles.clear();
 }
@@ -272,9 +275,9 @@ int World::getChunkIndexByTilePosition(int x, int y) const
 {
 	int chunk_x = x / chunk_width_tiles;
 	int chunk_y = y / chunk_height_tiles;
-	int world_world_chunks = grid.getColumns() / chunk_width_tiles;
+	int world_width_chunks = grid.getColumns() / chunk_width_tiles;
 	int world_height_chunks = grid.getRows() / chunk_height_tiles;
-	return chunk_x + chunk_y * world_world_chunks;
+	return chunk_x + chunk_y * world_width_chunks;
 }
 
 void World::updateObjectsDurability(entt::registry& registry)
@@ -287,6 +290,13 @@ void World::updateObjectsDurability(entt::registry& registry)
 		{
 			to_destroy.push_back(entity);
 		}
+		
+		if (!object_component.received_damage_last_frame)
+		{
+			object_component.current_durability = ObjectManager::get().getProperties(object_component.id).durability;
+		}
+		
+		object_component.received_damage_last_frame = false;
 	}
 
 	for (const auto& entity : to_destroy)
@@ -297,7 +307,36 @@ void World::updateObjectsDurability(entt::registry& registry)
 
 void World::updateTilesDurability()
 {
-	float world_width_tiles = grid.getColumns();
+	for (int i = 0; auto& chunk : chunks)
+	{
+		if (chunk.damaged_tile)
+		{
+			int world_width_chunks = grid.getColumns() / chunk_width_tiles;
+			int world_height_chunks = grid.getRows() / chunk_height_tiles;
+			
+			int chunk_x = i % world_height_chunks;
+			int chunk_y = i / world_height_chunks;
+			
+			for (int x = 0; x < chunk_width_tiles; ++x)
+			{
+				for (int y = 0; y < chunk_height_tiles; ++y)
+				{
+					auto& tile = grid(chunk_x * chunk_width_tiles + x, chunk_y * chunk_height_tiles + y);
+					
+					if (!tile.received_damage_last_frame)
+					{
+						tile.current_durability = TileManager::get().getProperties(tile.id).max_durability;
+					}
+				}
+			}
+			
+			std::cout << "Chunk recovered." << std::endl;
+			chunk.damaged_tile = false;
+		}
+		++i;
+	}
+	
+	/*float world_width_tiles = grid.getColumns();
 	float world_height_tiles = grid.getRows();
 
 	const auto& tile_manager = TileManager::get();
@@ -313,6 +352,6 @@ void World::updateTilesDurability()
 			}
 			tile.received_damage_last_frame = false;
 		}
-	}
+	}*/
 
 }
