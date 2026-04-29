@@ -52,6 +52,17 @@
             }
         },
         {
+            "name": "gcc-make-relwithdebinfo",
+            "displayName": "GCC + MakeFiles RelWithDebInfo",
+            "generator": "Unix Makefiles",
+            "binaryDir": "out/gcc-make-relwithdebinfo",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++"
+            }
+        },
+        {
             "name": "clang-make-debug",
             "displayName": "Clang + MakeFiles Debug",
             "generator": "Unix Makefiles",
@@ -150,6 +161,13 @@
             "displayName": "GCC Release Build",
             "configurePreset": "gcc-make-release",
             "configuration": "Release",
+            "jobs": 0
+        },
+        {
+            "name": "gcc_relwithdebinfo",
+            "displayName": "GCC RelWithDebInfo Build",
+            "configurePreset": "gcc-make-relwithdebinfo",
+            "configuration": "RelWithDebInfo",
             "jobs": 0
         },
         {
