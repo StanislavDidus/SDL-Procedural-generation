@@ -8,6 +8,8 @@ using namespace graphics;
 {
 	const auto& spritesheet = ResourceManager::get().getSpriteSheet("backgrounds");
 	const auto& spritesheet1 = ResourceManager::get().getSpriteSheet("cave_backgrounds");
+	backgrounds.emplace_back(glm::vec2{ 0.0f, 0.0f }, 0.80f, glm::vec2{ 960.0f,540.0f }, spritesheet->getSprite("bg1"));
+		backgrounds.back().night = true;
 	backgrounds.emplace_back(glm::vec2{ 0.0f, 0.0f }, 0.80f, glm::vec2{ 960.0f,540.0f }, spritesheet->getSprite("bg2"));
 	backgrounds.emplace_back(glm::vec2{ 0.0f, 0.0f }, 0.55f, glm::vec2{ 960.0f,540.0f }, spritesheet->getSprite("bg3"));
 	backgrounds.emplace_back(glm::vec2{ 0.0f, 0.0f }, 0.25f, glm::vec2{ 960.0f,540.0f }, spritesheet->getSprite("bg4"));
@@ -16,6 +18,7 @@ using namespace graphics;
 	for (int i = 1; i < 7; ++i)
 	{
 		backgrounds.emplace_back(glm::vec2{ 0.0f, -540.0f * i }, 0.80f, glm::vec2{ 960.0f,540.0f }, spritesheet->getSprite("bg1"));
+		backgrounds.back().night = true;
 	}
 	for (int i = 1; i < 13; ++i)
 	{
@@ -55,7 +58,21 @@ void DynamicBackground::render(GpuRenderer& screen, const glm::vec2& camera_posi
 			float x = new_position.x + i * background.size.x;
 
 			glm::vec2 world_position{ x, background.start_pos.y + offset.y };
-			drawScaledSprite(screen, background.sprite, world_position.x, world_position.y, background.size.x, background.size.y);
+			
+			if (!background.night)
+				drawScaledSprite(screen, background.sprite, world_position.x, world_position.y, background.size.x, background.size.y);
+			else
+			{
+				uint8_t day_transparency = static_cast<uint8_t>((1.0f - global_time) * 255.0f);
+				uint8_t night_transparency = static_cast<uint8_t>((global_time) * 255.0f);
+				drawScaledSprite(screen, background.sprite, world_position.x, world_position.y, background.size.x, background.size.y, false, graphics::Color{255,255,255,day_transparency});
+				drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("Night_backgrounds")->getSprite("sky"), world_position.x, world_position.y, background.size.x, background.size.y, false, graphics::Color{255,255,255,night_transparency});
+			}
 		}
 	}
+}
+
+void DynamicBackground::setGlobalTime(float time)
+{
+		global_time = time;
 }

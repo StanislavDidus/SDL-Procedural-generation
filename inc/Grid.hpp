@@ -62,5 +62,5 @@ template <typename T>
 template <typename Self>
 auto&& Grid<T>::operator()(this Self&& self, int index)
 {
-	return self.data[index];
+	return self.array[index];
 }

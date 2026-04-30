@@ -94,7 +94,10 @@ private:
 	void updateTilemapTarget();
 	void updateInput(float dt);
 	void updateImGui(float dt);
+	
+	void adjustCameraPosition();
 
+	void limitPlayerMovement();
 	void update(float dt);
 	void render(float dt) const;
 
@@ -205,4 +208,9 @@ private:
 	int fps_tick = 0;
 	std::unique_ptr<graphics::Text> fps_text;
 	float fps_last_check = 0.0f;
+	
+	// Day night change
+	float global_time = 0.5f;
+	bool day = false;
+	float day_night_change_speed = 0.025f;
 };

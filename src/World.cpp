@@ -314,14 +314,16 @@ void World::updateTilesDurability()
 			int world_width_chunks = grid.getColumns() / chunk_width_tiles;
 			int world_height_chunks = grid.getRows() / chunk_height_tiles;
 			
-			int chunk_x = i % world_height_chunks;
-			int chunk_y = i / world_height_chunks;
+			int chunk_x = i / world_height_chunks;
+			int chunk_y = i % world_height_chunks;
 			
 			for (int x = 0; x < chunk_width_tiles; ++x)
 			{
 				for (int y = 0; y < chunk_height_tiles; ++y)
 				{
-					auto& tile = grid(chunk_x * chunk_width_tiles + x, chunk_y * chunk_height_tiles + y);
+					int index_x = chunk_x * chunk_width_tiles + x;
+					int index_y = chunk_y * chunk_height_tiles + y;
+					auto& tile = grid(index_x * grid.getRows() + index_y);
 					
 					if (!tile.received_damage_last_frame)
 					{
@@ -330,7 +332,7 @@ void World::updateTilesDurability()
 				}
 			}
 			
-			std::cout << "Chunk recovered." << std::endl;
+			//std::cout << "Chunk recovered." << std::endl;
 			chunk.damaged_tile = false;
 		}
 		++i;

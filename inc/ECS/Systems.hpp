@@ -1047,7 +1047,7 @@ public:
 					auto& jump_component = registry.get<Components::InventoryItems::JumpComponent>(item);
 					if (jump_component.timer >= jump_component.time)
 					{
-						registry.get<Components::Physics>(target).velocity.y += jump_component.y_force;
+						registry.get<Components::Physics>(target).velocity.y = jump_component.y_force;
 						jump_component.timer = 0.0f;
 					}
 				}

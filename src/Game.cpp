@@ -335,7 +335,7 @@ void Game::initPlayer()
 
     auto& ts = registry.emplace<Components::Transform>(player);
     ts.position = glm::vec2{400.0f, -500.f};
-    ts.position.x += 500.0f * 20.0f;
+    ts.position.x += 0.0f * 20.0f;
     ts.size = glm::vec2{35.0f, 40.0f};
     base.size = ts.size;
 
@@ -492,6 +492,7 @@ void Game::update(float dt)
     case GameState::PLAY:
         {
             background.update(screen.getView());
+            background.setGlobalTime(global_time);
             input_system->update(screen, dt);
             jump_system->update(dt);
             physics_system->update(dt);
@@ -531,7 +532,25 @@ void Game::update(float dt)
 
             world->update(registry);
             world->setSpriteMap(*tilemap);
+            
 
+            if (day)
+            {
+                global_time += dt * day_night_change_speed;
+                
+                if (global_time >= 1.0f)
+                {
+                    day = false;
+                }
+            }
+            else if (!day)
+            {
+                global_time -= dt * day_night_change_speed * 1.5f;
+                if (global_time <= 0.0f)
+                {
+                    day = true;
+                }
+            }
 
             const auto& player_transform = registry.get<Components::Transform>(player);
             const auto& player_pos = player_transform.position;
@@ -553,6 +572,9 @@ void Game::update(float dt)
             updateTilemapTarget();
 
             render_system->update(dt);
+            
+            adjustCameraPosition();
+            limitPlayerMovement();
         }
         break;
     case GameState::PLAYER_DEAD:
@@ -588,6 +610,7 @@ void Game::update(float dt)
 float menu_background_position_x1 = 0.0f;
 float menu_background_position_x2 = 0.0f;
 float menu_background_position_x3 = 0.0f;
+float menu_background_position_x4 = 0.0f;
 
 void Game::render(float dt) const
 {
@@ -600,6 +623,13 @@ void Game::render(float dt) const
         break;
     case GameState::MENU:
         {
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg1"), menu_background_position_x1, 0.0f, 960.0f, 540.0f);
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg1"), menu_background_position_x1 + 960.0f, 0.0f, 960.0f, 540.0f);
+            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg1"), menu_background_position_x1 - 960.0f, 0.0f, 960.0f, 540.0f);
+            menu_background_position_x4 += 25.0f * dt;
+            if (menu_background_position_x4 >= 960.0f)
+                menu_background_position_x4 -= 960.0f;
+            //
             graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1, 0.0f, 960.0f, 540.0f);
             graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1 + 960.0f, 0.0f, 960.0f, 540.0f);
             graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1 - 960.0f, 0.0f, 960.0f, 540.0f);
@@ -701,6 +731,9 @@ void Game::render(float dt) const
             mining_objects_system->render(screen);
             render_weapon_circle_system->render(screen);
             drop_chest_loot_system->update(dt, screen);
+            
+            uint8_t night_transparency = static_cast<uint8_t>(global_time * 175.0f);
+            graphics::drawRectangle(screen, 0.0f, 0.0f, 960.0f, 540.0f, graphics::RenderType::FILL, graphics::Color{0,0,0,night_transparency}, graphics::IGNORE_VIEW_ZOOM);
 
             //UI
             show_message_system->render(screen);
@@ -712,6 +745,7 @@ void Game::render(float dt) const
             render_health_bar_system->render(screen);
             chest_window_system->render(screen);
             render_accessories_system->update(player, screen);
+            
         }
         break;
     }
@@ -1089,7 +1123,41 @@ void Game::updateImGui(float dt)
                 ImGui::SliderFloat("Amplitude##Moisture", &world_generator->moisture_settings.amplitude, 0.0001f, 2.f);
             }*/
         }
+        /*
+        if (ImGui::CollapsingHeader("Test"))
+        {
+            ImGui::SliderFloat("test_x", &test_x, 800.0f, 1100.0f);
+            ImGui::SliderFloat("test1_x", &test1_x, -100.0f, 1000.0f);
+        }
+        */
         ImGui::End();
         break;
+    }
+}
+
+
+void Game::adjustCameraPosition()
+{
+    auto& view = view_position;
+    const auto& window_size = screen.getStandardWindowSize();
+    auto zoom = screen.getZoom();
+		
+    float world_width = window_size.x / zoom;
+    float world_height = window_size.y / zoom;
+    
+    float world_max_x = 976 * 20.0f;
+
+    //HACKed values 
+    view.x = std::clamp(view.x, world_width * 0.5f - 475, world_max_x - world_width * 0.5f);
+}
+
+void Game::limitPlayerMovement()
+{
+    if (registry.all_of<Components::Transform>(player))
+    {
+        auto& transform = registry.get<Components::Transform>(player);
+        
+        transform.position.x = std::clamp(transform.position.x, 0.0f, 1000.0f * 20.f - transform.size.x);
+        transform.position.y = std::min(transform.position.y, 299.0f * 20.0f - transform.size.y);
     }
 }
