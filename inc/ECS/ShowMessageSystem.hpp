@@ -44,12 +44,13 @@ public:
         float message_height = 150.0f / zoom;
         float text_offset_x = 30.0f / zoom;
         float test_offset_y = 10.0f / zoom;
-        float text_scale = 0.5f / zoom;
         //graphics::zoomPoint(screen, message_width, message_height);
         
         for (const auto& message : messages)
         {
             const auto& show_message_component = registry.get<Components::UI::ShowMessage>(message);
+            
+            float text_scale = show_message_component.text_scale / zoom;
             
             if (registry.all_of<Components::Transform>(show_message_component.target))
             {
@@ -66,7 +67,7 @@ public:
                     message_height
                     );
             
-                graphics::Text text{screen, font, show_message_component.text, graphics::Color::BLACK, 230.0f};
+                graphics::Text text{screen, font, show_message_component.text, graphics::Color::BLACK,  240};
             
                 graphics::printTextScaled(
                     screen,
@@ -82,10 +83,10 @@ public:
         }
     }
     
-    void message(Entity target, const std::string& text, float duration)
+    void message(Entity target, const std::string& text, float duration, float text_scale)
     {
         Entity message = registry.create();
-        registry.emplace<Components::UI::ShowMessage>(message, target, text, duration);
+        registry.emplace<Components::UI::ShowMessage>(message, target, text, duration, text_scale);
         messages.emplace_back(message);
     }
 private:

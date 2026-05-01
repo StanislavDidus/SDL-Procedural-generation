@@ -51,6 +51,9 @@ namespace audio
 		if (play_type == PlayType::STOP_ON_PLAY)
 			SDL_ClearAudioStream(stream);
 		
+		if (SDL_GetAudioStreamQueued(stream) > 0 && play_type == PlayType::DONT_PLAY_WHEN_PLAYING)
+			return;
+		
 		if (SDL_GetAudioStreamQueued(stream) < static_cast<int>(wav_data_len))
 		{
 			SDL_PutAudioStreamData(stream, wav_data, static_cast<int>(wav_data_len));

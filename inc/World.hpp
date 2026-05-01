@@ -8,6 +8,7 @@
 #include "Object.hpp"
 #include "Tile.hpp"
 #include "ECS/Entity.hpp"
+#include "ECS/ShowMessageSystem.hpp"
 
 // Information about objects that will be spawned
 
@@ -32,6 +33,8 @@ struct PortalData
 	SDL_FRect grid_rect;
 };
 
+class Game;
+
 class World
 {
 public:
@@ -51,6 +54,8 @@ public:
 	~World() = default;
 
 	void initWorld(entt::registry& registry, float tile_width, float tile_height);
+	void spawnPortals(entt::registry& registry, std::shared_ptr<ShowMessageSystem> show_message_system, Entity player, float tile_width, float tile_height, Game
+	                  * game, std::shared_ptr<graphics::SpriteAnimation> portal_animation);
 
 	void placeTile(int x, int y, int tile_id);
 	void damageTile(int x, int y, float damage);
@@ -70,7 +75,6 @@ public:
 	std::vector<Entity> object_entities;
 	std::vector<Entity> chest_entities;
 private:
-	void spawnPortals(entt::registry& registry, float tile_width, float tile_height);
 	void spawnObjects(entt::registry& registry, float tile_width, float tile_height);
 	void spawnChests(entt::registry& registry, float tile_width, float tile_height);
 

@@ -351,7 +351,8 @@ namespace Components
 
 	struct Animation
 	{
-		
+		std::shared_ptr<graphics::SpriteAnimation> animation;
+		bool is_playing = false;
 	};
 
 	struct CharacterAnimation
@@ -553,6 +554,7 @@ namespace Components
 			Entity target;
 			std::string text;
 			float time;
+			float text_scale = 0.5f;
 			float timer = 0.0f;
 		};
 		

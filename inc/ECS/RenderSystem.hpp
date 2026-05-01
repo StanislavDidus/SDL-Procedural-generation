@@ -59,6 +59,16 @@ public:
 				}
 			}
 		}
+		
+		auto view1 = registry.view<Components::Animation, Components::Renderable>();
+		for (auto [entity, animation, renderable] : view1.each())
+		{
+			if (animation.is_playing)
+			{
+				animation.animation->update(dt);
+				renderable.sprite = animation.animation->get();
+			}
+		}
 	}
 
 	void render(graphics::GpuRenderer& screen)

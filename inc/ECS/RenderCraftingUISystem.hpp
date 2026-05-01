@@ -30,6 +30,10 @@ public:
 
 	void render(graphics::GpuRenderer& screen, Entity target_entity)
 	{
+		//Render Craft Menu sign
+		float craft_button_position_x = screen.getStandardWindowSize().x - ui_settings.craft_button_columns * ui_settings.craft_button_width;
+		graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("ui")->getSprite("Craft_Menu"), craft_button_position_x, 0.0f, ui_settings.craft_button_columns * ui_settings.craft_button_width, ui_settings.menu_y_offset, graphics::IGNORE_VIEW_ZOOM);
+		
 		//Render Craft Buttons
 		std::vector<Entity> buttons_craftable;
 		std::vector<Entity> buttons_missing_resources;
@@ -75,7 +79,7 @@ public:
 			}
 		}
 
-		float craft_button_position_x = screen.getStandardWindowSize().x - ui_settings.craft_button_columns * ui_settings.craft_button_width;
+		//float craft_button_position_x = screen.getStandardWindowSize().x - ui_settings.craft_button_columns * ui_settings.craft_button_width;
 		float craft_button_position_y = 0.0f;
 
 		int i = 0;
@@ -88,7 +92,7 @@ public:
 			int y = i / ui_settings.craft_button_columns;
 
 			transform_component.position.x = craft_button_position_x + x * ui_settings.craft_button_width;
-			transform_component.position.y = craft_button_position_y + y * ui_settings.craft_button_height;
+			transform_component.position.y = craft_button_position_y + y * ui_settings.craft_button_height + offset_y;
 			transform_component.size.x = ui_settings.craft_button_width;
 			transform_component.size.y = ui_settings.craft_button_height;
 
@@ -110,7 +114,7 @@ public:
 			int y = i / ui_settings.craft_button_columns;
 
 			transform_component.position.x = craft_button_position_x + x * ui_settings.craft_button_width;
-			transform_component.position.y = craft_button_position_y + y * ui_settings.craft_button_height;
+			transform_component.position.y = craft_button_position_y + y * ui_settings.craft_button_height + offset_y;
 			transform_component.size.x = ui_settings.craft_button_width;
 			transform_component.size.y = ui_settings.craft_button_height;
 
@@ -133,7 +137,7 @@ public:
 			int y = i / ui_settings.craft_button_columns;
 
 			transform_component.position.x = craft_button_position_x + x * ui_settings.craft_button_width;
-			transform_component.position.y = craft_button_position_y + y * ui_settings.craft_button_height;
+			transform_component.position.y = craft_button_position_y + y * ui_settings.craft_button_height + offset_y;
 			transform_component.size.x = ui_settings.craft_button_width;
 			transform_component.size.y = ui_settings.craft_button_height;
 
@@ -146,4 +150,5 @@ public:
 private:
 	entt::registry& registry;
 	const UISettings& ui_settings;
+	float offset_y = ui_settings.menu_y_offset;
 };

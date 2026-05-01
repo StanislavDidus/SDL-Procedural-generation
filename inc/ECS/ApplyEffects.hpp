@@ -59,6 +59,10 @@ public:
 				{
 					physics_component.can_move_horizontal = false;
 				}
+				else
+				{
+					physics_component.can_move_horizontal = true;
+				}
 			}
 		}
 

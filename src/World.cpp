@@ -2,6 +2,9 @@
 
 #include <UI/Button.hpp>
 
+#include "Game.hpp"
+#include "Inventory.hpp"
+#include "ItemManager.hpp"
 #include "ObjectManager.hpp"
 #include "ResourceManager.hpp"
 #include "TileManager.hpp"
@@ -20,7 +23,7 @@ World::World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, con
 
 void World::initWorld(entt::registry& registry, float tile_width, float tile_height)
 {
-	spawnPortals(registry, tile_width, tile_height);
+	//spawnPortals(registry, show_message_system, tile_width, tile_height);
 	spawnObjects(registry, tile_width, tile_height);
 	spawnChests(registry, tile_width, tile_height);
 }
@@ -185,7 +188,8 @@ void World::setSpriteMap(graphics::TileMap& tilemap)
 	}
 }
 
-void World::spawnPortals(entt::registry& registry, float tile_width, float tile_height)
+void World::spawnPortals(entt::registry& registry, ::std::shared_ptr<ShowMessageSystem> show_message_system, Entity player, float tile_width, float tile_height, Game* game, std
+                         ::shared_ptr<graphics::SpriteAnimation> portal_animation)
 {
 	for (const auto& portal : portals)
 	{
@@ -208,6 +212,35 @@ void World::spawnPortals(entt::registry& registry, float tile_width, float tile_
 		
 		auto& button_exit = registry.emplace<Components::ButtonExitSprite>(entity);
 		button_exit.sprite = ResourceManager::get().getSpriteSheet("objects")->getSprite("Portal");
+		
+		registry.emplace<Components::Animation>(entity, portal_animation);
+		
+		auto& button_function = registry.emplace<Components::ButtonFunction>(entity);
+		button_function.command = [show_message_system, player, &registry, game, entity]()
+		{
+			if (registry.all_of<Components::HasInventory>(player))
+			{
+				const auto& inventory = registry.get<Components::HasInventory>(player).inventory;
+				
+				if (inventory->countItem(ItemManager::get().getItemID("Monster_Heart")) > 0 &&
+					inventory->countItem(ItemManager::get().getItemID("Multi-Tool")) > 0 &&
+					inventory->countItem(ItemManager::get().getItemID("Diamond")) > 0)
+				{
+					show_message_system->message(player, "I can finally escape.", 5.0f, 0.55f);
+					
+					//Start animation
+					if (registry.all_of<Components::Animation>(entity))
+					{
+						registry.get<Components::Animation>(entity).is_playing = true;
+					}
+					
+					game->setState(GameState::END);
+					return;
+				}
+			}
+			show_message_system->message(player, 
+				"A broken portal. It seems that I could use 1 Wild Heart, 1 Diamond, and 1 Multi-tool to fix it.", 10.0f, 0.4f);
+		};
 		
 		registry.emplace<Components::Portal>(entity);
 	}

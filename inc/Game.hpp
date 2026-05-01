@@ -68,6 +68,8 @@ enum class GameState
 	MENU,
 	PLAY,
 	PLAYER_DEAD,
+	END,
+	ENDSCREEN,
 };
 
 class Game
@@ -89,6 +91,7 @@ private:
 	void initBiomes();
 	void initPlayer();
 	void initPlayerAnimations();
+	void initPortalAnimation();
 	void initUserInterface();
 
 	void updateTilemapTarget();
@@ -170,7 +173,7 @@ private:
 	std::unique_ptr<ButtonSpriteSystem> button_sprite_system;
 	std::unique_ptr<FallDamageSystem> fall_damage_system;
 	std::unique_ptr<ObjectDurabilityDisplay> object_durability_display;
-	std::unique_ptr<ShowMessageSystem> show_message_system;
+	std::shared_ptr<ShowMessageSystem> show_message_system;
 	
 	void updateTimer(float dt);
 
@@ -204,13 +207,19 @@ private:
 	std::shared_ptr<graphics::SpriteAnimation> jump_animation;
 	std::shared_ptr<graphics::SpriteAnimation> fall_animation;
 	
+	std::shared_ptr<graphics::SpriteAnimation> portal_animation;
+	
 	// Fps counter
 	int fps_tick = 0;
 	std::unique_ptr<graphics::Text> fps_text;
 	float fps_last_check = 0.0f;
 	
 	// Day night change
-	float global_time = 0.5f;
+	float global_time = 0.2f;
 	bool day = false;
-	float day_night_change_speed = 0.025f;
+	float day_night_change_speed = 0.0125f;
+	
+	//
+	float end_time = 1.0f;
+	float end_timer = 0.0f;
 };

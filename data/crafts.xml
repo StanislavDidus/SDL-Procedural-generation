@@ -41,4 +41,42 @@
             <item ref="Rope" amount="1" />
         </requiredItems>
     </craft>
+    <craft id="Rainbow_Armor">
+        <requiredBlueprint>false</requiredBlueprint>
+        <requiredItems>
+            <item ref="Rainbow" amount="3" />
+        </requiredItems>
+    </craft>
+    <craft id="Dagger_With_Poison">
+        <requiredBlueprint>false</requiredBlueprint>
+        <requiredItems>
+            <item ref="Stone" amount="2" />
+            <item ref="Wood" amount="3" />
+            <item ref="Slime" amount="5" />
+        </requiredItems>
+    </craft>
+    <craft id="Herb_Salad">
+        <requiredBlueprint>false</requiredBlueprint>
+        <requiredItems>
+            <item ref="Grass" amount="5" />
+        </requiredItems>
+    </craft>
+    <craft id="Diamond_Pickaxe">
+        <requiredBlueprint>false</requiredBlueprint>
+        <requiredItems>
+            <item ref="Diamond" amount="3" />
+            <item ref="Stone" amount="2" />
+            <item ref="Wood" amount="5" />
+        </requiredItems>
+    </craft>
+    <craft id="Multi-Tool">
+        <requiredBlueprint>false</requiredBlueprint>
+        <requiredItems>
+            <item ref="Gold" amount="5" />
+            <item ref="Stone" amount="10" />
+            <item ref="Wood" amount="2" />
+            <item ref="Stick" amount="1" />
+            <item ref="Slime" amount="2" />
+        </requiredItems>
+    </craft>
 </craftListing>

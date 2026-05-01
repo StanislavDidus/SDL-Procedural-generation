@@ -57,7 +57,7 @@ struct UISettings
 	glm::vec2 essence_counter_position =
 	{
 		0.0f * ui_scale,
-		150.0f * ui_scale
+		210.0f * ui_scale
 	};
 
 	glm::vec2 essence_icon_size =
@@ -111,4 +111,7 @@ struct UISettings
 		50.0f,
 		50.0f
 	};
+	
+	//
+	float menu_y_offset = 50.0f;
 };

@@ -162,13 +162,17 @@ struct PhysicsSystem
 
 			ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;
 			
-			if (std::abs(ph.velocity.x) >= 1.5f)
+			
+			if (registry.all_of<Components::Player>(entity))
 			{
-				ResourceManager::get().getSound("Walking")->play();
-			}
-			else
-			{
-				ResourceManager::get().getSound("Walking")->stop();
+				if (std::abs(ph.velocity.x) >= 1.5f)
+				{
+					ResourceManager::get().getSound("Walking")->play();
+				}
+				else
+				{
+					ResourceManager::get().getSound("Walking")->stop();
+				}
 			}
 
 		}

@@ -228,5 +228,119 @@
     <components>
         <component id="Jump_Component" value="1200"></component>
     </components>
-</item>
+    </item>
+    <item id="Rainbow">
+        <canStack>true</canStack>
+        <spriteIndex>43</spriteIndex>
+        <action>NONE</action>
+        <components>
+        </components>
+    </item>
+    <item id="Slime">
+        <canStack>true</canStack>
+        <spriteIndex>42</spriteIndex>
+        <action>NONE</action>
+        <components>
+        </components>
+    </item>
+    <item id="Stick">
+        <canStack>true</canStack>
+        <spriteIndex>37</spriteIndex>
+        <action>NONE</action>
+        <components>
+        </components>
+    </item>
+    <item id="Monster_Heart">
+        <canStack>true</canStack>
+        <spriteIndex>38</spriteIndex>
+        <action>NONE</action>
+        <components>
+        </components>
+    </item>
+    <item id="Diamond">
+        <canStack>true</canStack>
+        <spriteIndex>39</spriteIndex>
+        <action>NONE</action>
+        <components>
+        </components>
+    </item>
+    <item id="Herb_Salad">
+        <canStack>true</canStack>
+        <spriteIndex>33</spriteIndex>
+        <action>USE</action>
+        <components>
+            <component id="HealthComponent">5</component>
+        </components>
+    </item>
+    <item id="Rifle">
+        <canStack>false</canStack>
+        <spriteIndex>34</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="WeaponComponent" damage="100" cooldown="0.5" radius="300" />
+        </components>
+    </item>
+    <item id="Diamond_Pickaxe">
+    <canStack>false</canStack>
+    <spriteIndex>35</spriteIndex>
+    <action>EQUIP</action>
+    <components>
+        <component id="PickaxeComponent" speed="300" radius="250" size="5" />
+    </components>
+    </item>
+    <item id="Snow">
+        <canStack>true</canStack>
+        <spriteIndex>36</spriteIndex>
+        <action>NONE</action>
+        <components>
+        </components>
+    </item>
+    <item id="Multi-Tool">
+        <canStack>true</canStack>
+        <spriteIndex>41</spriteIndex>
+        <action>NONE</action>
+        <components>
+        </components>
+    </item>
+    <item id="Staff">
+        <canStack>false</canStack>
+        <spriteIndex>40</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="WeaponComponent" damage="10" cooldown="2" radius="200" />
+        </components>
+    </item>
+    <item id="Mace">
+        <canStack>false</canStack>
+        <spriteIndex>29</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="WeaponComponent" damage="50" cooldown="2.5" radius="255" />
+        </components>
+    </item>
+    <item id="Rainbow_Armor">
+        <canStack>false</canStack>
+        <spriteIndex>30</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="Armor" />
+            <component id="Defense" value="10" />
+        </components>
+    </item>
+    <item id="Black_Mask">
+        <canStack>false</canStack>
+        <spriteIndex>31</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="Accessory" />
+        </components>
+    </item>
+    <item id="Black_White_Sword">
+        <canStack>false</canStack>
+        <spriteIndex>32</spriteIndex>
+        <action>EQUIP</action>
+        <components>
+            <component id="WeaponComponent" damage="10000" cooldown="2.5" radius="180" />
+        </components>
+    </item>
 </itemListing>

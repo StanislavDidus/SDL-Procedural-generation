@@ -46,7 +46,7 @@ void InventoryView::update()
 void InventoryView::isCoveringInventory()
 {
 	const auto& mouse = InputManager::getMouseState();
-	const auto& mouse_position = mouse.position;
+	auto mouse_position = mouse.position;
 
 	bool is_covered = false;
 	if (mouse_position.x >= position.x &&
@@ -54,6 +54,7 @@ void InventoryView::isCoveringInventory()
 		mouse_position.y >= position.y &&
 		mouse_position.y < position.y + size.y)
 	{
+		mouse_position -= position;
 		int x = static_cast<int>(std::floor(mouse_position.x / ui_settings.inventory_slot_width));
 		int y = static_cast<int>(std::floor(mouse_position.y / ui_settings.inventory_slot_height));
 
@@ -96,7 +97,6 @@ void InventoryView::isDragging()
 void InventoryView::isSplitting()
 {
 	const auto& mouse = InputManager::getMouseState();
-	const auto& mouse_position = mouse.position;
 
 	if (covered_slot && dragged_slot && mouse.right == MouseButtonState::DOWN && inventory)
 	{
@@ -107,7 +107,6 @@ void InventoryView::isSplitting()
 void InventoryView::isMovingItems()
 {
 	const auto& mouse = InputManager::getMouseState();
-	const auto& mouse_position = mouse.position;
 
 	if (dragged_slot && covered_slot && mouse.left == MouseButtonState::RELEASED && inventory)
 	{
@@ -167,7 +166,8 @@ std::optional<int> InventoryView::getCoveredSlotIndex() const
 {
 	if (!isMouseCoveringInventory()) return std::nullopt;
 
-	const auto& mouse_position = InputManager::getMouseState().position;
+	auto mouse_position = InputManager::getMouseState().position;
+	mouse_position -= position;
 
 	glm::ivec2 mouse_grid_position = static_cast<glm::ivec2>(mouse_position / glm::vec2{ui_settings.inventory_slot_width, ui_settings.inventory_slot_height});
 
@@ -208,6 +208,9 @@ void InventoryView::setTargetEntity(Entity entity)
 
 void InventoryView::render(graphics::GpuRenderer& screen)
 {
+	//Render Inventory Menu sign
+	graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("ui")->getSprite("Inventory_Menu"), 0.0f, 0.0f, columns * ui_settings.inventory_slot_width, ui_settings.menu_y_offset, graphics::IGNORE_VIEW_ZOOM);
+	
 	//Render inventory ui slots
 	for (int i = 0; i < rows * columns; i++)
 	{
@@ -258,7 +261,7 @@ void InventoryView::render(graphics::GpuRenderer& screen)
 		(
 			screen,
 			x * ui_settings.inventory_slot_width,
-			y * ui_settings.inventory_slot_height,
+			y * ui_settings.inventory_slot_height + ui_settings.inventory_slot_height,
 			ui_settings.inventory_slot_width,
 			ui_settings.inventory_slot_height,
 			RenderType::FILL,

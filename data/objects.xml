@@ -149,6 +149,7 @@
             <sprite>10</sprite>
             <durability>2500</durability>
             <drop>
+                <item ref="Diamond" dropChance="1" dropQuantityMin="1" dropQuantityMax="2" />
             </drop>
         </properties>
         <spawnInfo>
@@ -165,6 +166,7 @@
         <sprite>11</sprite>
         <durability>100</durability>
         <drop>
+            <item ref="Slime" dropChance="1" dropQuantityMin="1" dropQuantityMax="2" />
         </drop>
     </properties>
     <spawnInfo>
@@ -181,6 +183,7 @@
             <sprite>12</sprite>
             <durability>1000</durability>
             <drop>
+                <item ref="Rainbow" dropChance="1" dropQuantityMin="2" dropQuantityMax="4" />
             </drop>
         </properties>
         <spawnInfo>
@@ -199,6 +202,7 @@
             <sprite>13</sprite>
             <durability>100</durability>
             <drop>
+                <item ref="Stone" dropChance="1" dropQuantityMin="1" dropQuantityMax="2" />
             </drop>
         </properties>
         <spawnInfo>
@@ -218,6 +222,7 @@
             <sprite>14</sprite>
             <durability>150</durability>
             <drop>
+                <item ref="Stick" dropChance="1" dropQuantityMin="1" dropQuantityMax="3" />
             </drop>
         </properties>
         <spawnInfo>
@@ -234,6 +239,7 @@
             <sprite>15</sprite>
             <durability>100</durability>
             <drop>
+                <item ref="Snow" dropChance="1" dropQuantityMin="2" dropQuantityMax="5" />
             </drop>
         </properties>
         <spawnInfo>

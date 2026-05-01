@@ -49,14 +49,58 @@
                 <rect x="96" y="32" w="16" h="16" name="Health_Amulet" />
                 <rect x="32" y="48" w="32" h="32" name="Big_Armor" />
                 <rect x="64" y="48" w="32" h="32" name="Fast_Helmet" />
-                <rect x="96" y="48" w="32" h="32" name="Snow_Bow" />
-                <rect x="112" y="0" w="32" h="32" name="Poison_Dagger" />
+                <rect x="0" y="64" w="16" h="16" name="Snow_Bow" />
+                <rect x="16" y="48" w="16" h="16" name="Poison_Dagger" />
                 <rect x="144" y="0" w="34" h="34" name="Fire_Emblem" />
-                <rect x="128" y="32" w="48" h="48" name="Astronaut_Suit" />
+                <rect x="112" y="32" w="16" h="16" name="Astronaut_Suit" />
                 <rect x="0" y="80" w="35" h="32" name="War_Hammer" />
                 <rect x="80" y="80" w="32" h="32" name="Up_Jump" />
+                <rect x="0" y="48" w="16" h="16" name="Mace" />
+                <rect x="16" y="64" w="16" h="16" name="Rainbow_Armor" />
+                <rect x="112" y="80" w="32" h="32" name="Black_Mask" />
+                <rect x="144" y="80" w="32" h="32" name="Black_White_Sword" />
+                <rect x="192" y="16" w="16" h="16" name="Herb_Salad" />
+                <rect x="176" y="32" w="16" h="16" name="Rifle" />
+                <rect x="192" y="32" w="16" h="16" name="Diamond_Pickaxe" />
+                <rect x="176" y="48" w="16" h="16" name="Snow" />
+                <rect x="192" y="48" w="16" h="16" name="Stick" />
+                <rect x="176" y="64" w="16" h="16" name="Monster_Heart" />
+                <rect x="192" y="64" w="16" h="16" name="Diamond" />
+                <rect x="176" y="80" w="16" h="16" name="Staff" />
+                <rect x="192" y="80" w="16" h="16" name="Multi-Tool" />
+                <rect x="176" y="96" w="16" h="16" name="Slime" />
+                <rect x="192" y="96" w="16" h="16" name="Rainbow" />
             </rectListing>
             <scaleMode>NEAREST</scaleMode>
+        </sprite>
+        <sprite id="Portal">
+            <path>assets/Sprites/Portal.png</path>
+            <scaleMode>NEAREST</scaleMode>
+            <rectListing>
+                <rect x="0"   y="0"   w="64" h="48" name="Portal0"/>
+                <rect x="64"  y="0"   w="64" h="48" name="Portal1"/>
+                <rect x="128" y="0"   w="64" h="48" name="Portal2"/>
+                <rect x="192" y="0"   w="64" h="48" name="Portal3"/>
+                <rect x="256" y="0"   w="64" h="48" name="Portal4"/>
+                <rect x="320" y="0"   w="64" h="48" name="Portal5"/>
+
+                <rect x="0"   y="48"  w="64" h="48" name="Portal6"/>
+                <rect x="64"  y="48"  w="64" h="48" name="Portal7"/>
+                <rect x="128" y="48"  w="64" h="48" name="Portal8"/>
+                <rect x="192" y="48"  w="64" h="48" name="Portal9"/>
+                <rect x="256" y="48"  w="64" h="48" name="Portal10"/>
+                <rect x="320" y="48"  w="64" h="48" name="Portal11"/>
+
+                <rect x="0"   y="96"  w="64" h="48" name="Portal12"/>
+                <rect x="64"  y="96"  w="64" h="48" name="Portal13"/>
+                <rect x="128" y="96"  w="64" h="48" name="Portal14"/>
+                <rect x="192" y="96"  w="64" h="48" name="Portal15"/>
+                <rect x="256" y="96"  w="64" h="48" name="Portal16"/>
+                <rect x="320" y="96"  w="64" h="48" name="Portal17"/>
+
+                <rect x="0"   y="144" w="64" h="48" name="Portal18"/>
+                <rect x="64"  y="144" w="64" h="48" name="Portal19"/>
+            </rectListing>
         </sprite>
         <sprite id="objects">
             <path>assets/Sprites/objects.png</path>
@@ -96,6 +140,8 @@
                 <rect x="0" y="16" w="32" h="32" name="ChestUI" />
                 <rect x="32" y="16" w="16" h="16" name="TextBlock" />
                 <rect x="48" y="16" w="48" h="32" name="Dialogue_Window" />
+                <rect x="0" y="48" w="80" h="16" name="Craft_Menu" />
+                <rect x="80" y="48" w="64" h="16" name="Inventory_Menu" />
             </rectListing>
         </sprite>
         <sprite id="menu">
@@ -233,6 +279,7 @@
         </sound>
         <sound id="Pick up">
             <path>assets/Sounds/Pick up.wav</path>
+            <type>DONT_PLAY_WHEN_PLAYING</type>
         </sound>
         <sound id="Place Tile">
             <path>assets/Sounds/Place tile.wav</path>

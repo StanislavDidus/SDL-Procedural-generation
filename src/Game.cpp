@@ -93,7 +93,7 @@ void Game::initSystems()
     enemy_spawn_manager = std::make_unique<EnemySpawnManager>(enemy_spawn_system);
     fall_damage_system = std::make_unique<FallDamageSystem>(registry);
     object_durability_display = std::make_unique<ObjectDurabilityDisplay>(registry);
-    show_message_system = std::make_unique<ShowMessageSystem>(registry);
+    show_message_system = std::make_shared<ShowMessageSystem>(registry);
 }
 
 void Game::initGenerationData()
@@ -335,7 +335,7 @@ void Game::initPlayer()
 
     auto& ts = registry.emplace<Components::Transform>(player);
     ts.position = glm::vec2{400.0f, -500.f};
-    ts.position.x += 0.0f * 20.0f;
+    ts.position.x += 500.0f * 20.0f;
     ts.size = glm::vec2{35.0f, 40.0f};
     base.size = ts.size;
 
@@ -439,6 +439,14 @@ void Game::initPlayerAnimations()
                                                        std::vector<int>{8});
 }
 
+void Game::initPortalAnimation()
+{
+    portal_animation = std::make_shared<graphics::SpriteAnimation>(ResourceManager::get().getSpriteSheet("Portal"), 12.5f, std::vector<int>
+        {
+        0,0,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,0,0
+        });
+}
+
 void Game::initUserInterface()
 {
     if (registry.all_of<Components::Health>(player))
@@ -450,7 +458,7 @@ void Game::initUserInterface()
 
     inventory_view = std::make_shared<InventoryView>(registry, ResourceManager::get().getFont("Main"),
                                                      (*ResourceManager::get().getSpriteSheet("items")), 3, 5,
-                                                     glm::vec2{0.f, 0.f}, ui_settings, player);
+                                                     glm::vec2{0.f,  ui_settings.menu_y_offset}, ui_settings, player);
 }
 
 void Game::tick(float dt)
@@ -583,6 +591,17 @@ void Game::update(float dt)
             collision_system->update(dt);
             display_hit_marks_system->update(dt);
         }
+        break;
+    case GameState::END:
+        render_system->update(dt);
+        
+        end_timer += dt;
+        
+        if (end_timer > end_time)
+        {
+            setState(GameState::ENDSCREEN);
+        }
+        
         break;
     }
     
@@ -748,9 +767,22 @@ void Game::render(float dt) const
             
         }
         break;
+    case GameState::END:
+        background.render(screen, screen.getView());
+        screen.renderTileMap(tilemap, 0.0f, 0.0f);
+        render_system->render(screen);
+        break;
+    case GameState::ENDSCREEN:
+        {
+            background.render(screen, screen.getView());
+            graphics::Text text{screen, ResourceManager::get().getFont("Main"), "You have rebuilt the portal that led you somewhere else. In another world. If you want to end "
+                                                                        "everything you can press ESC on your keyboard or stay here forever.", graphics::Color::BLACK, 500};
+            graphics::printTextScaled(screen, text, 0.0f, 0.0f, 1.5f, 1.5f, graphics::IGNORE_VIEW_ZOOM);
+        }
+        break;
     }
     
-    printTextScaled(screen, *fps_text, 0.0f, 0.0f, 1.0f, 1.0f, IGNORE_VIEW_ZOOM);
+    //printTextScaled(screen, *fps_text, 0.0f, 0.0f, 1.0f, 1.0f, IGNORE_VIEW_ZOOM);
     
     //Set window base size to properly render imgui without scaling
     /*SDL_SetRenderLogicalPresentation(screen.getDevice(), 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
@@ -848,20 +880,23 @@ void Game::enterState(GameState state)
             text = std::make_unique<Text>(screen, ResourceManager::get().getFont("Main"), "Player");
             world_generator = std::make_unique<WorldGenerator>(generation_data, registry, 1000, 300);
             world = world_generator->generateWorld(0);
-            world->initWorld(registry, 20.0f, 20.0f);
             //spawnObjects(registry, *world, 20.0f, 20.0f);
 
             initUserInterface();
             initSystems();
 
+            world->initWorld(registry, 20.0f, 20.0f);
             //Set player idle animation
             initPlayerAnimations();
+            initPortalAnimation();
 
             initPlayer();
             item_usage_system = std::make_shared<ItemUsageSystem>(registry);
             render_weapon_circle_system = std::make_unique<RenderWeaponCircle>(registry, player);
             craft_view = std::make_unique<CraftView>(registry, player, 5, 5, 60.f, glm::vec2{660.f, 0.f});
             inventory_view->setTargetEntity(player);
+            
+            world->spawnPortals(registry, show_message_system, player, 20.0f, 20.0f, this, portal_animation);
 
             //world_renderer->spawnObjects();
 
@@ -869,18 +904,22 @@ void Game::enterState(GameState state)
 
             //Give basic items to the player
             auto& inventory = registry.get<Components::HasInventory>(player).inventory;
-            inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 10);
-            inventory->addItem(ItemManager::get().getItemID("Wood"), 20);
-            inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
-            inventory->addItem(ItemManager::get().getItemID("Common_Belt"), 1);
-            inventory->addItem(ItemManager::get().getItemID("Common_Pickaxe"), 1);
+            inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 100);
+            //inventory->addItem(ItemManager::get().getItemID("Wood"), 20);
+            //inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
+            //inventory->addItem(ItemManager::get().getItemID("Common_Belt"), 1);
+            inventory->addItem(ItemManager::get().getItemID("Golden_Pickaxe"), 1);
             inventory->addItem(ItemManager::get().getItemID("Magic_Boots"), 1);
-            inventory->addItem(ItemManager::get().getItemID("Common_Boots"), 1);
-            inventory->addItem(ItemManager::get().getItemID("Big_Armor"), 1);
+            //inventory->addItem(ItemManager::get().getItemID("Common_Boots"), 1);
+            //inventory->addItem(ItemManager::get().getItemID("Big_Armor"), 1);
             inventory->addItem(ItemManager::get().getItemID("Fast_Helmet"), 1);
-            inventory->addItem(ItemManager::get().getItemID("Snow_Bow"), 1);
-            inventory->addItem(ItemManager::get().getItemID("Dagger_With_Poison"), 1);
-            inventory->addItem(ItemManager::get().getItemID("Jumper"), 1);
+            inventory->addItem(ItemManager::get().getItemID("Black_White_Sword"), 1);
+            inventory->addItem(ItemManager::get().getItemID("Rifle"), 1);
+            //inventory->addItem(ItemManager::get().getItemID("Jumper"), 1);
+            //inventory->addItem(ItemManager::get().getItemID("War_Hammer"), 1);
+            inventory->addItem(ItemManager::get().getItemID("Multi-Tool"), 1);
+            inventory->addItem(ItemManager::get().getItemID("Diamond"), 1);
+            inventory->addItem(ItemManager::get().getItemID("Monster_Heart"), 1);
 
 
             //Test accessories
@@ -895,12 +934,15 @@ void Game::enterState(GameState state)
 
             ResourceManager::get().getSound("Background Music")->play();
             
-            //show_message_system->message(player, "Use <H> and <K> to move horizontally. <U> for jump.", 15.0f);
-            //show_message_system->message(player, "Left Mouse Button to mine and Right to place.", 15.0f);
+            show_message_system->message(player, "Use <H> and <K> to move horizontally. <U> for jump.", 7.0f, 0.5f);
+            show_message_system->message(player, "Left Mouse Button to mine and Right to place.", 7.0f, 0.5f);
 
             break;
         }
     case GameState::PLAYER_DEAD:
+        break;
+    case GameState::END:
+        
         break;
     }
 }
