@@ -66,7 +66,7 @@ void DynamicBackground::render(GpuRenderer& screen, const glm::vec2& camera_posi
 				uint8_t day_transparency = static_cast<uint8_t>((1.0f - global_time) * 255.0f);
 				uint8_t night_transparency = static_cast<uint8_t>((global_time) * 255.0f);
 				drawScaledSprite(screen, background.sprite, world_position.x, world_position.y, background.size.x, background.size.y, false, graphics::Color{255,255,255,day_transparency});
-				drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("Night_backgrounds")->getSprite("sky"), world_position.x, world_position.y, background.size.x, background.size.y, false, graphics::Color{255,255,255,night_transparency});
+				drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("night_sky"), world_position.x, world_position.y, background.size.x, background.size.y, false, graphics::Color{255,255,255,night_transparency});
 			}
 		}
 	}

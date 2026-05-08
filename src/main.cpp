@@ -43,6 +43,10 @@ namespace graphics
 
 int main()
  {
+	//SDL_SetHint(SDL_HINT_VIDEODRIVER, "x11");
+    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
+    //SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
+
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
     {
         std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << std::endl;

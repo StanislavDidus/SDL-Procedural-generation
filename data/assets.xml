@@ -218,6 +218,7 @@
                 <rect x="1280" y="0" w="640" h="480" name="bg3"/>
                 <rect x="1920" y="0" w="640" h="480" name="bg4"/>
                 <rect x="2560" y="0" w="640" h="480" name="bg5"/>
+                <rect x="3200" y="0" w="640" h="480" name="night_sky"/>
             </rectListing> 
         </sprite>
         <sprite id="Night_backgrounds">
