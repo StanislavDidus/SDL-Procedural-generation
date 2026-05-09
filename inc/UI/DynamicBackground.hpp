@@ -1,5 +1,5 @@
 #pragma once
-#include "GpuRenderer.hpp"
+#include <graphics/GpuRenderer.hpp>
 
 struct Background
 {

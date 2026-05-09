@@ -4,15 +4,15 @@
 #include <iostream>
 #include <chrono>
 
-#include "Color.hpp"
+#include <graphics/Color.hpp>
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlgpu3.h"
 #include "imgui_impl_sdlgpu3_shaders.h"
 
-#include "Window.hpp"
-#include "GpuRenderer.hpp"
-#include "RenderBatch.hpp"
+#include <graphics/Window.hpp>
+#include <graphics/GpuRenderer.hpp>
+#include <graphics/RenderBatch.hpp>
 #include "Game.hpp"
 
 #include "InputManager.hpp"
@@ -24,14 +24,13 @@
 #include "Sound.hpp"
 
 #include "GpuRenderFunctions.hpp"
+#include "graphics/graphics.hpp"
 #include "SDL3_shadercross/SDL_shadercross.h"
 
 constexpr int WINDOW_WIDTH = 960;
 constexpr int WINDOW_HEIGHT = 540;
 
 using namespace graphics;
-
-static float angle = 0.0f;
 
 namespace graphics
 {
@@ -43,28 +42,23 @@ namespace graphics
 
 int main()
  {
-	//SDL_SetHint(SDL_HINT_VIDEODRIVER, "x11");
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
-    //SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
+    SDL_SetHint(SDL_HINT_GPU_DRIVER, "vulkan");
 
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO))
     {
-        std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << std::endl;
-        return SDL_APP_FAILURE;
+        throw graphics_error{std::format("Could not initialize SDL3: {}", SDL_GetError())};
     }
     
     if (!TTF_Init())
     {
-        std::cerr << "ERROR: Could not initialize TTF: " << SDL_GetError() << std::endl;
-        return SDL_APP_FAILURE;
+        throw graphics_error{std::format("Could not initialize SDL_tff: {}", SDL_GetError())};
     }
+        
     if (!SDL_ShaderCross_Init())
     {
-	    
-        std::cerr << "ERROR: Could not initialize SDL_ShaderCross: " << SDL_GetError() << std::endl;
-        return SDL_APP_FAILURE;
+        throw graphics_error{std::format("Could not initialize SDL_shadercross: {}", SDL_GetError())};
     }
-
     //Initialize randomizer
     srand(time(0));
     
@@ -84,8 +78,8 @@ int main()
 		//sound1.play();
 
         Window window{ "RaTe-02", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE };
-        //graphics::GpuRenderer renderer{ window };
         GpuRenderer gpu_renderer{ window };
+        
 		ResourceManager::get().loadXml("data/assets.xml", gpu_renderer);
         //auto car_texture = gpu_renderer.loadTexture(Surface{"assets/Sprites/car.bmp"});
         //auto ice_cream_texture = gpu_renderer.loadTexture(Surface{ ResourceManager::get().getFont("Main"), "Debug", Color::RED});
@@ -118,7 +112,7 @@ int main()
 
     	Text debug_test{ gpu_renderer, ResourceManager::get().getFont("Main"), "Debug", Color::BLUE };
         float dt = 0.f;
-        while (window)
+        while (window.isOpen())
         {
             const auto start = std::chrono::steady_clock::now();
 
@@ -180,7 +174,7 @@ int main()
             //gpu_renderer.renderSprite("Ice-cream", 300.0f, 200.0f, 200.0f, 200.0f);
             //gpu(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
             //drawRectangle(gpu_renderer, 100.0f, 100.0f, 200.0f, 200.0f, RenderType::FILL, Color::RED);
-            gpu_renderer.update();
+            gpu_renderer.render();
 
             //update(renderer);
             

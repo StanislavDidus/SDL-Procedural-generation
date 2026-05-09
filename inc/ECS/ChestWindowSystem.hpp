@@ -43,7 +43,7 @@ public:
 			glm::vec2 unlock_button_size = glm::vec2{200.0f, 100.0f};
 			glm::vec2 unlock_button_position = glm::vec2{window_mid_position.x - unlock_button_size.x * 0.5f, transform_component.position.y + transform_component.size.y - unlock_button_size.y + 50.0f};
 
-			graphics::drawScaledSprite
+			drawScaledSprite
 			(
 				screen,
 				ResourceManager::get().getSpriteSheet("ui")->getSprite("ChestUI"),
@@ -51,16 +51,16 @@ public:
 				transform_component.position.y,
 				transform_component.size.x,
 				transform_component.size.y,
-				graphics::IGNORE_VIEW_ZOOM
+				IGNORE_VIEW_ZOOM
 			);
 
-			graphics::drawRectangle
-			(screen, unlock_button_position.x, unlock_button_position.y, unlock_button_size.x, unlock_button_size.y, graphics::RenderType::FILL, graphics::Color::RED, graphics::IGNORE_VIEW_ZOOM);
+			drawRectangle
+			(screen, unlock_button_position.x, unlock_button_position.y, unlock_button_size.x, unlock_button_size.y, graphics::RenderType::FILL, graphics::Color::RED, IGNORE_VIEW_ZOOM);
 
 			std::string str = "Unlock";
 			graphics::Text unlock_text{ screen, font, str };
 
-			graphics::printText(screen, unlock_text, unlock_button_position.x, unlock_button_position.y, unlock_button_size.x, unlock_button_size.y, graphics::IGNORE_VIEW_ZOOM);
+			printText(screen, unlock_text, unlock_button_position.x, unlock_button_position.y, unlock_button_size.x, unlock_button_size.y, IGNORE_VIEW_ZOOM);
 
 			//Draw essences icons
 			float step_x = 10.0f;
@@ -70,36 +70,36 @@ public:
 
 			new_x += step_x;
 
-			graphics::drawScaledSprite(
+			drawScaledSprite(
 				screen,
 				ResourceManager::get().getSpriteSheet("ui")->getSprite("Common_Essence"),
 				new_x,
 				transform_component.position.y + offset_y,
 				icon_size.x,
 				icon_size.y,
-				graphics::IGNORE_VIEW_ZOOM);
+				IGNORE_VIEW_ZOOM);
 
 			new_x += icon_size.x + step_x;
 
-			graphics::drawScaledSprite(
+			drawScaledSprite(
 				screen,
 				ResourceManager::get().getSpriteSheet("ui")->getSprite("Snow_Essence"),
 				new_x,
 				transform_component.position.y + offset_y,
 				icon_size.x,
 				icon_size.y,
-				graphics::IGNORE_VIEW_ZOOM);
+				IGNORE_VIEW_ZOOM);
 
 			new_x += icon_size.x + step_x;
 
-			graphics::drawScaledSprite(
+			drawScaledSprite(
 				screen,
 				ResourceManager::get().getSpriteSheet("ui")->getSprite("Sand_Essence"),
 				new_x,
 				transform_component.position.y + offset_y,
 				icon_size.x,
 				icon_size.y,
-				graphics::IGNORE_VIEW_ZOOM);
+				IGNORE_VIEW_ZOOM);
 		}
 	}
 private:

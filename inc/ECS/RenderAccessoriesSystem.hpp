@@ -45,7 +45,7 @@ public:
 					ui_settings.accessories_icon_size_y,
 				};
 
-				graphics::drawScaledSprite
+				drawScaledSprite
 				(
 					screen,
 					ResourceManager::get().getSpriteSheet("items")->getSprite(sprite_index),
@@ -53,7 +53,7 @@ public:
 					rect.y,
 					rect.w,
 					rect.h,
-					graphics::IGNORE_VIEW_ZOOM
+					IGNORE_VIEW_ZOOM
 				);
 
 				accessory_rect.emplace_back(accessory, rect);

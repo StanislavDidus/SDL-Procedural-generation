@@ -3,7 +3,7 @@
 #include <UI/Button.hpp>
 
 
-#include "Surface.hpp"
+#include <graphics/Surface.hpp>
 #include "tinyxml2.h"
 
 using namespace graphics;

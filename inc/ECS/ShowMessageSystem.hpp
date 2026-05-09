@@ -2,7 +2,8 @@
 #include <entt/entity/registry.hpp>
 
 #include "Components.hpp"
-#include "GpuRenderer.hpp"
+#include <graphics/GpuRenderer.hpp>
+#include "GpuRenderFunctions.hpp"
 #include "ResourceManager.hpp"
 
 class ShowMessageSystem
@@ -58,7 +59,7 @@ public:
                 
                 //const auto screen_position = graphics::getScreenPositionForWorld(screen, transform_component.position);
                 
-                graphics::drawScaledSprite(
+                drawScaledSprite(
                     screen,
                     sprite,
                     transform_component.position.x,
@@ -69,7 +70,7 @@ public:
             
                 graphics::Text text{screen, font, show_message_component.text, graphics::Color::BLACK,  240};
             
-                graphics::printTextScaled(
+                printTextScaled(
                     screen,
                     text,
                     transform_component.position.x + text_offset_x,

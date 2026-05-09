@@ -123,7 +123,7 @@ void World::render(graphics::GpuRenderer& screen, float tile_width_world, float 
 	for (const auto& tile : damaged_tiles)
 	{
 		if (tile.durability_percentage <= 0.25f)	
-			graphics::drawScaledSprite(
+			drawScaledSprite(
 				screen,
 				ResourceManager::get().getSpriteSheet("tile_break_anim")->getSprite("TileBreak0"),
 				tile.grid_position.x * tile_width_world,
@@ -132,7 +132,7 @@ void World::render(graphics::GpuRenderer& screen, float tile_width_world, float 
 				tile_height_world
 				);
 		else if (tile.durability_percentage <= 0.50f)	
-			graphics::drawScaledSprite(
+			drawScaledSprite(
 				screen,
 				ResourceManager::get().getSpriteSheet("tile_break_anim")->getSprite("TileBreak1"),
 				tile.grid_position.x * tile_width_world,
@@ -141,7 +141,7 @@ void World::render(graphics::GpuRenderer& screen, float tile_width_world, float 
 				tile_height_world
 				);
 		else if (tile.durability_percentage <= 0.75f)	
-			graphics::drawScaledSprite(
+			drawScaledSprite(
 				screen,
 				ResourceManager::get().getSpriteSheet("tile_break_anim")->getSprite("TileBreak2"),
 				tile.grid_position.x * tile_width_world,
@@ -150,7 +150,7 @@ void World::render(graphics::GpuRenderer& screen, float tile_width_world, float 
 				tile_height_world
 				);
 		else if (tile.durability_percentage <= 1.0f)	
-			graphics::drawScaledSprite(
+			drawScaledSprite(
 				screen,
 				ResourceManager::get().getSpriteSheet("tile_break_anim")->getSprite("TileBreak3"),
 				tile.grid_position.x * tile_width_world,

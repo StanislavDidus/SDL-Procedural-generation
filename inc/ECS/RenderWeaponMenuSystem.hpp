@@ -2,7 +2,7 @@
 
 #include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
-#include "RenderFunctions.hpp"
+#include "GpuRenderFunctions.hpp"
 #include "ResourceManager.hpp"
 
 class RenderWeaponMenuSystem
@@ -26,7 +26,7 @@ public:
 		float draw_x = window_size.x * 0.5f - draw_width * 0.5f;
 		float draw_y = ui.weapon_menu_position_y;
 
-		graphics::drawRectangle(screen, draw_x, draw_y, draw_width, draw_height, graphics::RenderType::FILL, graphics::Color::TRANSPARENT_BLUE, graphics::IGNORE_VIEW_ZOOM);
+		drawRectangle(screen, draw_x, draw_y, draw_width, draw_height, graphics::RenderType::FILL, graphics::Color::TRANSPARENT_BLUE, IGNORE_VIEW_ZOOM);
 
 		int current_draw_item = 0;
 
@@ -36,19 +36,19 @@ public:
 			int sprite_index = weapon_properties.sprite_index;
 			const auto& sprite = ResourceManager::get().getSpriteSheet("items");
 
-			graphics::drawScaledSprite(screen, (*sprite)[sprite_index], draw_x + ui.weapon_menu_slot_width * current_draw_item, draw_y, ui.weapon_menu_slot_width, ui.weapon_menu_slot_height, graphics::IGNORE_VIEW_ZOOM);
+			drawScaledSprite(screen, (*sprite)[sprite_index], draw_x + ui.weapon_menu_slot_width * current_draw_item, draw_y, ui.weapon_menu_slot_width, ui.weapon_menu_slot_height, IGNORE_VIEW_ZOOM);
 
 			current_draw_item++;
 		}
 
-		graphics::drawRectangle(screen, draw_x + draw_width, draw_y, ui.weapon_menu_slot_width, draw_height, graphics::RenderType::FILL, graphics::Color::TRANSPARENT_GREEN, graphics::IGNORE_VIEW_ZOOM);
+		drawRectangle(screen, draw_x + draw_width, draw_y, ui.weapon_menu_slot_width, draw_height, graphics::RenderType::FILL, graphics::Color::TRANSPARENT_GREEN, IGNORE_VIEW_ZOOM);
 		if (equipment_component.pickaxe != entt::null)
 		{
 			const auto& pickaxe = equipment_component.pickaxe;
 			int sprite_index = ItemManager::get().getProperties(registry, pickaxe).sprite_index;
 			const auto& sprite = ResourceManager::get().getSpriteSheet("items");
 
-			graphics::drawScaledSprite(screen, (*sprite)[sprite_index], draw_x + ui.weapon_menu_slot_width * number_of_weapons, draw_y, ui.weapon_menu_slot_width, ui.weapon_menu_slot_height, graphics::IGNORE_VIEW_ZOOM);
+			drawScaledSprite(screen, (*sprite)[sprite_index], draw_x + ui.weapon_menu_slot_width * number_of_weapons, draw_y, ui.weapon_menu_slot_width, ui.weapon_menu_slot_height, IGNORE_VIEW_ZOOM);
 		}
 	}
 private:

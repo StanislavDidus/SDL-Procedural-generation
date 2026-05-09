@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-#include "Color.hpp"
+#include <graphics/Color.hpp>
 #include "ResourceManager.hpp"
-#include "Surface.hpp"
+#include <graphics/Surface.hpp>
 #include "GpuRenderFunctions.hpp"
 #include "ECS/ComponentManager.hpp"
 #include "ItemManager.hpp"
@@ -209,7 +209,7 @@ void InventoryView::setTargetEntity(Entity entity)
 void InventoryView::render(graphics::GpuRenderer& screen)
 {
 	//Render Inventory Menu sign
-	graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("ui")->getSprite("Inventory_Menu"), 0.0f, 0.0f, columns * ui_settings.inventory_slot_width, ui_settings.menu_y_offset, graphics::IGNORE_VIEW_ZOOM);
+	drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("ui")->getSprite("Inventory_Menu"), 0.0f, 0.0f, columns * ui_settings.inventory_slot_width, ui_settings.menu_y_offset, IGNORE_VIEW_ZOOM);
 	
 	//Render inventory ui slots
 	for (int i = 0; i < rows * columns; i++)

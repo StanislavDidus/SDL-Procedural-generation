@@ -1,6 +1,7 @@
 #include "UI/DynamicBackground.hpp"
 
 #include "ResourceManager.hpp"
+#include "GpuRenderFunctions.hpp"
 
 using namespace graphics;
 

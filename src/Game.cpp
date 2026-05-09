@@ -18,7 +18,7 @@
 #include "tinyxml2.h"
 
 #include "ECS/DeathSystem.hpp"
-#include "RenderFunctions.hpp"
+#include "GpuRenderFunctions.hpp"
 #include "../extern/SDL_shadercross/external/SPIRV-Cross/spirv_cross.hpp"
 #include "ECS/ChangeMiningSizeSystem.hpp"
 #include "UI/DynamicBackground.hpp"
@@ -618,12 +618,14 @@ void Game::update(float dt)
         fps_tick = 0;
     }
 
+    /*
     ImGui_ImplSDLGPU3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
+    */
 
-    ImGui::ShowDemoWindow();
-    updateImGui(dt);
+    //ImGui::ShowDemoWindow();
+    //updateImGui(dt);
 }
 
 float menu_background_position_x1 = 0.0f;
@@ -642,30 +644,30 @@ void Game::render(float dt) const
         break;
     case GameState::MENU:
         {
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg1"), menu_background_position_x1, 0.0f, 960.0f, 540.0f);
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg1"), menu_background_position_x1 + 960.0f, 0.0f, 960.0f, 540.0f);
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg1"), menu_background_position_x1 - 960.0f, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg1"), menu_background_position_x1, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg1"), menu_background_position_x1 + 960.0f, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg1"), menu_background_position_x1 - 960.0f, 0.0f, 960.0f, 540.0f);
             menu_background_position_x4 += 25.0f * dt;
             if (menu_background_position_x4 >= 960.0f)
                 menu_background_position_x4 -= 960.0f;
             //
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1, 0.0f, 960.0f, 540.0f);
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1 + 960.0f, 0.0f, 960.0f, 540.0f);
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1 - 960.0f, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1 + 960.0f, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg2"), menu_background_position_x1 - 960.0f, 0.0f, 960.0f, 540.0f);
             menu_background_position_x1 += 25.0f * dt;
             if (menu_background_position_x1 >= 960.0f)
                 menu_background_position_x1 -= 960.0f;
             //
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg3"), menu_background_position_x2, 0.0f, 960.0f, 540.0f);
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg3"), menu_background_position_x2 + 960.0f, 0.0f, 960.0f, 540.0f);
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg3"), menu_background_position_x2 - 960.0f, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg3"), menu_background_position_x2, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg3"), menu_background_position_x2 + 960.0f, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg3"), menu_background_position_x2 - 960.0f, 0.0f, 960.0f, 540.0f);
             menu_background_position_x2 += 50.0f * dt;
             if (menu_background_position_x2 >= 960.0f)
                 menu_background_position_x2 -= 960.0f;
             //
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg4"), menu_background_position_x3, 0.0f, 960.0f, 540.0f);
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg4"), menu_background_position_x3 + 960.0f, 0.0f, 960.0f, 540.0f);
-            graphics::drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg4"), menu_background_position_x3 - 960.0f, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg4"), menu_background_position_x3, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg4"), menu_background_position_x3 + 960.0f, 0.0f, 960.0f, 540.0f);
+            drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("bg4"), menu_background_position_x3 - 960.0f, 0.0f, 960.0f, 540.0f);
             menu_background_position_x3 += 75.0f * dt;
             if (menu_background_position_x3 >= 960.0f)
                 menu_background_position_x3 -= 960.0f;
@@ -752,7 +754,7 @@ void Game::render(float dt) const
             drop_chest_loot_system->update(dt, screen);
             
             uint8_t night_transparency = static_cast<uint8_t>(global_time * 175.0f);
-            graphics::drawRectangle(screen, 0.0f, 0.0f, 960.0f, 540.0f, graphics::RenderType::FILL, graphics::Color{0,0,0,night_transparency}, graphics::IGNORE_VIEW_ZOOM);
+            drawRectangle(screen, 0.0f, 0.0f, 960.0f, 540.0f, graphics::RenderType::FILL, graphics::Color{0,0,0,night_transparency}, IGNORE_VIEW_ZOOM);
 
             //UI
             show_message_system->render(screen);
@@ -777,7 +779,7 @@ void Game::render(float dt) const
             background.render(screen, screen.getView());
             graphics::Text text{screen, ResourceManager::get().getFont("Main"), "You have rebuilt the portal that led you somewhere else. In another world. If you want to end "
                                                                         "everything you can press ESC on your keyboard or stay here forever.", graphics::Color::BLACK, 500};
-            graphics::printTextScaled(screen, text, 0.0f, 0.0f, 1.5f, 1.5f, graphics::IGNORE_VIEW_ZOOM);
+            printTextScaled(screen, text, 0.0f, 0.0f, 1.5f, 1.5f, IGNORE_VIEW_ZOOM);
         }
         break;
     }

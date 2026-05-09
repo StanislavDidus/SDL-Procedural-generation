@@ -2,8 +2,8 @@
 #include <vector>
 #include <entt/entity/registry.hpp>
 
-#include "GpuRenderer.hpp"
-#include "TileMap.hpp"
+#include <graphics/GpuRenderer.hpp>
+#include <graphics/TileMap.hpp>
 #include "Grid.hpp"
 #include "Object.hpp"
 #include "Tile.hpp"

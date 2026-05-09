@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpuRenderer.hpp"
+#include <graphics/GpuRenderer.hpp>
 #include "memory"
 
 #include "UIElement.hpp"

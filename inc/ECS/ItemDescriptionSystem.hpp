@@ -1,12 +1,12 @@
 #pragma once
-#include "Color.hpp"
+#include <graphics/Color.hpp>
 #include "ComponentManager.hpp"
 #include "CraftingManager.hpp"
 #include "EntityManager.hpp"
 #include "InputManager.hpp"
-#include "GpuRenderer.hpp"
+#include <graphics/GpuRenderer.hpp>
 #include "ItemManager.hpp"
-#include "Font.hpp"
+#include <graphics/Font.hpp>
 #include "ResourceManager.hpp"
 #include "UI/UISettings.hpp"
 
@@ -198,14 +198,14 @@ private:
 
 		//graphics::drawRectangle(screen, x, y, ui_settings.item_description_label_width, additional_height, graphics::RenderType::FILL, graphics::Color{ 0,125,200,200 }, graphics::IGNORE_VIEW_ZOOM);
 		auto& sprite = ResourceManager::get().getSpriteSheet("ui")->getSprite("TextBlock");
-		graphics::drawScaledSprite(screen, sprite, x, y, ui_settings.item_description_label_width, additional_height, graphics::IGNORE_VIEW_ZOOM);
+		drawScaledSprite(screen, sprite, x, y, ui_settings.item_description_label_width, additional_height, IGNORE_VIEW_ZOOM);
 
 		const auto& item_properties = ItemManager::get().getProperties(item_info.id);
 		graphics::Text item_name_text{ screen, font, item_properties.name };
 		graphics::Text item_id_text{  screen, font, "ID: " + std::to_string(item_info.id), graphics::Color{175, 175,175,255} };
 
-		graphics::printTextScaled(screen, item_name_text, x, y, ui_settings.item_name_text_scale_x, ui_settings.item_name_text_scale_y, graphics::IGNORE_VIEW_ZOOM);
-		graphics::printTextScaled(screen, item_id_text, x + ui_settings.item_description_id_position_x, y, ui_settings.item_id_text_scale_x, ui_settings.item_id_text_scale_y, graphics::IGNORE_VIEW_ZOOM);
+		printTextScaled(screen, item_name_text, x, y, ui_settings.item_name_text_scale_x, ui_settings.item_name_text_scale_y, IGNORE_VIEW_ZOOM);
+		printTextScaled(screen, item_id_text, x + ui_settings.item_description_id_position_x, y, ui_settings.item_id_text_scale_x, ui_settings.item_id_text_scale_y, IGNORE_VIEW_ZOOM);
 	}
 
 	void renderItemRecipe(graphics::GpuRenderer& screen, float x, float y, const std::vector<Entity>& recipe, const Inventory& inventory) const
@@ -348,14 +348,14 @@ private:
 
 		removeDigitsAfterComma(text, 1);
 		graphics::Text print_text{ screen, font, text, color };
-		graphics::printTextScaled(screen, print_text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x, ui_settings.crafting_component_text_scale_y, graphics::IGNORE_VIEW_ZOOM);
+		printTextScaled(screen, print_text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x, ui_settings.crafting_component_text_scale_y, IGNORE_VIEW_ZOOM);
 	}
 
 	void drawSpriteWithText(graphics::GpuRenderer& screen, const std::string& text, const graphics::Sprite& sprite, float x, float y, graphics::Color text_color) const
 	{
 		graphics::Text pickaxe_text{ screen, font, text, text_color };
-		graphics::drawScaledSprite(screen, sprite, x, y, ui_settings.item_description_icon_width, ui_settings.item_description_icon_height, graphics::IGNORE_VIEW_ZOOM);
-		graphics::printTextScaled(screen, pickaxe_text, x + ui_settings.item_description_icon_width, y + 12.5f, ui_settings.item_recipe_text_scale_x, ui_settings.item_recipe_text_scale_y, graphics::IGNORE_VIEW_ZOOM);
+		drawScaledSprite(screen, sprite, x, y, ui_settings.item_description_icon_width, ui_settings.item_description_icon_height, IGNORE_VIEW_ZOOM);
+		printTextScaled(screen, pickaxe_text, x + ui_settings.item_description_icon_width, y + 12.5f, ui_settings.item_recipe_text_scale_x, ui_settings.item_recipe_text_scale_y, IGNORE_VIEW_ZOOM);
 	}
 
 	template<typename... T>
@@ -364,7 +364,7 @@ private:
 		auto str_text = std::format(text_, args...);
 		graphics::Color color = {255,255,255,255};
 		graphics::Text text{ screen, font, str_text, color, 550};
-		graphics::printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, graphics::IGNORE_VIEW_ZOOM);
+		printTextScaled(screen, text, x, y + 12.5f, ui_settings.crafting_component_text_scale_x * 0.9f, ui_settings.crafting_component_text_scale_y * 0.9f, IGNORE_VIEW_ZOOM);
 	}
 
 	std::shared_ptr<graphics::Font> font;

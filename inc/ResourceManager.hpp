@@ -5,8 +5,8 @@
 #include <string>
 
 #include "AudioDevice.hpp"
-#include "SpriteSheet.hpp"
-#include "Font.hpp"
+#include <graphics/SpriteSheet.hpp>
+#include <graphics/Font.hpp>
 #include "Sound.hpp"
 
 class ResourceManager

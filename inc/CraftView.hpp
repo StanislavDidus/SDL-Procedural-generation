@@ -3,9 +3,9 @@
 #include "Craft.hpp"
 #include "UI/UIElement.hpp"
 #include "glm/vec2.hpp"
-#include "Font.hpp"
+#include <graphics/Font.hpp>
 #include "Inventory.hpp"
-#include "SpriteSheet.hpp"
+#include <graphics/SpriteSheet.hpp>
 #include "CraftingManager.hpp"
 #include "ECS/EntityManager.hpp"
 #include "ECS/ComponentManager.hpp"

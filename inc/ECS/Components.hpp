@@ -2,7 +2,7 @@
 #include "Entity.hpp"
 #include "RandomizedItem.hpp"
 #include "Sound.hpp"
-#include "SpriteAnimation.hpp"
+#include <graphics/SpriteAnimation.hpp>
 
 class Inventory;
 

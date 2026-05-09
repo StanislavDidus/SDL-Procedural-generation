@@ -1,13 +1,13 @@
 #pragma once
 
-#include "GpuRenderer.hpp"
-#include "SpriteSheet.hpp"
+#include <graphics/GpuRenderer.hpp>
+#include <graphics/SpriteSheet.hpp>
 #include "MapRange.hpp"
-#include "TileMap.hpp"
+#include <graphics/TileMap.hpp>
 #include "WorldGenerator.hpp"
 #include "glm/vec2.hpp"
 #include "Item.hpp"
-#include "Font.hpp"
+#include <graphics/Font.hpp>
 
 #include "ECS/Systems.hpp"
 #include "UI/UserInterface.hpp"
@@ -20,14 +20,14 @@
 #include "CraftingManager.hpp"
 #include "CraftView.hpp"
 #include "EnemySpawnManager.hpp"
-#include "Surface.hpp"
+#include <graphics/Surface.hpp>
 #include "ECS/ItemDescriptionSystem.hpp"
 #include "ECS/RenderSystem.hpp"
 #include "ECS/RenderCraftingUISystem.hpp"
 #include "ECS/RenderWeaponMenuSystem.hpp"
 #include "UI/UISettings.hpp"
 
-#include "SpriteAnimation.hpp"
+#include <graphics/SpriteAnimation.hpp>
 #include "EnemySpawnSystem.hpp"
 #include "tinyxml2.h"
 #include "WorldRenderer.hpp"

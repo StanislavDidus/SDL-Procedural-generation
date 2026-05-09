@@ -14,11 +14,11 @@
 #include "ValueNoise.hpp"
 #include "PerlynNoise.hpp"
 #include "MapRange.hpp"
-#include "Chunk.hpp"
+#include <graphics/Chunk.hpp>
 #include "ObjectManager.hpp"
 #include "TileManager.hpp"
 #include "GenerationData.hpp"
-#include "RenderFunctions.hpp"
+#include "GpuRenderFunctions.hpp"
 #include "ECS/Entity.hpp"
 #include "DrunkWalker.hpp"
 #include "ECS/ApplyArmorEffects.hpp"

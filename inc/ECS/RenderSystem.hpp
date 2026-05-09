@@ -7,8 +7,6 @@
 
 #include <queue>
 
-#include "ColorModGuard.hpp"
-
 struct RenderEntry
 {
 	int priority;
@@ -89,7 +87,7 @@ public:
 			const auto& position = transform_component->position;
 			const auto& size = transform_component->size;
 			
-			graphics::drawRotatedSprite(screen, renderable_component->sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component->flip_mode, renderable_component->ignore_view_zoom, renderable_component->color);
+			drawRotatedSprite(screen, renderable_component->sprite, position.x, position.y, size.x, size.y, 0.f, renderable_component->flip_mode, renderable_component->ignore_view_zoom, renderable_component->color);
 		}
 		
 		render_entries.clear();

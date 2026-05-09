@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <random>
 
-#include "Color.hpp"
+#include <graphics/Color.hpp>
 #include "CraftingManager.hpp"
 #include "ECS/EntityManager.hpp"
 #include "GpuRenderFunctions.hpp"
@@ -14,6 +14,7 @@
 #include "WorldHelper.hpp"
 #include "glm/gtc/random.hpp"
 #include "ObjectManager.hpp"
+#include "GpuRenderFunctions.hpp"
 
 constexpr float BASE_MINING_SPEED = 100.0f;
 constexpr float BASE_MINING_RADIUS = 100.0f;
@@ -385,7 +386,7 @@ struct InputSystem
 	void update(const graphics::GpuRenderer& screen, float dt)
 	{
 		//Calculate global mouse position
-		glm::vec2 mouse_global_position = graphics::getMouseGlobalPosition(screen, InputManager::getMouseState().position);
+		glm::vec2 mouse_global_position = getMouseGlobalPosition(screen, InputManager::getMouseState().position);
 		
 		auto view = registry.view<Components::Player>();
 
@@ -580,11 +581,11 @@ public:
 
 				if (distance > mining_radius)
 				{
-					graphics::drawRectangle(screen, tile_position_global.x, tile_position_global.y, tile_width, tile_height, graphics::RenderType::FILL, graphics::Color::TRANSPARENT_RED);
+					drawRectangle(screen, tile_position_global.x, tile_position_global.y, tile_width, tile_height, graphics::RenderType::FILL, graphics::Color::TRANSPARENT_RED);
 				}
 				else
 				{
-					graphics::drawRectangle(screen, tile_position_global.x, tile_position_global.y, tile_width, tile_height, graphics::RenderType::FILL, graphics::Color::TRANSPARENT_BLUE);
+					drawRectangle(screen, tile_position_global.x, tile_position_global.y, tile_width, tile_height, graphics::RenderType::FILL, graphics::Color::TRANSPARENT_BLUE);
 				}
 			}
 		}
@@ -759,7 +760,7 @@ public:
 				if (object != entt::null)
 				{
 					const auto& object_transform = registry.get<Components::Transform>(object);
-					graphics::drawRectangle(screen, object_transform.position.x, object_transform.position.y, object_transform.size.x, object_transform.size.y, graphics::RenderType::NONE, graphics::Color::YELLOW);
+					drawRectangle(screen, object_transform.position.x, object_transform.position.y, object_transform.size.x, object_transform.size.y, graphics::RenderType::NONE, graphics::Color::YELLOW);
 				}
 			}
 			else
@@ -774,11 +775,11 @@ public:
 
 					if (distance < mining_radius)
 					{
-						graphics::drawRectangle(screen, object_transform.position.x, object_transform.position.y, object_transform.size.x, object_transform.size.y, graphics::RenderType::NONE, graphics::Color::BLUE);
+						drawRectangle(screen, object_transform.position.x, object_transform.position.y, object_transform.size.x, object_transform.size.y, graphics::RenderType::NONE, graphics::Color::BLUE);
 					}
 					else
 					{
-						graphics::drawRectangle(screen, object_transform.position.x, object_transform.position.y, object_transform.size.x, object_transform.size.y, graphics::RenderType::NONE, graphics::Color::RED);
+						drawRectangle(screen, object_transform.position.x, object_transform.position.y, object_transform.size.x, object_transform.size.y, graphics::RenderType::NONE, graphics::Color::RED);
 					}
 				}
 			}
@@ -1094,7 +1095,7 @@ public:
 			registry.remove<Components::ButtonExit>(entity);
 
 			const auto& mouse_state = InputManager::getMouseState();
-			const auto& mouse_position = button.global ? graphics::getMouseGlobalPosition(screen, mouse_state.position) : mouse_state.position;
+			const auto& mouse_position = button.global ? getMouseGlobalPosition(screen, mouse_state.position) : mouse_state.position;
 			const auto& mouse_left_state = mouse_state.left;
 
 			bool is_covered = isMouseIntersection(mouse_position, SDL_FRect{ ts.position.x, ts.position.y, ts.size.x, ts.size.y });

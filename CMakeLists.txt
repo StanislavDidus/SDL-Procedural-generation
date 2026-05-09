@@ -12,7 +12,6 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "Don't build shared libs" FORCE)
 
 add_subdirectory(extern)
 add_subdirectory(audio)
-add_subdirectory(graphics)
 add_subdirectory(noise)
 
 set(SOURCE_FILES 
@@ -129,6 +128,7 @@ set(HEADER_FILES
     "inc/ECS/FallDamageSystem.hpp"
     "inc/ECS/ObjectDurabilityDisplay.hpp"
     "inc/ECS/ShowMessageSystem.hpp"
+    "inc/GpuRenderFunctions.hpp"
     )
 
 set(ALL_FILES ${SOURCE_FILES} ${HEADER_FILES})
@@ -140,19 +140,16 @@ if(MSVC)
 endif()
 
 #Copy assets and data folders to the build folder
-add_custom_target(copy_assets
+add_custom_target(copy_assets_game
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_LIST_DIR}/copy_assets.cmake
 )
-add_dependencies(SDL_PRO_GEN copy_assets)
+add_dependencies(SDL_PRO_GEN copy_assets_game)
 
 target_include_directories(SDL_PRO_GEN PUBLIC inc)
 
 target_link_libraries(
     SDL_PRO_GEN PUBLIC
-    SDL3_ttf::SDL3_ttf-static
-    SDL3::SDL3-static
-    graphics 
-    glm::glm 
+    GRAPHICS_LIB
     noise
     audio
     imgui

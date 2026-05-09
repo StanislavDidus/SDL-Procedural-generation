@@ -2,24 +2,25 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_shadercross" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_shadercross/external/DirectXShaderCompiler" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_shadercross/external/DirectXShaderCompiler/external/DirectX-Headers" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_shadercross/external/DirectXShaderCompiler/external/SPIRV-Headers" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_shadercross/external/DirectXShaderCompiler/external/SPIRV-Tools" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_shadercross/external/SPIRV-Cross" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_shadercross/external/SPIRV-Headers" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_shadercross/external/SPIRV-Tools" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_ttf" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_ttf/external/freetype" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_ttf/external/freetype/subprojects/dlg" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_ttf/external/harfbuzz" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_ttf/external/plutosvg" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_ttf/external/plutosvg/plutovg" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/SDL_ttf/external/plutovg" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/extern/entt" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/extern/glm" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_shadercross" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_shadercross/external/DirectXShaderCompiler" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_shadercross/external/DirectXShaderCompiler/external/DirectX-Headers" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_shadercross/external/DirectXShaderCompiler/external/SPIRV-Headers" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_shadercross/external/DirectXShaderCompiler/external/SPIRV-Tools" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_shadercross/external/SPIRV-Cross" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_shadercross/external/SPIRV-Headers" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_shadercross/external/SPIRV-Tools" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_ttf" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_ttf/external/freetype" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_ttf/external/freetype/subprojects/dlg" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_ttf/external/harfbuzz" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_ttf/external/plutosvg" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_ttf/external/plutosvg/plutovg" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/SDL_ttf/external/plutovg" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/graphics-lib/extern/glm" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/extern/imgui" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/extern/tinyxml2" vcs="Git" />
   </component>

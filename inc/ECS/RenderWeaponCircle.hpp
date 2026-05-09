@@ -131,9 +131,9 @@ public:
 				int sprite_index = item_properties.sprite_index;
 
 				if (weapon.flip)
-					graphics::drawRotatedSprite(screen, (*ResourceManager::get().getSpriteSheet("items"))[sprite_index], rotated_position.x - WeaponSize * 0.5f, rotated_position.y - WeaponSize * 0.5f, WeaponSize, WeaponSize, 0.f, SDL_FLIP_HORIZONTAL);
+					drawRotatedSprite(screen, (*ResourceManager::get().getSpriteSheet("items"))[sprite_index], rotated_position.x - WeaponSize * 0.5f, rotated_position.y - WeaponSize * 0.5f, WeaponSize, WeaponSize, 0.f, SDL_FLIP_HORIZONTAL);
 				else
-					graphics::drawRotatedSprite(screen, (*ResourceManager::get().getSpriteSheet("items"))[sprite_index], rotated_position.x - WeaponSize * 0.5f, rotated_position.y - WeaponSize * 0.5f, WeaponSize, WeaponSize, 0.f, SDL_FLIP_NONE);
+					drawRotatedSprite(screen, (*ResourceManager::get().getSpriteSheet("items"))[sprite_index], rotated_position.x - WeaponSize * 0.5f, rotated_position.y - WeaponSize * 0.5f, WeaponSize, WeaponSize, 0.f, SDL_FLIP_NONE);
 			}
 		}
 	}

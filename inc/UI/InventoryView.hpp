@@ -2,13 +2,13 @@
 
 #include "UIElement.hpp"
 #include "Inventory.hpp"
-#include "SpriteSheet.hpp"
+#include <graphics/SpriteSheet.hpp>
 #include "InputManager.hpp"
-#include "Font.hpp"
+#include <graphics/Font.hpp>
 #include <vector>
 
 #include "Button.hpp"
-#include "Text.hpp"
+#include <graphics/Text.hpp>
 #include "UISettings.hpp"
 #include "ECS/Entity.hpp"
 

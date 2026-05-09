@@ -1,7 +1,7 @@
 #include "UI/UserInterface.hpp"
 #include "UI/FillBar.hpp"
 #include <utility>
-#include "RenderFunctions.hpp"
+#include "GpuRenderFunctions.hpp"
 
 using namespace graphics;
 

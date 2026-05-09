@@ -6,7 +6,7 @@
 #include "Entity.hpp"
 #include "ResourceManager.hpp"
 #include "UI/UISettings.hpp"
-#include "RenderFunctions.hpp"
+#include "GpuRenderFunctions.hpp"
 
 class RenderEssenceCounter
 {
@@ -37,7 +37,7 @@ public:
 		// Render Common Essence
 		{
 			const auto& sprite = ResourceManager::get().getSpriteSheet("ui")->getSprite("Common_Essence");
-			graphics::drawScaledSprite(screen, sprite, position.x + offset_x, position.y, size.x, size.y, graphics::IGNORE_VIEW_ZOOM);
+			drawScaledSprite(screen, sprite, position.x + offset_x, position.y, size.x, size.y, IGNORE_VIEW_ZOOM);
 
 			offset_x += size.x + space;
 
@@ -50,14 +50,14 @@ public:
 			glm::vec2 text_size = common_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
-			graphics::printTextScaled(screen, common_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, graphics::IGNORE_VIEW_ZOOM);	
+			printTextScaled(screen, common_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, IGNORE_VIEW_ZOOM);	
 			offset_x += text_size.x;
 		}
 
 		// Render Snow Essence
 		{
 			const auto& sprite = ResourceManager::get().getSpriteSheet("ui")->getSprite("Snow_Essence");
-			graphics::drawScaledSprite(screen, sprite, position.x + offset_x, position.y, size.x, size.y, graphics::IGNORE_VIEW_ZOOM);
+			drawScaledSprite(screen, sprite, position.x + offset_x, position.y, size.x, size.y, IGNORE_VIEW_ZOOM);
 
 			offset_x += size.x + space;
 
@@ -70,13 +70,13 @@ public:
 			glm::vec2 text_size = snow_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
-			graphics::printTextScaled(screen,snow_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, graphics::IGNORE_VIEW_ZOOM);	
+			printTextScaled(screen,snow_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, IGNORE_VIEW_ZOOM);	
 			offset_x += text_size.x;
 		}
 		// Render Sand Essence
 		{
 			const auto& sprite = ResourceManager::get().getSpriteSheet("ui")->getSprite("Sand_Essence");
-			graphics::drawScaledSprite(screen, sprite, position.x + offset_x, position.y, size.x, size.y, graphics::IGNORE_VIEW_ZOOM);
+			drawScaledSprite(screen, sprite, position.x + offset_x, position.y, size.x, size.y, IGNORE_VIEW_ZOOM);
 
 			offset_x += size.x + space;
 
@@ -90,7 +90,7 @@ public:
 			glm::vec2 text_size = sand_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
-			graphics::printTextScaled(screen, sand_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, graphics::IGNORE_VIEW_ZOOM);	
+			printTextScaled(screen, sand_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, IGNORE_VIEW_ZOOM);	
 			offset_x += text_size.x;
 		}
 	}

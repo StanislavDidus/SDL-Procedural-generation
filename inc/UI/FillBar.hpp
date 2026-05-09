@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Color.hpp"
+#include <graphics/Color.hpp>
 #include "UI/UIElement.hpp"
 
 class FillBar : public UIElement

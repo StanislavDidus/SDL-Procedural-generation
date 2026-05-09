@@ -28,11 +28,11 @@ public:
 			glm::vec2 bar_size = glm::vec2{size.x - 75.0f, size.y - 30.0f};
 			glm::vec2 new_size = glm::vec2{ bar_size.x * percentage, bar_size.y };
 
-			graphics::drawRectangle(screen, bar_position.x, bar_position.y, new_size.x, new_size.y, graphics::RenderType::FILL, health_bar_component.color, graphics::IGNORE_VIEW_ZOOM);
+			drawRectangle(screen, bar_position.x, bar_position.y, new_size.x, new_size.y, graphics::RenderType::FILL, health_bar_component.color, IGNORE_VIEW_ZOOM);
 			
 			// Get HealthBar sprite
 			const auto& sprite = *ResourceManager::get().getSpriteSheet("ui");
-			graphics::drawScaledSprite(screen, sprite[3], position.x, position.y, size.x, size.y, graphics::IGNORE_VIEW_ZOOM);
+			drawScaledSprite(screen, sprite[3], position.x, position.y, size.x, size.y, IGNORE_VIEW_ZOOM);
 		}
 	}
 

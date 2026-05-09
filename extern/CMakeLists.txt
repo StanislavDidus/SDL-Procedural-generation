@@ -1,5 +1,6 @@
 
-#SDL
+#[[
+##[=[SDL
 set(SDL_X11_XFIXES OFF CACHE BOOL "" FORCE)
 set(SDL_SHARED OFF CACHE BOOL "Don't build SDL shared" FORCE)
 set(SDL_STATIC ON CACHE BOOL "Build SDL static" FORCE)
@@ -16,6 +17,9 @@ set(SDLSHADERCROSS_VENDORED ON)
 add_subdirectory(SDL_shadercross EXCLUDE_FROM_ALL)
 #glm
 add_subdirectory(glm EXCLUDE_FROM_ALL)
+]]
+#graphics-lib
+add_subdirectory(graphics-lib EXCLUDE_FROM_ALL)
 #tinyxml2
 add_subdirectory(tinyxml2 EXCLUDE_FROM_ALL)
 #entt
@@ -44,6 +48,7 @@ macro( set_targets_folder TARGETS FOLDER )
 	endforeach()
 endmacro()
 
+#[[
 set ( ALL_LIBS
     SDL3_ttf-static
     SDL3_shadercross
@@ -80,4 +85,4 @@ set ( ALL_LIBS
     spirv-tools-tables
 )
 
-set_targets_folder("${ALL_LIBS}" "externals")
+set_targets_folder("${ALL_LIBS}" "externals")]]

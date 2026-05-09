@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpuRenderer.hpp"
+#include <graphics/GpuRenderer.hpp>
 #include "glm/vec2.hpp"
 #include "SDL3/SDL_rect.h"
 

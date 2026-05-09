@@ -39,8 +39,8 @@ public:
 				const auto& sprite = ResourceManager::get().getSpriteSheet("items")->getSprite(drop_item_chest_component.last_sprite);
 				glm::vec2 position = {transform_component.position.x, transform_component.position.y - 50.f};
 				glm::vec2 size = {transform_component.size};
-				graphics::drawRectangle(screen, position.x, position.y, size.x, size.y, graphics::RenderType::FILL, graphics::Color::BLUE);
-				graphics::drawScaledSprite(screen, sprite, position.x, position.y, size.x, size.y);
+				drawRectangle(screen, position.x, position.y, size.x, size.y, graphics::RenderType::FILL, graphics::Color::BLUE);
+				drawScaledSprite(screen, sprite, position.x, position.y, size.x, size.y);
 			}
 			//Drop item at the end
 			else if (drop_item_chest_component.timer >= DROP_TIME)

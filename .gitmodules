@@ -1,21 +1,12 @@
-[submodule "extern/SDL"]
-	path = extern/SDL
-	url = https://github.com/libsdl-org/SDL.git
-[submodule "extern/glm"]
-	path = extern/glm
-	url = https://github.com/g-truc/glm.git
 [submodule "extern/imgui"]
 	path = extern/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "extern/SDL_ttf"]
-	path = extern/SDL_ttf
-	url = https://github.com/libsdl-org/SDL_ttf.git
 [submodule "extern/tinyxml2"]
 	path = extern/tinyxml2
 	url = https://github.com/leethomason/tinyxml2.git
 [submodule "extern/entt"]
 	path = extern/entt
 	url = https://github.com/skypjack/entt.git
-[submodule "extern/SDL_shadercross"]
-	path = extern/SDL_shadercross
-	url = https://github.com/libsdl-org/SDL_shadercross.git
+[submodule "extern/graphics-lib"]
+	path = extern/graphics-lib
+	url = https://github.com/StanislavDidus/graphics-lib.git

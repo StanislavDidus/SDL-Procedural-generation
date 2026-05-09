@@ -6,7 +6,6 @@
 #include <ranges>
 
 #include "ResourceManager.hpp"
-#include "ViewportGuard.hpp"
 #include "WorldHelper.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
 #include "ECS/ApplyArmorEffects.hpp"
