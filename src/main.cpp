@@ -34,14 +34,15 @@ using namespace graphics;
 
 namespace graphics
 {
-    int MAX_SPRITES_RENDERED = 3000;
-    int MAX_RECTANGLES_RENDERED = 1000;
-    int MAX_LINES_RENDERED = 1000;
+    int MAX_SPRITES_RENDERED = 1000;
+    int MAX_RECTANGLES_RENDERED = 500;
+    int MAX_LINES_RENDERED = 100;
     int MAX_TILEMAPS_RENDERED = 100;
 }
 
 int main()
  {
+    // For using RenderDoc
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
     SDL_SetHint(SDL_HINT_GPU_DRIVER, "vulkan");
 
