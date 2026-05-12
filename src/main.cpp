@@ -34,7 +34,7 @@ using namespace graphics;
 
 namespace graphics
 {
-    int MAX_SPRITES_RENDERED = 1000;
+    int MAX_SPRITES_RENDERED = 2000;
     int MAX_RECTANGLES_RENDERED = 500;
     int MAX_LINES_RENDERED = 100;
     int MAX_TILEMAPS_RENDERED = 100;
@@ -43,8 +43,8 @@ namespace graphics
 int main()
  {
     // For using RenderDoc
-    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
-    SDL_SetHint(SDL_HINT_GPU_DRIVER, "vulkan");
+    //SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
+    //SDL_SetHint(SDL_HINT_GPU_DRIVER, "vulkan");
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO))
     {
@@ -195,7 +195,7 @@ int main()
         ImGui_ImplSDLGPU3_Shutdown();
         ImGui::DestroyContext();
     }
-    catch (const std::exception& e)
+    catch (std::exception& e)
     {
         std::cout << "Unexpected error occured: " << e.what() << std::endl;
         throw;

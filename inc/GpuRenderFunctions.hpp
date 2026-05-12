@@ -20,8 +20,7 @@ inline void drawRectangle(graphics::GpuRenderer& screen, float x, float y, float
 {
     if (ignore_view_zoom)
         screen.setRenderMode(graphics::RenderMode::UI);
-    graphics::Color new_color{static_cast<uint8_t>(color.r / 255.0f), static_cast<uint8_t>(color.g / 255.0f), static_cast<uint8_t>(color.b / 255.0f), static_cast<uint8_t>(color.a / 255.0f)};
-    screen.renderRectangle(x, y, width, height, render_type, new_color);
+    screen.renderRectangle(x, y, width, height, render_type, color);
     if (ignore_view_zoom)
         screen.setRenderMode(graphics::RenderMode::WORLD);
 }
@@ -30,7 +29,6 @@ inline void drawScaledSprite(graphics::GpuRenderer& screen, const graphics::Spri
 {
     if (ignore_view_zoom)
         screen.setRenderMode(graphics::RenderMode::UI);
-    graphics::Color new_color{static_cast<uint8_t>(color.r / 255.0f), static_cast<uint8_t>(color.g / 255.0f), static_cast<uint8_t>(color.b / 255.0f), static_cast<uint8_t>(color.b / 255.0f)};
     screen.renderSprite(sprite, x, y, width, height, 0.0f, SDL_FLIP_NONE, color);
     if (ignore_view_zoom) 
         screen.setRenderMode(graphics::RenderMode::WORLD);
@@ -41,7 +39,6 @@ inline void drawRotatedSprite(graphics::GpuRenderer& screen, const graphics::Spr
 {
     if (ignore_view_zoom) 
         screen.setRenderMode(graphics::RenderMode::UI);
-    graphics::Color new_color{static_cast<uint8_t>(color.r / 255.0f), static_cast<uint8_t>(color.g / 255.0f), static_cast<uint8_t>(color.b / 255.0f), static_cast<uint8_t>(color.b / 255.0f)};
     screen.renderSprite(sprite, x, y, width, height, angle, flip_mode, color);
     if (ignore_view_zoom) 
         screen.setRenderMode(graphics::RenderMode::WORLD);

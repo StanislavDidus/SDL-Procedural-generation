@@ -145,6 +145,13 @@ add_custom_target(copy_assets_game
 )
 add_dependencies(SDL_PRO_GEN copy_assets_game)
 
+#Copy lib folder directly to bin folder
+add_custom_command(TARGET SDL_PRO_GEN POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${PROJECT_SOURCE_DIR}/libs"
+    $<TARGET_FILE_DIR:SDL_PRO_GEN>
+)
+
 target_include_directories(SDL_PRO_GEN PUBLIC inc)
 
 target_link_libraries(
