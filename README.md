@@ -1,5 +1,5 @@
 
-# SDL-Procedural-generation-
+# Rate-02
 
 ![readme_pic.png](assets/Sprites/readme_pic.png)
 
