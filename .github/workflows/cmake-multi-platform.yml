@@ -92,7 +92,7 @@ jobs:
             mkdir package
             cp -r "${{steps.strings.outputs.build-output-dir}}/." package/
             cp -r assets package/
-            cp -r shaders package/
+            cp -r extern/graphics-lib/shaders package/
             cp -r data package/
             cp LICENSE package/
             cp README.md package/
@@ -107,7 +107,7 @@ jobs:
           New-Item -ItemType Directory -Force package
           Copy-Item "${{ steps.strings.outputs.build-output-dir }}\*" package -Recurse
           Copy-Item assets package -Recurse
-          Copy-Item shaders package -Recurse
+          Copy-Item extern/graphics-lib/shaders package -Recurse
           Copy-Item data package -Recurse
           Copy-Item LICENSE package
           Copy-Item README.md package
@@ -119,7 +119,7 @@ jobs:
           mkdir package
           cp -r "${{steps.strings.outputs.build-output-dir}}/." package/
           cp -r assets package/
-          cp -r shaders package/
+          cp -r extern/graphics-lib/shaders package/
           cp -r data package/
           cp LICENSE package/
           cp README.md package/
