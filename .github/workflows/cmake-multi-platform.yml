@@ -23,9 +23,9 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        build_type: [Release]
-        c_compiler: [clang, cl]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        build_type: [ Release ]
+        c_compiler: [ clang, cl ]
         include:
           - os: windows-latest
             c_compiler: cl
@@ -45,42 +45,103 @@ jobs:
             c_compiler: cl
 
     steps:
-    - name: Install dependencies
-      if: runner.os == 'Linux'
-      run: | 
-        sudo apt-get install build-essential git make \
-          pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
-          libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
-          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
-          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
-          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev libusb-1.0-0-dev
-    - uses: actions/checkout@v4 
-      with: 
-        submodules: recursive
+      - name: Install dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install build-essential git make \
+            pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
+            libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
+            libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
+            libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+            libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev libusb-1.0-0-dev
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - name: Set reusable strings
-      # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
-      id: strings
-      shell: bash
-      run: |
-        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+      - name: Set reusable strings
+        # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
-        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -S ${{ github.workspace }}
+      - name: Configure CMake
+        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+        run: >
+          cmake -B ${{ steps.strings.outputs.build-output-dir }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -S ${{ github.workspace }}
 
-    - name: Build
-      # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      - name: Build
+        # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-    - name: Test
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest --build-config ${{ matrix.build_type }}
+      - name: Test
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+        run: ctest --build-config ${{ matrix.build_type }}
+
+        # Packaging
+      - name: 'Create dist folders (Linux)'
+        if: runner.os == 'Linux'
+        run: | 
+            mkdir package
+            cp -r "${{steps.strings.outputs.build-output-dir}}/." package/
+            cp -r assets package/
+            cp -r shaders package/
+            cp -r data package/
+            cp LICENSE package/
+            cp README.md package/
+            cp -r OTHER_LICENCES package/
+          
+            cd package
+            zip -r ../Rate-linux.zip .
+      - name: 'Create dist folders (Windows)'
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force package
+          Copy-Item "${{ steps.strings.outputs.build-output-dir }}\*" package -Recurse
+          Copy-Item assets package -Recurse
+          Copy-Item shaders package -Recurse
+          Copy-Item data package -Recurse
+          Copy-Item LICENSE package
+          Copy-Item README.md package
+          Copy-Item OTHER_LICENCES package -Recurse
+          Compress-Archive -Path package\* -DestinationPath Rate-windows.zip -Force
+      - name: 'Create dist folders (MacOs)'
+        if: runner.os == 'macOs'
+        run: |
+          mkdir package
+          cp -r "${{steps.strings.outputs.build-output-dir}}/." package/
+          cp -r assets package/
+          cp -r shaders package/
+          cp -r data package/
+          cp LICENSE package/
+          cp README.md package/
+          cp -r OTHER_LICENCES package/
+          zip -r ../Rate-macos.zip .
+
+      # Upload artifacts
+      - name: 'Upload Artifact (Linux)'
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rate-linux
+          path: Rate-linux.zip
+      - name: 'Upload Artifact (Windows)'
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rate-windows
+          path: Rate-windows.zip
+      - name: 'Upload Artifact (MacOs)'
+        if: runner.os == 'macOs'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rate-macos
+          path: Rate-macos.zip
