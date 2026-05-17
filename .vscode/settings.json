@@ -1,6 +1,0 @@
-{
-    "cmake.useCMakePresets": "always",
-    "cmake.configureEnvironment": {
-        "PATH": "/usr/bin:/bin:/usr/local/bin"
-    }
-}
