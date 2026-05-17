@@ -96,7 +96,7 @@ jobs:
             cp -r data package/
             cp LICENSE package/
             cp README.md package/
-            cp -r OTHER_LICENCES package/
+            cp -r OTHER_LICENSES package/
           
             cd package
             zip -r ../Rate-linux.zip .
@@ -111,7 +111,7 @@ jobs:
           Copy-Item data package -Recurse
           Copy-Item LICENSE package
           Copy-Item README.md package
-          Copy-Item OTHER_LICENCES package -Recurse
+          Copy-Item OTHER_LICENSES package -Recurse
           Compress-Archive -Path package\* -DestinationPath Rate-windows.zip -Force
       - name: 'Create dist folders (MacOs)'
         if: runner.os == 'macOs'
@@ -123,7 +123,7 @@ jobs:
           cp -r data package/
           cp LICENSE package/
           cp README.md package/
-          cp -r OTHER_LICENCES package/
+          cp -r OTHER_LICENSES package/
           zip -r ../Rate-macos.zip .
 
       # Upload artifacts
