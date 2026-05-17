@@ -32,6 +32,10 @@ The game does not support gamepad and it only playable by using a keyboard and a
 Almost all of the assets where created by me except of the ones listed here:
 
 - player sprites - https://biggermanjd.itch.io/platformer-tileset-pixelart-grasslands
+- backgrounds sprites - \
+https://szadiart.itch.io/sidescroll-worlds-set1 \
+https://szadiart.itch.io/sidescroll-worlds-set4
+
 
 ## LICENSE
 This game is under MIT LICENSE.
