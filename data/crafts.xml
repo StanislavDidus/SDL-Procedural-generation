@@ -79,4 +79,12 @@
             <item ref="Slime" amount="2" />
         </requiredItems>
     </craft>
+    <craft id="Staff">
+        <requiredBlueprint>false</requiredBlueprint>
+        <requiredItems>
+            <item ref="Wood" amount="3" />
+            <item ref="Stick" amount="1" />
+            <item ref="Slime" amount="1" />
+        </requiredItems>
+    </craft>
 </craftListing>

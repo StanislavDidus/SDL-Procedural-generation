@@ -333,6 +333,8 @@ namespace Components
 		Entity armor = entt::null;
 		Entity boots = entt::null;
 		std::vector<Entity> accessories;
+
+		float damage_mulp = 1.0f;
 	};
 
 	struct EquipmentEssence
@@ -505,6 +507,11 @@ namespace Components
 		struct Spike
 		{
 			float value;
+		};
+
+		struct IncreaseWeaponDamage
+		{
+			float mult = 1.5f;
 		};
 	} // namespace Effects
 

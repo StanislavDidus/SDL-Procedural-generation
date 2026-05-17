@@ -1,15 +1,29 @@
 <?xml version="1.0"?>
 <lootListing>
     <baseLoot>
-        <item ref="Astronaut_Suit" weight="10" min_quantity="2" max_quantity="5" />
+        <item ref="Astronaut_Suit" weight="10" min_quantity="1" max_quantity="1" />
+        <item ref="Rainbow_Armor" weight="1" min_quantity="1" max_quantity="1" />
+        <item ref="Herb_Salad" weight="10" min_quantity="3" max_quantity="4" />
+        <item ref="Rope" weight="15" min_quantity="1" max_quantity="3" />
     </baseLoot>
     <commonLoot>
-        <item ref="Common_Belt" weight="10" min_quantity="1" max_quantity="1" />
+        <item ref="Common_Belt" weight="15" min_quantity="1" max_quantity="1" />
+        <item ref="Black_Mask" weight="15" min_quantity="1" max_quantity="1" />
+        <item ref="Gold" weight="15" min_quantity="3" max_quantity="4" />
+        <item ref="Magic_Boots" weight="15" min_quantity="1" max_quantity="1" />
+        <item ref="Rifle" weight="10" min_quantity="1" max_quantity="1" />
     </commonLoot>
     <snowLoot>
-        <item ref="Banana" weight="20" min_quantity="2" max_quantity="5" />
+        <item ref="Banana" weight="20" min_quantity="2" max_quantity="99" />
+        <item ref="Apple" weight="20" min_quantity="50" max_quantity="100" />
+        <item ref="Heal_Potion" weight="10" min_quantity="10" max_quantity="15" />
+        <item ref="Big_Armor" weight="15" min_quantity="1" max_quantity="1" />
     </snowLoot>
     <sandLoot>
         <item ref="Common_Sword" weight="20" min_quantity="1" max_quantity="1" />
+        <item ref="Wood" weight="30" min_quantity="5" max_quantity="15" />
+        <item ref="Leather_Armor" weight="25" min_quantity="1" max_quantity="1" />
+        <item ref="Fast_Helmet" weight="25" min_quantity="1" max_quantity="1" />
+        <item ref="Astronaut_Suit" weight="10" min_quantity="1" max_quantity="1" />
     </sandLoot>
 </lootListing>

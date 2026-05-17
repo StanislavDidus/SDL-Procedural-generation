@@ -333,6 +333,7 @@
         <action>EQUIP</action>
         <components>
             <component id="Accessory" />
+            <component id="IncreaseWeaponDamage" mult="1.5" />
         </components>
     </item>
     <item id="Black_White_Sword">

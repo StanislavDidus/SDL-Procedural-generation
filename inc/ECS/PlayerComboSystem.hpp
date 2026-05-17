@@ -60,7 +60,8 @@ public:
 						const auto& [distance, enemy] = enemy_queue.top();
 
 						auto damage_entity = registry.create();
-						registry.emplace<Components::Damage>(damage_entity, enemy, weapon, damage);
+						float damage_mult = player_equipment_component.damage_mulp;
+						registry.emplace<Components::Damage>(damage_entity, enemy, weapon, damage * damage_mult);
 					}
 				}
 			}

@@ -134,6 +134,11 @@ void ItemManager::loadXml(entt::registry& registry, const std::filesystem::path&
 				float value = component_node->FloatAttribute("value");
 				registry.emplace_or_replace<Components::Effects::Spike>(item, value);
 			}
+			else if (strcmp(component_name, "IncreaseWeaponDamage") == 0)
+			{
+				float value = component_node->FloatAttribute("mult");
+				registry.emplace_or_replace<Components::Effects::IncreaseWeaponDamage>(item, value);
+			}
 
 			//Weapon Effects
 			else if (strcmp(component_name, "WeaponFreezeEffect") == 0)

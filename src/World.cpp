@@ -340,15 +340,15 @@ void World::updateObjectsDurability(entt::registry& registry)
 
 void World::updateTilesDurability()
 {
-	for (int i = 0; auto& chunk : chunks)
+	/*for (int i = 0; auto& chunk : chunks)
 	{
 		if (chunk.damaged_tile)
 		{
 			int world_width_chunks = grid.getColumns() / chunk_width_tiles;
 			int world_height_chunks = grid.getRows() / chunk_height_tiles;
 			
-			int chunk_x = i / world_height_chunks;
-			int chunk_y = i % world_height_chunks;
+			int chunk_x = i % world_width_chunks;
+			int chunk_y = i / world_width_chunks;
 			
 			for (int x = 0; x < chunk_width_tiles; ++x)
 			{
@@ -356,7 +356,8 @@ void World::updateTilesDurability()
 				{
 					int index_x = chunk_x * chunk_width_tiles + x;
 					int index_y = chunk_y * chunk_height_tiles + y;
-					auto& tile = grid(index_x * grid.getRows() + index_y);
+					//std::cout << index_x << " " << index_y << std::endl;
+					auto& tile = grid(index_y * grid.getRows() + index_x);
 					
 					if (!tile.received_damage_last_frame)
 					{
@@ -369,7 +370,7 @@ void World::updateTilesDurability()
 			chunk.damaged_tile = false;
 		}
 		++i;
-	}
+	}*/
 	
 	/*float world_width_tiles = grid.getColumns();
 	float world_height_tiles = grid.getRows();

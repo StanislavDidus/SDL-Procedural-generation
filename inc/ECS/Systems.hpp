@@ -39,7 +39,7 @@ static Entity getRandomizedItem(entt::registry& registry, const RandomizedItem& 
 }
 
 template<typename T>
-std::vector<Entity> getEffects(entt::registry& registry, Entity target)
+std::vector<Entity> getEffects(const entt::registry& registry, Entity target)
 {
 	std::vector<Entity> effects;
 	std::set<Entity> found_entities;
@@ -396,8 +396,8 @@ struct InputSystem
 			if (registry.all_of<Components::Jump>(entity))
 			{
 				auto& j = registry.get<Components::Jump>(entity);
-				j.jump_pressed_this_frame = InputManager::isKeyDown(SDL_SCANCODE_U);
-				j.jump_held = InputManager::isKey(SDL_SCANCODE_U);
+				j.jump_pressed_this_frame = InputManager::isKeyDown(SDL_SCANCODE_W) || InputManager::isKeyDown(SDL_SCANCODE_SPACE);
+				j.jump_held = InputManager::isKey(SDL_SCANCODE_W) || InputManager::isKey(SDL_SCANCODE_SPACE);
 			}
 
 			//Mining
@@ -431,7 +431,7 @@ struct InputSystem
 			if (registry.all_of<Components::Physics>(entity))
 			{
 				auto& ph = registry.get<Components::Physics>(entity);
-				if (InputManager::isKey(SDL_SCANCODE_H))
+				if (InputManager::isKey(SDL_SCANCODE_A))
 				{
 					ph.velocity.x -= ph.acceleration.x * dt;
 					ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
@@ -440,7 +440,7 @@ struct InputSystem
 					if (registry.all_of<Components::Renderable>(entity))
 						registry.get<Components::Renderable>(entity).flip_mode = SDL_FLIP_HORIZONTAL;
 				}
-				if (InputManager::isKey(SDL_SCANCODE_K))
+				if (InputManager::isKey(SDL_SCANCODE_D))
 				{
 					ph.velocity.x += ph.acceleration.x * dt;
 					ph.velocity.x = std::clamp(ph.velocity.x, -ph.max_velocity.x, ph.max_velocity.x);
@@ -449,7 +449,7 @@ struct InputSystem
 					if (registry.all_of<Components::Renderable>(entity))
 						registry.get<Components::Renderable>(entity).flip_mode = SDL_FLIP_NONE;
 				}
-				if (!InputManager::isKey(SDL_SCANCODE_K) && !InputManager::isKey(SDL_SCANCODE_H))
+				if (!InputManager::isKey(SDL_SCANCODE_D) && !InputManager::isKey(SDL_SCANCODE_A))
 				{
 					/*ph.velocity.x -= ph.velocity.x * ph.decelaration * dt;*/
 				}

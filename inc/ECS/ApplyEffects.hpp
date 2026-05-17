@@ -37,6 +37,22 @@ public:
 		}
 
 		{
+			auto view = registry.view<Components::Equipment>();
+			for (auto [entity, equipment_component] : view.each())
+			{
+				float value = 1.0f;
+				for (const auto& access : equipment_component.accessories)
+				{
+					if (registry.all_of<Components::Effects::IncreaseWeaponDamage>(access))
+					{
+						value *= registry.get<Components::Effects::IncreaseWeaponDamage>(access).mult;
+
+					}
+				}
+				equipment_component.damage_mulp = value;
+			}
+		}
+		{
 			auto view = registry.view<Components::Equipment, Components::BaseValues>();
 			for (auto [entity, equipment_component, base_value] : view.each())
 			{
@@ -45,8 +61,6 @@ public:
 				{
 					value += registry.get<Components::Effects::IncreaseWeaponSlots>(effect).value;
 				}
-
-				equipment_component.max_weapon = base_value.max_weapons + value;
 			}
 		}
 		{

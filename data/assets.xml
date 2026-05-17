@@ -102,6 +102,13 @@
                 <rect x="64"  y="144" w="64" h="48" name="Portal19"/>
             </rectListing>
         </sprite>
+        <sprite id="mask">
+            <path>assets/Sprites/Black-Mask.png</path>
+            <scaleMode>NEAREST</scaleMode>
+            <rectListing>
+                <rect x="0" y="0" w="80" h="48" name="1"/>
+            </rectListing>
+        </sprite>
         <sprite id="objects">
             <path>assets/Sprites/objects.png</path>
             <scaleMode>NEAREST</scaleMode>

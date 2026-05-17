@@ -756,6 +756,12 @@ void Game::render(float dt) const
             uint8_t night_transparency = static_cast<uint8_t>(global_time * 175.0f);
             drawRectangle(screen, 0.0f, 0.0f, 960.0f, 540.0f, graphics::RenderType::FILL, graphics::Color{0,0,0,night_transparency}, IGNORE_VIEW_ZOOM);
 
+            if (registry.get<Components::Equipment>(player).damage_mulp > 1.0f)
+            {
+                const auto& sprite = ResourceManager::get().getSpriteSheet("mask")->getSprite("1");
+                drawScaledSprite(screen, sprite, 0.0f, 0.0f, 960.0f, 540.0f, IGNORE_VIEW_ZOOM);
+            }
+
             //UI
             show_message_system->render(screen);
             inventory_view->render(screen);
@@ -778,7 +784,7 @@ void Game::render(float dt) const
         {
             background.render(screen, screen.getView());
             graphics::Text text{screen, ResourceManager::get().getFont("Main"), "You have rebuilt the portal that led you somewhere else. In another world. If you want to end "
-                                                                        "everything you can press ESC on your keyboard or stay here forever.", graphics::Color::BLACK, 500};
+                                                                        "everything you can close this game or stay here forever.", graphics::Color::BLACK, 500};
             printTextScaled(screen, text, 0.0f, 0.0f, 1.5f, 1.5f, IGNORE_VIEW_ZOOM);
         }
         break;
@@ -905,7 +911,7 @@ void Game::enterState(GameState state)
             setState(GameState::PLAY);
 
             //Give basic items to the player
-            auto& inventory = registry.get<Components::HasInventory>(player).inventory;
+            /*auto& inventory = registry.get<Components::HasInventory>(player).inventory;
             inventory->addItem(ItemManager::get().getItemID("Heal_Potion"), 100);
             //inventory->addItem(ItemManager::get().getItemID("Wood"), 20);
             //inventory->addItem(ItemManager::get().getItemID("Rope"), 3);
@@ -922,12 +928,13 @@ void Game::enterState(GameState state)
             inventory->addItem(ItemManager::get().getItemID("Multi-Tool"), 1);
             inventory->addItem(ItemManager::get().getItemID("Diamond"), 1);
             inventory->addItem(ItemManager::get().getItemID("Monster_Heart"), 1);
+            inventory->addItem(ItemManager::get().getItemID("Black_Mask"), 1)*/;
 
 
             //Test accessories
-            auto& accessories = registry.get<Components::Equipment>(player).accessories;
+            /*auto& accessories = registry.get<Components::Equipment>(player).accessories;
             registry.emplace<Components::EquipItem>(
-                player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Astronaut_Suit"), 1));
+                player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Astronaut_Suit"), 1));*/
             //registry.emplace_or_replace<Components::EquipItem>(player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Common_Belt"), 1));
             //accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
 

@@ -145,7 +145,9 @@ add_custom_target(copy_assets_game
 )
 add_dependencies(SDL_PRO_GEN copy_assets_game)
 
+if(WIN32)
 COPY_DLLS(SDL_PRO_GEN)
+endif(WIN32)
 
 #Command to copy shaders from graphics_lib to this project
 add_custom_command(TARGET SDL_PRO_GEN POST_BUILD
