@@ -1,7 +1,8 @@
 
 # SDL-Procedural-generation-
 
-![logo](https://github.com/StanislavDidus/SDL-Procedural-generation/tree/main/assets/Sprites/readme_pic.png "Logo Title")
+![alt test][logo]
+[logo]: [https://github.com/StanislavDidus/SDL-Procedural-generation/tree/main/assets/Sprites/readme_pic.png "Logo Title"
 
 This is a **2D survival game** in a completely **procedurally** generated world of Rate-02.
 The game was developed in *C++* with a help of *third party libraries* such as:
