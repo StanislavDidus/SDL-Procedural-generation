@@ -159,29 +159,26 @@ jobs:
 
       - name: "Deploy to itch (Linux)"
         if: runner.os == 'Linux'
-        uses: Oval-Tutu/publish-to-itch-with-butler@1.0.0
+        uses: Ayowel/butler-to-itch@v1
         with:
-          api-key: ${{ secrets.ITCH_DEPLOY_KEY }}
+          butler_key: ${{ secrets.ITCH_DEPLOY_KEY }}
           itch_user: ilikestas
           itch_game: Rate-02
-          channel: linux
-          package: Rate-linux.zip
+          files: Rate-linux.zip
       - name: "Deploy to itch (Windows)"
         if: runner.os == 'Windows'
-        uses: Oval-Tutu/publish-to-itch-with-butler@1.0.0
+        uses: Ayowel/butler-to-itch@v1
         with:
-          api-key: ${{ secrets.ITCH_DEPLOY_KEY }}
+          butler_key: ${{ secrets.ITCH_DEPLOY_KEY }}
           itch_user: ilikestas
           itch_game: Rate-02
-          channel: windows
-          package: Rate-windows.zip
+          files: Rate-windows.zip
       - name: "Deploy to itch (MacOs)"
         if: runner.os == 'macOs'
-        uses: Oval-Tutu/publish-to-itch-with-butler@1.0.0
+        uses: Ayowel/butler-to-itch@v1
         with:
-          api-key: ${{ secrets.ITCH_DEPLOY_KEY }}
+          butler_key: ${{ secrets.ITCH_DEPLOY_KEY }}
           itch_user: ilikestas
           itch_game: Rate-02
-          channel: mac
-          package: Rate-macos.zip
+          files: Rate-macos.zip
 
