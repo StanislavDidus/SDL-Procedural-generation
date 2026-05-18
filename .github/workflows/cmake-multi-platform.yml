@@ -164,6 +164,7 @@ jobs:
           butler_key: ${{ secrets.ITCH_DEPLOY_KEY }}
           itch_user: ilikestas
           itch_game: Rate-02
+          auto_channel: linux
           files: Rate-linux.zip
       - name: "Deploy to itch (Windows)"
         if: runner.os == 'Windows'
@@ -172,6 +173,7 @@ jobs:
           butler_key: ${{ secrets.ITCH_DEPLOY_KEY }}
           itch_user: ilikestas
           itch_game: Rate-02
+          auto_channel: windows
           files: Rate-windows.zip
       - name: "Deploy to itch (MacOs)"
         if: runner.os == 'macOs'
@@ -180,5 +182,6 @@ jobs:
           butler_key: ${{ secrets.ITCH_DEPLOY_KEY }}
           itch_user: ilikestas
           itch_game: Rate-02
+          auto_channel: mac
           files: Rate-macos.zip
 
