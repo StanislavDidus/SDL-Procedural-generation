@@ -157,31 +157,20 @@ jobs:
           name: Rate-macos
           path: Rate-macos.zip
 
-      - name: "Deploy to itch (Linux)"
-        if: runner.os == 'Linux'
-        uses: Ayowel/butler-to-itch@v1
-        with:
-          butler_key: ${{ secrets.ITCH_DEPLOY_KEY }}
-          itch_user: ilikestas
-          itch_game: Rate-02
-          auto_channel: linux
-          files: Rate-linux.zip
-      - name: "Deploy to itch (Windows)"
-        if: runner.os == 'Windows'
-        uses: Ayowel/butler-to-itch@v1
-        with:
-          butler_key: ${{ secrets.ITCH_DEPLOY_KEY }}
-          itch_user: ilikestas
-          itch_game: Rate-02
-          auto_channel: windows
-          files: Rate-windows.zip
-      - name: "Deploy to itch (MacOs)"
-        if: runner.os == 'macOs'
-        uses: Ayowel/butler-to-itch@v1
-        with:
-          butler_key: ${{ secrets.ITCH_DEPLOY_KEY }}
-          itch_user: ilikestas
-          itch_game: Rate-02
-          auto_channel: mac
-          files: Rate-macos.zip
+      # Deploy game on itch.io
+      - name: Setup butler
+        uses: remarkablegames/setup-butler@v3
+            
+      - name: Upload to itch.io (Linux)
+        run: butler push Rate-linux.zip ilikestas/Rate-02:linux
+        env:
+          BUTLER_API_KEY: ${{ secrets.ITCH_DEPLOY_KEY }}
+      - name: Upload to itch.io (Windows)
+        run: butler push Rate-windows.zip ilikestas/Rate-02:windows
+        env:
+          BUTLER_API_KEY: ${{ secrets.ITCH_DEPLOY_KEY }}
+      - name: Upload to itch.io (macOs)
+        run: butler push Rate-macos.zip ilikestas/Rate-02:macOs
+        env:
+          BUTLER_API_KEY: ${{ secrets.ITCH_DEPLOY_KEY }}
 

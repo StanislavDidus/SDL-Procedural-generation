@@ -411,6 +411,23 @@ void Game::initPlayer()
     fall_damage.fall_damage_threshold = 200.0f;
     fall_damage.damage_per_height = 0.1f;
 
+    {
+        auto ent = registry.create();
+        registry.emplace<Components::AddItem>(ent, player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Diamond_Pickaxe"), 1));
+    }
+    {
+        auto ent = registry.create();
+        registry.emplace<Components::AddItem>(ent, player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Mace"), 1));
+    }
+    {
+        auto ent = registry.create();
+        registry.emplace<Components::AddItem>(ent, player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Fast_Helmet"), 1));
+    }
+    {
+        auto ent = registry.create();
+        registry.emplace<Components::AddItem>(ent, player, ItemManager::get().createItem(registry, ItemManager::get().getItemID("Heal_Potion"), 10));
+    }
+
     //Add player a double jump
     //registry.emplace<Components::Effects::DoubleJump>(player);
 
@@ -887,7 +904,7 @@ void Game::enterState(GameState state)
 
             text = std::make_unique<Text>(screen, ResourceManager::get().getFont("Main"), "Player");
             world_generator = std::make_unique<WorldGenerator>(generation_data, registry, 1000, 300);
-            world = world_generator->generateWorld(0);
+            world = world_generator->generateWorld(std::nullopt);
             //spawnObjects(registry, *world, 20.0f, 20.0f);
 
             initUserInterface();
