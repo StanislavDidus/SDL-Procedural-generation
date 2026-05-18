@@ -168,4 +168,8 @@ target_link_libraries(
     EnTT::EnTT
 )
 
+set_target_properties(SDL_PRO_GEN PROPERTIES
+        BUILD_RPATH "\$ORIGIN"
+)
+
 target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_23)
