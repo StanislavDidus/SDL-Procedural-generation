@@ -160,7 +160,7 @@ jobs:
 
       - name: "Deploy to itch (Linux)"
         if: runner.os == 'Linux'
-        uses: Oval-Tutu/publish-to-itch-with-butler@v1.0.0
+        uses: Oval-Tutu/publish-to-itch-with-butler@1.0.0
         with:
           api-key: ${{ secrets.ITCH_DEPLOY_KEY }}
           itch_user: ilikestas
@@ -169,7 +169,7 @@ jobs:
           package: Rate-linux.zip
       - name: "Deploy to itch (Windows)"
         if: runner.os == 'Windows'
-        uses: Oval-Tutu/publish-to-itch-with-butler@v1.0.0
+        uses: Oval-Tutu/publish-to-itch-with-butler@1.0.0
         with:
           api-key: ${{ secrets.ITCH_DEPLOY_KEY }}
           itch_user: ilikestas
@@ -178,7 +178,7 @@ jobs:
           package: Rate-windows.zip
       - name: "Deploy to itch (MacOs)"
         if: runner.os == 'macOs'
-        uses: Oval-Tutu/publish-to-itch-with-butler@v1.0.0
+        uses: Oval-Tutu/publish-to-itch-with-butler@1.0.0
         with:
           api-key: ${{ secrets.ITCH_DEPLOY_KEY }}
           itch_user: ilikestas
