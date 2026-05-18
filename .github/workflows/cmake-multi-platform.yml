@@ -102,7 +102,7 @@ jobs:
             cp -r data package/
             cp LICENSE package/ || true
             cp README.md package/ || true
-            cp -r OTHER_LICENCES package/ || true
+            cp -r OTHER_LICENSES package/ || true
           
             cd package
             zip -r ../Rate-linux.zip .
@@ -115,9 +115,11 @@ jobs:
           Copy-Item assets package -Recurse
           Copy-Item extern/graphics-lib/shaders package -Recurse
           Copy-Item data package -Recurse
-          Copy-Item LICENSE package SilentlyContinue
-          Copy-Item README.md package SilentlyContinue
-          Copy-Item OTHER_LICENCES package -Recurse SilentlyContinue
+          
+          Copy-Item LICENSE package -ErrorAction SilentlyContinue
+          Copy-Item README.md package -ErrorAction SilentlyContinue
+          Copy-Item OTHER_LICENSES package -Recurse -ErrorAction SilentlyContinue
+          
           Compress-Archive -Path package\* -DestinationPath Rate-windows.zip -Force
       - name: 'Create dist folders (MacOs)'
         if: runner.os == 'macOs'
@@ -129,7 +131,7 @@ jobs:
           cp -r data package/
           cp LICENSE package/ || true
           cp README.md package/ || true
-          cp -r OTHER_LICENCES package/ || true
+          cp -r OTHER_LICENSES package/ || true
           
           cd package
           zip -r ../Rate-macos.zip .
@@ -153,3 +155,6 @@ jobs:
         with:
           name: Rate-macos
           path: Rate-macos.zip
+
+      #- name: 'Deploy to itch.io'
+
