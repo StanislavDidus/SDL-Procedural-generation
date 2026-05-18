@@ -16,7 +16,7 @@ The game was developed in *C++* with a help of *third party libraries* such as:
 I also used my own *graphics library* for rendering objects
 
 ## Game
-The goal of the game is to rebuilt a broken **portal** that is always placed in the middle of the map. In order to do it you would need several items. They can be obtained by killing **enemies**, **mining**, or **crafting**.
+The goal of the game is to rebuild a broken **portal** that is always placed in the middle of the map. In order to do it you would need several items. They can be obtained by killing **enemies**, **mining**, or **crafting**.
 Moreover, there are multiple *chests* located on the map that you can open. When you open them they will give you a random item based on the *essence* that you give them. If you decide not to spare any **essence** the items you will get will be of poorer rarity.
 Essences are of three different types **Common**, **Sand**, and **Snow** and can be obtained by killing enemies from their biomes. Mummies from the desert to get Sand Essence and so on.
 
