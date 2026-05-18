@@ -56,8 +56,6 @@ jobs:
             libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev libusb-1.0-0-dev
       - uses: actions/checkout@v4
         with:
-          path: out
-          key: ${{ runner.os }}-${{ hashFiles('CMakeLists.txt', 'extern/**') }}
           submodules: recursive
 
       - name: Cache build
