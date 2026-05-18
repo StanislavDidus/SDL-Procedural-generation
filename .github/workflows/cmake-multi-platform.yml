@@ -97,6 +97,7 @@ jobs:
         run: | 
             mkdir package
             cp "${{steps.strings.outputs.build-output-dir}}/SDL_PRO_GEN" package/
+            cp "${{steps.strings.outputs.build-output-dir}}/extern/graphics-lib/extern/SDL_shadercross/external/DirectXShaderCompiler/lib/libdxcompiler.so" package/ 
             cp -r assets package/
             cp -r extern/graphics-lib/shaders package/
             cp -r data package/
