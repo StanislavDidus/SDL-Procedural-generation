@@ -112,6 +112,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force package
           Copy-Item "${{ steps.strings.outputs.build-output-dir }}\Release\SDL_PRO_GEN.exe" package
+          Copy-Item extern\graphics-lib\libs\dxcompiler.dll package
+          Copy-Item assets package -Recurse
           Copy-Item assets package -Recurse
           Copy-Item extern/graphics-lib/shaders package -Recurse
           Copy-Item data package -Recurse
@@ -156,5 +158,31 @@ jobs:
           name: Rate-macos
           path: Rate-macos.zip
 
-      #- name: 'Deploy to itch.io'
+      - name: "Deploy to itch (Linux)"
+        if: runner.os == 'Linux'
+        uses: Oval-Tutu/publish-to-itch-with-butler@v1
+        with:
+          api-key: ${{ secrets.ITCH_DEPLOY_KEY }}
+          itch_user: ilikestas
+          itch_game: Rate-02
+          channel: linux
+          package: Rate-linux.zip
+      - name: "Deploy to itch (Windows)"
+        if: runner.os == 'Windows'
+        uses: Oval-Tutu/publish-to-itch-with-butler@v1
+        with:
+          api-key: ${{ secrets.ITCH_DEPLOY_KEY }}
+          itch_user: ilikestas
+          itch_game: Rate-02
+          channel: windows
+          package: Rate-windows.zip
+      - name: "Deploy to itch (MacOs)"
+        if: runner.os == 'macOs'
+        uses: Oval-Tutu/publish-to-itch-with-butler@v1
+        with:
+          api-key: ${{ secrets.ITCH_DEPLOY_KEY }}
+          itch_user: ilikestas
+          itch_game: Rate-02
+          channel: macos
+          package: Rate-macos.zip
 
