@@ -48,7 +48,7 @@ jobs:
       - name: Install dependencies
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get install build-essential git make \
+          sudo apt-get install build-essential git make libdxcompiler-dev \
             pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
             libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
             libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
@@ -56,7 +56,15 @@ jobs:
             libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev libthai-dev libusb-1.0-0-dev
       - uses: actions/checkout@v4
         with:
+          path: out
+          key: ${{ runner.os }}-${{ hashFiles('CMakeLists.txt', 'extern/**') }}
           submodules: recursive
+
+      - name: Cache build
+        uses: actions/cache&v4
+        with:
+          path: build
+          key: ${{ runner.os }}-${{ hashFiles('CMakeLists.txt', 'extern/**') }}
 
       - name: Set reusable strings
         # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -90,13 +98,13 @@ jobs:
         if: runner.os == 'Linux'
         run: | 
             mkdir package
-            cp -r "${{steps.strings.outputs.build-output-dir}}/." package/
+            cp "${{steps.strings.outputs.build-output-dir}}/SDL_PRO_GEN" package/
             cp -r assets package/
             cp -r shaders package/
             cp -r data package/
-            cp LICENSE package/
-            cp README.md package/
-            cp -r OTHER_LICENCES package/
+            cp LICENSE package/ || true
+            cp README.md package/ || true
+            cp -r OTHER_LICENCES package/ || true
           
             cd package
             zip -r ../Rate-linux.zip .
@@ -105,25 +113,27 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force package
-          Copy-Item "${{ steps.strings.outputs.build-output-dir }}\*" package -Recurse
+          Copy-Item "${{ steps.strings.outputs.build-output-dir }}\'SDL_PRO_GEN.exe" package -Recurse
           Copy-Item assets package -Recurse
           Copy-Item shaders package -Recurse
           Copy-Item data package -Recurse
-          Copy-Item LICENSE package
-          Copy-Item README.md package
-          Copy-Item OTHER_LICENCES package -Recurse
+          Copy-Item LICENSE package SilentlyContinue
+          Copy-Item README.md package SilentlyContinue
+          Copy-Item OTHER_LICENCES package -Recurse SilentlyContinue
           Compress-Archive -Path package\* -DestinationPath Rate-windows.zip -Force
       - name: 'Create dist folders (MacOs)'
         if: runner.os == 'macOs'
         run: |
           mkdir package
-          cp -r "${{steps.strings.outputs.build-output-dir}}/." package/
+          cp -r "${{steps.strings.outputs.build-output-dir}}/SDL_PRO_GEN" package/
           cp -r assets package/
           cp -r shaders package/
           cp -r data package/
-          cp LICENSE package/
-          cp README.md package/
-          cp -r OTHER_LICENCES package/
+          cp LICENSE package/ || true
+          cp README.md package/ || true
+          cp -r OTHER_LICENCES package/ || true
+          
+          cd package
           zip -r ../Rate-macos.zip .
 
       # Upload artifacts
