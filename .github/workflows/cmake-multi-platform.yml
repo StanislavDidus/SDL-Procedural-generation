@@ -98,7 +98,7 @@ jobs:
             mkdir package
             cp "${{steps.strings.outputs.build-output-dir}}/SDL_PRO_GEN" package/
             cp -r assets package/
-            cp -r shaders package/
+            cp -r extern/graphics-lib/shaders package/
             cp -r data package/
             cp LICENSE package/ || true
             cp README.md package/ || true
@@ -111,9 +111,9 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force package
-          Copy-Item "${{ steps.strings.outputs.build-output-dir }}\'SDL_PRO_GEN.exe" package -Recurse
+          Copy-Item "${{ steps.strings.outputs.build-output-dir }}\Release\SDL_PRO_GEN.exe" package
           Copy-Item assets package -Recurse
-          Copy-Item shaders package -Recurse
+          Copy-Item extern/graphics-lib/shaders package -Recurse
           Copy-Item data package -Recurse
           Copy-Item LICENSE package SilentlyContinue
           Copy-Item README.md package SilentlyContinue
@@ -123,9 +123,9 @@ jobs:
         if: runner.os == 'macOs'
         run: |
           mkdir package
-          cp -r "${{steps.strings.outputs.build-output-dir}}/SDL_PRO_GEN" package/
+          cp "${{steps.strings.outputs.build-output-dir}}/SDL_PRO_GEN" package/
           cp -r assets package/
-          cp -r shaders package/
+          cp -r extern/graphics-lib/shaders package/
           cp -r data package/
           cp LICENSE package/ || true
           cp README.md package/ || true
