@@ -13,7 +13,7 @@ The game was developed in *C++* with a help of *third party libraries* such as:
 - imgui
 - tinyxml2
 
-I also used my own *graphics library* for rendering objects
+I also used my own *graphics library* for rendering objects.
 
 ## Game
 The goal of the game is to rebuild a broken **portal** that is always placed in the middle of the map. In order to do it you would need several items. They can be obtained by killing **enemies**, **mining**, or **crafting**.
