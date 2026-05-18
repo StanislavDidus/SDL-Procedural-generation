@@ -8,8 +8,6 @@ if(MSVC)
     add_compile_options(/MP)
 endif(MSVC)
 
-set(CMAKE_LINKER_TYPE LLD)
-
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Don't build shared libs" FORCE)
 
 add_subdirectory(extern)
