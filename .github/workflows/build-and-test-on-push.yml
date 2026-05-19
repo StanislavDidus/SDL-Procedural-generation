@@ -45,10 +45,10 @@ jobs:
             c_compiler: cl
 
     steps:
-      - name: Install dependencies
+      - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get install build-essential git make \
+          sudo apt-get install build-essential git make ccache \
             pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
             libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
             libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
@@ -59,10 +59,13 @@ jobs:
           submodules: recursive
 
       - name: Cache build
+        if: runner.os == 'Linux'
         uses: actions/cache@v5
         with:
-          path: build
-          key: ${{ runner.os }}-${{ hashFiles('CMakeLists.txt', 'extern/**') }}
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-${{ hashFiles('CMakeLists.txt', '**/*.cpp', '**/*.h') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ matrix.cpp_compiler }}-${{ matrix.build_type }}-
 
       - name: Set reusable strings
         # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -79,6 +82,7 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          ${{ runner.os == 'Linux' && '-DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache' || '' }}
           -S ${{ github.workspace }}
 
       - name: Build
