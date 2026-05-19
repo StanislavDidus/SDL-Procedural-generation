@@ -157,24 +157,3 @@ jobs:
         with:
           name: Rate-macos
           path: Rate-macos.zip
-
-      # Deploy game on itch.io
-      - name: Setup butler
-        uses: remarkablegames/setup-butler@v3
-            
-      - name: Upload to itch.io (Linux)
-        if: runner.os == 'Linux'
-        run: butler push Rate-linux.zip ilikestas/Rate-02:linux
-        env:
-          BUTLER_API_KEY: ${{ secrets.ITCH_DEPLOY_KEY }}
-      - name: Upload to itch.io (Windows)
-        if: runner.os == 'Windows'
-        run: butler push Rate-windows.zip ilikestas/Rate-02:windows
-        env:
-          BUTLER_API_KEY: ${{ secrets.ITCH_DEPLOY_KEY }}
-      - name: Upload to itch.io (macOs)
-        if: runner.os == 'macOs'
-        run: butler push Rate-macos.zip ilikestas/Rate-02:macOs
-        env:
-          BUTLER_API_KEY: ${{ secrets.ITCH_DEPLOY_KEY }}
-
