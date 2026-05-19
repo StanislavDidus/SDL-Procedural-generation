@@ -136,6 +136,32 @@ jobs:
           cd package
           zip -r ../Rate-macos.zip .
 
+      # Upload binaries to Release
+      - name: Upload binaries to release Linux
+        if: runner.os == 'Linux'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: Rate-linux.zip
+          asset_name: Rate-linux
+          tag: ${{ github.ref }}
+      - name: Upload binaries to release Windows
+        if: runner.os == 'Windows'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: Rate-windows.zip
+          asset_name: Rate-windows
+          tag: ${{ github.ref }}
+      - name: Upload binaries to release macOs
+        if: runner.os == 'macOs'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: Rate-macos.zip
+          asset_name: Rate-macos
+          tag: ${{ github.ref }}
+
       # Deploy game on itch.io
       - name: Setup butler
         uses: remarkablegames/setup-butler@v3
