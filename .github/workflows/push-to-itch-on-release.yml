@@ -6,6 +6,9 @@ on:
   release:
     types: [released]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -143,7 +146,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: Rate-linux.zip
-          asset_name: Rate-linux
+          asset_name: Rate-linux.zip
           tag: ${{ github.ref }}
       - name: Upload binaries to release Windows
         if: runner.os == 'Windows'
@@ -151,7 +154,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: Rate-windows.zip
-          asset_name: Rate-windows
+          asset_name: Rate-windows.zip
           tag: ${{ github.ref }}
       - name: Upload binaries to release macOs
         if: runner.os == 'macOs'
@@ -159,7 +162,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: Rate-macos.zip
-          asset_name: Rate-macos
+          asset_name: Rate-macos.zip
           tag: ${{ github.ref }}
 
       # Deploy game on itch.io
