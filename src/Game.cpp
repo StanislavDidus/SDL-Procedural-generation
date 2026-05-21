@@ -943,7 +943,7 @@ void Game::enterState(GameState state)
 
             ResourceManager::get().getSound("Background Music")->play();
             
-            show_message_system->message(player, "Use <H> and <K> to move horizontally. <U> for jump.", 7.0f, 0.5f);
+            show_message_system->message(player, "Use <A> and <D> to move horizontally. <W> or <Space> for jump.", 7.0f, 0.5f);
             show_message_system->message(player, "Left Mouse Button to mine and Right to place.", 7.0f, 0.5f);
 
             break;
