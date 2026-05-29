@@ -11,7 +11,7 @@ class ChestWindowSystem
 public:
 	ChestWindowSystem(entt::registry& registry, std::shared_ptr<graphics::Font> font) : registry{ registry }, font{ font } {}
 
-	void update(Entity target_entity, graphics::GpuRenderer& screen)
+	void update(Entity target_entity, graphics::Renderer& screen)
 	{
 		std::vector<Entity> to_destroy;
 
@@ -33,7 +33,7 @@ public:
 		}
 	}
 
-	void render(graphics::GpuRenderer& screen)
+	void render(graphics::Renderer& screen)
 	{
 		const auto& window_size = screen.getStandardWindowSize();
 		auto view = registry.view<Components::Transform, Components::UI::ChestWindow, Components::UI::ParentWindow>();
@@ -58,7 +58,7 @@ public:
 			(screen, unlock_button_position.x, unlock_button_position.y, unlock_button_size.x, unlock_button_size.y, graphics::RenderType::FILL, graphics::Color::RED, IGNORE_VIEW_ZOOM);
 
 			std::string str = "Unlock";
-			graphics::Text unlock_text{ screen, font, str };
+			graphics::Text unlock_text{ screen.getTextEngine(), font, str };
 
 			printText(screen, unlock_text, unlock_button_position.x, unlock_button_position.y, unlock_button_size.x, unlock_button_size.y, IGNORE_VIEW_ZOOM);
 
@@ -103,7 +103,7 @@ public:
 		}
 	}
 private:
-	void createWindowIfAsked(const graphics::GpuRenderer& screen, std::vector<Entity>& to_destroy)
+	void createWindowIfAsked(const graphics::Renderer& screen, std::vector<Entity>& to_destroy)
 	{
 		auto window_view = registry.view<Components::UI::ChestWindow>();
 
@@ -162,7 +162,7 @@ private:
 		registry.destroy(entity);
 	}
 
-	void openChestWindow(const Components::UI::OpenChestWindow& chest_window_component, const graphics::GpuRenderer& screen)
+	void openChestWindow(const Components::UI::OpenChestWindow& chest_window_component, const graphics::Renderer& screen)
 	{
 		auto& player = chest_window_component.target;
 		auto& chest = chest_window_component.chest;

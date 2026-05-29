@@ -2,7 +2,7 @@
 #include <vector>
 #include <entt/entity/registry.hpp>
 
-#include <graphics/GpuRenderer.hpp>
+#include <graphics/Renderer.hpp>
 #include <graphics/TileMap.hpp>
 #include "Grid.hpp"
 #include "Object.hpp"
@@ -44,10 +44,11 @@ public:
 		glm::ivec2 grid_position;
 	};
 	
-	struct Chunk
+	struct TileChange
 	{
-		bool is_dirty = true;	
-		bool damaged_tile = false;
+		int x;
+		int y;
+		int id;
 	};
 	
 	World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, const std::vector<ObjectData>& objects, const std::vector<ChestData>& chests);
@@ -64,8 +65,9 @@ public:
 	const std::vector<Uint32>& getSpriteMap() const;
 
 	void update(entt::registry& registry);
-	void render(graphics::GpuRenderer& screen, float tile_width_world, float tile_height_world) const;
-	void setSpriteMap(graphics::TileMap& tilemap);
+	void render(graphics::Renderer& screen, float tile_width_world, float tile_height_world) const;
+	void updateTileMapGrid(graphics::TileMap& tilemap);
+	void initiliazeTileMapGrid(graphics::TileMap& tile_map);
 
 	Grid<Tile> grid;
 	std::vector<PortalData> portals;
@@ -85,8 +87,8 @@ private:
 	std::vector<DamagedTile> damaged_tiles;
 	
 	std::vector<Uint32> sprite_map;
-	std::vector<Chunk> chunks;
 	float chunk_width_tiles = 50.0f;
 	float chunk_height_tiles = 50.0f;
+	std::vector<TileChange> tile_changes;
 };
 

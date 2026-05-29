@@ -102,7 +102,7 @@ public:
 
 	}
 
-	void render(graphics::GpuRenderer& screen) const
+	void render(graphics::Renderer& screen) const
 	{
 		const float WeaponSize = 30.0f;
 		if (registry.all_of<Components::Transform>(target_entity))

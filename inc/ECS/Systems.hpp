@@ -383,7 +383,7 @@ struct InputSystem
 {
 	InputSystem(entt::registry& registry) : registry{registry} {}
 
-	void update(const graphics::GpuRenderer& screen, float dt)
+	void update(const graphics::Renderer& screen, float dt)
 	{
 		//Calculate global mouse position
 		glm::vec2 mouse_global_position = getMouseGlobalPosition(screen, InputManager::getMouseState().position);
@@ -564,7 +564,7 @@ public:
 		}
 	}
 
-	void renderOutline(graphics::GpuRenderer& screen) const
+	void renderOutline(graphics::Renderer& screen) const
 	{
 		auto view = registry.view<Components::Transform, Components::MineIntent, Components::MiningAbility>();
 		for (auto [entity, ts, mi, mining_ability_component] : view.each())
@@ -729,7 +729,7 @@ public:
 		}
 	}
 
-	void render(graphics::GpuRenderer& screen)
+	void render(graphics::Renderer& screen)
 	{
 		auto view = registry.view<Components::Transform, Components::MineIntent>();
 		for (auto [entity, ts, mi] : view.each())
@@ -1083,7 +1083,7 @@ class ButtonSystem
 public:
 	ButtonSystem(entt::registry& registry) : registry{registry} {}
 
-	void update(const graphics::GpuRenderer& screen)
+	void update(const graphics::Renderer& screen)
 	{
 		auto view = registry.view<Components::Transform, Components::Button>();
 		for (auto [entity, ts, button] : view.each())

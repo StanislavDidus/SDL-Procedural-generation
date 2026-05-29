@@ -31,7 +31,7 @@ namespace
     std::minstd_rand rng(rd());
 }
 
-Game::Game(graphics::GpuRenderer& screen)
+Game::Game(graphics::Renderer& screen)
     : screen(screen)
 {
     std::cout << "Game was created" << std::endl;
@@ -539,7 +539,7 @@ void Game::update(float dt)
             //world_renderer->update();
 
             world->update(registry);
-            world->setSpriteMap(*tilemap);
+            world->updateTileMapGrid(*tilemap);
             
 
             if (day)
@@ -613,7 +613,7 @@ void Game::update(float dt)
         fps_last_check = time;
         
         fps_text->setText(std::to_string(std::floor(static_cast<float>(fps_tick) / diff)));
-        fps_text->updateText(screen);
+        //fps_text->updateText(screen);
         
         fps_tick = 0;
     }
@@ -745,7 +745,7 @@ void Game::render(float dt) const
             //world_renderer->render(screen, world_target);
             //world_generator->render(screen);
             background.render(screen, screen.getView());
-            screen.renderTileMap(tilemap, 0.0f, 0.0f);
+            screen.drawTileMap(tilemap, 0.0f, 0.0f);
             render_system->render(screen);
             world->render(screen, 20.0f, 20.0f);
             mining_tiles_system->renderOutline(screen);
@@ -777,14 +777,15 @@ void Game::render(float dt) const
         break;
     case GameState::END:
         background.render(screen, screen.getView());
-        screen.renderTileMap(tilemap, 0.0f, 0.0f);
+        screen.drawTileMap(tilemap, 0.0f, 0.0f);
         render_system->render(screen);
         break;
     case GameState::ENDSCREEN:
         {
             background.render(screen, screen.getView());
-            graphics::Text text{screen, ResourceManager::get().getFont("Main"), "You have rebuilt the portal that led you somewhere else. In another world. If you want to end "
-                                                                        "everything you can close this game or stay here forever.", graphics::Color::BLACK, 500};
+            graphics::Text text{screen.getTextEngine(), ResourceManager::get().getFont("Main"), "You have rebuilt the portal that led you somewhere else. In another world. If you want to end "
+                                                                        "everything you can close this game or stay here forever.", graphics::Color::BLACK};
+            text.setWrappedWidth(500);
             printTextScaled(screen, text, 0.0f, 0.0f, 1.5f, 1.5f, IGNORE_VIEW_ZOOM);
         }
         break;
@@ -827,7 +828,7 @@ void Game::enterState(GameState state)
             button_sound_system = std::make_unique<ButtonSoundSystem>(registry);
             button_sprite_system = std::make_unique<ButtonSpriteSystem>(registry);
             
-            fps_text = std::make_unique<graphics::Text>(screen, ResourceManager::get().getFont("Main"), "0", Color::GREEN);
+            fps_text = std::make_unique<graphics::Text>(screen.getTextEngine(), ResourceManager::get().getFont("Main"), "0", Color::GREEN);
             
             ResourceManager::get().getSound("Menu Music")->play();
 
@@ -885,7 +886,7 @@ void Game::enterState(GameState state)
             initBiomes();
             initChestLoot();
 
-            text = std::make_unique<Text>(screen, ResourceManager::get().getFont("Main"), "Player");
+            text = std::make_unique<Text>(screen.getTextEngine(), ResourceManager::get().getFont("Main"), "Player");
             world_generator = std::make_unique<WorldGenerator>(generation_data, registry, 1000, 300);
             world = world_generator->generateWorld(std::nullopt);
             //spawnObjects(registry, *world, 20.0f, 20.0f);
@@ -939,7 +940,9 @@ void Game::enterState(GameState state)
             //accessories.push_back(ItemManager::get().createItem(registry, ItemManager::get().getItemID("Big_Armor"), 1));
 
             auto tilemap_texture = ResourceManager::get().getSpriteSheet("tiles")->getTexture();
-            tilemap = std::make_shared<TileMap>(screen.getDevice(), tilemap_texture, 1000,300, 20, 20, 50, 50);
+            //tilemap = std::make_shared<TileMap>(screen, tilemap_texture, 1000,300, 20, 20, 50, 50);
+            tilemap = screen.loadTileMap(tilemap_texture, WorldSize{1000, 300}, TileSize{20, 20}, TileSizePixels{16,16}, ChunkSize{50, 50});
+            world->initiliazeTileMapGrid(*tilemap);
 
             ResourceManager::get().getSound("Background Music")->play();
             

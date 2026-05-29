@@ -43,7 +43,7 @@ void CraftView::update()
 
 }
 
-void CraftView::render(graphics::GpuRenderer& screen)
+void CraftView::render(Renderer& screen)
 {
 
 }

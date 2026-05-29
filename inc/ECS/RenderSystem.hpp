@@ -3,7 +3,7 @@
 #include "Components.hpp"
 #include "ECS/ComponentManager.hpp"
 #include "ECS/EntityManager.hpp"
-#include "GpuRenderFunctions.hpp"
+#include "graphics/config.hpp"
 
 #include <queue>
 
@@ -69,7 +69,7 @@ public:
 		}
 	}
 
-	void render(graphics::GpuRenderer& screen)
+	void render(graphics::Renderer& screen)
 	{
 		auto view = registry.view<Components::Transform, Components::Renderable, Components::AlwaysRender>();
 		for (auto [entity, transform_component, renderable_component] : view.each())

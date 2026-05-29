@@ -145,16 +145,12 @@ add_custom_target(copy_assets_game
 )
 add_dependencies(SDL_PRO_GEN copy_assets_game)
 
-if(WIN32)
-COPY_DLLS(SDL_PRO_GEN)
-endif(WIN32)
-
 #Command to copy shaders from graphics_lib to this project
-add_custom_command(TARGET SDL_PRO_GEN POST_BUILD
+#[[add_custom_command(TARGET SDL_PRO_GEN POST_BUILD
 COMMAND ${CMAKE_COMMAND} -E copy_directory
 "${PROJECT_SOURCE_DIR}/extern/graphics-lib/shaders"
 $<TARGET_FILE_DIR:SDL_PRO_GEN>
-COMMENT "Copying shader folder from graphics-lib")
+COMMENT "Copying shader folder from graphics-lib")]]
 
 target_include_directories(SDL_PRO_GEN PUBLIC inc)
 
@@ -167,6 +163,7 @@ target_link_libraries(
     tinyxml2
     EnTT::EnTT
 )
+graphics_setup_runtime_dependencies(SDL_PRO_GEN "${PROJECT_SOURCE_DIR}/extern/graphics-lib")
 
 set_target_properties(SDL_PRO_GEN PROPERTIES
         BUILD_RPATH "\$ORIGIN"

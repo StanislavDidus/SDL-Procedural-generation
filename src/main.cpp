@@ -11,8 +11,7 @@
 #include "imgui_impl_sdlgpu3_shaders.h"
 
 #include <graphics/Window.hpp>
-#include <graphics/GpuRenderer.hpp>
-#include <graphics/RenderBatch.hpp>
+#include <graphics/Renderer.hpp>
 #include "Game.hpp"
 
 #include "InputManager.hpp"
@@ -39,6 +38,8 @@ namespace graphics
     int MAX_LINES_RENDERED = 100;
     int MAX_TILEMAPS_RENDERED = 100;
 }
+
+#define __EMSCRIPTEN__
 
 int main()
  {
@@ -79,7 +80,7 @@ int main()
 		//sound1.play();
 
         Window window{ "RaTe-02", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE };
-        GpuRenderer gpu_renderer{ window };
+        graphics::Renderer gpu_renderer{ window };
         
 		ResourceManager::get().loadXml("data/assets.xml", gpu_renderer);
         //auto car_texture = gpu_renderer.loadTexture(Surface{"assets/Sprites/car.bmp"});
@@ -87,7 +88,7 @@ int main()
     
         // Set Window Icon
         Surface icon_surface{"assets/Sprites/icon.png"};
-        SDL_SetWindowIcon(window.get(), icon_surface.getSurface());
+        SDL_SetWindowIcon(window.get(), icon_surface.get());
 
         //Sprite sprite{ car_texture, SDL_FRect{0.0f, 0.0f, 5184.0f, 3456.0f} };
         Game game{ gpu_renderer };
@@ -97,7 +98,7 @@ int main()
         //auto sprite1 = ResourceManager::get().getSpriteSheet("backgrounds")->getSprite("Sky");
 
         //Init ImGui
-        IMGUI_CHECKVERSION();
+        /*IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
 
@@ -109,9 +110,9 @@ int main()
         init_info.SwapchainComposition = SDL_GPU_SWAPCHAINCOMPOSITION_SDR;
         init_info.PresentMode = SDL_GPU_PRESENTMODE_IMMEDIATE;
     	ImGui_ImplSDLGPU3_Init(&init_info);
-        ImGui::GetIO().FontGlobalScale = 1.5f;
+        ImGui::GetIO().FontGlobalScale = 1.5f;*/
 
-    	Text debug_test{ gpu_renderer, ResourceManager::get().getFont("Main"), "Debug", Color::BLUE };
+    	//Text debug_test{ gpu_renderer, ResourceManager::get().getFont("Main"), "Debug", Color::BLUE };
         float dt = 0.f;
         while (window.isOpen())
         {
@@ -121,7 +122,7 @@ int main()
             SDL_Event event;
             while (window.pollEvent(event))
             {
-                ImGui_ImplSDL3_ProcessEvent(&event);
+                //ImGui_ImplSDL3_ProcessEvent(&event);
 
                 //Handle input
                 switch (event.type)
@@ -143,10 +144,13 @@ int main()
             //Update mouse input
             float mouse_x, mouse_y = 0.f;
             SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+            // TODO
+            /*
             glm::vec2 resolution_scale = gpu_renderer.getRenderResolution() / static_cast<glm::vec2>(gpu_renderer.getStandardWindowSize());
             resolution_scale = static_cast<glm::vec2>(gpu_renderer.getStandardWindowSize()) / gpu_renderer.getRenderResolution();
             mouse_x *= resolution_scale.x;
             mouse_y *= resolution_scale.y;
+            */
 
             input_manager.setMouseState(
                 { mouse_x, mouse_y },
@@ -158,7 +162,9 @@ int main()
 
             input_manager.update();
 
+            gpu_renderer.startDrawing();
             game.tick(dt);
+            gpu_renderer.endDrawing();
 
             //printText(gpu_renderer, debug_test, 0.0f, 0.0f, 200.0f, 200.0f, false);
 
@@ -175,7 +181,7 @@ int main()
             //gpu_renderer.renderSprite("Ice-cream", 300.0f, 200.0f, 200.0f, 200.0f);
             //gpu(100.0f, 100.0f, 200.0f, 200.0f, SDL_FColor{ 1.0f, 0.0f, 0.0f, 1.0f });
             //drawRectangle(gpu_renderer, 100.0f, 100.0f, 200.0f, 200.0f, RenderType::FILL, Color::RED);
-            gpu_renderer.render();
+            
 
             //update(renderer);
             
@@ -191,9 +197,11 @@ int main()
         }
 
         //Destroy imgui
+        /*
         ImGui_ImplSDL3_Shutdown();
         ImGui_ImplSDLGPU3_Shutdown();
         ImGui::DestroyContext();
+    */
     }
     catch (std::exception& e)
     {
