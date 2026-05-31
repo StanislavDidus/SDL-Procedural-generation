@@ -540,6 +540,7 @@ void Game::update(float dt)
 
             world->update(registry);
             world->updateTileMapGrid(*tilemap);
+            tilemap->update();
            
             if (day)
             {
