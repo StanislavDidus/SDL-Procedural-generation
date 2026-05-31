@@ -144,7 +144,7 @@ int main()
             //Update mouse input
             float mouse_x, mouse_y = 0.f;
             SDL_MouseButtonFlags buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
-            // TODO
+            glm::vec2 mouse_position = gpu_renderer.getMouseScaledPosition({mouse_x, mouse_y});
             /*
             glm::vec2 resolution_scale = gpu_renderer.getRenderResolution() / static_cast<glm::vec2>(gpu_renderer.getStandardWindowSize());
             resolution_scale = static_cast<glm::vec2>(gpu_renderer.getStandardWindowSize()) / gpu_renderer.getRenderResolution();
@@ -153,7 +153,7 @@ int main()
             */
 
             input_manager.setMouseState(
-                { mouse_x, mouse_y },
+                 mouse_position,
                 static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_LEFT)),
                 static_cast<bool>(buttons & SDL_BUTTON_MASK(SDL_BUTTON_RIGHT))
             );

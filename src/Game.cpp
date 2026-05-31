@@ -383,8 +383,8 @@ void Game::initPlayer()
     has_inventory.inventory = std::make_shared<Inventory>(registry, 15);
 
     auto& health = registry.emplace<Components::Health>(player);
-    health.max_health = 100.0f;
-    health.current_health = 100.0f;
+    health.max_health = 100000000.0f;
+    health.current_health = 100000000.0f;
     base.max_health = health.max_health;
 
     auto& regeneration = registry.emplace<Components::Regeneration>(player);
@@ -540,8 +540,7 @@ void Game::update(float dt)
 
             world->update(registry);
             world->updateTileMapGrid(*tilemap);
-            
-
+           
             if (day)
             {
                 global_time += dt * day_night_change_speed;
@@ -613,6 +612,7 @@ void Game::update(float dt)
         fps_last_check = time;
         
         fps_text->setText(std::to_string(std::floor(static_cast<float>(fps_tick) / diff)));
+        std::cout << static_cast<float>(fps_tick) / diff << std::endl;
         //fps_text->updateText(screen);
         
         fps_tick = 0;
@@ -888,7 +888,7 @@ void Game::enterState(GameState state)
 
             text = std::make_unique<Text>(screen.getTextEngine(), ResourceManager::get().getFont("Main"), "Player");
             world_generator = std::make_unique<WorldGenerator>(generation_data, registry, 1000, 300);
-            world = world_generator->generateWorld(std::nullopt);
+            world = world_generator->generateWorld(0);
             //spawnObjects(registry, *world, 20.0f, 20.0f);
 
             initUserInterface();
@@ -943,6 +943,7 @@ void Game::enterState(GameState state)
             //tilemap = std::make_shared<TileMap>(screen, tilemap_texture, 1000,300, 20, 20, 50, 50);
             tilemap = screen.loadTileMap(tilemap_texture, WorldSize{1000, 300}, TileSize{20, 20}, TileSizePixels{16,16}, ChunkSize{50, 50});
             world->initiliazeTileMapGrid(*tilemap);
+            tilemap->update();
 
             ResourceManager::get().getSound("Background Music")->play();
             

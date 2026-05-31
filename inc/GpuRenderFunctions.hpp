@@ -6,7 +6,6 @@ static bool IGNORE_VIEW_ZOOM = true;
 
 inline glm::vec2 getMouseGlobalPosition(const graphics::Renderer& renderer, const glm::vec2& mouse_position)
 {
-    /*
     const auto& view = renderer.getView();
     const auto& zoom = renderer.getZoom();
     const auto& window_size = renderer.getStandardWindowSize();
@@ -15,8 +14,7 @@ inline glm::vec2 getMouseGlobalPosition(const graphics::Renderer& renderer, cons
 
     glm::vec2 result{ view + mid_screen + (mouse_position - mid_screen) / zoom };
     return result;
-*/
-    return {};
+    //return mouse_position;
 }
 
 inline void drawRectangle(graphics::Renderer& screen, float x, float y, float width, float height, graphics::RenderType render_type, graphics::Color color, bool ignore_view_zoom = false)

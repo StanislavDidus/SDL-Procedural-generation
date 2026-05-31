@@ -16,8 +16,16 @@ World::World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, con
 	, objects{objects}
 	, chests{chests}
 {
-	sprite_map.resize(grid.getColumns() * grid.getRows());
+	//sprite_map.resize(grid.getColumns() * grid.getRows());
 	//chunks.resize((grid.getColumns() / chunk_width_tiles) * (grid.getRows() / chunk_height_tiles));
+	
+	for (int x = 0; x < grid.getColumns(); ++x)
+	{
+		for (int y = 0; y < grid.getRows(); ++y)
+		{
+			sprite_map.emplace_back(TileManager::get().getProperties(grid(x, y).id).sprite_index);
+		}
+	}
 }
 
 void World::initWorld(entt::registry& registry, float tile_width, float tile_height)
