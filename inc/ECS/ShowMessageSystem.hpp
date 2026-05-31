@@ -74,8 +74,8 @@ public:
                 printTextScaled(
                     screen,
                     text,
-                    transform_component.position.x + text_offset_x,
-                    transform_component.position.y - message_height + test_offset_y,
+                    transform_component.position.x,
+                    transform_component.position.y,
                     text_scale,
                     text_scale
                     );

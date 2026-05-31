@@ -39,7 +39,15 @@ namespace graphics
     int MAX_TILEMAPS_RENDERED = 100;
 }
 
-#define __EMSCRIPTEN__
+void initiliaze_game()
+{
+    
+}
+
+void deinitialzie_game()
+{
+    
+}
 
 int main()
  {
