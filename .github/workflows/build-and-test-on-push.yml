@@ -177,7 +177,7 @@ jobs:
 
       - name: Build
         run: cmake --build build -j
-          - 
+        
         # Packaging
       - name: Create dist folder
         run: |
