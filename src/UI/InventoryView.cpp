@@ -206,7 +206,7 @@ void InventoryView::setTargetEntity(Entity entity)
 	}
 }
 
-void InventoryView::render(graphics::GpuRenderer& screen)
+void InventoryView::render(graphics::Renderer& screen)
 {
 	//Render Inventory Menu sign
 	drawScaledSprite(screen, ResourceManager::get().getSpriteSheet("ui")->getSprite("Inventory_Menu"), 0.0f, 0.0f, columns * ui_settings.inventory_slot_width, ui_settings.menu_y_offset, IGNORE_VIEW_ZOOM);
@@ -273,7 +273,7 @@ void InventoryView::render(graphics::GpuRenderer& screen)
 }
 
 
-void InventoryView::drawItem(graphics::GpuRenderer& screen, Entity item, const glm::vec2& position, int index)
+void InventoryView::drawItem(graphics::Renderer& screen, Entity item, const glm::vec2& position, int index)
 {
 	if (!inventory) return;
 
@@ -299,12 +299,12 @@ void InventoryView::drawItem(graphics::GpuRenderer& screen, Entity item, const g
 		if (text->getText() != new_text)
 		{
 			text->setText(new_text);
-			text->updateText(screen);
+			//text->updateText(screen);
 		}
 	}
 	else
 	{
-		text = std::make_unique<Text>( screen, font, std::to_string(item_info.stack_number) );
+		text = std::make_unique<Text>( screen.getTextEngine(), font, std::to_string(item_info.stack_number) );
 	}
 
 	int x = index % columns;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <graphics/GpuRenderer.hpp>
+#include <graphics/Renderer.hpp>
 #include <graphics/SpriteSheet.hpp>
 #include "MapRange.hpp"
 #include <graphics/TileMap.hpp>
@@ -75,7 +75,7 @@ enum class GameState
 class Game
 {
 public:
-	explicit Game(graphics::GpuRenderer& screen);
+	explicit Game(graphics::Renderer& screen);
 	virtual ~Game();
 
 	void tick(float dt);
@@ -121,7 +121,7 @@ private:
 
 	float camera_move_speed = 1500.f;
 
-	graphics::GpuRenderer& screen;
+	graphics::Renderer& screen;
 
 	glm::vec2 world_target;
 	std::shared_ptr<WorldGenerator> world_generator;

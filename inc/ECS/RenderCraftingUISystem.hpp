@@ -28,7 +28,7 @@ public:
 		
 	}
 
-	void render(graphics::GpuRenderer& screen, Entity target_entity)
+	void render(graphics::Renderer& screen, Entity target_entity)
 	{
 		//Render Craft Menu sign
 		float craft_button_position_x = screen.getStandardWindowSize().x - ui_settings.craft_button_columns * ui_settings.craft_button_width;

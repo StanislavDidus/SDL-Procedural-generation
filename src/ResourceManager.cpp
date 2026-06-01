@@ -9,7 +9,7 @@
 using namespace graphics;
 using namespace tinyxml2;
 
-void ResourceManager::loadXml(const std::filesystem::path& path_, graphics::GpuRenderer& screen)
+void ResourceManager::loadXml(const std::filesystem::path& path_, graphics::Renderer& screen)
 {
 	XMLDocument doc;
 	doc.LoadFile(path_.string().c_str());
@@ -25,23 +25,23 @@ void ResourceManager::loadXml(const std::filesystem::path& path_, graphics::GpuR
 		const char* path = sprite_node->FirstChildElement("path")->GetText();
 
 		const char* scale_mode_text = sprite_node->FirstChildElement("scaleMode")->GetText();
-		SDL_ScaleMode scale_mode;
+		TextureScaleMode scale_mode;
 
 		if (strcmp(scale_mode_text, "NEAREST") == 0)
 		{
-			scale_mode = SDL_SCALEMODE_NEAREST;
+			scale_mode = TextureScaleMode::NEAREST;
 		}
 		else if (strcmp(scale_mode_text, "LINEAR") == 0)
 		{
-			scale_mode = SDL_SCALEMODE_LINEAR;
+			scale_mode = TextureScaleMode::LINEAR;
 		}
 		else if (strcmp(scale_mode_text, "PIXELART") == 0)
 		{
-			scale_mode = SDL_SCALEMODE_PIXELART;
+			scale_mode = TextureScaleMode::NEAREST;
 		}
 		else
 		{
-			scale_mode = SDL_SCALEMODE_INVALID;
+			scale_mode = TextureScaleMode::LINEAR;
 		}
 
 		const auto& rect_listing_node = sprite_node->FirstChildElement("rectListing");
@@ -142,8 +142,8 @@ ResourceManager::ResourceManager()
 	
 }
 
-void ResourceManager::addSpriteSheet(const std::string& name, graphics::GpuRenderer& screen, const std::filesystem::path& path,
-                                     const SpriteList& sprite_list, SDL_ScaleMode scale_mode)
+void ResourceManager::addSpriteSheet(const std::string& name, graphics::Renderer& screen, const std::filesystem::path& path,
+                                     const SpriteList& sprite_list, TextureScaleMode scale_mode)
 {
 	spritesheets[name] = std::make_shared<SpriteSheet>(screen, path, sprite_list, scale_mode);
 }

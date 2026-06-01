@@ -157,3 +157,46 @@ jobs:
         with:
           name: Rate-macos
           path: Rate-macos.zip
+          
+          
+  build-web: 
+    runs-on: ubuntu_latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+          with:
+            submodules: recursive
+            
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+
+      - name: Configure
+          run: emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build -j
+          - 
+        # Packaging
+       - name: 'Create dist folder'
+         run: |
+           mkdir package
+           
+           cp build/SDL_PRO_GEN.html package/
+           cp build/SDL_PRO_GEN.wasm package/
+           cp build/SDL_PRO_GEN.js package/
+           cp build/SDL_PRO_GEN.data package/
+           cp LICENSE package/ || true
+           cp README.md package/ || true
+           cp -r OTHER_LICENSES package/ || true
+           
+           cd package
+           zip -r ../Rate-web.zip .
+           
+       - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rate-web
+          path: Rate-web.zi
+      

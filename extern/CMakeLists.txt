@@ -19,6 +19,9 @@ add_subdirectory(SDL_shadercross EXCLUDE_FROM_ALL)
 add_subdirectory(glm EXCLUDE_FROM_ALL)
 ]]
 #graphics-lib
+if(EMSCRIPTEN)
+	set(GRAPHICS_USE_SDL_RENDERER ON)
+endif()
 add_subdirectory(graphics-lib EXCLUDE_FROM_ALL)
 #tinyxml2
 add_subdirectory(tinyxml2 EXCLUDE_FROM_ALL)

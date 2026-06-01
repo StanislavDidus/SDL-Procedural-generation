@@ -1,5 +1,5 @@
 #pragma once
-#include <graphics/GpuRenderer.hpp>
+#include <graphics/Renderer.hpp>
 
 struct Background
 {
@@ -17,7 +17,7 @@ public:
 	~DynamicBackground() = default;
 
 	void update(const glm::vec2& camera_position);
-	void render(graphics::GpuRenderer& screen, const glm::vec2& camera_position) const;
+	void render(graphics::Renderer& screen, const glm::vec2& camera_position) const;
 
 	void setGlobalTime(float time);
 private:

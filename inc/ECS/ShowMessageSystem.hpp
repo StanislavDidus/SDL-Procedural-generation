@@ -2,7 +2,7 @@
 #include <entt/entity/registry.hpp>
 
 #include "Components.hpp"
-#include <graphics/GpuRenderer.hpp>
+#include <graphics/Renderer.hpp>
 #include "GpuRenderFunctions.hpp"
 #include "ResourceManager.hpp"
 
@@ -33,7 +33,7 @@ public:
         }).begin(), messages.end());
     }
     
-    void render(graphics::GpuRenderer& screen) const
+    void render(graphics::Renderer& screen) const
     {
         const auto& sprite = ResourceManager::get().getSpriteSheet("ui")->getSprite("Dialogue_Window");
         const auto& font = ResourceManager::get().getFont("Main");
@@ -68,7 +68,8 @@ public:
                     message_height
                     );
             
-                graphics::Text text{screen, font, show_message_component.text, graphics::Color::BLACK,  240};
+                graphics::Text text{screen.getTextEngine(), font, show_message_component.text, graphics::Color::BLACK};
+                text.setWrappedWidth(240);
             
                 printTextScaled(
                     screen,

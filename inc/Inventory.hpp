@@ -11,7 +11,7 @@ class ItemUsageSystem;
 
 namespace graphics
 {
-	class Renderer;
+	//class Renderer;
 }
 
 /// <summary>

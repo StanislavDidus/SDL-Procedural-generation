@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.15...4.2.1)
 
+if(EMSCRIPTEN)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 project(SDL_PRO_GEN VERSION 1.0
     DESCRIPTION "Small survival game with procedural generation made with SDL3"
     LANGUAGES C CXX)
@@ -145,16 +149,12 @@ add_custom_target(copy_assets_game
 )
 add_dependencies(SDL_PRO_GEN copy_assets_game)
 
-if(WIN32)
-COPY_DLLS(SDL_PRO_GEN)
-endif(WIN32)
-
 #Command to copy shaders from graphics_lib to this project
-add_custom_command(TARGET SDL_PRO_GEN POST_BUILD
+#[[add_custom_command(TARGET SDL_PRO_GEN POST_BUILD
 COMMAND ${CMAKE_COMMAND} -E copy_directory
 "${PROJECT_SOURCE_DIR}/extern/graphics-lib/shaders"
 $<TARGET_FILE_DIR:SDL_PRO_GEN>
-COMMENT "Copying shader folder from graphics-lib")
+COMMENT "Copying shader folder from graphics-lib")]]
 
 target_include_directories(SDL_PRO_GEN PUBLIC inc)
 
@@ -167,9 +167,22 @@ target_link_libraries(
     tinyxml2
     EnTT::EnTT
 )
+graphics_setup_runtime_dependencies(SDL_PRO_GEN "${PROJECT_SOURCE_DIR}/extern/graphics-lib")
 
 set_target_properties(SDL_PRO_GEN PROPERTIES
         BUILD_RPATH "\$ORIGIN"
 )
 
+if(EMSCRIPTEN)
+    set_target_properties(SDL_PRO_GEN PROPERTIES SUFFIX ".html")
+    
+    target_link_options(SDL_PRO_GEN PRIVATE
+            "--preload-file=${CMAKE_SOURCE_DIR}/assets@/assets"
+            "--preload-file=${CMAKE_SOURCE_DIR}/data@/data"
+            "-sALLOW_MEMORY_GROWTH=1"
+            "-sINITIAL_MEMORY=128MB"
+            "-03"
+            "-flto"
+    )
+endif()
 target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_23)

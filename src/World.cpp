@@ -9,7 +9,6 @@
 #include "ResourceManager.hpp"
 #include "TileManager.hpp"
 #include "ECS/Components.hpp"
-#include "glm/gtx/io.hpp"
 
 World::World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, const std::vector<ObjectData>& objects, const std::vector<ChestData>& chests)
 	: grid{grid}
@@ -17,8 +16,16 @@ World::World(const Grid<Tile>& grid, const std::vector<PortalData>& portals, con
 	, objects{objects}
 	, chests{chests}
 {
-	sprite_map.resize(grid.getColumns() * grid.getRows());
-	chunks.resize((grid.getColumns() / chunk_width_tiles) * (grid.getRows() / chunk_height_tiles));
+	//sprite_map.resize(grid.getColumns() * grid.getRows());
+	//chunks.resize((grid.getColumns() / chunk_width_tiles) * (grid.getRows() / chunk_height_tiles));
+	
+	for (int x = 0; x < grid.getColumns(); ++x)
+	{
+		for (int y = 0; y < grid.getRows(); ++y)
+		{
+			sprite_map.emplace_back(TileManager::get().getProperties(grid(x, y).id).sprite_index);
+		}
+	}
 }
 
 void World::initWorld(entt::registry& registry, float tile_width, float tile_height)
@@ -65,9 +72,11 @@ void World::placeTile(int x, int y, int tile_id)
 		{
 			tile.id = tile_id;
 			tile.current_durability = TileManager::get().getProperties(tile.id).max_durability;
-			chunks[getChunkIndexByTilePosition(x, y)].is_dirty = true;
+			//chunks[getChunkIndexByTilePosition(x, y)].is_dirty = true;
 			
 			ResourceManager::get().getSound("Place Tile")->play();
+			
+			tile_changes.emplace_back(x, y, tile_id);
 		}
 	}
 
@@ -86,7 +95,7 @@ void World::damageTile(int x, int y, float damage)
 	{
 		tile.dealDamage(damage);
 		
-		chunks[getChunkIndexByTilePosition(x, y)].damaged_tile = true;
+		//chunks[getChunkIndexByTilePosition(x, y)].damaged_tile = true;
 		
 		// Render break animations
 		
@@ -100,7 +109,9 @@ void World::damageTile(int x, int y, float damage)
 		{
 			tile.id = TileManager::get().getTileID("Sky");
 			tile.is_destroyed = false;
-			chunks[getChunkIndexByTilePosition(x, y)].is_dirty = true;
+			//chunks[getChunkIndexByTilePosition(x, y)].is_dirty = true;
+			
+			tile_changes.emplace_back(x, y, TileManager::get().getTileID("Sky"));
 		}
 	}
 }
@@ -118,7 +129,7 @@ void World::update(entt::registry& registry)
 	damaged_tiles.clear();
 }
 
-void World::render(graphics::GpuRenderer& screen, float tile_width_world, float tile_height_world) const
+void World::render(graphics::Renderer& screen, float tile_width_world, float tile_height_world) const
 {
 	for (const auto& tile : damaged_tiles)
 	{
@@ -161,29 +172,24 @@ void World::render(graphics::GpuRenderer& screen, float tile_width_world, float 
 	}	
 }
 
-void World::setSpriteMap(graphics::TileMap& tilemap)
+void World::updateTileMapGrid(graphics::TileMap& tilemap)
 {
-	for (const auto& chunk : tilemap.getChunks())
+	for (const auto& tile_change : tile_changes)
 	{
-		int world_height_chunks = grid.getColumns() / chunk_width_tiles;
-		int index = chunk->getIndex();
-		int index_x = index % world_height_chunks;
-		int index_y = index / world_height_chunks;
-		
-		if (chunks[index].is_dirty)
+		tilemap.setTile(tile_change.x, tile_change.y, tile_change.id);
+	}
+	tile_changes.clear();
+}
+
+void World::initiliazeTileMapGrid(graphics::TileMap& tile_map)
+{
+	int width = tile_map.getWorldSize().width;
+	int height = tile_map.getWorldSize().height;
+	for (int x = 0; x < width; ++x)
+	{
+		for (int y = 0; y < height; ++y)
 		{
-			std::vector<Uint32> sprite_map;
-			sprite_map.resize(chunk->getSize());
-			for (int y = 0; y < chunk->getHeight(); ++y)
-			{
-				for (int x = 0; x < chunk->getWidth(); ++x)
-				{
-					int sprite_index = TileManager::get().getProperties(grid(index_x * chunk->getWidth() + x, index_y * chunk->getHeight() + y).id).sprite_index;
-					sprite_map[x + y * chunk->getWidth()] = sprite_index;
-				}
-			}
-			chunk->setSpriteMap(sprite_map);
-			chunks[index].is_dirty = false;
+			tile_map.setTile(x, y, sprite_map[y + x * height]);
 		}
 	}
 }

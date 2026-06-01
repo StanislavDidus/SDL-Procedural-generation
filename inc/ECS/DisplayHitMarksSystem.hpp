@@ -1,7 +1,7 @@
 #pragma once
 #include "ComponentManager.hpp"
 #include "EntityManager.hpp"
-#include <graphics/GpuRenderer.hpp>
+#include <graphics/Renderer.hpp>
 
 class DisplayHitMarksSystem
 {

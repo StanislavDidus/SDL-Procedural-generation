@@ -14,7 +14,7 @@
 #include "ValueNoise.hpp"
 #include "PerlynNoise.hpp"
 #include "MapRange.hpp"
-#include <graphics/Chunk.hpp>
+//#include <graphics/Chunk.hpp>
 #include "ObjectManager.hpp"
 #include "TileManager.hpp"
 #include "GenerationData.hpp"

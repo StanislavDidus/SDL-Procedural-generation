@@ -61,7 +61,7 @@ public:
 	/// Renders inventory items on screen.
 	/// </summary>
 	/// <param name="screen">Takes renderer as a parameter to render things on the screen.</param>
-	void render(graphics::GpuRenderer& screen) override;
+	void render(graphics::Renderer& screen) override;
 private:
 	/// <summary>
 	/// Finds the inventory slot that is being covered by a mouse(if mouse is on the inventory UI).
@@ -88,7 +88,7 @@ private:
 	/// </summary>
 	void isMovingItems();
 
-	void drawItem(graphics::GpuRenderer& screen, Entity item, const glm::vec2& position, int index);
+	void drawItem(graphics::Renderer& screen, Entity item, const glm::vec2& position, int index);
 
 	int rows;
 	int columns;

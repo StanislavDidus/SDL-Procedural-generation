@@ -11,18 +11,18 @@
 class RenderEssenceCounter
 {
 public:
-	RenderEssenceCounter(const entt::registry& registry, const UISettings& ui_settings, graphics::GpuRenderer& screen, std::shared_ptr<graphics::Font> font) 
+	RenderEssenceCounter(const entt::registry& registry, const UISettings& ui_settings, graphics::Renderer& screen, std::shared_ptr<graphics::Font> font) 
 		: registry{ registry }
 		, ui_settings{ ui_settings }
 		, font { font }
-		, common_essence_text(screen, font, " ", graphics::Color::BLACK)
-		, snow_essence_text(screen, font, " ", graphics::Color::BLACK)
-		, sand_essence_text(screen, font, " ", graphics::Color::BLACK)
+		, common_essence_text(screen.getTextEngine(), font, " ", graphics::Color::BLACK)
+		, snow_essence_text(screen.getTextEngine(), font, " ", graphics::Color::BLACK)
+		, sand_essence_text(screen.getTextEngine(), font, " ", graphics::Color::BLACK)
 	{
 		
 	}
 
-	void render(graphics::GpuRenderer& screen, Entity target_entity)
+	void render(graphics::Renderer& screen, Entity target_entity)
 	{
 		if (!registry.all_of<Components::EquipmentEssence>(target_entity)) return;
 
@@ -45,9 +45,10 @@ public:
 			if (common_essence_text.getText() != string)
 			{
 				common_essence_text.setText(string);
-				common_essence_text.updateText(screen);
+				//common_essence_text.updateText(screen);
 			}
-			glm::vec2 text_size = common_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
+			//glm::vec2 text_size = common_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
+			glm::vec2 text_size = common_essence_text.getSize();
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
 			printTextScaled(screen, common_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, IGNORE_VIEW_ZOOM);	
@@ -65,9 +66,10 @@ public:
 			if (snow_essence_text.getText() != string)
 			{
 				snow_essence_text.setText(string);
-				snow_essence_text.updateText(screen);
+				//snow_essence_text.updateText(screen);
 			}
-			glm::vec2 text_size = snow_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
+			//glm::vec2 text_size = snow_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
+			glm::vec2 text_size = common_essence_text.getSize();
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
 			printTextScaled(screen,snow_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, IGNORE_VIEW_ZOOM);	
@@ -84,10 +86,11 @@ public:
 			if (sand_essence_text.getText() != string)
 			{
 				sand_essence_text.setText(string);
-				sand_essence_text.updateText(screen);
+				//sand_essence_text.updateText(screen);
 			}
 
-			glm::vec2 text_size = sand_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
+			//glm::vec2 text_size = sand_essence_text.getTextSize(glm::vec2{ ui_settings.essence_text_scale });
+			glm::vec2 text_size = common_essence_text.getSize();
 
 			float new_y = position.y + size.y * 0.5f - text_size.y * 0.5;
 			printTextScaled(screen, sand_essence_text, position.x + offset_x, new_y, ui_settings.essence_text_scale, ui_settings.essence_text_scale, IGNORE_VIEW_ZOOM);	

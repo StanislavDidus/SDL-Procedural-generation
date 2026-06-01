@@ -1,10 +1,10 @@
 #pragma once
 
-#include <graphics/GpuRenderer.hpp>
+#include <graphics/Renderer.hpp>
 
 static bool IGNORE_VIEW_ZOOM = true;
 
-inline glm::vec2 getMouseGlobalPosition(const graphics::GpuRenderer& renderer, const glm::vec2& mouse_position)
+inline glm::vec2 getMouseGlobalPosition(const graphics::Renderer& renderer, const glm::vec2& mouse_position)
 {
     const auto& view = renderer.getView();
     const auto& zoom = renderer.getZoom();
@@ -14,51 +14,52 @@ inline glm::vec2 getMouseGlobalPosition(const graphics::GpuRenderer& renderer, c
 
     glm::vec2 result{ view + mid_screen + (mouse_position - mid_screen) / zoom };
     return result;
+    //return mouse_position;
 }
 
-inline void drawRectangle(graphics::GpuRenderer& screen, float x, float y, float width, float height, graphics::RenderType render_type, graphics::Color color, bool ignore_view_zoom = false)
+inline void drawRectangle(graphics::Renderer& screen, float x, float y, float width, float height, graphics::RenderType render_type, graphics::Color color, bool ignore_view_zoom = false)
 {
     if (ignore_view_zoom)
         screen.setRenderMode(graphics::RenderMode::UI);
-    screen.renderRectangle(x, y, width, height, render_type, color);
+    screen.drawRectangle(x, y, width, height, color, render_type);
     if (ignore_view_zoom)
         screen.setRenderMode(graphics::RenderMode::WORLD);
 }
 
-inline void drawScaledSprite(graphics::GpuRenderer& screen, const graphics::Sprite& sprite, float x, float y, float width, float height, bool ignore_view_zoom = false, graphics::Color color = graphics::Color::WHITE)
+inline void drawScaledSprite(graphics::Renderer& screen, const graphics::Sprite& sprite, float x, float y, float width, float height, bool ignore_view_zoom = false, graphics::Color color = graphics::Color::WHITE)
 {
     if (ignore_view_zoom)
         screen.setRenderMode(graphics::RenderMode::UI);
-    screen.renderSprite(sprite, x, y, width, height, 0.0f, SDL_FLIP_NONE, color);
+    screen.drawSprite(sprite, x, y, width, height, 0.0f, SDL_FLIP_NONE, color);
     if (ignore_view_zoom) 
         screen.setRenderMode(graphics::RenderMode::WORLD);
 }
 
-inline void drawRotatedSprite(graphics::GpuRenderer& screen, const graphics::Sprite& sprite, float x, float y, float width, float height, float angle,
+inline void drawRotatedSprite(graphics::Renderer& screen, const graphics::Sprite& sprite, float x, float y, float width, float height, float angle,
     SDL_FlipMode flip_mode, bool ignore_view_zoom = false, graphics::Color color = graphics::Color::WHITE)
 {
     if (ignore_view_zoom) 
         screen.setRenderMode(graphics::RenderMode::UI);
-    screen.renderSprite(sprite, x, y, width, height, angle, flip_mode, color);
+    screen.drawSprite(sprite, x, y, width, height, angle, flip_mode, color);
     if (ignore_view_zoom) 
         screen.setRenderMode(graphics::RenderMode::WORLD);
 }
 
-inline void printText(graphics::GpuRenderer& screen, const graphics::Text& text, float x, float y, float w, float h, bool ignore_view_zoom = false)
+inline void printText(graphics::Renderer& screen, const graphics::Text& text, float x, float y, float w, float h, bool ignore_view_zoom = false)
 {
     if (ignore_view_zoom) 
         screen.setRenderMode(graphics::RenderMode::UI);
-    screen.renderText(text, x, y, w, h);
+    screen.drawText(text, x, y);
     if (ignore_view_zoom) 
         screen.setRenderMode(graphics::RenderMode::WORLD);
 }
 
-inline void printTextScaled(graphics::GpuRenderer& screen, const graphics::Text& text, float x, float y, float scale_x, float scale_y, bool ignore_view_zoom = false)
+inline void printTextScaled(graphics::Renderer& screen, const graphics::Text& text, float x, float y, float scale_x, float scale_y, bool ignore_view_zoom = false)
 {
     if (ignore_view_zoom) 
         screen.setRenderMode(graphics::RenderMode::UI);
-    glm::vec2 scaled_size = text.getTextSize({scale_x, scale_y});
-    screen.renderText(text, x, y, scaled_size.x, scaled_size.y);
+    //glm::vec2 scaled_size = text.getTextSize({scale_x, scale_y});
+    screen.drawText(text, x, y);
     if (ignore_view_zoom)
         screen.setRenderMode(graphics::RenderMode::WORLD);
 }

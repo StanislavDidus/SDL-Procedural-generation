@@ -42,7 +42,7 @@ void DynamicBackground::update(const glm::vec2& camera_position)
 	}
 }
 
-void DynamicBackground::render(GpuRenderer& screen, const glm::vec2& camera_position) const
+void DynamicBackground::render(Renderer& screen, const glm::vec2& camera_position) const
 {
 	const auto& window_size = static_cast<glm::vec2>(screen.getStandardWindowSize());
 	for (const auto& background : backgrounds)
