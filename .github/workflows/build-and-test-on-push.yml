@@ -173,7 +173,7 @@ jobs:
           version: latest
 
       - name: Configure
-          run: emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        run: emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: cmake --build build -j
