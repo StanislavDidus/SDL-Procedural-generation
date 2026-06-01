@@ -6,6 +6,7 @@
 .vscode/
 .idea/
 imgui.ini
+emcmake
 
 # User-specific files
 *.rsuser

@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.15...4.2.1)
 
+if(EMSCRIPTEN)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 project(SDL_PRO_GEN VERSION 1.0
     DESCRIPTION "Small survival game with procedural generation made with SDL3"
     LANGUAGES C CXX)
@@ -169,4 +173,16 @@ set_target_properties(SDL_PRO_GEN PROPERTIES
         BUILD_RPATH "\$ORIGIN"
 )
 
+if(EMSCRIPTEN)
+    set_target_properties(SDL_PRO_GEN PROPERTIES SUFFIX ".html")
+    
+    target_link_options(SDL_PRO_GEN PRIVATE
+            "--preload-file=${CMAKE_SOURCE_DIR}/assets@/assets"
+            "--preload-file=${CMAKE_SOURCE_DIR}/data@/data"
+            "-sALLOW_MEMORY_GROWTH=1"
+            "-sINITIAL_MEMORY=128MB"
+            "-03"
+            "-flto"
+    )
+endif()
 target_compile_features(SDL_PRO_GEN PUBLIC cxx_std_23)
