@@ -184,3 +184,56 @@ jobs:
         run: butler push Rate-macos.zip ilikestas/Rate-02:macOs
         env:
           BUTLER_API_KEY: ${{ secrets.ITCH_DEPLOY_KEY }}
+          
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+  
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+  
+      - name: Configure
+        run: emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+  
+      - name: Build
+        run: cmake --build build -j
+        
+        # Packaging
+      - name: Create dist folder
+        run: |
+          mkdir package
+          
+          cp build/SDL_PRO_GEN.html package/
+          cp build/SDL_PRO_GEN.wasm package/
+          cp build/SDL_PRO_GEN.js package/
+          cp build/SDL_PRO_GEN.data package/
+          cp LICENSE package/ || true
+          cp README.md package/ || true
+          cp -r OTHER_LICENSES package/ || true
+          
+          cd package
+          zip -r ../Rate-web.zip .
+          
+      # Upload binaries to Release
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: Rate-web.zip
+          asset_name: Rate-web.zip
+          tag: ${{ github.ref }}
+          
+      # Deploy game on itch.io
+       - name: Setup butler
+       uses: remarkablegames/setup-butler@v3
+  
+       - name: Upload to itch.io
+         run: butler push Rate-web.zip ilikestas/Rate-02:html
+         env:
+           BUTLER_API_KEY: ${{ secrets.ITCH_DEPLOY_KEY }}
