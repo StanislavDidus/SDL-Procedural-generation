@@ -216,6 +216,7 @@ jobs:
           cp LICENSE package/ || true
           cp README.md package/ || true
           cp -r OTHER_LICENSES package/ || true
+          mv package/SDL_PRO_GEN.html package/index.html
           
           cd package
           zip -r ../Rate-web.zip .
