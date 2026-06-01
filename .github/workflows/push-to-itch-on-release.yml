@@ -230,10 +230,10 @@ jobs:
           tag: ${{ github.ref }}
           
       # Deploy game on itch.io
-       - name: Setup butler
-       uses: remarkablegames/setup-butler@v3
+      - name: Setup butler
+        uses: remarkablegames/setup-butler@v3
   
-       - name: Upload to itch.io
-         run: butler push Rate-web.zip ilikestas/Rate-02:html
-         env:
+      - name: Upload to itch.io
+        run: butler push Rate-web.zip ilikestas/Rate-02:html
+        env:
            BUTLER_API_KEY: ${{ secrets.ITCH_DEPLOY_KEY }}
