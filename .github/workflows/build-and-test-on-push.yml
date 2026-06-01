@@ -198,5 +198,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Rate-web
-          path: Rate-web.zi
+          path: Rate-web.zip
       
